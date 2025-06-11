@@ -1,8 +1,32 @@
 import React from 'react';
 import AuthLayout from '../components/Layout/AuthLayout';
 import { ForgetPasswordEmailInputForm } from '../components/Authentication';
+import { useDispatch } from 'react-redux';
+import toast from "react-hot-toast";
+import { forgotPassword as forgotPasswordService } from '../services/authService';
+import { loading as loadingAction } from '../app/userSlice';
+import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
 
 const ForgotPassword = () => {
+  const dispatch = useDispatch();
+
+  const forgotPasswordHandler = async (formData) => {
+    try {
+      dispatch(loadingAction());
+      const response = await forgotPasswordService(formData.email);
+
+      if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+        toast.success(response.message || "If the email is registered, a password reset link has been sent.");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "An error occurred. Please try again later.";
+      toast.error(message);
+    } finally {
+      dispatch(loadingAction());
+    }
+  };
+
   const illustration = (
     <div
       className="hidden md:flex flex-1 items-center justify-center relative rounded-2xl"
@@ -37,7 +61,7 @@ const ForgotPassword = () => {
         </p>
       </div>
       <div className="w-full">
-        <ForgetPasswordEmailInputForm />
+        <ForgetPasswordEmailInputForm forgotPasswordHandler={forgotPasswordHandler} />
         <div className="text-center mt-6">
           <p className="text-gray-600">
             Did you remembered your password?{' '}
