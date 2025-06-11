@@ -1,8 +1,43 @@
 import React from 'react';
-import { Input, Button, PasswordInput } from '../components/Form';
 import AuthLayout from '../components/Layout/AuthLayout';
-import LoginForm from '../components/Authentication/LoginForm';
+import { LoginForm } from '../components/Authentication';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import toast from "react-hot-toast";
+import { login as loginService } from '../services/authService';
+import { login as loginAction, loading as loadingAction } from '../app/userSlice';
+import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
+
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const loginHandler = async (formData) => {
+    try {
+      dispatch(loadingAction());
+
+      const response = await loginService(formData.email, formData.password);
+
+      if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+        const userData = {
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+        };
+
+        dispatch(loginAction(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
+        toast.success("Logged in successfully!");
+        navigate("/");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Login failed, please try again later.";
+      toast.error(message);
+    } finally {
+      dispatch(loadingAction());
+    }
+  };
+
   const illustration = (
     <div
       className="flex-1 flex items-center justify-center relative rounded-2xl"
@@ -42,11 +77,11 @@ const Login = () => {
       </div>
 
       <div className="w-full">
-        <LoginForm />
+        <LoginForm loginHandler={loginHandler} />
         <div className="text-center mt-6">
           <p className="text-gray-500">
             Don't have an account?{' '}
-            <a href="#" className="text-orange-500 font-medium">
+            <a href="/signup" className="text-orange-500 font-medium">
               Signup
             </a>
           </p>

@@ -1,6 +1,6 @@
 import React from 'react';
 import AuthLayout from '../components/Layout/AuthLayout';
-import ForgetPasswordEmailInputForm from '../components/Authentication/ForgetPasswordEmailInputForm';
+import { ForgetPasswordEmailInputForm } from '../components/Authentication';
 
 const ForgotPassword = () => {
   const illustration = (
