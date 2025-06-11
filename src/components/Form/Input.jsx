@@ -2,22 +2,13 @@ import React, { useId } from "react"
 
 function Input({
     type = 'text',
-    label,
-    classNameDiv = "",
-    classNameInput = "",
-    classNameLabel = "",
+    className = "",
     ...props
 }, ref) {
     const id = useId()
 
     return (
-        <div className={`${classNameDiv}`}>
-            {label && <label htmlFor={id} className={`${classNameLabel}`}>
-                {label}
-            </label>
-            }
-            <input type={type} ref={ref} id={id} className={`border-1 w-full ${classNameInput}`} {...props} />
-        </div >
+        <input type={type} ref={ref} id={id} className={`${className}`} {...props} />      
     )
 }
 

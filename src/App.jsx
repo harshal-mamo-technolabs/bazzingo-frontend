@@ -1,8 +1,8 @@
-import { Signup } from './pages';
+import { Login } from './pages';
 function App() {
   return (
     <>
-    <Signup />
+    home
     </>
   );
 }
