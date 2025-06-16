@@ -53,7 +53,7 @@ const ForgotPassword = () => {
   );
 
   return (
-    <AuthLayout illustration={illustration}>
+    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-puzzle-bear.png">
       <div className="text-center">
         <h1 className="text-5xl font-bold text-gray-800">Forgot Password</h1>
         <p className="text-base text-gray-500 mt-4 max-w-md">

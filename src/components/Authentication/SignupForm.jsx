@@ -1,6 +1,6 @@
 import { Input, Button, PasswordInput } from '../Form';
 import { useForm } from "react-hook-form";
-import toast from 'react-hot-toast';
+//import toast from 'react-hot-toast';
 
 export default function SignupForm({ signupHandler}) {
 

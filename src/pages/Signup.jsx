@@ -79,7 +79,7 @@ const Signup = () => {
         }}
       />
       <div
-        className="absolute bottom-8 flex items-center justify-center bg-white rounded-2xl shadow-lg p-4"
+        className="absolute bottom-8 flex items-center justify-center bg-white rounded-2xl shadow-lg p-4 md:p-0"
         style={{ width: '42%', height: '12%' }}
       >
         <img
@@ -91,7 +91,7 @@ const Signup = () => {
     </div>
   );
   return (
-    <AuthLayout illustration={illustration}>
+    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-head.png">
       <div className="text-center">
         <h1 className="text-5xl font-bold text-gray-800">Welcome</h1>
         <p className="text-lg text-gray-500 mt-2">
