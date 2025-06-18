@@ -59,8 +59,8 @@ const ResetPassword = () => {
   return (
     <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-puzzle-bear.png">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-800">Reset Password</h1>
-        <p className="text-base text-gray-500 mt-4 max-w-md">
+        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Reset Password</h1>
+        <p className="md:text-lg text-[16px] text-gray-500 mt-4 max-w-md mb-4 md:mb-0n">
           Enter your new password below.
         </p>
       </div>

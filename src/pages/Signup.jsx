@@ -65,7 +65,7 @@ const Signup = () => {
   const illustration = (
     <div
       className="flex-1 flex items-center justify-center relative rounded-2xl"
-      style={{ backgroundColor: '#FFE5E0', height: '100%' }}
+      style={{ backgroundColor: '#f7bba9', height: '100%' }}
     >
       <img
         src="/bazzingo-head.png"
@@ -93,20 +93,20 @@ const Signup = () => {
   return (
     <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-head.png">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-800">Welcome</h1>
-        <p className="text-lg text-gray-500 mt-2">
+        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Welcome</h1>
+        <p className="md:text-lg text-[16px] text-gray-500 mt-2 md:mb-0 mb-2">
           Please sign-up to your account and start the adventure
         </p>
       </div>
       <div className="w-full">
         <SignupForm signupHandler={signupHandler} />
-        <div className="text-center my-6">
-          <p className="text-gray-500">Or Continue With</p>
+        <div className="text-center my-4 md:my-6">
+          <p className="text-gray-500 text-[14px] md:text-[16px]">Or Continue With</p>
         </div>
         <div className="flex justify-center gap-4">
-          <div className="relative flex-1">
+          <div className="relative flex-none md:flex-1">
             <Button
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 border border-gray-300 rounded-lg"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 md:py-3 border border-gray-300 rounded-lg"
             >
               <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
               <span className="font-bold text-sm text-gray-800">Google</span>
@@ -120,7 +120,7 @@ const Signup = () => {
               />
             </div>
           </div>
-          <Button className="flex flex-1 items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg">
+          <Button className="flex flex-none md:flex-1 items-center justify-center gap-2 px-4 py-2 md:py-3 border border-gray-300 rounded-lg">
             <img
               src="/facebook-icon.svg"
               alt="Facebook"
@@ -131,8 +131,8 @@ const Signup = () => {
             </span>
           </Button>
         </div>
-        <div className="text-center mt-6">
-          <p className="text-gray-500">
+        <div className="text-center mt-3 md:mt-6">
+          <p className="text-gray-500 text-[14px] md:text-[16px]">
             Already have an account?{' '}
             <a href="/login" className="text-orange-500 font-medium">
               Signin
