@@ -53,17 +53,17 @@ const ForgotPassword = () => {
   );
 
   return (
-    <AuthLayout illustration={illustration}>
+    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-puzzle-bear.png">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-800">Forgot Password</h1>
-        <p className="text-base text-gray-500 mt-4 max-w-md">
+        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Forgot Password</h1>
+        <p className="md:text-lg text-[16px] text-gray-500 mt-4 mb-4 md:mb-0 max-w-md">
           Don't worry! Resetting your password is easy. Just type in the email you registered to Bazzingo
         </p>
       </div>
       <div className="w-full">
         <ForgetPasswordEmailInputForm forgotPasswordHandler={forgotPasswordHandler} />
         <div className="text-center mt-6">
-          <p className="text-gray-600">
+          <p className="text-[14px] md:text-[16px] text-gray-600">
             Did you remembered your password?{' '}
             <a href="/login" className="text-orange-500 font-medium">
               Try Sign in

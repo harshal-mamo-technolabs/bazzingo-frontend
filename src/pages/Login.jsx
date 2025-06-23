@@ -1,9 +1,12 @@
 import React from 'react';
 import AuthLayout from '../components/Layout/AuthLayout';
+import Button from '../components/Form/Button';
 import { LoginForm } from '../components/Authentication';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
+import { googleLogin } from '../services/authService';
+import { GoogleLogin } from '@react-oauth/google';
 import { login as loginService } from '../services/authService';
 import { login as loginAction, loading as loadingAction } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
@@ -38,10 +41,34 @@ const Login = () => {
     }
   };
 
+   const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      dispatch(loadingAction());
+      const response = await googleLogin(credentialResponse.credential);
+
+      if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+        const userData = {
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+        };
+        dispatch(loginAction(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
+        toast.success("Logged in successfully!");
+        navigate("/");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Google login failed, please try again later.";
+      toast.error(message);
+    } finally {
+      dispatch(loadingAction());
+    }
+  };
+
   const illustration = (
     <div
       className="flex-1 flex items-center justify-center relative rounded-2xl"
-      style={{ height: '100%' }}
+      style={{ height: '100%', backgroundColor: '#ffb7a2' }}
     >
       <img
         src="/bazzingo-bulb.png"
@@ -68,18 +95,49 @@ const Login = () => {
   );
 
   return (
-    <AuthLayout illustration={illustration}>
+    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-bulb.png">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-800">Welcome Back</h1>
-        <p className="text-lg text-gray-500 mt-2">
+        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Welcome Back</h1>
+        <p className="md:text-lg text-[16px] text-gray-500 mt-2 md:mb-0 mb-2">
           Please sign-in to your account and start the adventure
         </p>
       </div>
 
       <div className="w-full">
         <LoginForm loginHandler={loginHandler} />
-        <div className="text-center mt-6">
-          <p className="text-gray-500">
+        <div className="text-center my-4 md:my-6">
+          <p className="text-gray-500 text-[14px] md:text-[16px]">Or Continue With</p>
+        </div>
+        <div className="flex justify-center gap-4">
+          <div className="relative flex-none md:flex-1">
+            <Button
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 md:py-3 border border-gray-300 rounded-lg"
+            >
+              <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
+              <span className="font-bold text-sm text-gray-800">Google</span>
+            </Button>
+            <div className="absolute top-0 left-0 w-full h-full opacity-0">
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => {
+                  toast.error("Google login failed. Please try again.");
+                }}
+              />
+            </div>
+          </div>
+          <Button className="flex flex-none md:flex-1 items-center justify-center gap-2 px-4 py-2 md:py-3 border border-gray-300 rounded-lg">
+            <img
+              src="/facebook-icon.svg"
+              alt="Facebook"
+              className="w-4 h-4"
+            />
+            <span className="font-bold text-sm text-gray-800">
+              Facebook
+            </span>
+          </Button>
+        </div>
+        <div className="text-center mt-3 md:mt-6">
+          <p className="text-gray-500 text-[14px] md:text-[16px]">
             Don't have an account?{' '}
             <a href="/signup" className="text-orange-500 font-medium">
               Signup
