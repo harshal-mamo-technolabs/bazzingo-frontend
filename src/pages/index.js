@@ -10,5 +10,6 @@ import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfUse from './TermsOfUse';
 import UserDashboard from './UserDashboard';
 import Assessments from './Assessments';
+import Dashboard from './dashboard';
 
-export { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments };
+export { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard };

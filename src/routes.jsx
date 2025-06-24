@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments } from "./pages";
+import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard } from "./pages";
 
 const router = createBrowserRouter([
     {
@@ -48,8 +48,12 @@ const router = createBrowserRouter([
         element: <TermsOfUse />,
     },
     {
-        path: "/dashboard",
+        path: "/dashboard1",
         element: <UserDashboard />,
+    },
+    {
+        path: "/dashboard",
+        element: <Dashboard />,
     },
     {
         path: "/assessments",

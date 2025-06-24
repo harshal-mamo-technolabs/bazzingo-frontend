@@ -1,10 +1,24 @@
-import React,{useEffect, useRef} from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, Download, CheckCircle, Star, BellIcon } from 'lucide-react';
-import RecentActivity from '../components/Tables/RecentActivity';
+import React,{useEffect, useRef, useState} from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, CheckCircle, Star, BellIcon, Info } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';import RecentActivity from '../components/Tables/RecentActivity';
+import dayjs from "dayjs";
 
 const Dashboard = () => {
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
+  const [currentDate, setCurrentDate] = useState(dayjs());
+
+  const startOfMonth = currentDate.startOf("month");
+  const endOfMonth = currentDate.endOf("month");
+
+  const daysInMonth = currentDate.daysInMonth();
+  const startDay = startOfMonth.day(); // 0 (Sunday) - 6 (Saturday)
+  const blankDays = (startDay + 6) % 7; // Shift Sunday to end
+
+  const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
+  const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
+
+  const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
 
 useEffect(() => {
     const container = scrollRef.current;
@@ -29,12 +43,29 @@ useEffect(() => {
     };
   }, []);
 
+// Optional: simulate fetching from DB
+  /*
+  useEffect(() => {
+    fetch("/api/statistics")
+      .then(res => res.json())
+      .then(data => setStatsData(data.chartPoints));
+  }, []);
+  */
+
+  const [statsData, setStatsData] = useState([500, 900, 1200, 1500, 1600, 700, 1800]);
+  const xLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  // Transform data into Recharts format
+  const chartData = statsData.map((value, index) => ({
+    name: xLabels[index],
+    value,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
@@ -80,7 +111,7 @@ useEffect(() => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className='hidden md:block'>
         <div className="flex items-center justify-between mb-8">
@@ -184,11 +215,11 @@ useEffect(() => {
        {/* Certified Cognitive Assessment - spans 1 column */}
        <div className="col-span-1 md:col-span-2 lg:col-span-1 bg-[#ffece6] rounded-xl p-2 h-[140px] flex items-center">
   {/* Icon Area */}
-  <div className="w-24 h-24 bg-[#ff5722] rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+  <div className="w-[110px] h-[110px] bg-[#ff5722] rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
     <img
       src="/head-silhouette-with-brain-placeholder.png"
       alt="Head silhouette with brain"
-      className="w-18 h-18 object-contain"
+      className="w-[100px] h-[100px] object-contain"
     />
   </div>
 
@@ -197,42 +228,32 @@ useEffect(() => {
     <div className="text-[16px] font-semibold text-gray-800 leading-snug">
       Certified Cognitive Assessment
     </div>
-    <div className="bg-[#e0e0e0] text-gray-800 rounded-md px-2 py-[2px] text-[11px] font-medium inline-block mt-1 w-fit">
+    <div className="bg-[#e5cec8] text-black rounded-md px-2 py-[2px] text-[9px] border border-gray-400 font-medium inline-block mt-1 w-fit">
       Mini Test, 5–10 Question
     </div>
   </div>
       </div>
 
-         <div className="col-span-1 md:col-span-2 lg:col-span-1 relative bg-white rounded-xl p-4 shadow-sm border border-orange-400 h-auto flex flex-col justify-between overflow-hidden">
-      {/* Top-right Stars */}
-      <div className="absolute top-[-10px] right-[-10px]">
-        <div className="flex flex-col items-center gap-[4px] text-orange-500 text-xs">
-          <Star className="w-3 h-3" />
-          <Star className="w-4 h-4" />
-          <Star className="w-5 h-5" />
-          <Star className="w-4 h-4" />
-          <Star className="w-3 h-3" />
-        </div>
-      </div>
+         <div className="col-span-1 md:col-span-2 lg:col-span-1 relative bg-white rounded-xl p-3 shadow-sm border border-orange-400 h-auto flex flex-col justify-between overflow-hidden">
       {/* Icon + Text */}
-      <div className="flex items-start gap-3">
         {/* Medal Icon */}
         <img
-          src="https://img.icons8.com/color/48/medal.png"
+          src="/medal.png"
           alt="Medal"
-          className="w-10 h-10"
+          className="w-9 h-9 object-contain mb-2 md:mb-0 mt-[-10px]"
         />
-        <p className="text-sm text-gray-700 leading-snug">
+        <div className="flex items-start mb-2 md:mb-0 mt-0">
+        <p className="text-[13px] text-gray-700 leading-snug">
           Get a certified result you can share on LinkedIn or with employers.
         </p>
       </div>
       {/* Price + Button */}
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-baseline space-x-1">
-          <span className="text-xs text-gray-500">Only</span>
-          <span className="text-lg font-bold text-black">€0.99</span>
-        </div>
-        <button className="bg-[#ff6b35] hover:bg-[#ff5a1c] text-white text-xs font-medium py-2 px-4 rounded-full transition">
+      <div className="flex items-center gap-4 mt-2 mb-1">
+       <div className="flex flex-col leading-none">
+        <span className="text-xs text-gray-500">Only</span>
+        <span className="text-md font-bold text-black">€0.99</span>
+      </div>
+        <button className="bg-[#ff6b35] hover:bg-[#ff5a1c] text-white text-xs w-full font-medium py-2 px-4 rounded-[5px] transition">
           Start Certified Test
         </button>
       </div>
@@ -252,10 +273,8 @@ useEffect(() => {
       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
       <span className="text-sm font-medium">Daily Games Streak</span>
     </div>
-    <div className="w-5 h-5 rounded-full bg-black bg-opacity-10 flex items-center justify-center">
-      <span className="text-xs text-black opacity-50">?</span>
+      <Info className='w-4 h-4' />
     </div>
-  </div>
 
   {/* Image + Text (responsive for mobile, stacked for web) */}
   <div className="lg:hidden bg-white rounded-xl p-2 flex items-center space-x-3 mb-4">
@@ -283,10 +302,10 @@ useEffect(() => {
         className="w-full object-contain p-2"
       />
     </div>
-    <div className="bg-[#f5f5f5] rounded-b-lg px-4 py-0">
+    <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
       <div className="text-sm font-semibold text-black">Memory Match</div>
       <div className="mt-1">
-        <span className="bg-gray-200 text-gray-800 text-xs mb-3 font-medium px-3 py-2 rounded-md inline-block">
+        <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
           Mini Test, 5–10 Question
         </span>
       </div>
@@ -294,15 +313,16 @@ useEffect(() => {
   </div>
 
   {/* Pagination dots */}
-  <div className="flex justify-center space-x-2 mt-3 mb-4">
-    <div className="w-2 h-2 lg:w-2 lg:h-2 bg-gray-900 rounded-full opacity-40 lg:opacity-40 bg-[#00443e]"></div>
-    <div className="w-2 h-2 lg:w-2 lg:h-2 bg-gray-900 rounded-full opacity-20 lg:opacity-20 bg-[#c8e4c3]"></div>
-    <div className="w-2 h-2 lg:w-2 lg:h-2 bg-gray-900 rounded-full opacity-20 lg:opacity-20 bg-[#c8e4c3]"></div>
-  </div>
+  {/* Dots */}
+        <div className="flex justify-center space-x-2 md:mt-3 mt-1 mb-2 md:mb-4">
+    <div className="w-2 h-2 rounded-full opacity-80 bg-[#00443e]"></div>
+    <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
+    <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
+      </div>
 
   {/* Badge Row */}
-  <div className="flex items-center space-x-0 mb-4 px-1">
-    <span className="text-xl lg:text-lg lg:inline">🏆</span>
+  <div className="flex items-center space-x-0 mb-2 md:mb-4 px-0">
+    <span className="mr-1 lg:inline"><img src='/medal-gold.png' className='mr-1'/></span>
     <span className="text-[12px] lg:text-[12px] font-medium text-black">Get your achievement badges</span>
   </div>
 
@@ -323,11 +343,8 @@ useEffect(() => {
       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
       <span className="text-sm font-medium">Daily Quick Assesment</span>
     </div>
-    <div className="w-5 h-5 rounded-full bg-black bg-opacity-10 flex items-center justify-center">
-      <span className="text-xs text-black opacity-50">?</span>
-    </div>
+    <Info className='w-4 h-4' />
         </div>
-
          {/* Mobile Layout */}
         <div className="lg:hidden bg-white rounded-xl p-2 flex items-center space-x-3 mb-4">
     <img
@@ -338,7 +355,7 @@ useEffect(() => {
     <div>
       <div className="text-sm font-semibold text-black">Memory Match</div>
       <div className="mt-1">
-        <span className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
+        <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
           Mini Test, 5–10 Question
         </span>
       </div>
@@ -357,10 +374,10 @@ useEffect(() => {
     </div>
 
     {/* Title & subtitle */}
-    <div className="bg-[#f5f5f5] rounded-b-lg px-4 py-0">
+    <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
       <div className="text-sm font-semibold text-black">Memory Match</div>
       <div className="mt-1">
-        <span className="bg-gray-200 text-gray-800 text-xs mb-3 font-medium px-3 py-2 rounded-md inline-block">
+        <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
           Mini Test, 5–10 Question
         </span>
       </div>
@@ -368,16 +385,15 @@ useEffect(() => {
         </div>
 
         {/* Dots */}
-        <div className="flex justify-center space-x-2 mt-3 mb-4">
-    <div className="w-2 h-2 bg-gray-900 rounded-full opacity-40"></div>
+        <div className="flex justify-center space-x-2 md:mt-3 mt-1 mb-2 md:mb-4">
+    <div className="w-2 h-2 rounded-full opacity-80 bg-[#00443e]"></div>
     <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
     <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
       </div>
 
        {/* Badge Row */}
-      <div className="flex items-center space-x-0 mb-4 px-1">
-    <span className="text-xl lg:text-lg lg:inline">🏆</span>
-    <img src="/badge-icon.png" alt="Badge" className="w-6 h-6 lg:hidden" />
+      <div className="flex items-center space-x-0 md:mb-4 mb-2 px-0">
+    <span className="mr-1 lg:inline"><img src='/medal-gold.png' className='mr-1'/></span>
     <span className="text-[12px] lg:text-[12px] font-medium text-black">Get your achievement badges</span>
       </div>
 
@@ -389,166 +405,151 @@ useEffect(() => {
         </div>
 
           {/* Middle Column - Calendar */}
-          <div className="lg:col-span-1 flex flex-col h-full lg:w-[270px] bg-[#ffece6] rounded-xl p-3 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h3 className="text-md font-semibold text-gray-900">Current Streak</h3>
-                    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-xs text-gray-500">?</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-sm text-gray-500">Nov, 2025</span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-1 hover:bg-gray-100 rounded">
-                    <ChevronLeft className="w-4 h-4 text-gray-500" />
-                  </button>
-                  <button className="p-1 hover:bg-gray-100 rounded">
-                    <ChevronRight className="w-4 h-4 text-gray-500" />
-                  </button>
-                </div>
+            <div className="lg:col-span-1 flex flex-col h-full lg:w-[280px] bg-[#ffece6] rounded-xl p-3 shadow-sm border border-gray-100">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h3 className="text-md font-semibold text-gray-900">Current Streak</h3>
+            <Info className="w-4 h-4" />
+          </div>
+          <div className="text-sm text-gray-500 mt-1">
+            {currentDate.format("MMM, YYYY")}
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button onClick={prevMonth} className="p-1 bg-white rounded">
+            <ChevronLeft className="w-4 h-4 text-gray-500" />
+          </button>
+          <button onClick={nextMonth} className="p-1 bg-white rounded">
+            <ChevronRight className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+      </div>
+
+      {/* Calendar */}
+      <div className="bg-white p-1">
+        {/* Day Names */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {dayNames.map((day) => (
+            <div
+              key={day}
+              className="text-center text-sm font-medium text-gray-500 p-2"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Days */}
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: blankDays }).map((_, i) => (
+            <div
+              key={`blank-${i}`}
+              className="text-center p-2 text-sm text-transparent"
+            >
+              {i + 1}
+            </div>
+          ))}
+
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const today = dayjs();
+            const isToday =
+              currentDate.isSame(today, "month") &&
+              day === today.date();
+
+            return (
+              <div
+                key={day}
+                className={`text-center p-2 text-sm rounded-lg cursor-pointer transition-colors
+                  ${isToday
+                    ? "bg-orange-500 text-white font-semibold rounded-full"
+                    : "text-gray-700 hover:bg-gray-100"}`}
+              >
+                {day}
               </div>
-              <div className="bg-white p-1">
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) => (
-                  <div key={day} className="text-center text-sm font-medium text-gray-500 p-2">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-6 gap-1">
-                {/* Calendar days */}
-                <div className="text-center p-2 text-sm text-transparent">30</div>
-                <div className="text-center p-2 text-sm text-transparent">31</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">1</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">2</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">3</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">4</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">5</div>
-
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">6</div>
-                <div className="text-center p-2 text-sm bg-orange-100 text-orange-600 font-medium rounded-full cursor-pointer transition-colors">7</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">8</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">9</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">10</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">11</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">12</div>
-
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">13</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">14</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">15</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">16</div>
-                <div className="text-center p-2 text-sm bg-orange-100 text-orange-600 font-medium rounded-full cursor-pointer transition-colors">17</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">18</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">19</div>
-
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">20</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">21</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">22</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">23</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">24</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">25</div>
-                <div className="text-center p-2 text-sm bg-orange-500 text-white font-semibold rounded-full cursor-pointer transition-colors">26</div>
-
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">27</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">28</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">29</div>
-                <div className="text-center p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">30</div>
-                <div className="text-center p-2 text-sm text-transparent">1</div>
-                <div className="text-center p-2 text-sm text-transparent">2</div>
-                <div className="text-center p-2 text-sm text-transparent">3</div>
-              </div>
-              </div>
+            );
+          })}
+        </div>
+      </div>
           </div>
 
           {/* Right Column - Statistics and Suggestions */}
-        <div className="lg:col-span-1 md:col-span-1 flex flex-col-reverse md:flex-col h-full space-y-3 md:ml-0 lg:ml-10 lg:w-[430px]">
-
-
+        <div className="lg:col-span-1 md:col-span-1 flex flex-col-reverse gap-5 md:gap-0 md:flex-col h-full space-y-3 md:ml-0 lg:ml-10 lg:w-[480px]">
   {/* Statistics Chart */}
-  <div className="bg-[#ffece6] bg-opacity-30 rounded-xl p-4 flex-1 shadow-sm border border-gray-100">
-    <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center space-x-2">
-        <h3 className="text-sm font-semibold text-gray-900">Your statistics</h3>
-        <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-xs text-gray-500">i</span>
+  <div className="bg-[#EEEEEE] bg-opacity-30 rounded-xl p-4 flex-1 shadow-sm border border-gray-100">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-2">
+          <h3 className="text-sm font-semibold text-gray-900">Your statistics</h3>
+          <Info className="w-4 h-4" />
         </div>
+        <button className="text-black hover:text-orange-600 font-medium text-sm flex items-center space-x-1">
+          <span>Check Now</span>
+          <span>→</span>
+        </button>
       </div>
-      <button className="text-orange-500 hover:text-orange-600 font-medium text-sm flex items-center space-x-1">
-        <span>Check Now</span>
-        <span>→</span>
-      </button>
+
+      {/* Chart */}
+     <div className="relative h-36 w-full">
+  <ResponsiveContainer width="100%" height="100%">
+    <AreaChart
+      data={chartData}
+      height="100%"
+      margin={{ top: 0, right: 20, left: 0, bottom: 0 }} // Remove extra space
+    >
+      <defs>
+        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FF5727" stopOpacity={0.6} />
+          <stop offset="100%" stopColor="#f97316" stopOpacity={0.1} />
+        </linearGradient>
+      </defs>
+
+      {/* Grid only horizontal */}
+      <CartesianGrid stroke="#D5D5D5" strokeDasharray="3 3" vertical={false} />
+
+      {/* X-Axis */}
+      <XAxis
+        dataKey="name"
+        tick={{ fontSize: 10 }}
+        axisLine={false}
+        tickLine={false}
+        interval={0}
+        height={20}
+      />
+
+      {/* Y-Axis */}
+      <YAxis
+        domain={[0, 2000]}
+        ticks={[100, 500, 1000, 1500, 2000]}
+        tick={{ fontSize: 10 }}
+        axisLine={false}
+        tickLine={false}
+        width={30}
+      />
+
+      {/* Optional: Remove Tooltip if you don’t need it */}
+      {/* <Tooltip /> */}
+
+      <Area
+        type="monotone"
+        dataKey="value"
+        stroke="#f97316"
+        fill="url(#colorValue)"
+        strokeWidth={2}
+      />
+    </AreaChart>
+  </ResponsiveContainer>
+</div>
+
     </div>
-
-    <div className="relative h-36">
-      {/* Y-axis labels */}
-      <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[10px] text-gray-500">
-        <span>2000</span>
-        <span>1500</span>
-        <span>1000</span>
-        <span>500</span>
-        <span>100</span>
-      </div>
-
-      {/* Chart area */}
-      <div className="ml-10 h-full relative">
-        <svg className="w-full h-full" viewBox="0 0 400 160">
-          {/* Grid lines */}
-          {[0, 1, 2, 3, 4].map(i => (
-            <line
-              key={i}
-              x1="0"
-              y1={i * 32}
-              x2="400"
-              y2={i * 32}
-              stroke="#f3f4f6"
-              strokeWidth="1"
-            />
-          ))}
-
-          <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FF5727" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#f97316" stopOpacity="0.1" />
-            </linearGradient>
-          </defs>
-
-          {/* Filled area under curve */}
-          <path
-            d="M0,120 L57,100 L114,80 L171,60 L228,40 L285,35 L342,30 L399,25 L399,160 L0,160 Z"
-            fill="url(#gradient)"
-          />
-
-          {/* Line chart */}
-          <path
-            d="M0,120 L57,100 L114,80 L171,60 L228,40 L285,35 L342,30 L399,25"
-            stroke="#f97316"
-            strokeWidth="2"
-            fill="none"
-          />
-        </svg>
-      </div>
-
-      {/* X-axis labels */}
-      <div className="ml-10 flex justify-between text-[9px] md:text-[10px] text-gray-500 md:mt-1">
-        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-          <span key={day}>{day}</span>
-        ))}
-      </div>
-    </div>
-  </div>
 
   {/* Suggest for You */}
 <div className="bg-[#fef3c7] rounded-xl p-3 shadow-sm border border-gray-100">
   <div className="flex items-center justify-between mb-3">
     <h3 className="text-sm font-semibold text-gray-900">Suggest for You</h3>
-    <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-      <span className="text-xs text-gray-500">i</span>
-    </div>
+    <Info className="w-4 h-4" />
   </div>
 
  <div
@@ -556,9 +557,9 @@ useEffect(() => {
       className="flex overflow-x-auto md:grid md:grid-cols-2 gap-3 whitespace-nowrap scrollbar-hide"
     >
       {/* Maze Escape */}
-      <div className="carousel-card inline-block md:w-auto w-[85%] mr-3 bg-white rounded-md p-2 shrink-0">
+      <div className="carousel-card inline-block md:w-[95%] w-[70%] mr-3 bg-white rounded-md p-2 shrink-0 h-[170px] md:h-auto">
         <div className="bg-[#dceeff] rounded-md p-3 mb-2 flex justify-center items-center">
-          <img src="/maze-escape-icon.png" alt="Maze Escape" className="w-10 h-10" />
+          <img src="/maze-escape-icon.png" alt="Maze Escape" className="w-20 h-20 md:w-10 md:h-10" />
         </div>
         <div className="text-xs font-semibold text-gray-800 mb-1">
           Maze Escape
@@ -568,9 +569,9 @@ useEffect(() => {
       </div>
 
       {/* Concentration */}
-      <div className="carousel-card inline-block md:w-auto w-[85%] mr-3 bg-white rounded-md p-2 shrink-0">
+      <div className="carousel-card inline-block md:w-[95%] w-[70%] mr-3 bg-white rounded-md p-2 shrink-0 h-[170px] md:h-auto">
         <div className="bg-[#d5f4ee] rounded-md p-3 mb-2 flex justify-center items-center">
-          <img src="/concentration-icon.png" alt="Concentration" className="w-10 h-10" />
+          <img src="/concentration-icon.png" alt="Concentration" className="w-20 h-20 md:w-10 md:h-10" />
         </div>
         <div className="text-xs font-semibold text-gray-800 mb-1">
           Concentration
@@ -581,7 +582,7 @@ useEffect(() => {
     </div>
 </div>
 
-      </div>
+        </div>
         </div>
         {/* Recent Activity */}
         <RecentActivity />
