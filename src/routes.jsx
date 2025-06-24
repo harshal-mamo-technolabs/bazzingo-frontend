@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments } from "./pages";
+import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Games } from "./pages";
 
 const router = createBrowserRouter([
     {
@@ -54,6 +54,10 @@ const router = createBrowserRouter([
     {
         path: "/assessments",
         element: <Assessments />,
+    },
+    {
+        path: "/games",
+        element: <Games />,
     }
 ]);
 
