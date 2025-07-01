@@ -1,0 +1,191 @@
+import {
+  ShadowMatchGame,
+  NumberFlipGame,
+  SequenceRecallGame,
+  TapChallengeGame,
+  MazeLogicGame,
+  ShapeRotationGame,
+  PatternMatchGame,
+  ColorRushGame,
+  LogicPuzzleGame,
+  BlockStackingGame,
+  SequenceMathGame,
+  TileSwitchGame,
+  GridNavigationGame,
+  ObjectFitGame,
+  ObjectFitGame2,
+  SoundMemoryGame,
+  WhackABoxGame,
+  MirrorMatchGame,
+  PathFinderGame,
+  TowerOfHanoiGame,
+  DividedAttentionGame,
+  DistanceEstimationGame,
+  SpeedEstimationGame,
+  LexicalMemoryGame,
+  MultimodalMemoryGame,
+  ConcentrationGame,
+  VisualMemorySpanGame,
+  StroopTestGame,
+  WhoIsBrainGame,
+  NBackGame,
+  MentalRotation3DGame,
+} from '../pages';
+
+export const gameRoutes = [
+  {
+    path: "/games/shadow-match-game",
+    element: <ShadowMatchGame />,
+    name: "Shadow Match Game"
+  },
+  {
+    path: "/games/number-flip-game",
+    element: <NumberFlipGame />,
+    name: "Number Flip Game"
+  },
+  {
+    path: "/games/sequence-recall-game",
+    element: <SequenceRecallGame />,
+    name: "Sequence Recall Game"
+  },
+  {
+    path: "/games/tap-challenge-game",
+    element: <TapChallengeGame />,
+    name: "Tap Challenge Game"
+  },
+  {
+    path: "/games/maze-logic-game",
+    element: <MazeLogicGame />,
+    name: "Maze Logic Game"
+  },
+  {
+    path: "/games/shape-rotation-game",
+    element: <ShapeRotationGame />,
+    name: "Shape Rotation Game"
+  },
+  {
+    path: "/games/pattern-match-game",
+    element: <PatternMatchGame />,
+    name: "Pattern Match Game"
+  },
+  {
+    path: "/games/color-rush-game",
+    element: <ColorRushGame />,
+    name: "Color Rush Game"
+  },
+  {
+    path: "/games/logic-puzzle-game",
+    element: <LogicPuzzleGame />,
+    name: "Logic Puzzle Game"
+  },
+  {
+    path: "/games/block-stacking-game",
+    element: <BlockStackingGame />,
+    name: "Block Stacking Game"
+  },
+  {
+    path: "/games/sequence-math-game",
+    element: <SequenceMathGame />,
+    name: "Sequence Math Game"
+  },
+  {
+    path: "/games/tile-switch-game",
+    element: <TileSwitchGame />,
+    name: "Tile Switch Game"
+  },
+  {
+    path: "/games/grid-navigation-game",
+    element: <GridNavigationGame />,
+    name: "Grid Navigation Game"
+  },
+  {
+    path: "/games/object-fit-game",
+    element: <ObjectFitGame />,
+    name: "Object Fit Game"
+  },
+  {
+    path: "/games/object-fit-game-2",
+    element: <ObjectFitGame2 />,
+    name: "Object Fit Game 2"
+  },
+  {
+    path: "/games/sound-memory-game",
+    element: <SoundMemoryGame />,
+    name: "Sound Memory Game"
+  },
+  {
+    path: "/games/whack-a-box-game",
+    element: <WhackABoxGame />,
+    name: "Whack A Box Game"
+  },
+  {
+    path: "/games/mirror-match-game",
+    element: <MirrorMatchGame />,
+    name: "Mirror Match Game"
+  },
+  {
+    path: "/games/path-finder-game",
+    element: <PathFinderGame />,
+    name: "Path Finder Game"
+  },
+  {
+    path: "/games/tower-of-hanoi-game",
+    element: <TowerOfHanoiGame />,
+    name: "Tower of Hanoi Game"
+  },
+  {
+    path: "/games/divided-attention-game",
+    element: <DividedAttentionGame />,
+    name: "Divided Attention Game"
+  },
+  {
+    path: "/games/distance-estimation-game",
+    element: <DistanceEstimationGame />,
+    name: "Distance Estimation Game"
+  },
+  {
+    path: "/games/speed-estimation-game",
+    element: <SpeedEstimationGame />,
+    name: "Speed Estimation Game"
+  },
+  {
+    path: "/games/lexical-memory-game",
+    element: <LexicalMemoryGame />,
+    name: "Lexical Memory Game"
+  },
+  {
+    path: "/games/multimodal-memory-game",
+    element: <MultimodalMemoryGame />,
+    name: "Multimodal Memory Game"
+  },
+  {
+    path: "/games/concentration-game",
+    element: <ConcentrationGame />,
+    name: "Concentration Game"
+  },
+  {
+    path: "/games/visual-memory-span-game",
+    element: <VisualMemorySpanGame />,
+    name: "Visual Memory Span Game"
+  },
+  {
+    path: "/games/stroop-test-game",
+    element: <StroopTestGame />,
+    name: "Stroop Test Game"
+  },
+  {
+    path: "/games/who-is-brain-game",
+    element: <WhoIsBrainGame />,
+    name: "Who Is Brain Game"
+  },
+  {
+    path: "/games/n-back-game",
+    element: <NBackGame />,
+    name: "N-Back Game"
+  },
+  {
+    path: "/games/mental-rotation-3d-game",
+    element: <MentalRotation3DGame />,
+    name: "Mental Rotation 3D Game"
+  }
+];
