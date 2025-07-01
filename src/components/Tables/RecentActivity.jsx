@@ -2,7 +2,7 @@ import React from 'react';
 
 // ProgressBar Component
 const ProgressBar = ({ percentage }) => (
-  <div className="relative w-full lg:max-w-[200px] h-6 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
+  <div className="relative w-full lg:max-w-[150px] h-9 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
     <div
       className="absolute inset-y-0 left-0 bg-[#fda98d] rounded-l-[5px] transition-all duration-500"
       style={{ width: `${percentage}%` }}
@@ -104,7 +104,7 @@ const RecentActivity = () => (
     </div>
 
     {/* Mobile View */}
-<div className="lg:hidden space-y-4 mt-4">
+<div className="lg:hidden md:hidden space-y-4 mt-4">
   {activities.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
     <div
       key={idx}

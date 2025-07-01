@@ -1,7 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Games } from "./pages";
 
+// Import non-game pages
+import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard, Games, Profile } from "./pages";
+
+// Import game routes
+import { gameRoutes } from "./routes/gameRoutes";
 const router = createBrowserRouter([
     {
         path: "/",
@@ -48,8 +52,12 @@ const router = createBrowserRouter([
         element: <TermsOfUse />,
     },
     {
-        path: "/dashboard",
+        path: "/dashboard1",
         element: <UserDashboard />,
+    },
+    {
+        path: "/dashboard",
+        element: <Dashboard />,
     },
     {
         path: "/assessments",
@@ -58,7 +66,13 @@ const router = createBrowserRouter([
     {
         path: "/games",
         element: <Games />,
-    }
+    },
+    {
+        path: "/profile",
+        element: <Profile />,
+    },
+    // Spread all game routes from the games module
+    ...gameRoutes
 ]);
 
 export default router;
