@@ -14,6 +14,8 @@ import Assessments from './Assessments';
 import Games from './Games';
 import Dashboard from './dashboard';
 import Profile from './Profile';
+import Statistics from './Statistics';
+import Leadboard from './Leadboard';
 
 // Game imports
 import ShadowMatchGame from './games/ShadowMatchGame';
@@ -66,6 +68,8 @@ export {
     Dashboard,
     Games,
     Profile,
+    Statistics,
+    Leadboard,
 
     // Game pages
     ShadowMatchGame,

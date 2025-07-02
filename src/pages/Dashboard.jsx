@@ -1,7 +1,7 @@
-import React,{useEffect, useRef} from 'react';
+import React,{useEffect, useRef,useState} from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, CheckCircle, Star, BellIcon, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';import RecentActivity from '../components/Tables/RecentActivity';
-//import dayjs from "dayjs";
+import dayjs from "dayjs";
 import Header from '../components/Layout/Header';
 import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '../components/Dashboard';
 import ProgressChart from '../components/Charts/ProgressChart';
