@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ArrowLeft, Bell, Menu, Brain, Car } from 'lucide-react';
 
 
@@ -149,7 +149,7 @@ const Assessments = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-[1500px] mx-auto px-4 lg:px-12 py-4 lg:py-8">
+      <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Section - Assessments */}
           <div className="flex-1">
@@ -165,30 +165,30 @@ const Assessments = () => {
                     <div key={assessment.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                       {/* Icon and Title */}
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`${assessment.iconBg} rounded-lg flex items-center justify-center overflow-hidden`} style={{ width: '32px', height: '32px' }}>
+                        <div className={`${assessment.iconBg} rounded-lg flex items-center justify-center overflow-hidden`} style={{ width: '40px', height: '40px' }}>
                           <img
                             src="/bazzingo-head.png"
                             alt="Brain icon"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                           />
                         </div>
-                        <h3 className="text-[#FF6B3E] font-bold" style={{ fontSize: '16px', lineHeight: '1.2' }}>
+                        <h3 className="text-[#ff6c40]" style={{ fontSize: '22px', fontWeight: '600', lineHeight: '1.2', fontFamily: 'Roboto, sans-serif' }}>
                           {assessment.title}
                         </h3>
                       </div>
 
                       {/* Question count */}
-                      <p className="text-black font-medium mb-2" style={{ fontSize: '12px' }}>
+                      <p className="text-black mb-2" style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                         {assessment.questions} Question
                       </p>
 
                       {/* Description */}
-                      <p className="text-gray-600 mb-4" style={{ fontSize: '11px', lineHeight: '1.4' }}>
+                      <p className="text-gray-600 mb-4" style={{ fontSize: '14px', fontWeight: '400', lineHeight: '1.4', fontFamily: 'Roboto, sans-serif', color: '#6B7280' }}>
                         {assessment.description}
                       </p>
 
                       {/* Button */}
-                      <button className="w-full bg-[#FF6B3E] text-white rounded-md py-2 px-4 font-medium hover:bg-[#e55a35] transition-colors" style={{ fontSize: '12px' }}>
+                      <button className="w-full bg-[#FF6B3E] text-white rounded-md py-2 px-4 font-medium hover:bg-[#e55a35] transition-colors" style={{ fontFamily: 'Roboto', fontSize: '16px' }}>
                         Start Certified Test
                       </button>
                     </div>
@@ -201,7 +201,7 @@ const Assessments = () => {
           {/* Right Section - Recent Assessments - Hidden on mobile */}
           <div className="hidden lg:block w-full lg:w-[340px]">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h2 className="text-black font-semibold mb-6 text-[18px]">
+              <h2 className="text-black mb-6" style={{ fontSize: '20px', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                 Recent Assessments
               </h2>
 
@@ -219,15 +219,15 @@ const Assessments = () => {
                         style={{ width: '56px', height: '56px' }}          /* 56×56px */
                       >
                         {a.type === 'car' ? (
-                          <img src="/car.png" alt="" className="w-[45%] h-[45%] object-cover" />
+                          <img src="/car.png" alt="" className="w-6 h-6 object-contain" />
                         ) : (
-                          <img src="/message.png" alt="" className="w-[45%] h-[45%] object-cover" />
+                          <img src="/message.png" alt="" className="w-6 h-6 object-contain" />
                         )}
                       </div>
 
                       {/* title + badge */}
                       <div>
-                        <h3 className="text-black font-bold text-[16px] self-start">
+                        <h3 className="text-black self-start" style={{ fontSize: '16px', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
                           {a.title}
                         </h3>
 
@@ -247,7 +247,7 @@ const Assessments = () => {
                     </div>
 
                     {/* ── right: score ── */}
-                    <span className="text-black font-bold text-[17px] self-start">
+                    <span className="text-black self-start" style={{ fontSize: '18px', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
                       {a.score}
                     </span>
                   </div>

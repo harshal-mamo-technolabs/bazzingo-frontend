@@ -44,9 +44,7 @@ const activities = [
 ];
 
 const RecentActivity = () => (
-  <div className="bg-white rounded-xl p-2 md:p-6 shadow-sm mt-8">
-    <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
-
+  <div className="bg-white rounded-lg p-2 md:p-6 shadow-sm mt-3">
     {/* Web Table View */}
     <div className="hidden md:block lg:block overflow-x-auto">
       <table className="w-full table-fixed border-separate border-spacing-y-4">
@@ -133,7 +131,7 @@ const RecentActivity = () => (
             <span>Completed</span>
           </div>
         ) : (
-          <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-3 py-[6px] rounded-md text-xs font-medium transition-colors">
+          <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
             Resume
           </button>
         )}

@@ -11,5 +11,8 @@ import TermsOfUse from './TermsOfUse';
 import UserDashboard from './UserDashboard';
 import Assessments from './Assessments';
 import Dashboard from './dashboard';
+import Statistics from './Statistics';
+import Leadboard from './Leadboard';
+import Profile from './Profile';
 
-export { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard };
+export { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard, Statistics, Leadboard, Profile };

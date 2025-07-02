@@ -8,7 +8,9 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '127.0.0.1',
-      '4834-103-241-225-3.ngrok-free.app'
+      '4834-103-241-225-3.ngrok-free.app',
+      '9f4c-103-241-225-157.ngrok-free.app',
+      'a8f8-103-241-225-157.ngrok-free.app'
     ]
   },
 })
