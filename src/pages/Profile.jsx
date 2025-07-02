@@ -1,114 +1,167 @@
-// Profile.jsx
-import React, { useState } from 'react';
-import { Bell } from 'lucide-react';
+import React from "react";
+import { ChevronRight } from "lucide-react";
+import { FinishedCertificates, Achievements } from "../components/Profile";
+import {
+  BellIcon,
+  LockClosedIcon,
+  TicketIcon,
+  QuestionMarkCircleIcon,
+  ChatBubbleBottomCenterTextIcon,
+  DocumentTextIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/solid";
 
-export default function Profile() {
-    const unread = 3;
 
-    return (
-        <div className="min-h-screen bg-white font-inter text-[12px]">
-            {/* ─── HEADER ─── */}
-            <nav className="bg-white border-b border-gray-200">
-                <div className="max-w-[1200px] mx-auto px-4 lg:px-12">
-                    <div className="flex justify-between items-center h-[64px]">
-                        {/* Logo */}
-                        <h1 className="text-[24px] font-bold tracking-[0.075em]">
-                            <span className="text-[#FF6B3E]">B</span>
-                            <span className="text-black">AZIN</span>
-                            <span className="text-[#FF6B3E]">G</span>
-                            <span className="text-black">O</span>
-                        </h1>
+import Header from "../components/Layout/Header";
 
-                        {/* Desktop nav */}
-                        <nav className="hidden lg:flex gap-8">
-                            {['Games', 'Assessments', 'Statistics', 'Leaderboard'].map(t => (
-                                <a
-                                    key={t}
-                                    href="#"
-                                    className="text-[14px] font-medium text-black hover:text-gray-700"
-                                >
-                                    {t}
-                                </a>
-                            ))}
-                        </nav>
+const Profile = () => {
 
-                        {/* Bell + Avatar */}
-                        <div className="flex items-center gap-6">
-                            <div className="relative">
-                                <div
-                                    className="h-12 w-12 rounded-full flex items-center justify-center"
-                                    style={{ backgroundColor: '#EEEEEE' }}
-                                >
-                                    <Bell className="h-8 w-8 text-gray-800" strokeWidth={2} />
-                                </div>
-                                {unread > 0 && (
-                                    <span
-                                        className="
-                      absolute top-0 right-0
-                      inline-flex items-center justify-center
-                      h-6 w-6 rounded-full
-                      bg-[#FF6B3E] text-white text-[12px] font-bold
-                      transform translate-x-1/4 -translate-y-1/4
-                    "
-                                    >
-                                        {unread}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="h-8 w-8 bg-black text-white rounded-full flex items-center justify-center font-medium">
-                                A
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+ const settings = [
+  { label: 'Notification Preference', icon: BellIcon },
+  { label: 'Update Password', icon: LockClosedIcon },
+  { label: 'Ticket Raising System', icon: TicketIcon },
+  { label: 'Help', icon: QuestionMarkCircleIcon },
+  { label: 'Faq', icon: ChatBubbleBottomCenterTextIcon },
+  { label: 'Terms of use', icon: DocumentTextIcon },
+  { label: 'Privacy Policy', icon: ShieldCheckIcon },
+];
+    const unreadCount = 3;
 
-            {/* ─── MAIN ─── */}
-            <main className="px-4 py-6">
-                <div className="max-w-[360px] mx-auto sm:max-w-none">
-                    {/* Profile Information */}
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                        Profile Information
-                    </h2>
-                    <div className="bg-[#F5F5F5] rounded-[16px] p-6 flex items-center justify-between">
-                        {/* Left: Avatar + Details */}
-                        <div className="flex items-center">
-                            {/* White circle behind photo */}
-                            <div className="h-16 w-16 rounded-full bg-white overflow-hidden flex-shrink-0">
-                                <img
-                                    src="/mark.png"
-                                    alt="Alex Johnson"
-                                    className="h-full w-full object-cover"
-                                />
-                            </div>
-                            <div className="flex-1 px-4">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Alex Johnson
-                                </h3>
-                                <div className="mt-1 flex items-center space-x-2">
-                                    <span className="text-sm text-gray-500">Age: 25</span>
-                                    <span className="bg-[#FF6B3E] text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                        Premium
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right: Edit Profile button */}
-                        <button className="bg-black text-white text-sm font-medium px-5 py-2 rounded-lg">
-                            Edit Profile
-                        </button>
-                    </div>
-
-                    {/* Achievements placeholder */}
-                    <h2 className="text-xl font-semibold text-gray-900 mt-8 mb-4">
-                        Achievements
-                    </h2>
-                    <div className="bg-[#F5F5F5] rounded-[16px] h-32">
-                        {/* badges will go here */}
-                    </div>
-                </div>
-            </main>
+  return (
+     <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, sans-serif'}}>
+              {/* Header */}
+              <Header unreadCount={unreadCount}/>
+                 {/* Main Content - Web Layout*/}
+              <div className="hidden lg:block mx-auto px-4 lg:px-12 py-4 lg:py-3">
+        <div className="flex flex-col lg:flex-row gap-6">
+  {/* Left Column */}
+  <div className="w-full lg:w-[600px] flex flex-col">
+    <div className="order-1 lg:order-none space-y-2.5">
+    {/* Profile Info */}
+    <h3 className="font-semibold text-[15px] mb-2">Profile Information</h3>
+    <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <img
+          src="https://i.pravatar.cc/80"
+          alt="Avatar"
+          className="w-12 h-12 rounded-full object-cover"
+        />
+        <div>
+          <h2 className="text-[15px] font-normal text-gray-800">
+            Alex Johnson
+          </h2>
+          <div className="flex gap-2">
+            <p className="text-[13px] text-gray-500">Age: 25</p>
+            <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
+              Premium
+            </span>
+          </div>
         </div>
-    );
-}
+      </div>
+      <button className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md">
+        Edit Profile
+      </button>
+    </div>
+    </div>
+
+    <div className="order-2 lg:order-none space-y-2.5">
+    {/* Certificates */}
+    <h3 className="font-semibold text-[15px] mb-2 mt-2">Certificate</h3>
+    <FinishedCertificates />
+    </div>
+
+    <div className="order-4 lg:order-none p-1 space-y-2">
+    {/* Settings */}
+    <div className="p-1 space-y-2">
+      <h3 className="font-semibold text-[15px] mb-2">Settings</h3>
+      {settings.map(({ label, icon: Icon }, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300"
+        >
+          <div className="flex items-center gap-3">
+            <Icon className="w-4 h-4 text-gray-500" />
+            <span className="text-gray-700 text-[12px]">{label}</span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        </div>
+      ))}
+    </div>
+    </div>
+  </div>
+
+  {/* Right Column */}
+<div className="w-full order-3 lg:order-none lg:w-[550px]">
+  <h3 className="font-semibold text-[16px] mb-2">Achievements</h3>
+  <Achievements />
+</div>
+
+      </div>
+    </div>
+
+    {/*Mobile Layout*/}
+    <div className="block lg:hidden px-4 py-4 space-y-6">
+
+  {/* Profile */}
+  <div className="space-y-2.5">
+    <h3 className="font-semibold text-[15px] mb-2">Profile Information</h3>
+    <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <img
+          src="https://i.pravatar.cc/80"
+          alt="Avatar"
+          className="w-12 h-12 rounded-full object-cover"
+        />
+        <div>
+          <h2 className="text-[15px] font-normal text-gray-800">
+            Alex Johnson
+          </h2>
+          <div className="flex gap-2">
+            <p className="text-[13px] text-gray-500">Age: 25</p>
+            <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
+              Premium
+            </span>
+          </div>
+        </div>
+      </div>
+      <button className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md">
+        Edit Profile
+      </button>
+    </div>
+  </div>
+
+  {/* Certificate */}
+  <div className="space-y-2.5">
+    <h3 className="font-semibold text-[15px] mb-2">Certificate</h3>
+   <FinishedCertificates />
+  </div>
+
+  {/* Achievements */}
+  <div className="space-y-2.5">
+    <h3 className="font-semibold text-[16px] mb-2">Achievements</h3>
+    <Achievements />
+  </div>
+
+  {/* Settings */}
+  <div className="space-y-2.5">
+    <h3 className="font-semibold text-[15px] mb-2">Settings</h3>
+    {settings.map(({ label, icon: Icon }, i) => (
+      <div
+        key={i}
+        className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-700 text-[12px]">{label}</span>
+        </div>
+        <ChevronRight className="w-4 h-4 text-gray-400" />
+      </div>
+    ))}
+  </div>
+</div>
+
+    </div>
+  );
+};
+
+export default Profile;
