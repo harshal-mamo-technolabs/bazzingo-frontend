@@ -9,8 +9,21 @@ import ProgressChart from '../components/Charts/ProgressChart';
 const Dashboard = () => {
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
+  const [currentDate, setCurrentDate] = useState(dayjs());
 
-useEffect(() => {
+  const startOfMonth = currentDate.startOf("month");
+  const endOfMonth = currentDate.endOf("month");
+
+  const daysInMonth = currentDate.daysInMonth();
+  const startDay = startOfMonth.day(); // 0 (Sunday) - 6 (Saturday)
+  const blankDays = (startDay + 6) % 7; // Shift Sunday to end
+
+  const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
+  const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
+
+  const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
+
+  useEffect(() => {
     const container = scrollRef.current;
 
     // Only run on mobile view
