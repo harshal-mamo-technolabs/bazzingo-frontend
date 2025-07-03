@@ -33,6 +33,9 @@ import {
   CognitiveLoadBalancerGame,
   NeuralNetworkBuilderGame,
   TemporalReasoningArchitectGame,
+  CognitivePatternWeaverGame,
+  CognitiveFlexibilityArchitectGame,
+  MetacognitiveStrategyNavigatorGame,
 } from '../pages';
 
 export const gameRoutes = [
@@ -205,5 +208,20 @@ export const gameRoutes = [
     path: "/games/temporal-reasoning-architect-game",
     element: <TemporalReasoningArchitectGame />,
     name: "Temporal Reasoning Architect Game"
+  },
+  {
+    path: "/games/cognitive-pattern-weaver-game",
+    element: <CognitivePatternWeaverGame />,
+    name: "Cognitive Pattern Weaver Game"
+  },
+  {
+    path: "/games/cognitive-flexibility-architect-game",
+    element: <CognitiveFlexibilityArchitectGame />,
+    name: "Cognitive Flexibility Architect Game"
+  },
+  {
+    path: "/games/metacognitive-strategy-navigator-game",
+    element: <MetacognitiveStrategyNavigatorGame />,
+    name: "Metacognitive Strategy Navigator Game"
   }
 ];

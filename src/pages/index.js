@@ -52,6 +52,9 @@ import MentalRotation3DGame from './games/MentalRotation3DGame';
 import CognitiveLoadBalancerGame from './games/CognitiveLoadBalancerGame';
 import NeuralNetworkBuilderGame from './games/NeuralNetworkBuilderGame';
 import TemporalReasoningArchitectGame from './games/TemporalReasoningArchitectGame';
+import CognitivePatternWeaverGame from './games/CognitivePatternWeaverGame';
+import CognitiveFlexibilityArchitectGame from './games/CognitiveFlexibilityArchitectGame';
+import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
 
 // Export all pages including games
 export {
@@ -108,5 +111,8 @@ export {
     MentalRotation3DGame,
     CognitiveLoadBalancerGame,
     NeuralNetworkBuilderGame,
-    TemporalReasoningArchitectGame
+    TemporalReasoningArchitectGame,
+    CognitivePatternWeaverGame,
+    CognitiveFlexibilityArchitectGame,
+    MetacognitiveStrategyNavigatorGame
 };
