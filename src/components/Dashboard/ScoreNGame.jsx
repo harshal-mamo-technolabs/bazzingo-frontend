@@ -4,7 +4,7 @@ const ScoreNGame = () => {
     return (
         <>
          {/* Desktop View (unchanged) */}
-      <div className="hidden sm:flex col-span-2 bg-white rounded-lg px-6 py-6 shadow-sm border border-gray-100 h-[140px] items-center justify-between">
+      <div className="hidden sm:flex col-span-1 md:col-span-2 bg-white rounded-lg px-6 py-6 shadow-sm border border-gray-100 h-[140px] items-center justify-between">
         {/* IQ Score Section */}
         <div className="flex items-center gap-8">
     <div>

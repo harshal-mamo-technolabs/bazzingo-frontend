@@ -44,7 +44,7 @@ export default function Header({ unreadCount = 0 }) {
 
                         {/* Bell: desktop only */}
                         <div
-                            className="relative hidden lg:flex items-center justify-center bg-[#E8E8E8] rounded-full"
+                            className="relative hidden lg:flex items-center justify-center rounded-full"
                             style={{ width: '40px', height: '40px' }}
                         >
                             <img src="./bell.png" alt="Bell" style={{ width: '18px', height: '18px' }} />

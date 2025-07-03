@@ -141,27 +141,31 @@ const Dashboard = () => {
   </div>
 
   {/* Main Content Grid */}
-  <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-5 gap-4 mb-8">
-          {/* Left Column - Game Cards */}
-          <div className="lg:col-span-1 md:col-span-1 flex flex-col h-full">
-           {/* Daily Games Streak */}
-          <DailyGame />
-        </div>
+ {/* Main Content Layout */}
+<div className="flex flex-col lg:flex-row lg:gap-4 gap-4 mb-8 w-full">
 
-      <div className='lg:col-span-1 md:col-span-1 flex flex-col h-full'>
-           {/* Daily Quick Assessment */}
-          <DailyAssesment />
-      </div>
+  {/* Daily Games Streak */}
+  <div className="w-full lg:w-[220px] flex-shrink-0">
+    <DailyGame />
+  </div>
 
-          {/* Middle Column - Calendar */}
-            <div className="lg:col-span-1 flex flex-col h-full lg:w-[280px] bg-[#ffece6] rounded-lg p-3 shadow-sm border border-gray-100">
-     <Calender />
-          </div>
+  {/* Daily Quick Assessment */}
+  <div className="w-full lg:w-[220px] flex-shrink-0">
+    <DailyAssesment />
+  </div>
 
-          {/* Right Column - Statistics and Suggestions */}
-        <div className="lg:col-span-1 md:col-span-1 flex flex-col-reverse gap-5 md:gap-0 md:flex-col h-full space-y-3 md:ml-0 lg:ml-2 lg:w-[550px]">
-  {/* Statistics Chart */}
-  <div className="bg-[#EEEEEE] bg-opacity-30 rounded-lg p-4 flex-1 shadow-sm border border-gray-100">
+  {/* Calendar */}
+  <div className="w-full lg:w-[280px] flex-shrink-0">
+    <div className="bg-[#ffece6] rounded-lg p-3 shadow-sm border border-gray-100 h-full">
+      <Calender />
+    </div>
+  </div>
+
+  {/* Statistics + Suggest for You */}
+  <div className="flex flex-col gap-4 w-full lg:flex-1">
+
+    {/* Statistics Chart */}
+    <div className="bg-[#EEEEEE] bg-opacity-30 rounded-lg p-4 shadow-sm border border-gray-100 w-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-2">
@@ -175,29 +179,30 @@ const Dashboard = () => {
       </div>
 
       {/* Chart */}
-     <div className="relative h-40 w-full">
-      <ProgressChart />
-</div>
-
+      <div className="relative h-40 w-full">
+        <ProgressChart />
+      </div>
     </div>
 
-  {/* Suggest for You */}
-<div className="bg-[#fef3c7] rounded-lg p-3 shadow-sm border border-gray-100">
-  <div className="flex items-center justify-between mb-3">
-    <h3 className="text-sm font-normal text-gray-900">Suggest for You</h3>
-    <Info className="w-4 h-4" />
+    {/* Suggest for You */}
+    <div className="bg-[#fef3c7] rounded-lg p-3 shadow-sm border border-gray-100 w-full">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-normal text-gray-900">Suggest for You</h3>
+        <Info className="w-4 h-4" />
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex overflow-x-auto md:grid md:grid-cols-2 gap-3 whitespace-nowrap scrollbar-hide"
+      >
+        <SuggestforYou />
+      </div>
+    </div>
+
   </div>
 
- <div
-      ref={scrollRef}
-      className="flex overflow-x-auto md:grid md:grid-cols-2 gap-3 whitespace-nowrap scrollbar-hide"
-    >
-    <SuggestforYou/>
-    </div>
 </div>
 
-        </div>
-  </div>
   <h3 className="text-2xl font-semibold text-gray-900 mb-0">Recent Activity</h3>
 
   {/* Recent Activity */}

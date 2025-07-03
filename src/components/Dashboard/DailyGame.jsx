@@ -5,7 +5,7 @@ const DailyGame = () =>{
     return (
         <>
          {/* Daily Games Streak */}
-          <div className="bg-[#d4f2c6] rounded-lg p-4 text-black w-full max-w-sm md:max-w-none md:w-auto lg:max-w-none lg:w-auto lg:p-3">
+          <div className="bg-[#d4f2c6] h-full rounded-lg p-4 text-black w-full max-w-full md:max-w-none md:w-auto lg:max-w-none lg:w-auto lg:p-3">
           {/* Top label */}
           <div className="flex items-center justify-between mb-3">
     <div className="flex items-center space-x-2">

@@ -4,7 +4,7 @@ import { Info } from "lucide-react";
 const DailyAssesment = () => {
     return (
         <>
-        <div className="bg-[#f6c8bc] rounded-lg text-black w-full max-w-sm md:max-w-none md:w-auto lg:max-w-none lg:w-auto p-4 lg:p-3">
+        <div className="bg-[#f6c8bc] h-full rounded-lg text-black w-full max-w-full md:max-w-none md:w-auto lg:max-w-none lg:w-auto p-4 lg:p-3">
 
         {/* Top label */}
         <div className="flex items-center justify-between mb-3">

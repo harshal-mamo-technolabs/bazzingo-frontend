@@ -18,11 +18,11 @@ const Statistics = () => {
     {
       key: "left",
       content: (
-        <div className="bg-white h-[160px] md:w-[260px] lg:w-[230px] rounded-lg p-4 flex flex-col justify-between shadow-sm">
+        <div className="bg-white h-[160px] md:w-[260px] lg:w-[230px] 2xl:w-[350px] rounded-lg p-4 flex flex-col justify-between shadow-sm">
           <div className="flex items-center gap-3">
             <img src="/beep.png" alt="suggest" className="w-10 h-10" />
             <div>
-              <p className="text-[16px] font-semibold text-gray-800">
+              <p className="text-[14px] font-semibold text-gray-800">
                 Reaction Sprint
               </p>
               <p className="text-[14px] text-gray-500">Logic</p>
@@ -38,7 +38,7 @@ const Statistics = () => {
     {
       key: "right",
       content: (
-        <div className="bg-white h-[160px] border border-orange-300 md:max-w-full lg:max-w-sm rounded-lg overflow-hidden shadow-sm w-full">
+        <div className="bg-white h-[160px] border border-orange-300 md:max-w-full 2xl:max-w-full lg:max-w-sm rounded-lg overflow-hidden shadow-sm w-full">
           <div className="bg-[#f5f5d6] w-full px-3 py-2">
             <div className="flex items-center gap-3">
               <img
@@ -63,7 +63,7 @@ const Statistics = () => {
                 alt="certification"
                 className="w-5 h-5"
               />
-              <p className="text-[12px]">
+              <p className="text-[12px] 2xl:text-[14px]">
                 Get a certified result you can share on LinkedIn or with employers.
               </p>
             </div>
@@ -134,7 +134,7 @@ const Statistics = () => {
     {/* Statistics Section */}
     <div className="flex flex-col lg:flex-row gap-4 mt-6">
   
-  <div className="xl:w-[500px] lg:w-[290px] bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
+  <div className="xl:w-[500px] 2xl:w-[550px] lg:w-[290px] bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
   <div className="flex items-center justify-between mb-2">
     <h3 className="text-sm font-semibold text-gray-800">User Progress Overview</h3>
     <Info className="w-4 h-4 text-black" />
@@ -175,7 +175,7 @@ const Statistics = () => {
     </div>
 
   {/* Middle Card - Rank and Bars */}
-<div className="xl:w-[295px] lg:w-[245px] bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm h-[330px] overflow-hidden">
+<div className="xl:w-[295px] 2xl:w-[300px] lg:w-[245px] bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm h-[330px] overflow-hidden">
 
   {/* Gradient Header - touching top */}
   <div

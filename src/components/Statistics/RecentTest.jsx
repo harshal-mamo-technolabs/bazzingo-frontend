@@ -5,7 +5,7 @@ const RecentTest = () =>{
     return (
         <>
          {/* Middle Card - Recent Tests */}
-<div className="lg:w-[420px] h-[220px] bg-[#EEEEEE] rounded-xl p-4">
+<div className="lg:w-[420px] min-h-[220px] bg-[#EEEEEE] rounded-xl p-4">
   <div className="flex items-center justify-between mb-4">
     <h3 className="text-sm font-semibold text-gray-800">Recent Test</h3>
     <Info className="w-4 h-4 text-black" />
