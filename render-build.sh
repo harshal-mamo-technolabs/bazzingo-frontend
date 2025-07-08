@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -o errexit -o nounset
 
-# 1 Activate the exact Yarn your package.json asks for
+# Explicitly enable Corepack (required for yarn >=2)
 corepack enable
-corepack prepare "yarn@4.4.1" --activate   # keep version in sync with package.json
+corepack prepare "yarn@4.4.1" --activate
 
-# 2 Install deps exactly as in CI
+# Install dependencies exactly as defined (immutable)
 yarn install --immutable
 
-# 3 Build the Vite production bundle
+# Build the React Vite project
 yarn build
