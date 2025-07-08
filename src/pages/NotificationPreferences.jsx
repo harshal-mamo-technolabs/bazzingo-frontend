@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
+import MainLayout from '../components/Layout/MainLayout';
 import PageHeader from '../components/notifications/PageHeader';
 import NotificationSection from '../components/notifications/NotificationSection';
 import SaveButton from '../components/notifications/SaveButton';
@@ -44,48 +44,47 @@ function NotificationPreferences() {
     ];
 
     return (
-        <div className="min-h-screen bg-white" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '12px' }}>
-            {/* Header */}
-            <Header unreadCount={unreadCount} />
+        <MainLayout unreadCount={unreadCount}>
+            <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '12px' }}>
+                {/* Main Content */}
+                <main>
+                    {/* Page Header */}
+                    <PageHeader />
 
-            {/* Main Content */}
-            <main>
-                {/* Page Header */}
-                <PageHeader />
+                    {/* Content Container */}
+                    <div className="mx-auto px-4 lg:px-12">
+                        <div className="max-w-[600px]">
+                            {/* Email Notifications Section */}
+                            <NotificationSection
+                                title="Email Notifications"
+                                notifications={emailNotifications}
+                                notificationStates={notifications}
+                                onToggle={handleToggle}
+                            />
 
-                {/* Content Container */}
-                <div className="mx-auto px-4 lg:px-12">
-                    <div className="max-w-[600px]">
-                        {/* Email Notifications Section */}
-                        <NotificationSection
-                            title="Email Notifications"
-                            notifications={emailNotifications}
-                            notificationStates={notifications}
-                            onToggle={handleToggle}
-                        />
+                            {/* Push Notifications Section */}
+                            <NotificationSection
+                                title="Push Notifications"
+                                notifications={pushNotifications}
+                                notificationStates={notifications}
+                                onToggle={handleToggle}
+                            />
 
-                        {/* Push Notifications Section */}
-                        <NotificationSection
-                            title="Push Notifications"
-                            notifications={pushNotifications}
-                            notificationStates={notifications}
-                            onToggle={handleToggle}
-                        />
+                            {/* Newsletter Section */}
+                            <NotificationSection
+                                title="Newsletter"
+                                notifications={newsletterNotifications}
+                                notificationStates={notifications}
+                                onToggle={handleToggle}
+                            />
 
-                        {/* Newsletter Section */}
-                        <NotificationSection
-                            title="Newsletter"
-                            notifications={newsletterNotifications}
-                            notificationStates={notifications}
-                            onToggle={handleToggle}
-                        />
-
-                        {/* Save Button */}
-                        <SaveButton onSave={handleSave} />
+                            {/* Save Button */}
+                            <SaveButton onSave={handleSave} />
+                        </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </main>
+            </div>
+        </MainLayout>
     );
 }
 

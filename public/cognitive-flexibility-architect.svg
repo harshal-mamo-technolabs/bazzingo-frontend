@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+	<path d="M16,32c0-9,7-16,16-16s16,7,16,16c0,7-4,12-10,14v4c0,1-1,2-2,2h-8c-1,0-2-1-2-2v-4C20,44,16,39,16,32z" fill="#006b6b"/>
+	<circle cx="32" cy="28" r="5" fill="#ff6b4d"/>
+	<circle cx="30" cy="26" r="1" fill="#ffffff"/>
+	<circle cx="34" cy="26" r="1" fill="#ffffff"/>
+	<circle cx="32" cy="30" r="1" fill="#ffffff"/>
+	<line x1="30" y1="26" x2="34" y2="26" stroke="#ffffff" stroke-width="0.5"/>
+	<line x1="30" y1="26" x2="32" y2="30" stroke="#ffffff" stroke-width="0.5"/>
+	<line x1="34" y1="26" x2="32" y2="30" stroke="#ffffff" stroke-width="0.5"/>
+	<line x1="40" y1="18" x2="46" y2="18" stroke="#006b6b" stroke-width="1"/>
+	<line x1="44" y1="16" x2="46" y2="18" stroke="#006b6b" stroke-width="1"/>
+	<line x1="44" y1="20" x2="46" y2="18" stroke="#006b6b" stroke-width="1"/>
+	<line x1="32" y1="36" x2="32" y2="42" stroke="#006b6b" stroke-width="1"/>
+	<line x1="30" y1="40" x2="32" y2="42" stroke="#006b6b" stroke-width="1"/>
+	<line x1="34" y1="40" x2="32" y2="42" stroke="#006b6b" stroke-width="1"/>
+	<line x1="24" y1="18" x2="18" y2="18" stroke="#006b6b" stroke-width="1"/>
+	<line x1="20" y1="16" x2="18" y2="18" stroke="#006b6b" stroke-width="1"/>
+	<line x1="20" y1="20" x2="18" y2="18" stroke="#006b6b" stroke-width="1"/>
+</svg>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
+import MainLayout from '../components/Layout/MainLayout';
 import PageHeader from '../components/tickets/PageHeader';
 import TicketForm from '../components/tickets/TicketForm';
 import TicketsTable from '../components/tickets/TicketsTable';
@@ -54,39 +54,38 @@ function App() {
     const unreadCount = 3;
 
     return (
-        <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
-            {/* Header */}
-            <Header unreadCount={unreadCount} />
+        <MainLayout unreadCount={unreadCount}>
+            <div className="bg-white min-h-screen" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
+                {/* Main Content */}
+                <main>
+                    {/* Page Header */}
+                    <PageHeader />
 
-            {/* Main Content */}
-            <main>
-                {/* Page Header */}
-                <PageHeader />
+                    {/* Content Container */}
+                    <div className="mx-auto px-4 lg:px-12 py-4 lg:py-4">
+                        <div className="flex flex-col lg:flex-row" style={{ gap: '24px' }}>
+                            {/* Left Column - New Ticket Form */}
+                            <div className="w-full lg:flex-none" style={{ flex: '0 0 400px' }}>
+                                <TicketForm
+                                    subject={subject}
+                                    setSubject={setSubject}
+                                    description={description}
+                                    setDescription={setDescription}
+                                    issueTypes={issueTypes}
+                                    onIssueTypeChange={handleIssueTypeChange}
+                                    onSubmit={handleSubmit}
+                                />
+                            </div>
 
-                {/* Content Container */}
-                <div className="mx-auto px-4 lg:px-12 py-4 lg:py-4">
-                    <div className="flex flex-col lg:flex-row" style={{ gap: '24px' }}>
-                        {/* Left Column - New Ticket Form */}
-                        <div className="w-full lg:flex-none" style={{ flex: '0 0 400px' }}>
-                            <TicketForm
-                                subject={subject}
-                                setSubject={setSubject}
-                                description={description}
-                                setDescription={setDescription}
-                                issueTypes={issueTypes}
-                                onIssueTypeChange={handleIssueTypeChange}
-                                onSubmit={handleSubmit}
-                            />
-                        </div>
-
-                        {/* Right Column - Tickets Table */}
-                        <div className="pl-30 flex-1 hidden lg:block">
-                            <TicketsTable tickets={tickets} />
+                            {/* Right Column - Tickets Table */}
+                            <div className="pl-30 flex-1 hidden lg:block">
+                                <TicketsTable tickets={tickets} />
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </main>
+            </div>
+        </MainLayout>
     );
 }
 

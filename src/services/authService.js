@@ -46,11 +46,27 @@ export async function resetPassword(token, password) {
 
 export async function updatePassword(currentPassword, newPassword) {
     // Get the user token from localStorage
-    const userData = JSON.parse(localStorage.getItem("user"));
-    const token = userData?.accessToken;
+    const userData = localStorage.getItem("user");
+
+    if (!userData) {
+        throw new Error("User not authenticated. Please log in again.");
+    }
+
+    let parsedUserData;
+    try {
+        parsedUserData = JSON.parse(userData);
+    } catch (error) {
+        throw new Error("Invalid user data. Please log in again.");
+    }
+
+    const token = parsedUserData?.accessToken;
+
+    if (!token) {
+        throw new Error("Authentication token not found. Please log in again.");
+    }
 
     const response = await axios.post(`${API_CONNECTION_HOST_URL}${UPDATE_PASSWORD_ENDPOINT}`, {
-        currentPassword,
+        oldPassword: currentPassword,
         newPassword,
     }, {
         headers: {

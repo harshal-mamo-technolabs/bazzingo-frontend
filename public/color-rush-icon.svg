@@ -1,0 +1,34 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Central Circle Grid -->
+  <circle cx="32" cy="32" r="24" fill="none" stroke="#2C2C2C" stroke-width="2"/>
+
+  <!-- Inner Concentric Circles -->
+  <circle cx="32" cy="32" r="16" fill="none" stroke="#2C2C2C" stroke-width="1.5"/>
+  <circle cx="32" cy="32" r="8" fill="none" stroke="#2C2C2C" stroke-width="1.5"/>
+
+  <!-- Quadrant Dividers -->
+  <path d="M32 8V56M8 32H56" stroke="#2C2C2C" stroke-width="1.5"/>
+
+  <!-- Color Segments (minimal, professional) -->
+  <path d="M32 32L44 20A16 16 0 0 0 32 16Z" fill="#FF6B3E" opacity="0.3"/>
+  <path d="M32 32L48 32A16 16 0 0 0 44 20Z" fill="#2C2C2C" opacity="0.2"/>
+  <path d="M32 32L44 44A16 16 0 0 0 48 32Z" fill="#FF6B3E" opacity="0.5"/>
+  <path d="M32 32L20 44A16 16 0 0 0 44 44Z" fill="#2C2C2C" opacity="0.1"/>
+
+  <!-- Central Control Point -->
+  <circle cx="32" cy="32" r="3" fill="#2C2C2C"/>
+
+  <!-- Speed/Rush Indicators -->
+  <g stroke="#FF6B3E" stroke-width="2" stroke-linecap="round">
+    <path d="M12 12L16 16" opacity="0.6"/>
+    <path d="M52 12L48 16" opacity="0.6"/>
+    <path d="M52 52L48 48" opacity="0.6"/>
+    <path d="M12 52L16 48" opacity="0.6"/>
+  </g>
+
+  <!-- Corner Markers -->
+  <rect x="10" y="10" width="4" height="4" fill="#2C2C2C"/>
+  <rect x="50" y="10" width="4" height="4" fill="#2C2C2C"/>
+  <rect x="50" y="50" width="4" height="4" fill="#2C2C2C"/>
+  <rect x="10" y="50" width="4" height="4" fill="#2C2C2C"/>
+</svg>

@@ -1,7 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import GameCard from './GameCard';
 
 const GamesGrid = ({ games, pillConfig, onGameClick }) => {
+
+  const navigate = useNavigate();
+
   return (
     <div className="mt-6 grid gap-3
                     grid-cols-2        /* mobile: 2 columns */
@@ -17,7 +21,7 @@ const GamesGrid = ({ games, pillConfig, onGameClick }) => {
           key={game.id}
           game={game}
           pillConfig={pillConfig}
-          onClick={onGameClick}
+          onClick={() => navigate(game.path)}
         />
       ))}
     </div>

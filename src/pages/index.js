@@ -16,6 +16,7 @@ import Dashboard from './dashboard';
 import Profile from './Profile';
 import Statistics from './Statistics';
 import Leadboard from './Leadboard';
+import NotFound from './NotFound';
 
 // Game imports
 import ShadowMatchGame from './games/ShadowMatchGame';
@@ -76,6 +77,7 @@ export {
     Profile,
     Statistics,
     Leadboard,
+    NotFound,
 
     // Game pages
     ShadowMatchGame,

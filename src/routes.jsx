@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
 
 // Import non-game pages
-import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard, Games, Profile, Statistics, Leadboard } from "./pages";
+import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, UserDashboard, Assessments, Dashboard, Games, Profile, Statistics, Leadboard, NotFound } from "./pages";
 
 // Import game routes
 import { gameRoutes } from "./routes/gameRoutes";
@@ -80,7 +80,12 @@ const router = createBrowserRouter([
         element: <Leadboard />,
     },
     // Spread all game routes from the games module
-    ...gameRoutes
+    ...gameRoutes,
+    // 404 catch-all route (must be last)
+    {
+        path: "*",
+        element: <NotFound />,
+    }
 ]);
 
 export default router;

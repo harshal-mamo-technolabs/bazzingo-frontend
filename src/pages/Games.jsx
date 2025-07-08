@@ -1,35 +1,36 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
+import MainLayout from '../components/Layout/MainLayout';
 import FilterBar from '../components/games/FilterBar';
 import GamesGrid from '../components/games/GamesGrid';
 import DailyGameModal from '../components/games/DailyGameModal';
 
 const games = [
-  { id: 1, title: 'Maze Escape', category: 'Gameacy', difficulty: 'Easy', icon: './maze-escape-icon.png', bgColor: '#D5EBFF' },
-  { id: 2, title: 'Concentration', category: 'Logic', difficulty: 'Hard', icon: './maze-escape-icon.png', bgColor: '#D8F0E4' },
+  { id: 1, title: 'Whack a Box', category: 'Gameacy', difficulty: 'Easy', icon: './whack-a-box-game.png', bgColor: '#D5EBFF', path: "/games/whack-a-box-game" },
+  { id: 2, title: 'Tile Switch', category: 'Logic', difficulty: 'Hard', icon: './tile-switch-game.png', bgColor: '#D8F0E4', path: "/games/tile-switch-game" },
   {
     id: 3,
-    title: 'Sequence Memory',
+    title: 'Tower of Hanoi',
     category: 'Logic',
     difficulty: 'Hard',
     featured: true,
     trending: true,
     description: "Best game for the exercise of your mind—it'll help you focus your daily tasks.",
-    icon: './maze-escape-icon.png',
-    bgColor: '#CDE8E1',
+    icon: './tower-of-hanoi-game.png',
+    bgColor: '#ffffff',
+    path: '/games/tower-of-hanoi-game'
   },
-  { id: 4, title: 'Rapid Reflexes', category: 'Gameacy', difficulty: 'Easy', icon: './maze-escape-icon.png', bgColor: '#1D1D1B' },
-  { id: 5, title: 'Logical Path', category: 'Logic', difficulty: 'Medium', icon: './maze-escape-icon.png', bgColor: '#FFFFFF' },
-  { id: 6, title: 'Logical Path', category: 'Logic', difficulty: 'Medium', icon: './maze-escape-icon.png', bgColor: '#FFFFFF' },
-  { id: 7, title: 'Pattern Analysis', category: 'Gameacy', difficulty: 'Hard', icon: './maze-escape-icon.png', bgColor: '#D4E8DC' },
-  { id: 8, title: 'Concentration', category: 'Logic', difficulty: 'Hard', icon: './maze-escape-icon.png', bgColor: '#D8F0E4' },
-  { id: 9, title: 'Pattern Analysis', category: 'Gameacy', difficulty: 'Hard', icon: './maze-escape-icon.png', bgColor: '#D4E8DC' },
-  { id: 10, title: 'Word Recall', category: 'Logic', difficulty: 'Hard', icon: './maze-escape-icon.png', bgColor: '#FFFFFF' },
-  { id: 11, title: 'Rapid Reflexes', category: 'Gameacy', difficulty: 'Easy', icon: './maze-escape-icon.png', bgColor: '#1D1D1B' },
-  { id: 12, title: 'Numerical Grid', category: 'Logic', difficulty: 'Easy', icon: './maze-escape-icon.png', bgColor: '#D0F2E8' },
-  { id: 13, title: 'Reaction Sprint', category: 'Logic', difficulty: 'Hard', icon: './maze-escape-icon.png', bgColor: '#1D1D1B' },
-  { id: 14, title: 'Maze Escape', category: 'Gameacy', difficulty: 'Easy', icon: './maze-escape-icon.png', bgColor: '#D5EBFF' },
-  { id: 15, title: 'Maze Escape', category: 'Gameacy', difficulty: 'Easy', icon: './maze-escape-icon.png', bgColor: '#D5EBFF' },
+  { id: 4, title: 'Sound Memory', category: 'Gameacy', difficulty: 'Easy', icon: './sound-memory-game.png', bgColor: '#ffffff', path: "/games/sound-memory-game" },
+  { id: 5, title: 'Visual Memory Span', category: 'Logic', difficulty: 'Medium', icon: './whack-a-box-game.png', bgColor: '#1D1D1B', path: "/games/visual-memory-span-game" },
+  { id: 6, title: 'Neural Network Builder Game', category: 'Logic', difficulty: 'Medium', icon: './Neural-Network-Builder-Game.png', bgColor: '#FFFFFF', path: "/games/neural-network-builder-game" },
+  { id: 7, title: 'Cognative Load Balancer', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image7.png', bgColor: '#D4E8DC', path: "/games/cognitive-load-balancer-game" },
+  { id: 8, title: 'Mental Rotation 3D', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image8.png', bgColor: '#D8F0E4', path: "/games/mental-rotation-3d-game" },
+  { id: 9, title: 'N-Back', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image9.png', bgColor: '#D4E8DC', path: "/games/n-back-game" },
+  { id: 10, title: 'Cognative Pattern Weaver', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image1.png', bgColor: '#FFFFFF', path: "/games/cognitive-pattern-weaver-game" },
+  { id: 11, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
+  { id: 12, title: 'Number Flip', category: 'Logic', difficulty: 'Easy', icon: './games-icon/image3-main.png', bgColor: '#D0F2E8', path: "/games/number-flip-game" },
+  { id: 13, title: 'Sequance Recall', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image4.png', bgColor: '#1D1D1B', path: "/games/sequence-recall-game" },
+  { id: 14, title: 'Tap Challange', category: 'Gameacy', difficulty: 'Easy', icon: './tap-challenge-game.png', bgColor: '#D5EBFF', path: "/games/tap-challenge-game" },
+  { id: 15, title: 'Block Stacking', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image6.png', bgColor: '#D5EBFF', path: "/games/block-stacking-game" },
 ];
 
 const categories = [
@@ -54,31 +55,31 @@ export default function Games() {
   const dailyGames = games.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-white text-[12px]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-      <Header unreadCount={unread} />
+    <MainLayout unreadCount={unread}>
+      <div className="text-[12px]" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        <div className="mx-auto px-4 lg:px-12 py-4">
+          <FilterBar
+            categories={categories}
+            levels={levels}
+            activeCategory={activeCategory}
+            activeLevel={activeLevel}
+            onCategoryChange={setActiveCategory}
+            onLevelChange={setActiveLevel}
+          />
 
-      <main className="mx-auto px-4 lg:px-12 py-4">
-        <FilterBar
-          categories={categories}
-          levels={levels}
-          activeCategory={activeCategory}
-          activeLevel={activeLevel}
-          onCategoryChange={setActiveCategory}
-          onLevelChange={setActiveLevel}
+          <GamesGrid
+            games={games}
+            pillConfig={pillConfig}
+          // onGameClick={() => setIsModalOpen(true)}
+          />
+        </div>
+
+        <DailyGameModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          dailyGames={dailyGames}
         />
-
-        <GamesGrid
-          games={games}
-          pillConfig={pillConfig}
-          onGameClick={() => setIsModalOpen(true)}
-        />
-      </main>
-
-      <DailyGameModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        dailyGames={dailyGames}
-      />
-    </div>
+      </div>
+    </MainLayout>
   );
 }
