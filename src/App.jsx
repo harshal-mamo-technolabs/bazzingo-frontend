@@ -1,17 +1,26 @@
-import { Login } from './pages';
-import { Toaster } from 'react-hot-toast';
-import  useNotifications  from './hooks/useNotifications';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { checkAndValidateToken } from './app/userSlice';
 
 function App() {
-  const userId = '6867a2b3c8c9743357bfe8c5';
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { status: isAuthenticated } = useSelector((state) => state.user);
 
-  useNotifications(userId);
-  return (
-    <>
-    <Toaster position={window.innerWidth < 768 ? 'top-center' : 'top-right'}/>
-    home
-    </>
-  );
+  useEffect(() => {
+    dispatch(checkAndValidateToken());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  return null;
 }
 
 export default App;

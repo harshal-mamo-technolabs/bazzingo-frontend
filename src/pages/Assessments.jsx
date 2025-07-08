@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Car } from 'lucide-react';
-import Header from '../components/Header';
+import MainLayout from '../components/Layout/MainLayout';
 import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentModal from '../components/assessments/AssessmentModal';
@@ -104,35 +104,34 @@ const Assessments = () => {
   const unreadCount = 5;
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '12px' }}>
-      {/* Header */}
-      <Header unreadCount={unreadCount} />
+    <MainLayout unreadCount={unreadCount}>
+      <div style={{ fontFamily: 'Roboto, sans-serif', fontSize: '12px' }}>
+        {/* Main Content */}
+        <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Section - Assessments */}
+            <div className="flex-1">
+              <AssessmentGrid
+                assessments={assessments}
+                onAssessmentClick={handleAssessmentClick}
+              />
+            </div>
 
-      {/* Main Content */}
-      <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Section - Assessments */}
-          <div className="flex-1">
-            <AssessmentGrid
-              assessments={assessments}
-              onAssessmentClick={handleAssessmentClick}
-            />
-          </div>
-
-          {/* Right Section - Recent Assessments - Hidden on mobile */}
-          <div className="hidden lg:block w-full lg:w-[340px]">
-            <RecentAssessments assessments={recentAssessments} />
+            {/* Right Section - Recent Assessments - Hidden on mobile */}
+            <div className="hidden lg:block w-full lg:w-[340px]">
+              <RecentAssessments assessments={recentAssessments} />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Assessment Modal */}
-      <AssessmentModal
-        isOpen={isModalOpen}
-        selectedAssessment={selectedAssessment}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </div>
+        {/* Assessment Modal */}
+        <AssessmentModal
+          isOpen={isModalOpen}
+          selectedAssessment={selectedAssessment}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </div>
+    </MainLayout>
   );
 };
 

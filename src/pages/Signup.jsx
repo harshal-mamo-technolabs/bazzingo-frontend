@@ -1,33 +1,52 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Button from '../components/Form/Button';
 import AuthLayout from '../components/Layout/AuthLayout';
 import { SignupForm } from '../components/Authentication';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
 import { signup, googleLogin } from '../services/authService';
-import { login as loginAction, loading as loadingAction } from '../app/userSlice';
-import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
+import { login as loginAction, loading as loadingAction, checkAndValidateToken } from '../app/userSlice';
+import { API_RESPONSE_STATUS_SUCCESS, getTokenExpiry } from '../utils/constant';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { status: isAuthenticated } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch(checkAndValidateToken());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const signupHandler = async (formData) => {
     try {
       dispatch(loadingAction());
       const response = await signup(formData.email, formData.password);
 
+      // Debug: Log the actual response structure
+      console.log("Signup response:", response);
+
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+        // Handle different possible response structures
         const userData = {
-          user: response.data.user,
-          accessToken: response.data.accessToken,
+          user: response.data?.user || response.user || response.data,
+          accessToken: response.data?.accessToken || response.accessToken || response.data?.token || response.token,
+          tokenExpiry: getTokenExpiry(),
         };
+
+        console.log("Extracted userData:", userData);
+
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));
-        toast.success("Logged in successfully!");
-        navigate("/");
+        toast.success("Signed up successfully!");
+        navigate("/dashboard");
       }
     } catch (error) {
       const message =
@@ -43,15 +62,23 @@ const Signup = () => {
       dispatch(loadingAction());
       const response = await googleLogin(credentialResponse.credential);
 
+      // Debug: Log the actual response structure
+      console.log("Google login response:", response);
+
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+        // Handle different possible response structures
         const userData = {
-          user: response.data.user,
-          accessToken: response.data.accessToken,
+          user: response.data?.user || response.user || response.data,
+          accessToken: response.data?.accessToken || response.accessToken || response.data?.token || response.token,
+          tokenExpiry: getTokenExpiry(),
         };
+
+        console.log("Extracted userData:", userData);
+
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));
         toast.success("Logged in successfully!");
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error) {
       const message =

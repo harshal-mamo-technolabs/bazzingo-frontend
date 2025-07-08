@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bottom block (largest) -->
+  <rect x="8" y="44" width="48" height="12" rx="2" fill="#FF6B3E" stroke="#E55A35" stroke-width="1"/>
+  <rect x="10" y="46" width="44" height="8" rx="1" fill="#FF8A65" opacity="0.8"/>
+  
+  <!-- Middle block -->
+  <rect x="14" y="28" width="36" height="12" rx="2" fill="#FF7043" stroke="#E55A35" stroke-width="1"/>
+  <rect x="16" y="30" width="32" height="8" rx="1" fill="#FFAB91" opacity="0.8"/>
+  
+  <!-- Top block (smallest) -->
+  <rect x="20" y="12" width="24" height="12" rx="2" fill="#FF5722" stroke="#E55A35" stroke-width="1"/>
+  <rect x="22" y="14" width="20" height="8" rx="1" fill="#FFCCBC" opacity="0.8"/>
+  
+  <!-- Highlight effects on blocks -->
+  <rect x="10" y="44" width="6" height="4" rx="1" fill="#FFFFFF" opacity="0.3"/>
+  <rect x="16" y="28" width="5" height="4" rx="1" fill="#FFFFFF" opacity="0.3"/>
+  <rect x="22" y="12" width="4" height="4" rx="1" fill="#FFFFFF" opacity="0.3"/>
+  
+  <!-- Shadow effects -->
+  <ellipse cx="32" cy="58" rx="20" ry="3" fill="#000000" opacity="0.1"/>
+</svg>

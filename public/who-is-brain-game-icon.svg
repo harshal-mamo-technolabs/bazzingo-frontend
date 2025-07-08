@@ -1,0 +1,53 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Question Mark Base -->
+  <path d="M32 12C26 12 21 17 21 23C21 25 22 27 24 28L24 32C24 33 25 34 26 34C27 34 28 33 28 32L28 29C28 27 29 26 31 25C34 24 36 21 36 18C36 15 34 12 32 12Z" fill="#2C2C2C"/>
+  
+  <!-- Question Mark Dot -->
+  <circle cx="32" cy="42" r="3" fill="#2C2C2C"/>
+  
+  <!-- Magnifying Glass -->
+  <g transform="translate(40, 8)">
+    <circle cx="8" cy="8" r="6" fill="none" stroke="#2C2C2C" stroke-width="2"/>
+    <path d="M13 13L18 18" stroke="#2C2C2C" stroke-width="2" stroke-linecap="round"/>
+    <!-- Lens highlight -->
+    <circle cx="6" cy="6" r="2" fill="none" stroke="#FF6B3E" stroke-width="1" opacity="0.6"/>
+  </g>
+  
+  <!-- Profile Silhouettes (representing people to identify) -->
+  <g transform="translate(8, 20)">
+    <!-- First silhouette -->
+    <path d="M4 16C4 12 7 8 12 8C17 8 20 12 20 16L20 24L4 24Z" fill="#2C2C2C" opacity="0.3"/>
+    <circle cx="12" cy="4" r="4" fill="#2C2C2C" opacity="0.3"/>
+  </g>
+  
+  <g transform="translate(36, 32)">
+    <!-- Second silhouette -->
+    <path d="M4 16C4 12 7 8 12 8C17 8 20 12 20 16L20 24L4 24Z" fill="#2C2C2C" opacity="0.2"/>
+    <circle cx="12" cy="4" r="4" fill="#2C2C2C" opacity="0.2"/>
+  </g>
+  
+  <!-- Detective/Investigation Elements -->
+  <!-- Fingerprint -->
+  <g transform="translate(12, 48)">
+    <ellipse cx="4" cy="4" rx="3" ry="4" fill="none" stroke="#FF6B3E" stroke-width="1" opacity="0.7"/>
+    <ellipse cx="4" cy="4" rx="2" ry="3" fill="none" stroke="#FF6B3E" stroke-width="1" opacity="0.7"/>
+    <ellipse cx="4" cy="4" rx="1" ry="2" fill="none" stroke="#FF6B3E" stroke-width="1" opacity="0.7"/>
+  </g>
+  
+  <!-- Clue Cards/Evidence -->
+  <rect x="44" y="48" width="12" height="8" fill="none" stroke="#2C2C2C" stroke-width="1.5" rx="1"/>
+  <rect x="46" y="50" width="8" height="1" fill="#2C2C2C" opacity="0.4"/>
+  <rect x="46" y="52" width="6" height="1" fill="#2C2C2C" opacity="0.4"/>
+  <rect x="46" y="54" width="4" height="1" fill="#2C2C2C" opacity="0.4"/>
+  
+  <!-- Brain Connection Lines (showing deduction process) -->
+  <g stroke="#FF6B3E" stroke-width="1" opacity="0.5" stroke-dasharray="2,2">
+    <path d="M24 28L40 20"/>
+    <path d="M32 45L44 52"/>
+    <path d="M20 52L32 45"/>
+  </g>
+  
+  <!-- Corner Investigation Markers -->
+  <circle cx="8" cy="8" r="2" fill="none" stroke="#2C2C2C" stroke-width="1"/>
+  <circle cx="56" cy="56" r="2" fill="none" stroke="#2C2C2C" stroke-width="1"/>
+</svg>

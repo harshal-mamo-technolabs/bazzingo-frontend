@@ -16,6 +16,7 @@ import Dashboard from './dashboard';
 import Profile from './Profile';
 import Statistics from './Statistics';
 import Leadboard from './Leadboard';
+import NotFound from './NotFound';
 import VisualReasoningLayout from "./VisualReasoningLayout";
 
 // Game imports
@@ -77,8 +78,9 @@ export {
     Profile,
     Statistics,
     Leadboard,
+    NotFound,
     VisualReasoningLayout,
-    
+
     // Game pages
     ShadowMatchGame,
     NumberFlipGame,
