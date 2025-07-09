@@ -7,6 +7,7 @@ function HelpFAQs() {
     const navigate = useNavigate();
     const [expandedFAQ, setExpandedFAQ] = useState(0); // First FAQ is expanded by default
     const unreadCount = 3;
+    const [expanded, setExpanded] = useState(0);
 
     const faqs = [
         {
@@ -46,41 +47,48 @@ function HelpFAQs() {
                 <div className="mx-auto px-4 lg:px-12 py-4 lg:pb-4">
                     <div className="flex items-center" style={{ marginBottom: '8px' }}>
                         <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600" />
-                        <h2 className="text-gray-900" style={{ fontSize: '16px', fontWeight: '600' }}>Help & FAQs</h2>
+                        <h2 className="text-gray-900 text-lg lg:text-xl" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>
+                            <span className="lg:hidden" style={{ fontSize: '18px', fontWeight: '500' }}>Help & FAQs</span>
+                            <span className="hidden lg:inline" style={{ fontSize: '20px', fontWeight: 'bold' }}>Help & FAQs</span>
+                        </h2>
                     </div>
-                    <p className="text-gray-600" style={{ fontSize: '11px' }}>Find answers to the most common questions. Still need help? Raise a ticket.</p>
+                    <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400' }}>Find answers to the most common questions. Still need help? Raise a ticket.</p>
                 </div>
 
                 {/* Content Container */}
-                <div className="mx-auto px-4 lg:px-12 py-4 lg:py-1">
-                    <div className="max-w-[600px]">
-                        <h3 className="text-gray-900" style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px' }}>FAQs</h3>
+                <div className="px-4 lg:px-12 py-4 lg:py-1 max-w-xl">
+                    <h3 className="text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600' }}>FAQs</h3>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {faqs.map((faq, index) => (
-                                <div key={index} className="border border-[#D1D5DB] rounded-lg bg-white">
+                    <div className="space-y-3">
+                        {faqs.map((faq, i) => {
+                            const isOpen = expanded === i;
+                            return (
+                                <div key={i} className="border border-gray-300 rounded-lg overflow-hidden">
                                     <button
-                                        onClick={() => toggleFAQ(index)}
-                                        className="w-full text-left flex justify-between items-center hover:bg-gray-50 focus:outline-none rounded-lg"
-                                        style={{ padding: '12px 16px', minHeight: '48px' }}
+                                        onClick={() => setExpanded(isOpen ? -1 : i)}
+                                        className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 focus:outline-none"
                                     >
-                                        <span className="text-gray-900" style={{ fontSize: '11px', fontWeight: '500', paddingRight: '16px' }}>{faq.question}</span>
-                                        <div className="flex-shrink-0">
-                                            {expandedFAQ === index ? (
-                                                <Minus style={{ height: '12px', width: '12px' }} className="text-gray-600" />
-                                            ) : (
-                                                <Plus style={{ height: '12px', width: '12px' }} className="text-gray-600" />
-                                            )}
-                                        </div>
+                                        <span className="text-gray-900 text-sm lg:text-base" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', fontWeight: '400' }}>
+                                            <span className="lg:hidden" style={{ fontSize: '14px', fontWeight: '400' }}>{faq.question}</span>
+                                            <span className="hidden lg:inline" style={{ fontSize: '16px', fontWeight: '400' }}>{faq.question}</span>
+                                        </span>
+                                        {isOpen
+                                            ? <Minus className="w-4 h-4 text-gray-600" />
+                                            : <Plus className="w-4 h-4 text-gray-600" />
+                                        }
                                     </button>
-                                    {expandedFAQ === index && (
-                                        <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid #E5E7EB', backgroundColor: '#F9FAFB' }} className="rounded-b-lg">
-                                            <p className="text-gray-600" style={{ fontSize: '11px', marginTop: '12px' }}>{faq.answer}</p>
+
+                                    {isOpen && <hr className="border-t border-black mx-4" />}
+
+                                    {isOpen && (
+                                        <div className="bg-gray-50 px-4 pb-4 pt-3 text-gray-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                                            <span className="lg:hidden" style={{ fontSize: '14px' }}>{faq.answer}</span>
+                                            <span className="hidden lg:inline" style={{ fontSize: '16px' }}>{faq.answer}</span>
                                         </div>
                                     )}
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
             </main>
