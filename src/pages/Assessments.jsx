@@ -4,7 +4,8 @@ import { Car } from 'lucide-react';
 import MainLayout from '../components/Layout/MainLayout';
 import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
-import AssessmentModal from '../components/assessments/AssessmentModal';
+// import AssessmentModal from '../components/assessments/AssessmentModal'; // Commented out - using new modal
+import NewAssessmentModal from '../components/assessments/NewAssessmentModal';
 
 const Assessments = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,8 +125,15 @@ const Assessments = () => {
           </div>
         </div>
 
-        {/* Assessment Modal */}
-        <AssessmentModal
+        {/* Assessment Modal - Old modal commented out */}
+        {/* <AssessmentModal
+          isOpen={isModalOpen}
+          selectedAssessment={selectedAssessment}
+          onClose={() => setIsModalOpen(false)}
+        /> */}
+
+        {/* New Assessment Modal */}
+        <NewAssessmentModal
           isOpen={isModalOpen}
           selectedAssessment={selectedAssessment}
           onClose={() => setIsModalOpen(false)}
