@@ -43,7 +43,7 @@ function HelpFAQs() {
             {/* Main Content */}
             <main>
                 {/* Page Header */}
-                <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
+                <div className="mx-auto px-4 lg:px-12 py-4 lg:pb-4">
                     <div className="flex items-center" style={{ marginBottom: '8px' }}>
                         <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600" />
                         <h2 className="text-gray-900" style={{ fontSize: '16px', fontWeight: '600' }}>Help & FAQs</h2>

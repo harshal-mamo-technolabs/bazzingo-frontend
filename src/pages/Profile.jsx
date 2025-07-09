@@ -1,5 +1,6 @@
 import React from "react";
 import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { FinishedCertificates, Achievements } from "../components/Profile";
 import {
   BellIcon,
@@ -13,17 +14,24 @@ import {
 import MainLayout from "../components/Layout/MainLayout";
 
 const Profile = () => {
+  const navigate = useNavigate();
 
   const settings = [
-    { label: 'Notification Preference', icon: BellIcon },
-    { label: 'Update Password', icon: LockClosedIcon },
-    { label: 'Ticket Raising System', icon: TicketIcon },
-    { label: 'Help', icon: QuestionMarkCircleIcon },
-    { label: 'Faq', icon: ChatBubbleBottomCenterTextIcon },
-    { label: 'Terms of use', icon: DocumentTextIcon },
-    { label: 'Privacy Policy', icon: ShieldCheckIcon },
+    { label: 'Notification Preference', icon: BellIcon, route: '/notification-preferences' },
+    { label: 'Update Password', icon: LockClosedIcon, route: '/update-password' },
+    { label: 'Ticket Raising System', icon: TicketIcon, route: '/client-ticket' },
+    { label: 'Help', icon: QuestionMarkCircleIcon, route: '/help-faqs' },
+    { label: 'Faq', icon: ChatBubbleBottomCenterTextIcon, route: '/help-faqs' },
+    { label: 'Terms of use', icon: DocumentTextIcon, route: '/terms-of-use' },
+    { label: 'Privacy Policy', icon: ShieldCheckIcon, route: '/privacy-policy' },
   ];
   const unreadCount = 3;
+
+  const handleSettingClick = (route) => {
+    if (route) {
+      navigate(route);
+    }
+  };
 
   return (
     <MainLayout unreadCount={unreadCount}>
@@ -71,10 +79,11 @@ const Profile = () => {
                 {/* Settings */}
                 <div className="p-1 space-y-2">
                   <h3 className="font-semibold text-[15px] mb-2">Settings</h3>
-                  {settings.map(({ label, icon: Icon }, i) => (
+                  {settings.map(({ label, icon: Icon, route }, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300"
+                      className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300 cursor-pointer transition-colors"
+                      onClick={() => handleSettingClick(route)}
                     >
                       <div className="flex items-center gap-3">
                         <Icon className="w-4 h-4 text-gray-500" />
@@ -142,10 +151,11 @@ const Profile = () => {
           {/* Settings */}
           <div className="space-y-2.5">
             <h3 className="font-semibold text-[15px] mb-2">Settings</h3>
-            {settings.map(({ label, icon: Icon }, i) => (
+            {settings.map(({ label, icon: Icon, route }, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300"
+                className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300 cursor-pointer transition-colors"
+                onClick={() => handleSettingClick(route)}
               >
                 <div className="flex items-center gap-3">
                   <Icon className="w-4 h-4 text-gray-500" />

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../app/userSlice';
 
@@ -13,7 +13,13 @@ export default function Header({ unreadCount = 0 }) {
     const mobileMenuRef = useRef(null);
 
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
+
+    // Helper function to check if nav item is active
+    const isActiveNavItem = (path) => {
+        return location.pathname === path;
+    };
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -55,19 +61,21 @@ export default function Header({ unreadCount = 0 }) {
                         <img
                             src="./bxs_brain.png"              /* put your small brain icon here */
                             alt="Logo"
-                            className="block lg:hidden"         /* only on small screens */
+                            className="block lg:hidden cursor-pointer"         /* only on small screens */
                             style={{ width: '38px', height: '52px' }}
+                            onClick={() => navigate('/dashboard')}
                         />
 
                         {/* Text logo: desktop only */}
                         <h1
-                            className="hidden lg:block"
+                            className="hidden lg:block cursor-pointer"
                             style={{
                                 fontFamily: 'Roboto, sans-serif',
                                 fontSize: '30px',
                                 fontWeight: 600,
                                 letterSpacing: '0.08em',
                             }}
+                            onClick={() => navigate('/dashboard')}
                         >
                             <span className="text-[#FF6B3E]">B</span>
                             <span className="text-black">AZIN</span>
@@ -78,10 +86,54 @@ export default function Header({ unreadCount = 0 }) {
 
                     {/* ───── Center nav links (desktop only) ───── */}
                     <div className="hidden lg:flex" style={{ gap: '28px' }}>
-                        <a style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', fontWeight: 500 }}>Games</a>
-                        <a style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', fontWeight: 500 }}>Assessments</a>
-                        <a style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', fontWeight: 500 }}>Statistics</a>
-                        <a style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', fontWeight: 500 }}>Leaderboard</a>
+                        <button
+                            onClick={() => navigate('/games')}
+                            style={{
+                                fontFamily: 'Roboto, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: isActiveNavItem('/games') ? '#FF6B3E' : 'inherit'
+                            }}
+                            className="hover:text-orange-500 transition-colors"
+                        >
+                            Games
+                        </button>
+                        <button
+                            onClick={() => navigate('/assessments')}
+                            style={{
+                                fontFamily: 'Roboto, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: isActiveNavItem('/assessments') ? '#FF6B3E' : 'inherit'
+                            }}
+                            className="hover:text-orange-500 transition-colors"
+                        >
+                            Assessments
+                        </button>
+                        <button
+                            onClick={() => navigate('/statistics')}
+                            style={{
+                                fontFamily: 'Roboto, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: isActiveNavItem('/statistics') ? '#FF6B3E' : 'inherit'
+                            }}
+                            className="hover:text-orange-500 transition-colors"
+                        >
+                            Statistics
+                        </button>
+                        <button
+                            onClick={() => navigate('/leadboard')}
+                            style={{
+                                fontFamily: 'Roboto, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: isActiveNavItem('/leadboard') ? '#FF6B3E' : 'inherit'
+                            }}
+                            className="hover:text-orange-500 transition-colors"
+                        >
+                            Leaderboard
+                        </button>
                     </div>
 
                     {/* ───── Right side icons ───── */}
@@ -95,7 +147,7 @@ export default function Header({ unreadCount = 0 }) {
                                 style={{ width: '40px', height: '40px' }}
                             >
                                 <img src="./bell.png" alt="Bell" style={{ width: '18px', height: '18px' }} />
-                                {unreadCount > 0 && (
+                                {3 > 0 && (
                                     <span
                                         className="absolute bg-[#FF6B3E] text-white rounded-full flex items-center justify-center"
                                         style={{
@@ -109,7 +161,7 @@ export default function Header({ unreadCount = 0 }) {
                                             fontFamily: 'Roboto, sans-serif',
                                         }}
                                     >
-                                        {unreadCount}
+                                        {3}
                                     </span>
                                 )}
                             </button>
@@ -255,28 +307,32 @@ export default function Header({ unreadCount = 0 }) {
                                     <div className="py-2">
                                         <button
                                             onClick={() => { navigate('/games'); setIsMobileMenuOpen(false); }}
-                                            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${isActiveNavItem('/games') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                                                }`}
                                             style={{ fontFamily: 'Roboto, sans-serif' }}
                                         >
                                             🎮 Games
                                         </button>
                                         <button
                                             onClick={() => { navigate('/assessments'); setIsMobileMenuOpen(false); }}
-                                            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${isActiveNavItem('/assessments') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                                                }`}
                                             style={{ fontFamily: 'Roboto, sans-serif' }}
                                         >
                                             📝 Assessments
                                         </button>
                                         <button
                                             onClick={() => { navigate('/statistics'); setIsMobileMenuOpen(false); }}
-                                            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${isActiveNavItem('/statistics') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                                                }`}
                                             style={{ fontFamily: 'Roboto, sans-serif' }}
                                         >
                                             📊 Statistics
                                         </button>
                                         <button
                                             onClick={() => { navigate('/leadboard'); setIsMobileMenuOpen(false); }}
-                                            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${isActiveNavItem('/leadboard') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                                                }`}
                                             style={{ fontFamily: 'Roboto, sans-serif' }}
                                         >
                                             🏆 Leaderboard
