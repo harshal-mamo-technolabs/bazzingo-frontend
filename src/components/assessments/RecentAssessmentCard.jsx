@@ -7,7 +7,7 @@ const RecentAssessmentCard = ({ assessment }) => {
       <div className="flex items-start gap-4">
         {/* icon square */}
         <div
-          className={`rounded-md flex items-center justify-center overflow-hidden`}
+          className={`rounded-md flex items-center justify-center overflow-hidden bg-[#fce1d8]`}
           style={{ width: '56px', height: '56px' }}          /* 56×56px */
         >
           {assessment.type === 'car' ? (

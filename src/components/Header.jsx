@@ -62,7 +62,7 @@ export default function Header({ unreadCount = 0 }) {
                             src="./bxs_brain.png"              /* put your small brain icon here */
                             alt="Logo"
                             className="block lg:hidden cursor-pointer"         /* only on small screens */
-                            style={{ width: '38px', height: '52px' }}
+                            style={{ width: '42px', height: '46px' }}
                             onClick={() => navigate('/dashboard')}
                         />
 
