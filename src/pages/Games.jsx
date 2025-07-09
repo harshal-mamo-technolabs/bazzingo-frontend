@@ -70,7 +70,7 @@ export default function Games() {
           <GamesGrid
             games={games}
             pillConfig={pillConfig}
-          // onGameClick={() => setIsModalOpen(true)}
+            onGameClick={() => setIsModalOpen(true)}
           />
         </div>
 

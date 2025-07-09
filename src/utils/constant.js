@@ -1,6 +1,6 @@
 export const USER_SLICE_NAME = "user";
 
-export const API_CONNECTION_HOST_URL = "https://c659522f2687.ngrok-free.app";
+export const API_CONNECTION_HOST_URL = "https://51l68pgk-4000.inc1.devtunnels.ms";
 export const SIGNUP_ENDPOINT = "/auth/signup";
 export const LOGIN_ENDPOINT = "/auth/login";
 export const GOOGLE_LOGIN_ENDPOINT = "/auth/google-login";

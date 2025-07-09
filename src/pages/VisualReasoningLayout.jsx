@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Layout/Header";
+import Header from "../components/Header";
 import DailyPuzzleIcon from "../../public/daily-puzzle-icon.png";
 import DailyAssessmentIcon from "../../public/daily-assessment-icon.png";
 import MageScapeIcon from "../../public/maze-escape-icon.png";
 import CheckIcon from "../../public/carbon_checkmark-filled.png";
 
 export default function VisualReasoningLayout() {
-    const [showAllQuestions, setShowAllQuestions] = useState(false);
+  const [showAllQuestions, setShowAllQuestions] = useState(false);
 
   const questions = [
     {
@@ -78,88 +78,84 @@ export default function VisualReasoningLayout() {
       <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7">
         <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[550px]">
           {/* LEFT CARD */}
-        <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col h-full">
-  {/* Header Row */}
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-2xl font-semibold">Visual Reasoning Questions</h2>
-    <span className="bg-black text-white text-sm px-3 py-1 rounded">
-      00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}s
-    </span>
-  </div>
-
-  <p className="text-[13px] mb-4">
-    Test your memory by finding all the matching pairs of cards.
-  </p>
-
-  {/* On small/medium screens → show current question only + toggle */}
-  <div className="flex-grow flex flex-col">
-    {/* Mobile/Tablet view */}
-    <div className="block lg:hidden">
-      {/* Current active question box */}
-      <div
-        className={`p-3 rounded text-[13px] cursor-pointer border mb-2 ${
-          currentIndex === currentIndex
-            ? "bg-[#FFE2D9] border-[#FF2738]"
-            : "bg-white border-transparent"
-        }`}
-      >
-        {questions[currentIndex].title}
-      </div>
-
-      {/* Toggle button */}
-      <button
-        onClick={() => setShowAllQuestions(!showAllQuestions)}
-        className="text-sm mt-4 flex items-center gap-5 font-semibold"
-      >
-        More Questions
-        <svg
-          className={`w-4 h-4 transform transition-transform ${
-            showAllQuestions ? "rotate-180" : "rotate-0"
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {/* Expanded question list */}
-      {showAllQuestions && (
-        <div className="mt-2 flex flex-col gap-2">
-          {questions.map((q, index) => (
-            <div
-              key={q.id}
-              className={`p-3 rounded text-[13px] cursor-pointer border ${
-                index === currentIndex
-                  ? "bg-[#FFE2D9] border-[#FF2738]"
-                  : "bg-white border-transparent"
-              }`}
-            >
-              {q.title}
+          <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col h-full">
+            {/* Header Row */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Visual Reasoning Questions</h2>
+              <span className="bg-black text-white text-sm px-3 py-1 rounded">
+                00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}s
+              </span>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
 
-    {/* Desktop view (always show all) */}
-    <div className="hidden lg:flex flex-col gap-2">
-      {questions.map((q, index) => (
-        <div
-          key={q.id}
-          className={`p-3 rounded text-[13px] cursor-pointer border ${
-            index === currentIndex
-              ? "bg-[#FFE2D9] border-[#FF2738]"
-              : "bg-white border-transparent"
-          }`}
-        >
-          {q.title}
-        </div>
-      ))}
-    </div>
-  </div>
-        </div>
+            <p className="text-[13px] mb-4">
+              Test your memory by finding all the matching pairs of cards.
+            </p>
+
+            {/* On small/medium screens → show current question only + toggle */}
+            <div className="flex-grow flex flex-col">
+              {/* Mobile/Tablet view */}
+              <div className="block lg:hidden">
+                {/* Current active question box */}
+                <div
+                  className={`p-3 rounded text-[13px] cursor-pointer border mb-2 ${currentIndex === currentIndex
+                      ? "bg-[#FFE2D9] border-[#FF2738]"
+                      : "bg-white border-transparent"
+                    }`}
+                >
+                  {questions[currentIndex].title}
+                </div>
+
+                {/* Toggle button */}
+                <button
+                  onClick={() => setShowAllQuestions(!showAllQuestions)}
+                  className="text-sm mt-4 flex items-center gap-5 font-semibold"
+                >
+                  More Questions
+                  <svg
+                    className={`w-4 h-4 transform transition-transform ${showAllQuestions ? "rotate-180" : "rotate-0"
+                      }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Expanded question list */}
+                {showAllQuestions && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {questions.map((q, index) => (
+                      <div
+                        key={q.id}
+                        className={`p-3 rounded text-[13px] cursor-pointer border ${index === currentIndex
+                            ? "bg-[#FFE2D9] border-[#FF2738]"
+                            : "bg-white border-transparent"
+                          }`}
+                      >
+                        {q.title}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop view (always show all) */}
+              <div className="hidden lg:flex flex-col gap-2">
+                {questions.map((q, index) => (
+                  <div
+                    key={q.id}
+                    className={`p-3 rounded text-[13px] cursor-pointer border ${index === currentIndex
+                        ? "bg-[#FFE2D9] border-[#FF2738]"
+                        : "bg-white border-transparent"
+                      }`}
+                  >
+                    {q.title}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           {/* MIDDLE CARD */}
           <div className="lg:w-2/4 w-full bg-white p-4 flex flex-col h-full">
             <div className="w-full mb-6">
@@ -202,11 +198,10 @@ export default function VisualReasoningLayout() {
                 {currentQuestion.options.map((option) => (
                   <label
                     key={option}
-                    className={`flex justify-between items-center p-2 border rounded cursor-pointer ${
-                      selectedOption === option
+                    className={`flex justify-between items-center p-2 border rounded cursor-pointer ${selectedOption === option
                         ? "border-orange-400"
                         : "border-gray-300"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center">
                       <input

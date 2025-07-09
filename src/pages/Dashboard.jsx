@@ -5,8 +5,10 @@ import dayjs from "dayjs";
 import MainLayout from '../components/Layout/MainLayout';
 import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '../components/Dashboard';
 import ProgressChart from '../components/Charts/ProgressChart';
+import DailyGameModal from '../components/games/DailyGameModal';
 
 const Dashboard = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
   const [currentDate, setCurrentDate] = useState(dayjs());
@@ -63,6 +65,10 @@ const Dashboard = () => {
     name: xLabels[index],
     value,
   })); */
+
+  const dailyGames = [{ id: 4, title: 'Sound Memory', category: 'Gameacy', difficulty: 'Easy', icon: './sound-memory-game.png', bgColor: '#ffffff', path: "/games/sound-memory-game" },
+  { id: 5, title: 'Visual Memory Span', category: 'Logic', difficulty: 'Medium', icon: './whack-a-box-game.png', bgColor: '#1D1D1B', path: "/games/visual-memory-span-game" },
+  { id: 6, title: 'Neural Network Builder Game', category: 'Logic', difficulty: 'Medium', icon: './Neural-Network-Builder-Game.png', bgColor: '#FFFFFF', path: "/games/neural-network-builder-game" }]
 
   return (
     <MainLayout>
@@ -145,7 +151,7 @@ const Dashboard = () => {
 
             {/* Daily Games Streak */}
             <div className="w-full lg:w-[220px] flex-shrink-0">
-              <DailyGame />
+              <DailyGame onGameClick={() => setIsModalOpen(true)} />
             </div>
 
             {/* Daily Quick Assessment */}
@@ -206,6 +212,12 @@ const Dashboard = () => {
 
           {/* Recent Activity */}
           <RecentActivity />
+
+          <DailyGameModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            dailyGames={dailyGames}
+          />
 
         </main>
       </div>
