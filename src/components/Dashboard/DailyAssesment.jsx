@@ -1,7 +1,7 @@
 import React from "react";
 import { Info } from "lucide-react";
 
-const DailyAssesment = () => {
+const DailyAssesment = ({ onAssesmentClick }) => {
     return (
         <>
         <div className="bg-[#f6c8bc] h-full rounded-lg text-black w-full max-w-full md:max-w-none md:w-auto lg:max-w-none lg:w-auto p-4 lg:p-3">
@@ -67,7 +67,7 @@ const DailyAssesment = () => {
       </div>
 
       {/* Button */}
-      <button className="w-full bg-[#00332e] hover:bg-[#00443e] text-white text-sm font-semibold py-2.5 rounded-md">
+      <button className="w-full bg-[#00332e] hover:bg-[#00443e] text-white text-sm font-semibold py-2.5 rounded-md" onClick={onAssesmentClick}>
       Play Now
       </button>
         </div>

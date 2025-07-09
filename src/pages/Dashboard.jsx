@@ -6,9 +6,18 @@ import MainLayout from '../components/Layout/MainLayout';
 import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '../components/Dashboard';
 import ProgressChart from '../components/Charts/ProgressChart';
 import DailyGameModal from '../components/games/DailyGameModal';
+import AssessmentModal from "../components/assessments/AssessmentModal";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssesmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
+
+  const handleAssessmentClick = (assessment) => {
+    setSelectedAssessment(assessment);
+    setIsAssessmentModalOpen(true);
+  };
+
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
   const [currentDate, setCurrentDate] = useState(dayjs());
@@ -156,7 +165,7 @@ const Dashboard = () => {
 
             {/* Daily Quick Assessment */}
             <div className="w-full lg:w-[220px] flex-shrink-0">
-              <DailyAssesment />
+              <DailyAssesment onAssesmentClick={handleAssessmentClick} />
             </div>
 
             {/* Calendar */}
@@ -218,6 +227,11 @@ const Dashboard = () => {
             onClose={() => setIsModalOpen(false)}
             dailyGames={dailyGames}
           />
+          <AssessmentModal
+          isOpen={isAssesmentModalOpen}
+          selectedAssessment={selectedAssessment}
+          onClose={() => setIsAssessmentModalOpen(false)}
+        />
 
         </main>
       </div>
