@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, CheckCircle, Star, BellIcon, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'; import RecentActivity from '../components/Tables/RecentActivity';
-import dayjs from "dayjs";
 import MainLayout from '../components/Layout/MainLayout';
 import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '../components/Dashboard';
 import ProgressChart from '../components/Charts/ProgressChart';
@@ -20,20 +19,7 @@ const Dashboard = () => {
 
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
-  const [currentDate, setCurrentDate] = useState(dayjs());
-
-  const startOfMonth = currentDate.startOf("month");
-  const endOfMonth = currentDate.endOf("month");
-
-  const daysInMonth = currentDate.daysInMonth();
-  const startDay = startOfMonth.day(); // 0 (Sunday) - 6 (Saturday)
-  const blankDays = (startDay + 6) % 7; // Shift Sunday to end
-
-  const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
-  const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
-
-  const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
-
+ 
   useEffect(() => {
     const container = scrollRef.current;
 
