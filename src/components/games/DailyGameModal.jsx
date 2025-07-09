@@ -1,7 +1,7 @@
 import React from 'react';
 import DailyGameCard from './DailyGameCard';
 
-const DailyGameModal = ({ isOpen, onClose, dailyGames }) => {
+const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
   if (!isOpen) return null;
 
   return (
@@ -57,6 +57,7 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames }) => {
                   key={game.id}
                   game={game}
                   isMobile={true}
+                  onGameClick={onGameClick}
                 />
               ))}
             </div>
@@ -68,6 +69,7 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames }) => {
                   key={game.id}
                   game={game}
                   isMobile={false}
+                  onGameClick={onGameClick}
                 />
               ))}
             </div>

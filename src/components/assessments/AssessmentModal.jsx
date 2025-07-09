@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
+  const navigate = useNavigate();
   if (!isOpen || !selectedAssessment) return null;
 
   return (
@@ -87,6 +89,10 @@ const AssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
                 style={{
                   fontWeight: '500',
                   fontFamily: 'Roboto, sans-serif'
+                }}
+                onClick={() => {
+                  onClose();
+                  navigate(`/visual-reasoning`);
                 }}
               >
                 Play

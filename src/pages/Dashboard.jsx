@@ -6,8 +6,10 @@ import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '
 import ProgressChart from '../components/Charts/ProgressChart';
 import DailyGameModal from '../components/games/DailyGameModal';
 import AssessmentModal from "../components/assessments/AssessmentModal";
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssesmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
@@ -133,7 +135,7 @@ const Dashboard = () => {
                   <span className="text-xs text-gray-500">Only</span>
                   <span className="text-md font-bold text-black">€0.99</span>
                 </div>
-                <button className="bg-[#ff6b35] hover:bg-[#ff5a1c] text-white text-xs w-full font-medium py-2 px-4 rounded-[5px] transition">
+                <button className="bg-[#ff6b35] hover:bg-[#ff5a1c] text-white text-xs w-full font-medium py-2 px-4 rounded-[5px] transition" onClick={() => navigate('/visual-reasoning')}>
                   Start Certified Test
                 </button>
               </div>
@@ -212,6 +214,7 @@ const Dashboard = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             dailyGames={dailyGames}
+            onGameClick={(game) => navigate(game.path)}
           />
           <AssessmentModal
           isOpen={isAssesmentModalOpen}

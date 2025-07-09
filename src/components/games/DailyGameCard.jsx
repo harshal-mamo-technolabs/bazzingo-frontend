@@ -1,6 +1,6 @@
 import React from 'react';
 
-const DailyGameCard = ({ game, isMobile = false }) => {
+const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
   if (isMobile) {
     return (
       <div className="flex items-center gap-4 p-2 rounded-2xl bg-[#eeeeee] hover:bg-gray-100 transition-colors">
@@ -10,7 +10,10 @@ const DailyGameCard = ({ game, isMobile = false }) => {
 
         <div className="flex-1 min-w-0">
           <h3 className="mb-1 text-base font-semibold text-gray-900">{game.title}</h3>
-          <button className="w-2/5 py-2 text-sm font-medium text-white rounded-xl bg-[#FF6B3E] hover:bg-[#E55A35] transition-colors">
+          <button
+            className="w-2/5 py-2 text-sm font-medium text-white rounded-xl bg-[#FF6B3E] hover:bg-[#E55A35] transition-colors"
+            onClick={() => onGameClick?.(game)}
+          >
             Play
           </button>
         </div>
@@ -26,7 +29,10 @@ const DailyGameCard = ({ game, isMobile = false }) => {
 
       <h3 className="mb-2 text-base font-semibold text-gray-900">{game.title}</h3>
 
-      <button className="w-full py-2 mt-auto font-medium text-white rounded-lg bg-[#FF6B3E] hover:bg-[#E55A35]">
+      <button
+        className="w-full py-2 mt-auto font-medium text-white rounded-lg bg-[#FF6B3E] hover:bg-[#E55A35]"
+        onClick={() => onGameClick?.(game)}
+      >
         Play
       </button>
     </div>

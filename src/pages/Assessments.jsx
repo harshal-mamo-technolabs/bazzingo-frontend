@@ -6,14 +6,17 @@ import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 // import AssessmentModal from '../components/assessments/AssessmentModal'; // Commented out - using new modal
 import NewAssessmentModal from '../components/assessments/NewAssessmentModal';
+import { useNavigate } from 'react-router-dom';
 
 const Assessments = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
+  const navigate = useNavigate();
 
   const handleAssessmentClick = (assessment) => {
     setSelectedAssessment(assessment);
-    setIsModalOpen(true);
+    navigate('/visual-reasoning'); // Navigate to the visual reasoning page
+    //setIsModalOpen(true);
   };
 
   const assessments = [
