@@ -42,8 +42,8 @@ const GameCard = ({ game, pillConfig, onClick }) => {
             className={`
               object-contain max-w-full max-h-full
               ${game.featured
-                ? 'w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-40 lg:h-40'
-                : 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16'
+                ? 'w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56'
+                : 'w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20'
               }
             `}
           />

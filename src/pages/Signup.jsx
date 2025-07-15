@@ -28,7 +28,7 @@ const Signup = () => {
   const signupHandler = async (formData) => {
     try {
       dispatch(loadingAction());
-      const response = await signup(formData.email, formData.password);
+      const response = await signup(formData.email, formData.password, formData.age, formData.country);
 
       // Debug: Log the actual response structure
       console.log("Signup response:", response);

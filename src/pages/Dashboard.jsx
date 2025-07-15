@@ -1,27 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, CheckCircle, Star, BellIcon, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'; import RecentActivity from '../components/Tables/RecentActivity';
+import dayjs from "dayjs";
 import MainLayout from '../components/Layout/MainLayout';
 import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '../components/Dashboard';
 import ProgressChart from '../components/Charts/ProgressChart';
 import DailyGameModal from '../components/games/DailyGameModal';
-import AssessmentModal from "../components/assessments/AssessmentModal";
-import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAssesmentModalOpen, setIsAssessmentModalOpen] = useState(false);
-  const [selectedAssessment, setSelectedAssessment] = useState(null);
-
-  const handleAssessmentClick = (assessment) => {
-    setSelectedAssessment(assessment);
-    setIsAssessmentModalOpen(true);
-  };
-
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
- 
+  const [currentDate, setCurrentDate] = useState(dayjs());
+
+  const startOfMonth = currentDate.startOf("month");
+  const endOfMonth = currentDate.endOf("month");
+
+  const daysInMonth = currentDate.daysInMonth();
+  const startDay = startOfMonth.day(); // 0 (Sunday) - 6 (Saturday)
+  const blankDays = (startDay + 6) % 7; // Shift Sunday to end
+
+  const prevMonth = () => setCurrentDate(currentDate.subtract(1, "month"));
+  const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
+
+  const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
+
   useEffect(() => {
     const container = scrollRef.current;
 
@@ -135,7 +138,7 @@ const Dashboard = () => {
                   <span className="text-xs text-gray-500">Only</span>
                   <span className="text-md font-bold text-black">€0.99</span>
                 </div>
-                <button className="bg-[#ff6b35] hover:bg-[#ff5a1c] text-white text-xs w-full font-medium py-2 px-4 rounded-[5px] transition" onClick={() => navigate('/visual-reasoning')}>
+                <button className="bg-[#ff6b35] hover:bg-[#ff5a1c] text-white text-xs w-full font-medium py-2 px-4 rounded-[5px] transition">
                   Start Certified Test
                 </button>
               </div>
@@ -153,7 +156,7 @@ const Dashboard = () => {
 
             {/* Daily Quick Assessment */}
             <div className="w-full lg:w-[220px] flex-shrink-0">
-              <DailyAssesment onAssesmentClick={handleAssessmentClick} />
+              <DailyAssesment />
             </div>
 
             {/* Calendar */}
@@ -214,13 +217,7 @@ const Dashboard = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             dailyGames={dailyGames}
-            onGameClick={(game) => navigate(game.path)}
           />
-          <AssessmentModal
-          isOpen={isAssesmentModalOpen}
-          selectedAssessment={selectedAssessment}
-          onClose={() => setIsAssessmentModalOpen(false)}
-        />
 
         </main>
       </div>

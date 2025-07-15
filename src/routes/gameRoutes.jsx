@@ -8,6 +8,7 @@ import {
   PatternMatchGame,
   ColorRushGame,
   LogicPuzzleGame,
+  LogicPatternSequenceGame,
   BlockStackingGame,
   SequenceMathGame,
   TileSwitchGame,
@@ -36,6 +37,7 @@ import {
   CognitivePatternWeaverGame,
   CognitiveFlexibilityArchitectGame,
   MetacognitiveStrategyNavigatorGame,
+  MathExpressionBuilderGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -83,6 +85,11 @@ export const gameRoutes = [
     path: "/games/logic-puzzle-game",
     element: <LogicPuzzleGame />,
     name: "Logic Puzzle Game"
+  },
+  {
+    path: "/games/logic-pattern-sequence-game",
+    element: <LogicPatternSequenceGame />,
+    name: "Logic Pattern Sequence Game"
   },
   {
     path: "/games/block-stacking-game",
@@ -223,5 +230,10 @@ export const gameRoutes = [
     path: "/games/metacognitive-strategy-navigator-game",
     element: <MetacognitiveStrategyNavigatorGame />,
     name: "Metacognitive Strategy Navigator Game"
+  },
+  {
+    path: "/games/math-expression-builder-game",
+    element: <MathExpressionBuilderGame />,
+    name: "Math Expression Builder Game"
   }
 ];

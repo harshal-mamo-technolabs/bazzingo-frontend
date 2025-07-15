@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FinishedCertificates, Achievements } from "../components/Profile";
+import EditProfileModal from "../components/Profile/EditProfileModal";
 import {
   BellIcon,
   LockClosedIcon,
@@ -15,6 +16,7 @@ import MainLayout from "../components/Layout/MainLayout";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const settings = [
     { label: 'Notification Preference', icon: BellIcon, route: '/notification-preferences' },
@@ -63,7 +65,10 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md">
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md"
+                  >
                     Edit Profile
                   </button>
                 </div>
@@ -130,7 +135,10 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              <button className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md"
+              >
                 Edit Profile
               </button>
             </div>
@@ -168,6 +176,14 @@ const Profile = () => {
         </div>
 
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentProfile={{}}
+        onSave={() => { }}
+      />
     </MainLayout>
   );
 };

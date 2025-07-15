@@ -29,6 +29,7 @@ import ShapeRotationGame from './games/ShapeRotationGame';
 import PatternMatchGame from './games/PatternMatchGame';
 import ColorRushGame from './games/ColorRushGame';
 import LogicPuzzleGame from './games/LogicPuzzleGame';
+import LogicPatternSequenceGame from './games/LogicPatternSequenceGame';
 import BlockStackingGame from './games/BlockStackingGame';
 import SequenceMathGame from './games/SequenceMathGame';
 import TileSwitchGame from './games/TileSwitchGame';
@@ -57,6 +58,7 @@ import TemporalReasoningArchitectGame from './games/TemporalReasoningArchitectGa
 import CognitivePatternWeaverGame from './games/CognitivePatternWeaverGame';
 import CognitiveFlexibilityArchitectGame from './games/CognitiveFlexibilityArchitectGame';
 import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
+import MathExpressionBuilderGame from './games/MathExpressionBuilderGame';
 
 // Export all pages including games
 export {
@@ -91,6 +93,7 @@ export {
     PatternMatchGame,
     ColorRushGame,
     LogicPuzzleGame,
+    LogicPatternSequenceGame,
     BlockStackingGame,
     SequenceMathGame,
     TileSwitchGame,
@@ -118,5 +121,6 @@ export {
     TemporalReasoningArchitectGame,
     CognitivePatternWeaverGame,
     CognitiveFlexibilityArchitectGame,
-    MetacognitiveStrategyNavigatorGame
+    MetacognitiveStrategyNavigatorGame,
+    MathExpressionBuilderGame
 };
