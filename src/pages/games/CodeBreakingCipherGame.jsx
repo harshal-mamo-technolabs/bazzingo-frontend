@@ -182,45 +182,45 @@ const CodeBreakingCipherGame = () => {
   }, [difficulty]);
 
   // Calculate score
-  const calculateScore = useCallback(() => {
-    if (totalAttempts === 0) return 0;
-    
-    const settings = difficultySettings[difficulty];
-    const successRate = solvedCiphers / totalAttempts;
-    const avgResponseTime = totalResponseTime / totalAttempts / 1000;
-    
-    // Base score from success rate (0-85 points)
-    let baseScore = successRate * 85;
-    
-    // Time bonus (max 25 points)
-    const idealTime = difficulty === 'Easy' ? 25 : difficulty === 'Moderate' ? 35 : 45;
-    const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 1.2));
-    
-    // Streak bonus (max 30 points)
-    const streakBonus = Math.min(maxStreak * 2.8, 30);
-    
-    // Level progression bonus (max 20 points)
-    const levelBonus = Math.min(currentLevel * 1.1, 20);
-    
-    // Lives bonus (max 15 points)
-    const livesBonus = (lives / settings.lives) * 15;
-    
-    // Hints penalty (subtract up to 15 points)
-    const hintsPenalty = (hintsUsed / settings.hints) * 15;
-    
-    // Difficulty multiplier
-    const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
-    
-    // Time remaining bonus (max 15 points)
-    const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
-    
-    let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
-    
-    // Apply final modifier to make 200 very challenging
-    finalScore = finalScore * 0.84;
-    
-    return Math.round(Math.max(0, Math.min(200, finalScore)));
-  }, [solvedCiphers, totalAttempts, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+ const calculateScore = useCallback(() => {
+  if (totalAttempts === 0 || solvedCiphers === 0) return 0;
+
+  const settings = difficultySettings[difficulty];
+  const successRate = solvedCiphers / totalAttempts;
+  const avgResponseTime = totalResponseTime / totalAttempts / 1000;
+
+  // Base score from success rate (0-85 points)
+  let baseScore = successRate * 85;
+
+  // Time bonus (max 25 points)
+  const idealTime = difficulty === 'Easy' ? 25 : difficulty === 'Moderate' ? 35 : 45;
+  const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 1.2));
+
+  // Streak bonus (max 30 points)
+  const streakBonus = Math.min(maxStreak * 2.8, 30);
+
+  // Level progression bonus (max 20 points)
+  const levelBonus = Math.min(currentLevel * 1.1, 20);
+
+  // Lives bonus (max 15 points)
+  const livesBonus = (lives / settings.lives) * 15;
+
+  // Hints penalty (subtract up to 15 points)
+  const hintsPenalty = (hintsUsed / settings.hints) * 15;
+
+  // Difficulty multiplier
+  const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
+
+  // Time remaining bonus (max 15 points)
+  const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
+
+  let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
+
+  finalScore = finalScore * 0.84;
+
+  return Math.round(Math.max(0, Math.min(200, finalScore)));
+}, [solvedCiphers, totalAttempts, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+
 
   // Update score whenever relevant values change
   useEffect(() => {
@@ -229,47 +229,52 @@ const CodeBreakingCipherGame = () => {
   }, [calculateScore]);
 
   // Handle cipher submission
-  const handleSubmit = useCallback(() => {
-    if (gameState !== 'playing' || showFeedback || !currentCipher) return;
-    
-    const responseTime = Date.now() - cipherStartTime;
-    const userAnswer = userInput.toUpperCase().trim();
-    const correctAnswer = currentCipher.original;
-    
-    setShowFeedback(true);
-    setTotalAttempts(prev => prev + 1);
-    setTotalResponseTime(prev => prev + responseTime);
-    
-    if (userAnswer === correctAnswer) {
-      setFeedbackType('correct');
-      setSolvedCiphers(prev => prev + 1);
-      setStreak(prev => {
-        const newStreak = prev + 1;
-        setMaxStreak(current => Math.max(current, newStreak));
-        return newStreak;
-      });
-      setCurrentLevel(prev => prev + 1);
-      
-      setTimeout(() => {
-        generateNewCipher();
-      }, 2000);
-    } else {
-      setFeedbackType('incorrect');
-      setStreak(0);
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        }
-        return newLives;
-      });
-      
-      setTimeout(() => {
-        setShowFeedback(false);
-      }, 2000);
-    }
-  }, [gameState, showFeedback, currentCipher, userInput, cipherStartTime, generateNewCipher]);
+ const handleSubmit = useCallback(() => {
+  if (gameState !== 'playing' || showFeedback || !currentCipher) return;
+
+  if (!userInput.trim()) {
+    return;
+  }
+
+  const responseTime = Date.now() - cipherStartTime;
+  const userAnswer = userInput.toUpperCase().trim();
+  const correctAnswer = currentCipher.original;
+
+  setShowFeedback(true);
+  setTotalAttempts(prev => prev + 1);
+  setTotalResponseTime(prev => prev + responseTime);
+
+  if (userAnswer === correctAnswer) {
+    setFeedbackType('correct');
+    setSolvedCiphers(prev => prev + 1);
+    setStreak(prev => {
+      const newStreak = prev + 1;
+      setMaxStreak(current => Math.max(current, newStreak));
+      return newStreak;
+    });
+    setCurrentLevel(prev => prev + 1);
+
+    setTimeout(() => {
+      generateNewCipher();
+    }, 2000);
+  } else {
+    setFeedbackType('incorrect');
+    setStreak(0);
+    setLives(prev => {
+      const newLives = prev - 1;
+      if (newLives <= 0) {
+        setGameState('finished');
+        setShowCompletionModal(true);
+      }
+      return Math.max(0, newLives);
+    });
+
+    setTimeout(() => {
+      setShowFeedback(false);
+    }, 2000);
+  }
+}, [gameState, showFeedback, currentCipher, userInput, cipherStartTime, generateNewCipher]);
+
 
   // Use hint
   const useHint = () => {

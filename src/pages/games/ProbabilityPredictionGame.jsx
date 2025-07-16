@@ -319,45 +319,76 @@ const ProbabilityPredictionGame = () => {
   }, [difficulty, usedQuestions]);
 
   // Calculate score - only during active gameplay
-  const calculateScore = useCallback(() => {
-    if (totalQuestions === 0 || gameState !== 'playing') return score;
-    
-    const settings = difficultySettings[difficulty];
-    const accuracyRate = correctPredictions / totalQuestions;
-    const avgResponseTime = totalResponseTime / totalQuestions / 1000;
-    
-    // Base score from accuracy (0-85 points)
-    let baseScore = accuracyRate * 85;
-    
-    // Time bonus (max 25 points)
-    const idealTime = difficulty === 'Easy' ? 15 : difficulty === 'Moderate' ? 20 : 25;
-    const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 2));
-    
-    // Streak bonus (max 30 points)
-    const streakBonus = Math.min(maxStreak * 2.5, 30);
-    
-    // Level progression bonus (max 20 points)
-    const levelBonus = Math.min(currentLevel * 1.2, 20);
-    
-    // Lives bonus (max 15 points)
-    const livesBonus = (lives / settings.lives) * 15;
-    
-    // Hints penalty (subtract up to 15 points)
-    const hintsPenalty = (hintsUsed / settings.hints) * 15;
-    
-    // Difficulty multiplier
-    const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
-    
-    // Time remaining bonus (max 15 points)
-    const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
-    
-    let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
-    
-    // Apply final modifier to make 200 very challenging
-    finalScore = finalScore * 0.83;
-    
-    return Math.round(Math.max(0, Math.min(200, finalScore)));
-  }, [correctPredictions, totalQuestions, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty, gameState, score]);
+ const calculateScore = useCallback(() => {
+  if (totalQuestions === 0 || correctPredictions === 0 || gameState !== 'playing') return 0;
+
+  const settings = difficultySettings[difficulty];
+  const accuracyRate = correctPredictions / totalQuestions;
+  const avgResponseTime = totalResponseTime / totalQuestions / 1000;
+
+  // Base score from accuracy (0-85 points)
+  let baseScore = accuracyRate * 85;
+
+  // Time bonus (max 25 points)
+  const idealTime =
+    difficulty === 'Easy' ? 15 :
+    difficulty === 'Moderate' ? 20 :
+    25;
+
+  const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 2));
+
+  // Streak bonus (max 30 points)
+  const streakBonus = Math.min(maxStreak * 2.5, 30);
+
+  // Level progression bonus (max 20 points)
+  const levelBonus = Math.min(currentLevel * 1.2, 20);
+
+  // Lives bonus (max 15 points)
+  const livesBonus = (lives / settings.lives) * 15;
+
+  // Hints penalty (subtract up to 15 points)
+  const hintsPenalty = (hintsUsed / settings.hints) * 15;
+
+  // Difficulty multiplier
+  const difficultyMultiplier =
+    difficulty === 'Easy'
+      ? 0.8
+      : difficulty === 'Moderate'
+      ? 1.0
+      : 1.2;
+
+  // Time remaining bonus (max 15 points)
+  const timeRemainingBonus = Math.min(
+    15,
+    (timeRemaining / settings.timeLimit) * 15
+  );
+
+  let finalScore =
+    (baseScore +
+      timeBonus +
+      streakBonus +
+      levelBonus +
+      livesBonus +
+      timeRemainingBonus -
+      hintsPenalty) *
+    difficultyMultiplier;
+
+  // Apply final modifier to make 200 very challenging
+  finalScore = finalScore * 0.83;
+
+  return Math.round(Math.max(0, Math.min(200, finalScore)));
+}, [
+  correctPredictions,
+  totalQuestions,
+  totalResponseTime,
+  currentLevel,
+  lives,
+  hintsUsed,
+  maxStreak,
+  timeRemaining,
+  difficulty,
+  gameState,
+]);
 
   // Update score only during active gameplay
   useEffect(() => {

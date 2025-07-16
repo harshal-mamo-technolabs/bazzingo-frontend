@@ -31,6 +31,7 @@ const ResourceAllocationStrategyGame = () => {
   const [performanceMetrics, setPerformanceMetrics] = useState({});
   const [constraints, setConstraints] = useState([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [hintMessage, setHintMessage] = useState('');
 
   // Scenario templates
   const scenarioTemplates = {
@@ -179,6 +180,7 @@ const ResourceAllocationStrategyGame = () => {
     setShowFeedback(false);
     setPerformanceMetrics({});
     setScenarioStartTime(Date.now());
+    setHintMessage('');
   }, [difficulty]);
 
   // Handle allocation change
@@ -363,7 +365,8 @@ const ResourceAllocationStrategyGame = () => {
     
     if (hintCategory) {
       const direction = allocations[hintCategory.id] < hintCategory.optimal ? 'increase' : 'decrease';
-      alert(`Hint: Try to ${direction} allocation for ${hintCategory.name}. Optimal is around ${hintCategory.optimal}%.`);
+      setHintMessage(`💡 Hint: Try to ${direction} allocation for ${hintCategory.name}. Optimal is around ${hintCategory.optimal}%.`);
+
     }
   };
 
@@ -683,6 +686,18 @@ const ResourceAllocationStrategyGame = () => {
             </div>
           )}
 
+{hintMessage && (
+  <div className="mt-2 mb-4 max-w-2xl text-center bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-lg">
+    <div className="flex items-center justify-center gap-2">
+      <Lightbulb className="h-5 w-5 text-yellow-600" />
+      <span className="text-sm font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        {hintMessage}
+      </span>
+    </div>
+  </div>
+)}
+
+
           {/* Allocation Controls */}
           {currentScenario && (
             <div className="w-full max-w-4xl mb-6">
@@ -814,6 +829,7 @@ const ResourceAllocationStrategyGame = () => {
               {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints
             </div>
           </div>
+          
         </div>
       </GameFramework>
       <GameCompletionModal
