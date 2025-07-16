@@ -12,7 +12,7 @@ import TermsOfUse from './TermsOfUse';
 import UserDashboard from './UserDashboard';
 import Assessments from './Assessments';
 import Games from './Games';
-import Dashboard from './dashboard-bridge';
+import Dashboard from './Dashboard';
 import Profile from './Profile';
 import Statistics from './Statistics';
 import Leadboard from './Leadboard';
