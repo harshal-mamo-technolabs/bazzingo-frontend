@@ -116,7 +116,7 @@ const CodeBreakingCipherGame = () => {
 
   // Difficulty settings
   const difficultySettings = {
-    Easy: { timeLimit: 10, lives: 5, hints: 3, cipherTypes: ['caesar'] },
+    Easy: { timeLimit: 120, lives: 5, hints: 3, cipherTypes: ['caesar'] },
     Moderate: { timeLimit: 100, lives: 4, hints: 2, cipherTypes: ['caesar', 'substitution', 'morse'] },
     Hard: { timeLimit: 80, lives: 3, hints: 1, cipherTypes: ['caesar', 'substitution', 'morse', 'binary'] }
   };
