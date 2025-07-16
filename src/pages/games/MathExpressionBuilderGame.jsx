@@ -8,7 +8,7 @@ const MathExpressionBuilderGame = () => {
     const [gameState, setGameState] = useState('ready');
     const [difficulty, setDifficulty] = useState('Easy');
     const [score, setScore] = useState(0);
-    const [timeRemaining, setTimeRemaining] = useState(10);
+    const [timeRemaining, setTimeRemaining] = useState(120);
     const [currentLevel, setCurrentLevel] = useState(1);
     const [streak, setStreak] = useState(0);
     const [maxStreak, setMaxStreak] = useState(0);
@@ -43,7 +43,7 @@ const MathExpressionBuilderGame = () => {
     // Difficulty settings
     const difficultySettings = {
         Easy: {
-            timeLimit: 1,
+            timeLimit: 120,
             lives: 3,
             hints: 3,
             numberCount: 4,

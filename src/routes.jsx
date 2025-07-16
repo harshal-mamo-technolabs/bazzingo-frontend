@@ -83,9 +83,7 @@ const router = createBrowserRouter([
         path: "/visual-reasoning",
         element: <VisualReasoningLayout />,
     },
-    // Spread all game routes from the games module
     ...gameRoutes,
-    // 404 catch-all route (must be last)
     {
         path: "*",
         element: <NotFound />,
