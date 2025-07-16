@@ -37,7 +37,14 @@ import {
   CognitivePatternWeaverGame,
   CognitiveFlexibilityArchitectGame,
   MetacognitiveStrategyNavigatorGame,
-  MathExpressionBuilderGame
+  MathExpressionBuilderGame,
+  NumberPatternMasterGame,
+  MathDeductionGame,
+  WordChainLogicGame,
+  CodeBreakingCipherGame,
+  ResourceAllocationStrategyGame,
+  ProbabilityPredictionGame,
+  LogicGridSolverGame,
 } from '../pages';
 
 export const gameRoutes = [
@@ -235,5 +242,40 @@ export const gameRoutes = [
     path: "/games/math-expression-builder-game",
     element: <MathExpressionBuilderGame />,
     name: "Math Expression Builder Game"
+  },
+  {
+    path: "/games/math-deduction-game",
+    element: <MathDeductionGame />,
+    name: "Math Deduction Game"
+  },
+  {
+    path: "/games/word-chain-logic-game",
+    element: <WordChainLogicGame />,
+    name: "Word Chain Logic Game"
+  },
+  {
+    path: "/games/code-breaking-cipher-game",
+    element: <CodeBreakingCipherGame />,
+    name: "Code Breaking Cipher Game"
+  },
+  {
+    path: "/games/resource-allocation-strategy-game",
+    element: <ResourceAllocationStrategyGame />,
+    name: "Resource Allocation Strategy Game"
+  },
+  {
+    path: "/games/probability-prediction-game",
+    element: <ProbabilityPredictionGame />,
+    name: "Probability Prediction Game"
+  },
+  {
+    path: "/games/logic-grid-solver-game",
+    element: <LogicGridSolverGame />,
+    name: "Logic Grid Solver Game"
+  },
+  {
+    path: "/games/number-pattern-master-game",
+    element: <NumberPatternMasterGame />,
+    name: "Number Pattern Master Game"
   }
 ];

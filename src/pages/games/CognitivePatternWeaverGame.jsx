@@ -178,7 +178,7 @@ const CognitivePatternWeaverGame = () => {
       });
 
       // Calculate score
-      const baseScore = 50;
+      const baseScore = 5;
       const difficultyMultiplier = difficulty === 'Easy' ? 1 : difficulty === 'Moderate' ? 1.5 : 2;
       const accuracyBonus = Math.floor((correctSequence / currentPattern.length) * 20);
       const streakBonus = Math.min(streakCount * 5, 25);

@@ -62,7 +62,7 @@ const GameCard = ({ game, pillConfig, onClick }) => {
                   }}>
                   {game.title}
                 </h3>
-                <span
+                {/*<span
                   className="inline-block px-2 py-1 text-[10px] font-semibold rounded-full border flex-shrink-0"
                   style={{
                     backgroundColor: pillConfig[game.difficulty].bg,
@@ -71,7 +71,7 @@ const GameCard = ({ game, pillConfig, onClick }) => {
                   }}
                 >
                   {game.difficulty}
-                </span>
+                </span> */}
               </div>
               <p className="leading-tight overflow-hidden text-xs md:text-base"
                 style={{
@@ -96,7 +96,7 @@ const GameCard = ({ game, pillConfig, onClick }) => {
                   }}>
                   {game.title}
                 </h4>
-                <span
+                {/*<span
                   className="inline-block px-1.5 py-0.5 text-[8px] font-semibold rounded-full border flex-shrink-0"
                   style={{
                     backgroundColor: pillConfig[game.difficulty].bg,
@@ -105,7 +105,7 @@ const GameCard = ({ game, pillConfig, onClick }) => {
                   }}
                 >
                   {game.difficulty}
-                </span>
+                </span>*/}
               </div>
               <p className="leading-tight text-[10px] md:text-sm"
                 style={{

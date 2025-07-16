@@ -310,7 +310,8 @@ const TowerOfHanoiGame = () => {
       const perfectBonus = perfectSolutions * 25;
 
       // Enhanced formula: Base score + efficiency bonus + perfect bonus - time penalty - hint penalty
-      let newScore = 150 + (efficiency * 100) + perfectBonus - (timeUsed * 0.2) - (hintsUsed * 5);
+      const extraMoves = Math.max(0, moves - optimalMoves);
+      let newScore = 50 + (efficiency * 50) + perfectBonus - (timeUsed * 0.5) - (hintsUsed * 5) - (extraMoves * 5);
       newScore = Math.max(0, Math.min(200, newScore));
 
       setScore(Math.round(newScore));

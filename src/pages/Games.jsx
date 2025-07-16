@@ -37,7 +37,7 @@ const categories = [
   'All', 'Gameacy', 'Numerical Reasoning',
   'Problem Solving', 'Critical Thinking', 'Logic',
 ];
-const levels = ['Easy', 'Medium', 'Hard'];
+//const levels = ['Easy', 'Medium', 'Hard'];
 
 const pillConfig = {
   Easy: { bg: '#cfe0cc', border: '#1A7212', text: '#1A7212' },
@@ -48,7 +48,7 @@ const pillConfig = {
 
 export default function Games() {
   const [activeCategory, setActiveCategory] = useState('All');
-  const [activeLevel, setActiveLevel] = useState('Easy');
+  //const [activeLevel, setActiveLevel] = useState('Easy');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const unread = 3;
 
@@ -60,11 +60,11 @@ export default function Games() {
         <div className="mx-auto px-4 lg:px-12 py-4">
           <FilterBar
             categories={categories}
-            levels={levels}
+            //levels={levels}
             activeCategory={activeCategory}
-            activeLevel={activeLevel}
+            //activeLevel={activeLevel}
             onCategoryChange={setActiveCategory}
-            onLevelChange={setActiveLevel}
+            //onLevelChange={setActiveLevel}
           />
 
           <GamesGrid

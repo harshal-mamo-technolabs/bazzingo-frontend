@@ -150,24 +150,35 @@ const WhackABoxGame = () => {
 
   // Calculate score using reflex formula
   useEffect(() => {
-    if (reactionTimes.length > 0) {
-      const avgReactionTime = reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length;
+  if (hits === 0) {
+    setScore(0);
+    return;
+  }
 
-      // Reaction factor (2-5 based on average reaction time)
-      let reactionFactor;
-      if (avgReactionTime <= 200) reactionFactor = 5;
-      else if (avgReactionTime <= 300) reactionFactor = 4;
-      else if (avgReactionTime <= 400) reactionFactor = 3;
-      else if (avgReactionTime <= 500) reactionFactor = 2;
-      else reactionFactor = 1;
+  const avgReactionTime = reactionTimes.length > 0
+    ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length
+    : 500;
 
-      // Include combo bonus
-      const comboBonus = maxCombo * 2;
-      const totalMisses = misses + falseHits;
-      const newScore = Math.max(0, (reactionFactor * hits) + comboBonus - (totalMisses * 10));
-      setScore(Math.min(200, newScore));
-    }
-  }, [hits, misses, falseHits, reactionTimes, maxCombo]);
+  let reactionFactor;
+  if (avgReactionTime <= 200) reactionFactor = 5;
+  else if (avgReactionTime <= 300) reactionFactor = 4;
+  else if (avgReactionTime <= 400) reactionFactor = 3;
+  else if (avgReactionTime <= 500) reactionFactor = 2;
+  else reactionFactor = 1;
+
+  const comboBonus = maxCombo * 2;
+  const totalMisses = misses + falseHits;
+
+  const scoreWithoutPenalties = (reactionFactor * hits) + comboBonus;
+
+  const penalty = totalMisses * 3;
+  const rawScore = scoreWithoutPenalties - penalty;
+
+  const newScore = Math.max(0, rawScore);
+
+  setScore(Math.min(200, newScore));
+}, [hits, misses, falseHits, reactionTimes, maxCombo]);
+
 
   // Timer countdown
   useEffect(() => {

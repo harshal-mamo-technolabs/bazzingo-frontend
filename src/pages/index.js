@@ -58,6 +58,13 @@ import CognitivePatternWeaverGame from './games/CognitivePatternWeaverGame';
 import CognitiveFlexibilityArchitectGame from './games/CognitiveFlexibilityArchitectGame';
 import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
 import MathExpressionBuilderGame from './games/MathExpressionBuilderGame';
+import NumberPatternMasterGame from './games/NumberPatternMasterGame';
+import MathDeductionGame from './games/MathDeductionGame';
+import WordChainLogicGame from './games/WordChainLogicGame';
+import CodeBreakingCipherGame from './games/CodeBreakingCipherGame';
+import ResourceAllocationStrategyGame from './games/ResourceAllocationStrategyGame';
+import ProbabilityPredictionGame from './games/ProbabilityPredictionGame';
+import LogicGridSolverGame from './games/LogicGridSolverGame';
 
 // Export all pages including games
 export {
@@ -120,5 +127,12 @@ export {
     CognitivePatternWeaverGame,
     CognitiveFlexibilityArchitectGame,
     MetacognitiveStrategyNavigatorGame,
-    MathExpressionBuilderGame
+    MathExpressionBuilderGame,
+    NumberPatternMasterGame,
+    MathDeductionGame,
+    WordChainLogicGame,
+    CodeBreakingCipherGame,
+    ResourceAllocationStrategyGame,
+    ProbabilityPredictionGame,
+    LogicGridSolverGame
 };
