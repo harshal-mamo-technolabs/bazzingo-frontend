@@ -3,11 +3,11 @@ import { ChevronDown } from 'lucide-react';
 
 const FilterBar = ({
   categories,
-  levels,
+  //levels,
   activeCategory,
-  activeLevel,
+  //activeLevel,
   onCategoryChange,
-  onLevelChange
+  //onLevelChange
 }) => {
   return (
     <div className="bg-[#F5F5F5] rounded-md p-2 flex flex-col gap-3
@@ -34,10 +34,11 @@ const FilterBar = ({
         ))}
       </div>
 
-      <span className="hidden sm:inline-block h-5 w-px bg-gray-300" />
-      <span className="font-semibold shrink-0" style={{ color: 'black' }}>Levels</span>
+      {/*<span className="hidden sm:inline-block h-5 w-px bg-gray-300" />
+      <span className="font-semibold shrink-0" style={{ color: 'black' }}>Levels</span>*/}
       <span className="hidden sm:inline-block h-5 w-px bg-gray-300" />
       <div className="flex gap-2 overflow-x-auto whitespace-nowrap items-center pr-1 sm:flex-wrap" style={{ scrollbarWidth: 'none' }}>
+      {/*
         {levels.map(l => (
           <button
             key={l}
@@ -55,6 +56,7 @@ const FilterBar = ({
             onClick={() => onLevelChange(l)}
           >{l}</button>
         ))}
+        */}
         <div className="relative shrink-0">
           <select
             className="

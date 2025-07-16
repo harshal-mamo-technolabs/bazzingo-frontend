@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, RotateCcw, Play, Pause, Trophy, Eye, Clock, Target } from 'lucide-react';
+import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
+import { Eye, ChevronDown, ChevronUp } from 'lucide-react';
 
 const ShadowMatchGame = () => {
-  // Game state
-  const [gameState, setGameState] = useState('ready'); // ready, playing, paused, won, lost
-  const [gameMode, setGameMode] = useState('silhouette'); // silhouette, shadow, rotation
-  const [difficulty, setDifficulty] = useState('easy'); // easy, medium, hard, expert
-  const [currentLevel, setCurrentLevel] = useState(1);
+  const [gameState, setGameState] = useState('ready');
+  const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [timeLimit, setTimeLimit] = useState(60);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(90);
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [gameMode, setGameMode] = useState('silhouette');
   const [streak, setStreak] = useState(0);
-  const [lives, setLives] = useState(3);
+  const [maxStreak, setMaxStreak] = useState(0);
+  const [lives, setLives] = useState(5);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [maxHints, setMaxHints] = useState(5);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [totalResponseTime, setTotalResponseTime] = useState(0);
+  const [questionStartTime, setQuestionStartTime] = useState(0);
 
   // Game objects
   const [currentSilhouette, setCurrentSilhouette] = useState(null);
@@ -21,9 +26,9 @@ const ShadowMatchGame = () => {
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [selectedObject, setSelectedObject] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackType, setFeedbackType] = useState(''); // correct, incorrect
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [maxHints, setMaxHints] = useState(3);
+  const [feedbackType, setFeedbackType] = useState('');
+
+  
 
   // 3D Object library with silhouettes
   const objectLibrary = [
@@ -101,53 +106,19 @@ const ShadowMatchGame = () => {
     }
   ];
 
-  // Timer effect
-  useEffect(() => {
-    let interval;
-    if (isTimerRunning && gameState === 'playing') {
-      interval = setInterval(() => {
-        setTimeElapsed(prev => {
-          if (prev >= timeLimit) {
-            setGameState('lost');
-            setIsTimerRunning(false);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning, gameState, timeLimit]);
-
-  // Initialize game
-  const initializeGame = useCallback(() => {
-    const difficultySettings = {
-      easy: { options: 3, timeLimit: 90, lives: 5, hints: 5 },
-      medium: { options: 4, timeLimit: 75, lives: 4, hints: 3 },
-      hard: { options: 5, timeLimit: 60, lives: 3, hints: 2 },
-      expert: { options: 6, timeLimit: 45, lives: 2, hints: 1 }
-    };
-
-    const settings = difficultySettings[difficulty];
-    setTimeLimit(settings.timeLimit);
-    setLives(settings.lives);
-    setMaxHints(settings.hints);
-    setHintsUsed(0);
-    setTimeElapsed(0);
-    setScore(0);
-    setStreak(0);
-    setCurrentLevel(1);
-    setGameState('ready');
-    setIsTimerRunning(false);
-    generateNewRound();
-  }, [difficulty]);
+  // Difficulty settings
+  const difficultySettings = {
+    Easy: { options: 3, timeLimit: 90, lives: 5, hints: 5 },
+    Moderate: { options: 4, timeLimit: 75, lives: 4, hints: 3 },
+    Hard: { options: 5, timeLimit: 60, lives: 3, hints: 2 }
+  };
 
   // Generate new round
   const generateNewRound = useCallback(() => {
     const availableObjects = objectLibrary.filter(obj => {
-      if (difficulty === 'easy') return obj.difficulty === 'easy';
-      if (difficulty === 'medium') return ['easy', 'medium'].includes(obj.difficulty);
-      return true; // hard and expert include all
+      if (difficulty === 'Easy') return obj.difficulty === 'easy';
+      if (difficulty === 'Moderate') return ['easy', 'medium'].includes(obj.difficulty);
+      return true; // Hard includes all
     });
 
     const correct = availableObjects[Math.floor(Math.random() * availableObjects.length)];
@@ -156,7 +127,8 @@ const ShadowMatchGame = () => {
 
     // Generate options including the correct answer
     const options = [correct];
-    while (options.length < Math.min(4, availableObjects.length)) {
+    const settings = difficultySettings[difficulty];
+    while (options.length < Math.min(settings.options, availableObjects.length)) {
       const randomObj = availableObjects[Math.floor(Math.random() * availableObjects.length)];
       if (!options.find(opt => opt.id === randomObj.id)) {
         options.push(randomObj);
@@ -167,32 +139,75 @@ const ShadowMatchGame = () => {
     setObjectOptions(options.sort(() => Math.random() - 0.5));
     setSelectedObject(null);
     setShowFeedback(false);
+    setQuestionStartTime(Date.now());
   }, [gameMode, difficulty]);
 
-  // Start game
-  const startGame = () => {
-    setGameState('playing');
-    setIsTimerRunning(true);
-    generateNewRound();
-  };
+  // Calculate score based on multiple factors
+  const calculateScore = useCallback(() => {
+    if (totalQuestions === 0) return 0;
+    
+    const settings = difficultySettings[difficulty];
+    const accuracyRate = correctAnswers / totalQuestions;
+    const avgResponseTime = totalResponseTime / totalQuestions / 1000; // Convert to seconds
+    
+    // Base score from accuracy (0-100 points)
+    let baseScore = accuracyRate * 100;
+    
+    // Time bonus based on average response time (max 30 points)
+    const idealTime = difficulty === 'Easy' ? 5 : difficulty === 'Moderate' ? 4 : 3;
+    const timeBonus = Math.max(0, Math.min(30, (idealTime - avgResponseTime) * 6));
+    
+    // Streak bonus (max 25 points)
+    const streakBonus = Math.min(maxStreak * 2.5, 25);
+    
+    // Level progression bonus (max 20 points)
+    const levelBonus = Math.min(currentLevel * 1.5, 20);
+    
+    // Lives remaining bonus (max 15 points)
+    const livesBonus = (lives / settings.lives) * 15;
+    
+    // Hints penalty (subtract up to 10 points)
+    const hintsPenalty = (hintsUsed / settings.hints) * 10;
+    
+    // Difficulty multiplier
+    const difficultyMultiplier = difficulty === 'Easy' ? 0.85 : difficulty === 'Moderate' ? 1.0 : 1.15;
+    
+    // Time remaining bonus (max 10 points)
+    const timeRemainingBonus = Math.min(10, (timeRemaining / settings.timeLimit) * 10);
+    
+    let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
+    
+    // Apply final modifier to make 200 very challenging but achievable
+    finalScore = finalScore * 0.88;
+    
+    return Math.round(Math.max(0, Math.min(200, finalScore)));
+  }, [correctAnswers, totalQuestions, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+
+  // Update score whenever relevant values change
+  useEffect(() => {
+    const newScore = calculateScore();
+    setScore(newScore);
+  }, [calculateScore]);
 
   // Handle object selection
-  const handleObjectSelect = (object) => {
+  const handleObjectSelect = useCallback((object) => {
     if (gameState !== 'playing' || showFeedback) return;
 
+    const responseTime = Date.now() - questionStartTime;
     setSelectedObject(object);
     setShowFeedback(true);
+    setTotalQuestions(prev => prev + 1);
+    setTotalResponseTime(prev => prev + responseTime);
 
-    if (object.id === correctAnswer.id) {
+    if (object.id === correctAnswer?.id) {
       // Correct answer
       setFeedbackType('correct');
-      const timeBonus = Math.max(0, timeLimit - timeElapsed) * 2;
-      const streakBonus = streak * 50;
-      const levelBonus = currentLevel * 100;
-      const newScore = score + 100 + timeBonus + streakBonus + levelBonus;
-
-      setScore(newScore);
-      setStreak(prev => prev + 1);
+      setCorrectAnswers(prev => prev + 1);
+      setStreak(prev => {
+        const newStreak = prev + 1;
+        setMaxStreak(current => Math.max(current, newStreak));
+        return newStreak;
+      });
       setCurrentLevel(prev => prev + 1);
 
       setTimeout(() => {
@@ -205,8 +220,7 @@ const ShadowMatchGame = () => {
       setLives(prev => {
         const newLives = prev - 1;
         if (newLives <= 0) {
-          setGameState('lost');
-          setIsTimerRunning(false);
+          setGameState('finished');
         }
         return newLives;
       });
@@ -216,7 +230,7 @@ const ShadowMatchGame = () => {
         setSelectedObject(null);
       }, 1500);
     }
-  };
+  }, [gameState, showFeedback, questionStartTime, correctAnswer, generateNewRound]);
 
   // Use hint
   const useHint = () => {
@@ -224,7 +238,7 @@ const ShadowMatchGame = () => {
 
     setHintsUsed(prev => prev + 1);
     // Highlight correct answer briefly
-    const correctElement = document.querySelector(`[data-object-id="${correctAnswer.id}"]`);
+    const correctElement = document.querySelector(`[data-object-id="${correctAnswer?.id}"]`);
     if (correctElement) {
       correctElement.style.boxShadow = '0 0 20px #FFD700';
       setTimeout(() => {
@@ -233,308 +247,282 @@ const ShadowMatchGame = () => {
     }
   };
 
-  // Format time
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  // Timer countdown
+  useEffect(() => {
+    let interval;
+    if (gameState === 'playing' && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            setGameState('finished');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [gameState, timeRemaining]);
+
+  // Initialize game
+  const initializeGame = useCallback(() => {
+    const settings = difficultySettings[difficulty];
+    setScore(0);
+    setTimeRemaining(settings.timeLimit);
+    setCurrentLevel(1);
+    setStreak(0);
+    setMaxStreak(0);
+    setLives(settings.lives);
+    setMaxHints(settings.hints);
+    setHintsUsed(0);
+    setCorrectAnswers(0);
+    setTotalQuestions(0);
+    setTotalResponseTime(0);
+  }, [difficulty]);
+
+  const handleStart = () => {
+    initializeGame();
+    generateNewRound();
   };
 
-  // Initialize on mount
-  useEffect(() => {
+  const handleReset = () => {
     initializeGame();
-  }, [initializeGame]);
+    setCurrentSilhouette(null);
+    setObjectOptions([]);
+    setCorrectAnswer(null);
+    setSelectedObject(null);
+    setShowFeedback(false);
+  };
+
+  const handleGameComplete = (payload) => {
+    console.log('Game completed:', payload);
+  };
+
+  const customStats = {
+    currentLevel,
+    streak: maxStreak,
+    lives,
+    hintsUsed,
+    correctAnswers,
+    totalQuestions,
+    averageResponseTime: totalQuestions > 0 ? Math.round(totalResponseTime / totalQuestions / 1000) : 0
+  };
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: 'Roboto, sans-serif' }}>
+    <div>
       <Header unreadCount={3} />
+      
+      {/* How to Play Section - Horizontal Card */}
+     
 
-      {/* Page Header */}
-      <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
-        <div className="flex items-center mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2 text-gray-600" />
-          <h1 className="text-gray-900 font-medium lg:font-bold" style={{ fontSize: 'clamp(18px, 2vw, 20px)' }}>
-            3D Shadow Match Game
-          </h1>
+      <GameFramework
+        gameTitle="3D Shadow Match"
+        gameDescription={ 
+        <div className="mx-auto px-4 lg:px-0 mb-0">
+        <div className="bg-[#E8E8E8] rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            How to Play 3D Shadow Match
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className='bg-white p-3 rounded-lg'>
+              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                🎯 Objective
+              </h4>
+              <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                Match the displayed silhouette or shadow with the correct 3D object from the options below.
+              </p>
+            </div>
+
+            <div className='bg-white p-3 rounded-lg'>
+              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                🎮 Game Modes
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                <li>• <strong>Silhouette:</strong> Match black outlines</li>
+                <li>• <strong>Shadow:</strong> Match cast shadows</li>
+              </ul>
+            </div>
+
+            <div className='bg-white p-3 rounded-lg'>
+              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                📊 Scoring
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                <li>• Base: 100 points per match</li>
+                <li>• Time & streak bonuses</li>
+                <li>• Level progression rewards</li>
+              </ul>
+            </div>
+
+            <div className='bg-white p-3 rounded-lg'>
+              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                💡 Tips
+              </h4>
+              <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                <li>• Use hints wisely - they're limited!</li>
+                <li>• Work quickly for time bonuses</li>
+                <li>• Build streaks for higher scores</li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <p className="text-gray-600 text-base" style={{ fontWeight: '400' }}>
-          Match the silhouette or shadow with the correct 3D object. Test your spatial awareness and shape recognition skills!
-        </p>
-      </div>
+        </div>
+      }
+        category="Spatial Awareness"
+        gameState={gameState}
+        setGameState={setGameState}
+        score={score}
+        timeRemaining={timeRemaining}
+        difficulty={difficulty}
+        setDifficulty={setDifficulty}
+        onStart={handleStart}
+        onReset={handleReset}
+        onGameComplete={handleGameComplete}
+        customStats={customStats}
+      >
+        {/* Game Content */}
+        <div className="flex flex-col items-center">
+          {/* Game Mode and Additional Controls */}
+          <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
+            <select
+              value={gameMode}
+              onChange={(e) => setGameMode(e.target.value)}
+              disabled={gameState === 'playing'}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+              style={{ fontFamily: 'Roboto, sans-serif' }}
+            >
+              <option value="silhouette">Silhouette Mode</option>
+              <option value="shadow">Shadow Mode</option>
+            </select>
 
-      {/* Game Container */}
-      <div className="mx-auto px-4 lg:px-12">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Game Area */}
-          <div className="flex-1">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              {/* Game Controls */}
-              <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
-                <div className="flex gap-4">
-                  {/* Game Mode Selector */}
-                  <select
-                    value={gameMode}
-                    onChange={(e) => setGameMode(e.target.value)}
-                    disabled={gameState === 'playing'}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    style={{ fontFamily: 'Roboto, sans-serif' }}
-                  >
-                    <option value="silhouette">Silhouette Mode</option>
-                    <option value="shadow">Shadow Mode</option>
-                  </select>
+            {gameState === 'playing' && (
+              <button
+                onClick={useHint}
+                disabled={hintsUsed >= maxHints}
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                  hintsUsed >= maxHints
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                }`}
+                style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
+              >
+                <Eye className="h-4 w-4" />
+                Hint ({maxHints - hintsUsed})
+              </button>
+            )}
+          </div>
 
-                  {/* Difficulty Selector */}
-                  <select
-                    value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value)}
-                    disabled={gameState === 'playing'}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    style={{ fontFamily: 'Roboto, sans-serif' }}
-                  >
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                    <option value="expert">Expert</option>
-                  </select>
-                </div>
-
-                {/* Control Buttons */}
-                <div className="flex gap-2">
-                  {gameState === 'ready' && (
-                    <button
-                      onClick={startGame}
-                      className="bg-[#FF6B3E] text-white px-4 py-2 rounded-lg hover:bg-[#e55a35] transition-colors flex items-center gap-2"
-                      style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                    >
-                      <Play className="h-4 w-4" />
-                      Start Game
-                    </button>
-                  )}
-
-                  <button
-                    onClick={initializeGame}
-                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
-                    style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Reset
-                  </button>
-
-                  {gameState === 'playing' && (
-                    <button
-                      onClick={useHint}
-                      disabled={hintsUsed >= maxHints}
-                      className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${hintsUsed >= maxHints
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                        }`}
-                      style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                    >
-                      <Eye className="h-4 w-4" />
-                      Hint ({maxHints - hintsUsed})
-                    </button>
-                  )}
-                </div>
+          {/* Game Stats */}
+          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
+            <div className="text-center bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Level
               </div>
-
-              {/* Game Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Score
-                  </div>
-                  <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {score.toLocaleString()}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Level
-                  </div>
-                  <div className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {currentLevel}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Time
-                  </div>
-                  <div className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {formatTime(timeLimit - timeElapsed)}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Lives
-                  </div>
-                  <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {'❤️'.repeat(lives)}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Streak
-                  </div>
-                  <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {streak}
-                  </div>
-                </div>
+              <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {currentLevel}
               </div>
-
-              {/* Game Area */}
-              {gameState !== 'ready' && (
-                <div className="bg-white rounded-lg p-6 mb-6">
-                  {/* Silhouette/Shadow Display */}
-                  <div className="text-center mb-8">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {gameMode === 'silhouette' ? 'Match this silhouette:' : 'Match this shadow:'}
-                    </h3>
-                    <div className="bg-gray-100 rounded-lg p-8 inline-block">
-                      <div className="text-8xl">{currentSilhouette}</div>
-                    </div>
-                  </div>
-
-                  {/* Object Options */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {objectOptions.map((object) => (
-                      <button
-                        key={object.id}
-                        data-object-id={object.id}
-                        onClick={() => handleObjectSelect(object)}
-                        disabled={showFeedback}
-                        className={`p-6 rounded-lg border-2 transition-all duration-300 ${selectedObject?.id === object.id
-                          ? feedbackType === 'correct'
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-red-500 bg-red-50'
-                          : 'border-gray-300 bg-white hover:border-[#FF6B3E] hover:bg-orange-50'
-                          } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                      >
-                        <div className="text-center">
-                          <div className="text-4xl mb-2" style={{ color: object.color }}>
-                            {object.silhouette}
-                          </div>
-                          <div className="text-sm font-medium text-gray-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            {object.name}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Feedback */}
-                  {showFeedback && (
-                    <div className={`mt-6 text-center p-4 rounded-lg ${feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                      <div className="text-lg font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        {feedbackType === 'correct' ? '🎉 Correct!' : '❌ Try Again!'}
-                      </div>
-                      <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                        {feedbackType === 'correct'
-                          ? `Great job! The answer was ${correctAnswer.name}.`
-                          : `That's not right. The correct answer is ${correctAnswer.name}.`
-                        }
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Game Over States */}
-              {(gameState === 'won' || gameState === 'lost') && (
-                <div className="text-center">
-                  <div className={`rounded-lg p-6 ${gameState === 'won' ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300'}`}>
-                    <div className="text-4xl mb-4">
-                      {gameState === 'won' ? <Trophy className="h-16 w-16 text-green-600 mx-auto" /> : '💔'}
-                    </div>
-                    <h3 className={`text-xl font-semibold mb-2 ${gameState === 'won' ? 'text-green-800' : 'text-red-800'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      {gameState === 'won' ? 'Congratulations!' : 'Game Over!'}
-                    </h3>
-                    <p className={`mb-4 ${gameState === 'won' ? 'text-green-700' : 'text-red-700'}`} style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      {gameState === 'won'
-                        ? `You completed ${currentLevel - 1} levels with a score of ${score.toLocaleString()}!`
-                        : `You reached level ${currentLevel} with a score of ${score.toLocaleString()}.`
-                      }
-                    </p>
-                    <button
-                      onClick={initializeGame}
-                      className="bg-[#FF6B3E] text-white px-6 py-3 rounded-lg hover:bg-[#e55a35] transition-colors"
-                      style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                    >
-                      Play Again
-                    </button>
-                  </div>
-                </div>
-              )}
+            </div>
+            <div className="text-center bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Lives
+              </div>
+              <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {'❤️'.repeat(lives)}
+              </div>
+            </div>
+            <div className="text-center bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Streak
+              </div>
+              <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {streak}
+              </div>
+            </div>
+            <div className="text-center bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Hints
+              </div>
+              <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {maxHints - hintsUsed}
+              </div>
             </div>
           </div>
 
-          {/* Instructions Panel */}
-          <div className="w-full lg:w-80">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                How to Play
+          {/* Silhouette/Shadow Display */}
+          {currentSilhouette && (
+            <div className="text-center mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {gameMode === 'silhouette' ? 'Match this silhouette:' : 'Match this shadow:'}
               </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Objective
-                  </h4>
-                  <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Match the displayed silhouette or shadow with the correct 3D object from the options below.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Game Modes
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• <strong>Silhouette:</strong> Match black outlines</li>
-                    <li>• <strong>Shadow:</strong> Match cast shadows</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Difficulty Levels
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• <strong>Easy:</strong> Basic shapes, 3 options</li>
-                    <li>• <strong>Medium:</strong> Complex objects, 4 options</li>
-                    <li>• <strong>Hard:</strong> Similar objects, 5 options</li>
-                    <li>• <strong>Expert:</strong> Challenging shapes, 6 options</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Scoring
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Base score: 100 points per match</li>
-                    <li>• Time bonus: 2 points per second remaining</li>
-                    <li>• Streak bonus: 50 points per consecutive match</li>
-                    <li>• Level bonus: 100 points × level number</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Tips
-                  </h4>
-                  <ul className="text-sm text-gray-600 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Use hints wisely - they're limited!</li>
-                    <li>• Work quickly for time bonuses</li>
-                    <li>• Build streaks for higher scores</li>
-                    <li>• Study object shapes carefully</li>
-                  </ul>
-                </div>
+              <div className="bg-gray-100 rounded-lg p-8 inline-block">
+                <div className="text-8xl">{currentSilhouette}</div>
               </div>
+            </div>
+          )}
+
+          {/* Object Options */}
+          {objectOptions.length > 0 && (
+            <div className="w-full max-w-4xl mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {objectOptions.map((object) => (
+                  <button
+                    key={object.id}
+                    data-object-id={object.id}
+                    onClick={() => handleObjectSelect(object)}
+                    disabled={showFeedback}
+                    className={`p-6 rounded-lg border-2 transition-all duration-300 ${
+                      selectedObject?.id === object.id
+                        ? feedbackType === 'correct'
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-red-500 bg-red-50'
+                        : 'border-gray-300 bg-white hover:border-[#FF6B3E] hover:bg-orange-50'
+                    } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2" style={{ color: object.color }}>
+                        {object.silhouette}
+                      </div>
+                      <div className="text-sm font-medium text-gray-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                        {object.name}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Feedback */}
+          {showFeedback && correctAnswer && (
+            <div className={`w-full max-w-2xl text-center p-4 rounded-lg ${
+              feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              <div className="text-lg font-semibold mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {feedbackType === 'correct' ? '🎉 Correct!' : '❌ Try Again!'}
+              </div>
+              <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                {feedbackType === 'correct'
+                  ? `Great job! The answer was ${correctAnswer.name}.`
+                  : `That's not right. The correct answer is ${correctAnswer.name}.`
+                }
+              </div>
+            </div>
+          )}
+
+          {/* Instructions */}
+          <div className="text-center max-w-2xl">
+            <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+              Study the {gameMode} carefully and select the matching 3D object. 
+              Use hints when needed, but remember they're limited!
+            </p>
+            <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              {difficulty} Mode: {difficultySettings[difficulty].options} options | 
+              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:{String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit
             </div>
           </div>
         </div>
-      </div>
+      </GameFramework>
     </div>
   );
 };

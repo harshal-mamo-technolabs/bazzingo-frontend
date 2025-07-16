@@ -160,31 +160,35 @@ const CognitiveLoadBalancerGame = () => {
   }, [gameState, activeTaskCount, currentTasks.length, generateNewTask]);
 
   // Handle task completion
-  const handleTaskComplete = useCallback((taskId, userAnswer) => {
-    setCurrentTasks(prev => {
-      const task = prev.find(t => t.id === taskId);
-      if (!task) return prev;
+ const handleTaskComplete = useCallback((taskId, userAnswer) => {
+  setCurrentTasks(prev => {
+    const task = prev.find(t => t.id === taskId);
+    if (!task) {
+      // It’s gone — either timed out or already answered
+      return prev;
+    }
 
-      const isCorrect = userAnswer === task.answer;
-      const timeBonus = Math.max(0, task.timeLimit - (Date.now() - task.startTime)) / 100;
-      const points = isCorrect ? Math.floor(10 + timeBonus + (currentLevel * 2)) : 0;
+    const isCorrect = userAnswer === task.answer;
 
-      if (isCorrect) {
-        setScore(s => s + points);
-        setCompletedTasks(c => c + 1);
-        setStreakCount(s => {
-          const newStreak = s + 1;
-          setMaxStreak(max => Math.max(max, newStreak));
-          return newStreak;
-        });
-      } else {
-        setFailedTasks(f => f + 1);
-        setStreakCount(0);
-      }
+    const points = isCorrect ? (2 + (currentLevel - 1)) : 0;
 
-      return prev.filter(t => t.id !== taskId);
-    });
-  }, [currentLevel]);
+    if (isCorrect) {
+      setScore(s => Math.min(s + points, 200));
+      setCompletedTasks(c => c + 1);
+      setStreakCount(s => {
+        const newStreak = s + 1;
+        setMaxStreak(max => Math.max(max, newStreak));
+        return newStreak;
+      });
+    } else {
+      setFailedTasks(f => f + 1);
+      setStreakCount(0);
+    }
+
+    return prev.filter(t => t.id !== taskId);
+  });
+}, [currentLevel]);
+
 
   // Game timer
   useEffect(() => {
@@ -202,6 +206,7 @@ const CognitiveLoadBalancerGame = () => {
     }
     return () => clearInterval(interval);
   }, [gameState, timeRemaining]);
+const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
 
   // Task management
   useEffect(() => {
@@ -209,11 +214,16 @@ const CognitiveLoadBalancerGame = () => {
       addNewTasks();
 
       // Level progression
-      if (completedTasks > 0 && completedTasks % 10 === 0) {
-        setCurrentLevel(prev => prev + 1);
-      }
+      if (
+  completedTasks > 0 &&
+  completedTasks % 10 === 0 &&
+  completedTasks !== lastLevelUpTasks
+) {
+  setCurrentLevel(prev => prev + 1);
+  setLastLevelUpTasks(completedTasks);
+}
     }
-  }, [gameState, addNewTasks, completedTasks]);
+  }, [gameState, addNewTasks, completedTasks, lastLevelUpTasks]);
 
   // Task timeout management
   useEffect(() => {
