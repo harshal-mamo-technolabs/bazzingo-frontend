@@ -6,9 +6,12 @@ import MainLayout from '../components/Layout/MainLayout';
 import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '../components/Dashboard';
 import ProgressChart from '../components/Charts/ProgressChart';
 import DailyGameModal from '../components/games/DailyGameModal';
+import AssessmentModal from '../components/assessments/AssessmentModal';
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
   const [currentDate, setCurrentDate] = useState(dayjs());
@@ -156,7 +159,14 @@ const Dashboard = () => {
 
             {/* Daily Quick Assessment */}
             <div className="w-full lg:w-[220px] flex-shrink-0">
-              <DailyAssesment />
+              <DailyAssesment onAssesmentClick={() => {
+                setSelectedAssessment({
+                  title: "Memory Match",
+                  description: "Mini Test, 5–10 Question",
+                  icon: "/vibrant-brain-icon.png"
+                });
+                setIsAssessmentModalOpen(true);
+              }} />
             </div>
 
             {/* Calendar */}
@@ -217,6 +227,15 @@ const Dashboard = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             dailyGames={dailyGames}
+          />
+
+          <AssessmentModal
+            isOpen={isAssessmentModalOpen}
+            selectedAssessment={selectedAssessment}
+            onClose={() => {
+              setIsAssessmentModalOpen(false);
+              setSelectedAssessment(null);
+            }}
           />
 
         </main>
