@@ -597,7 +597,7 @@ const CodeBreakingCipherGame = () => {
               <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                 {feedbackType === 'correct'
                   ? `Excellent! The decoded message was "${currentCipher.original}".`
-                  : `The correct message was "${currentCipher.original}". You entered "${userInput}".`
+                  : `You entered "${userInput}".`
                 }
               </div>
             </div>
