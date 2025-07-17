@@ -71,11 +71,11 @@ const Dashboard = () => {
     value,
   })); */
 
-  const dailyGames = [{ id: 4, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/image6.png', bgColor: '#ffffff', path: "/games/probability-prediction-game" },
-  { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/image7.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
-  { id: 6, title: 'Resource Allocation Game', category: 'Critical Thinking', difficulty: 'Medium', icon: './games-icon/image5.png', bgColor: '#FFFFFF', path: "/games/resource-allocation-strategy-game" }]
+  const dailyGames = [{ id: 4, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#ffffff', path: "/games/probability-prediction-game" },
+  { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/word-chain-logic.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
+  { id: 6, title: 'Resource Allocation Game', category: 'Critical Thinking', difficulty: 'Medium', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#FFFFFF', path: "/games/resource-allocation-strategy-game" }]
 
-   const handleGameClick = (game) => {
+  const handleGameClick = (game) => {
     setIsModalOpen(false);
     navigate(game.path);
   };
