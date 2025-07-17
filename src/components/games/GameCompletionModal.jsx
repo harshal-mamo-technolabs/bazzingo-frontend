@@ -85,44 +85,44 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
 
         {/* Game Cards */}
         <div className="px-5 space-y-3 mb-6">
-          {/* Logic Grid Game */}
+          {/* Word Chain logic Game */}
           <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
                 <img
-                  src="/games-icon/image3-main.png"
-                  alt="Logic Grid"
+                  src="/games-icon/word-chain-logic.png"
+                  alt="word chain logic game"
                   className="w-8 h-8"
                 />
               </div>
               <div>
-                <h4 className="text-base font-semibold text-gray-800">Logic Grid</h4>
+                <h4 className="text-base font-semibold text-gray-800">Word Chain Logic</h4>
               </div>
             </div>
             <button
-              onClick={() => handlePlayGame('/games/logic-grid-game')}
+              onClick={() => handlePlayGame('/games/word-chain-logic-game')}
               className="bg-[#FF6947] text-white px-6 py-2 rounded-lg font-medium text-sm hover:bg-[#e55a3a] transition-colors"
             >
               Play
             </button>
           </div>
 
-          {/* Numerical Grid Game */}
+          {/* Resource Allocation Game */}
           <div className="bg-gray-100 rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
                 <img
-                  src="/games-icon/image4.png"
-                  alt="Numerical Grid"
+                  src="/games-icon/resource-allocation-strategy.png"
+                  alt="Resource Allocation Game"
                   className="w-8 h-8"
                 />
               </div>
               <div>
-                <h4 className="text-base font-semibold text-gray-800">Numerical Grid</h4>
+                <h4 className="text-base font-semibold text-gray-800">Resource Allocation Game</h4>
               </div>
             </div>
             <button
-              onClick={() => handlePlayGame('/games/numerical-grid-game')}
+              onClick={() => handlePlayGame('/games/resource-allocation-strategy-game')}
               className="bg-[#FF6947] text-white px-6 py-2 rounded-lg font-medium text-sm hover:bg-[#e55a3a] transition-colors"
             >
               Play
