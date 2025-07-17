@@ -7,6 +7,7 @@ import { ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment } from '
 import ProgressChart from '../components/Charts/ProgressChart';
 import DailyGameModal from '../components/games/DailyGameModal';
 import AssessmentModal from '../components/assessments/AssessmentModal';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
   const [currentDate, setCurrentDate] = useState(dayjs());
+  const navigate = useNavigate();
 
   const startOfMonth = currentDate.startOf("month");
   const endOfMonth = currentDate.endOf("month");
@@ -69,9 +71,14 @@ const Dashboard = () => {
     value,
   })); */
 
-  const dailyGames = [{ id: 4, title: 'Sound Memory', category: 'Gameacy', difficulty: 'Easy', icon: './sound-memory-game.png', bgColor: '#ffffff', path: "/games/sound-memory-game" },
-  { id: 5, title: 'Visual Memory Span', category: 'Logic', difficulty: 'Medium', icon: './whack-a-box-game.png', bgColor: '#1D1D1B', path: "/games/visual-memory-span-game" },
-  { id: 6, title: 'Neural Network Builder Game', category: 'Logic', difficulty: 'Medium', icon: './Neural-Network-Builder-Game.png', bgColor: '#FFFFFF', path: "/games/neural-network-builder-game" }]
+  const dailyGames = [{ id: 4, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/image6.png', bgColor: '#ffffff', path: "/games/probability-prediction-game" },
+  { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/image7.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
+  { id: 6, title: 'Resource Allocation Game', category: 'Critical Thinking', difficulty: 'Medium', icon: './games-icon/image5.png', bgColor: '#FFFFFF', path: "/games/resource-allocation-strategy-game" }]
+
+   const handleGameClick = (game) => {
+    setIsModalOpen(false);
+    navigate(game.path);
+  };
 
   return (
     <MainLayout>
@@ -227,6 +234,7 @@ const Dashboard = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             dailyGames={dailyGames}
+            onGameClick={handleGameClick}
           />
 
           <AssessmentModal

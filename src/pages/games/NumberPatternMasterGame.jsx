@@ -28,6 +28,23 @@ const NumberPatternMasterGame = () => {
   const [showHint, setShowHint] = useState(false);
   const [sequenceType, setSequenceType] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [shuffledPatterns, setShuffledPatterns] = useState([]);
+
+  function shuffleArray(array) {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+
+  const allowedHintsByDifficulty = {
+  Easy: 3,
+  Medium: 2,
+  Hard: 1
+};
 
   // Pattern generators based on difficulty
   const generateSequence = useCallback(() => {
@@ -176,19 +193,54 @@ const NumberPatternMasterGame = () => {
     return options;
   }, []);
 
-  const generateNewSequence = useCallback(() => {
-    const { sequence, answer, explanation, type } = generateSequence();
-    const options = generateOptions(answer);
-    
-    setCurrentSequence(sequence);
-    setCorrectAnswer(answer);
-    setCurrentOptions(options);
-    setSelectedAnswer(null);
-    setShowFeedback(false);
-    setShowHint(false);
-    setSequenceType(type);
-    setCurrentExplanation(explanation);
-  }, [generateSequence, generateOptions]);
+  const generateNewSequence = useCallback((patternList = shuffledPatterns) => {
+  let newShuffledPatterns = [...patternList];
+
+  if (newShuffledPatterns.length === 0) {
+    // Reshuffle if empty
+    const patterns = {
+      Easy: [
+        { type: 'arithmetic', min: 1, max: 50, step: { min: 2, max: 8 } },
+        { type: 'arithmetic_negative', min: 50, max: 100, step: { min: 2, max: 8 } },
+        { type: 'multiply_add', base: 2, constant: 1 },
+      ],
+      Medium: [
+        { type: 'geometric', ratio: 2, start: 1 },
+        { type: 'geometric', ratio: 3, start: 1 },
+        { type: 'squares', offset: 0 },
+        { type: 'fibonacci_like', a: 1, b: 1 },
+        { type: 'alternating_operations' },
+      ],
+      Hard: [
+        { type: 'polynomial', degree: 2 },
+        { type: 'factorial_based' },
+        { type: 'prime_numbers' },
+        { type: 'complex_formula' },
+        { type: 'recursive_sequence' },
+      ]
+    };
+
+    newShuffledPatterns = shuffleArray(patterns[difficulty]);
+  }
+
+  const selectedPattern = newShuffledPatterns.shift();
+
+  // Update patterns state so next time we pop the next pattern
+  setShuffledPatterns(newShuffledPatterns);
+
+  const { sequence, answer, explanation, type } = generateSequenceByType(selectedPattern);
+  const options = generateOptions(answer);
+
+  setCurrentSequence(sequence);
+  setCorrectAnswer(answer);
+  setCurrentOptions(options);
+  setSelectedAnswer(null);
+  setShowFeedback(false);
+  setShowHint(false);
+  setSequenceType(type);
+  setCurrentExplanation(explanation);
+}, [difficulty, generateOptions, generateSequenceByType, shuffledPatterns]);
+
 
   const handleAnswerSelect = useCallback((answer) => {
     if (showFeedback) return;
@@ -231,31 +283,59 @@ const NumberPatternMasterGame = () => {
   }, [showFeedback, correctAnswer, correctSequences, completedSequences, streakCount, difficulty, timeRemaining, showHint, generateNewSequence]);
 
   const handleHint = () => {
-    if (!showHint) {
-      setHintsUsed(prev => prev + 1);
-      setShowHint(true);
-    }
-  };
+  const maxHints = allowedHintsByDifficulty[difficulty];
+  if (!showHint && hintsUsed < maxHints) {
+    setHintsUsed(prev => prev + 1);
+    setShowHint(true);
+  }
+};
+
 
   // Initialize game
-  const initializeGame = useCallback(() => {
-    setScore(0);
-    setCurrentLevel(1);
-    setCompletedSequences(0);
-    setCorrectSequences(0);
-    setStreakCount(0);
-    setMaxStreak(0);
-    setAccuracy(0);
-    setHintsUsed(0);
-    setShowHint(false);
-    setSelectedAnswer(null);
-    setShowFeedback(false);
+ const initializeGame = useCallback(() => {
+  setScore(0);
+  setCurrentLevel(1);
+  setCompletedSequences(0);
+  setCorrectSequences(0);
+  setStreakCount(0);
+  setMaxStreak(0);
+  setAccuracy(0);
+  setHintsUsed(0);
+  setShowHint(false);
+  setSelectedAnswer(null);
+  setShowFeedback(false);
 
-    const initialTime = difficulty === 'Easy' ? 180 : difficulty === 'Medium' ? 150 : 120;
-    setTimeRemaining(initialTime);
+  const initialTime = difficulty === 'Easy' ? 180 : difficulty === 'Medium' ? 150 : 120;
+  setTimeRemaining(initialTime);
 
-    generateNewSequence();
-  }, [difficulty, generateNewSequence]);
+  // New code: shuffle patterns
+  const patterns = {
+    Easy: [
+      { type: 'arithmetic', min: 1, max: 50, step: { min: 2, max: 8 } },
+      { type: 'arithmetic_negative', min: 50, max: 100, step: { min: 2, max: 8 } },
+      { type: 'multiply_add', base: 2, constant: 1 },
+    ],
+    Medium: [
+      { type: 'geometric', ratio: 2, start: 1 },
+      { type: 'geometric', ratio: 3, start: 1 },
+      { type: 'squares', offset: 0 },
+      { type: 'fibonacci_like', a: 1, b: 1 },
+      { type: 'alternating_operations' },
+    ],
+    Hard: [
+      { type: 'polynomial', degree: 2 },
+      { type: 'factorial_based' },
+      { type: 'prime_numbers' },
+      { type: 'complex_formula' },
+      { type: 'recursive_sequence' },
+    ]
+  };
+
+  const shuffled = shuffleArray(patterns[difficulty]);
+  setShuffledPatterns(shuffled);
+
+  generateNewSequence(shuffled);
+}, [difficulty, generateNewSequence]);
 
   // Game timer
   useEffect(() => {
@@ -427,12 +507,12 @@ const NumberPatternMasterGame = () => {
                   {!showHint ? (
                     <button
                       onClick={handleHint}
-                      disabled={showFeedback}
+                     disabled={showFeedback || hintsUsed >= allowedHintsByDifficulty[difficulty]}
                       className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                     >
                       <Lightbulb className="h-4 w-4" />
-                      Need a Hint? (-2 points)
+                      Need a Hint? ({allowedHintsByDifficulty[difficulty] - hintsUsed} left)
                     </button>
                   ) : (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

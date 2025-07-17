@@ -112,7 +112,7 @@ const GameFramework = ({
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                disabled={gameState === 'playing'}
+                disabled={gameState !== 'ready'}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
                 style={{ fontFamily: 'Roboto, sans-serif' }}
               >

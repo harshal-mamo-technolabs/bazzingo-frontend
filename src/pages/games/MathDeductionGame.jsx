@@ -184,7 +184,7 @@ const MathDeductionGame = () => {
 
   // Difficulty settings
   const difficultySettings = {
-    Easy: { timeLimit: 10, lives: 5, hints: 3, types: ['arithmetic'] },
+    Easy: { timeLimit: 120, lives: 5, hints: 3, types: ['arithmetic'] },
     Moderate: { timeLimit: 100, lives: 4, hints: 2, types: ['arithmetic', 'algebraic', 'pattern'] },
     Hard: { timeLimit: 80, lives: 3, hints: 1, types: ['arithmetic', 'algebraic', 'pattern'] }
   };
@@ -219,44 +219,45 @@ const MathDeductionGame = () => {
 
   // Calculate score
   const calculateScore = useCallback(() => {
-    if (totalQuestions === 0) return 0;
-    
-    const settings = difficultySettings[difficulty];
-    const accuracyRate = correctAnswers / totalQuestions;
-    const avgResponseTime = totalResponseTime / totalQuestions / 1000;
-    
-    // Base score from accuracy (0-80 points)
-    let baseScore = accuracyRate * 80;
-    
-    // Time bonus (max 25 points)
-    const idealTime = difficulty === 'Easy' ? 8 : difficulty === 'Moderate' ? 12 : 18;
-    const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 3));
-    
-    // Streak bonus (max 30 points)
-    const streakBonus = Math.min(maxStreak * 1.5, 30);
-    
-    // Level progression bonus (max 20 points)
-    const levelBonus = Math.min(currentLevel * 0.8, 20);
-    
-    // Lives bonus (max 15 points)
-    const livesBonus = (lives / settings.lives) * 15;
-    
-    // Hints penalty (subtract up to 15 points)
-    const hintsPenalty = (hintsUsed / settings.hints) * 15;
-    
-    // Difficulty multiplier
-    const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
-    
-    // Time remaining bonus (max 15 points)
-    const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
-    
-    let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
-    
-    // Apply final modifier to make 200 very challenging
-    finalScore = finalScore * 0.85;
-    
-    return Math.round(Math.max(0, Math.min(200, finalScore)));
-  }, [correctAnswers, totalQuestions, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+  if (totalQuestions === 0 || correctAnswers === 0) return 0;
+
+  const settings = difficultySettings[difficulty];
+  const accuracyRate = correctAnswers / totalQuestions;
+  const avgResponseTime = totalResponseTime / totalQuestions / 1000;
+
+  // Base score from accuracy (0-80 points)
+  let baseScore = accuracyRate * 80;
+
+  // Time bonus (max 25 points)
+  const idealTime = difficulty === 'Easy' ? 8 : difficulty === 'Moderate' ? 12 : 18;
+  const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 3));
+
+  // Streak bonus (max 30 points)
+  const streakBonus = Math.min(maxStreak * 1.5, 30);
+
+  // Level progression bonus (max 20 points)
+  const levelBonus = Math.min(currentLevel * 0.8, 20);
+
+  // Lives bonus (max 15 points)
+  const livesBonus = (lives / settings.lives) * 15;
+
+  // Hints penalty (subtract up to 15 points)
+  const hintsPenalty = (hintsUsed / settings.hints) * 15;
+
+  // Difficulty multiplier
+  const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
+
+  // Time remaining bonus (max 15 points)
+  const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
+
+  let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
+
+  // Apply final modifier to make 200 very challenging
+  finalScore = finalScore * 0.85;
+
+  return Math.round(Math.max(0, Math.min(200, finalScore)));
+}, [correctAnswers, totalQuestions, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+
 
   // Update score whenever relevant values change
   useEffect(() => {
@@ -266,49 +267,57 @@ const MathDeductionGame = () => {
 
   // Handle answer submission
   const handleSubmit = useCallback(() => {
-    if (gameState !== 'playing' || showFeedback || !currentEquation) return;
-    
-    const responseTime = Date.now() - questionStartTime;
-    const userAnswer = parseFloat(userInput);
-    const correctAnswer = currentEquation.answer;
-    
-    setShowFeedback(true);
-    setTotalQuestions(prev => prev + 1);
-    setTotalResponseTime(prev => prev + responseTime);
-    
-    // Check if answer is correct (with small tolerance for floating point)
-    const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.001;
-    
-    if (isCorrect) {
-      setFeedbackType('correct');
-      setCorrectAnswers(prev => prev + 1);
-      setStreak(prev => {
-        const newStreak = prev + 1;
-        setMaxStreak(current => Math.max(current, newStreak));
-        return newStreak;
-      });
-      setCurrentLevel(prev => prev + 1);
-      
-      setTimeout(() => {
-        generateNewEquation();
-      }, 1500);
-    } else {
-      setFeedbackType('incorrect');
-      setStreak(0);
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        }
-        return newLives;
-      });
-      
-      setTimeout(() => {
-        setShowFeedback(false);
-      }, 2000);
-    }
-  }, [gameState, showFeedback, currentEquation, userInput, questionStartTime, generateNewEquation]);
+  if (gameState !== 'playing' || showFeedback || !currentEquation) return;
+
+  if (!userInput.trim()) {
+    return;
+  }
+
+  const userAnswerRaw = parseFloat(userInput);
+  if (isNaN(userAnswerRaw)) {
+    return;
+  }
+
+  const responseTime = Date.now() - questionStartTime;
+  const correctAnswer = currentEquation.answer;
+
+  setShowFeedback(true);
+  setTotalQuestions(prev => prev + 1);
+  setTotalResponseTime(prev => prev + responseTime);
+
+  const isCorrect = Math.abs(userAnswerRaw - correctAnswer) < 0.001;
+
+  if (isCorrect) {
+    setFeedbackType('correct');
+    setCorrectAnswers(prev => prev + 1);
+    setStreak(prev => {
+      const newStreak = prev + 1;
+      setMaxStreak(current => Math.max(current, newStreak));
+      return newStreak;
+    });
+    setCurrentLevel(prev => prev + 1);
+
+    setTimeout(() => {
+      generateNewEquation();
+    }, 1500);
+  } else {
+    setFeedbackType('incorrect');
+    setStreak(0);
+    setLives(prev => {
+      const newLives = prev - 1;
+      if (newLives <= 0) {
+        setGameState('finished');
+        setShowCompletionModal(true);
+      }
+      return Math.max(0, newLives);
+    });
+
+    setTimeout(() => {
+      setShowFeedback(false);
+    }, 2000);
+  }
+}, [gameState, showFeedback, currentEquation, userInput, questionStartTime, generateNewEquation]);
+
 
   // Use hint
   const useHint = () => {
@@ -596,7 +605,8 @@ const MathDeductionGame = () => {
               <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                 {feedbackType === 'correct'
                   ? `Excellent! The answer is ${currentEquation.answer}.`
-                  : `The correct answer is ${currentEquation.answer}. You answered ${userInput}.`
+                  : `Answer is incorrect. You answered ${userInput}.`
+                  //: `The correct answer is ${currentEquation.answer}. You answered ${userInput}.`
                 }
               </div>
             </div>
