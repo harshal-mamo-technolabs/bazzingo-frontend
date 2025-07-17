@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { TrendingUp, TrendingDown, AlertTriangle, Target, Lightbulb, CheckCircle, XCircle, BarChart3, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Target, Lightbulb, CheckCircle, XCircle, BarChart3, DollarSign, ChevronUp, ChevronDown } from 'lucide-react';
 
 const ResourceAllocationStrategyGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -32,6 +32,8 @@ const ResourceAllocationStrategyGame = () => {
   const [constraints, setConstraints] = useState([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [hintMessage, setHintMessage] = useState('');
+  const [showResourceInstructions, setShowResourceInstructions] = useState(true);
+
 
   // Scenario templates
   const scenarioTemplates = {
@@ -488,60 +490,73 @@ const ResourceAllocationStrategyGame = () => {
       <GameFramework
         gameTitle="Resource Allocation Strategy"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                How to Play Resource Allocation Strategy
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Objective
-                  </h4>
-                  <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Strategically distribute limited resources across competing demands while satisfying constraints and maximizing efficiency.
-                  </p>
-                </div>
+        <div className="mx-auto px-4 lg:px-0 mb-0">
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Toggle Header */}
+    <div
+      className="flex items-center justify-between mb-4 cursor-pointer"
+      onClick={() => setShowResourceInstructions(!showResourceInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Resource Allocation Strategy
+      </h3>
+      <span className="text-blue-900 text-xl">
+        {showResourceInstructions ? <ChevronUp className="h-5 w-5 text-blue-900" /> : <ChevronDown className="h-5 w-5 text-blue-900" />}
+      </span>
+    </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    ⚖️ Strategy Elements
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Budget constraints</li>
-                    <li>• Minimum/maximum limits</li>
-                    <li>• Ratio requirements</li>
-                    <li>• Optimal efficiency targets</li>
-                  </ul>
-                </div>
+    {/* Toggle Content */}
+    {showResourceInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Strategically distribute limited resources across competing demands while satisfying constraints and maximizing efficiency.
+          </p>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    📊 Scoring
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Efficiency optimization</li>
-                    <li>• Constraint compliance</li>
-                    <li>• Speed bonuses</li>
-                    <li>• Streak multipliers</li>
-                  </ul>
-                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            ⚖️ Strategy Elements
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Budget constraints</li>
+            <li>• Minimum/maximum limits</li>
+            <li>• Ratio requirements</li>
+            <li>• Optimal efficiency targets</li>
+          </ul>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    💡 Strategy Tips
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Balance all constraints</li>
-                    <li>• Aim for optimal values</li>
-                    <li>• Use hints for guidance</li>
-                    <li>• Plan before allocating</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Efficiency optimization</li>
+            <li>• Constraint compliance</li>
+            <li>• Speed bonuses</li>
+            <li>• Streak multipliers</li>
+          </ul>
+        </div>
+
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy Tips
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Balance all constraints</li>
+            <li>• Aim for optimal values</li>
+            <li>• Use hints for guidance</li>
+            <li>• Plan before allocating</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
         }
         category="Critical Thinking"
         gameState={gameState}

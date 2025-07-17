@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Key, Lightbulb, CheckCircle, XCircle, Lock, Unlock, RotateCw } from 'lucide-react';
+import { Key, Lightbulb, CheckCircle, XCircle, Lock, Unlock, RotateCw, ChevronUp, ChevronDown } from 'lucide-react';
 
 const CodeBreakingCipherGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -29,6 +29,7 @@ const CodeBreakingCipherGame = () => {
   const [showHint, setShowHint] = useState(false);
   const [hintMessage, setHintMessage] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showCipherInstructions, setShowCipherInstructions] = useState(true);
 
   // Cipher messages by difficulty
   const cipherMessages = {
@@ -386,57 +387,72 @@ const CodeBreakingCipherGame = () => {
         gameTitle="Code Breaking Cipher"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                How to Play Code Breaking Cipher
-              </h3>
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Header with toggle */}
+    <div
+      className="flex items-center justify-between mb-4 cursor-pointer"
+      onClick={() => setShowCipherInstructions(!showCipherInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Code Breaking Cipher
+      </h3>
+      <span className="text-blue-900 text-xl">
+        {showCipherInstructions
+  ? <ChevronUp className="h-5 w-5 text-blue-900" />
+  : <ChevronDown className="h-5 w-5 text-blue-900" />}
+      </span>
+    </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Objective
-                  </h4>
-                  <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Decode encrypted messages using logical deduction and pattern recognition skills.
-                  </p>
-                </div>
+    {/* Toggle Content */}
+    {showCipherInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Decode encrypted messages using logical deduction and pattern recognition skills.
+          </p>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🔐 Cipher Types
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• <strong>Caesar:</strong> Letter shifting</li>
-                    <li>• <strong>Substitution:</strong> Letter replacement</li>
-                    <li>• <strong>Morse:</strong> Dots and dashes</li>
-                    <li>• <strong>Binary:</strong> 8-bit sequences</li>
-                  </ul>
-                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🔐 Cipher Types
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• <strong>Caesar:</strong> Letter shifting</li>
+            <li>• <strong>Substitution:</strong> Letter replacement</li>
+            <li>• <strong>Morse:</strong> Dots and dashes</li>
+            <li>• <strong>Binary:</strong> 8-bit sequences</li>
+          </ul>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    📊 Scoring
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Decoding accuracy matters</li>
-                    <li>• Speed bonuses for quick solving</li>
-                    <li>• Streak multipliers</li>
-                  </ul>
-                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Decoding accuracy matters</li>
+            <li>• Speed bonuses for quick solving</li>
+            <li>• Streak multipliers</li>
+          </ul>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    💡 Strategy
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Look for patterns</li>
-                    <li>• Use frequency analysis</li>
-                    <li>• Save hints for tough codes</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Look for patterns</li>
+            <li>• Use frequency analysis</li>
+            <li>• Save hints for tough codes</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
           </div>
+
         }
         category="Logic"
         gameState={gameState}

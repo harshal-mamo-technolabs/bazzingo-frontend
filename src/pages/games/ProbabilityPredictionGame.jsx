@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { TrendingUp, Calculator, Lightbulb, CheckCircle, XCircle, BarChart3, Dice1 } from 'lucide-react';
+import { TrendingUp, Calculator, Lightbulb, CheckCircle, XCircle, BarChart3, Dice1, ChevronDown, ChevronUp } from 'lucide-react';
 
 const ProbabilityPredictionGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -33,6 +33,7 @@ const ProbabilityPredictionGame = () => {
   const [hintMessage, setHintMessage] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [usedQuestions, setUsedQuestions] = useState([]); // Track used questions
+  const [showProbabilityInstructions, setShowProbabilityInstructions] = useState(true);
 
   // Probability scenario generators
   const generateDiceScenario = (difficulty) => {
@@ -563,56 +564,71 @@ const handleSubmit = useCallback(() => {
         gameTitle="Probability Prediction"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                How to Play Probability Prediction
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Objective
-                  </h4>
-                  <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Calculate and predict probabilities for various scenarios involving dice, cards, coins, and real-world events.
-                  </p>
-                </div>
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Header with toggle icon */}
+    <div
+      className="flex items-center justify-between mb-4 cursor-pointer"
+      onClick={() => setShowProbabilityInstructions(!showProbabilityInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Probability Prediction
+      </h3>
+      <span className="text-blue-900 text-xl">
+       {showProbabilityInstructions
+  ? <ChevronUp className="h-5 w-5 text-blue-900" />
+  : <ChevronDown className="h-5 w-5 text-blue-900" />}
+      </span>
+    </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎲 Scenario Types
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• <strong>Dice:</strong> Single and multiple rolls</li>
-                    <li>• <strong>Cards:</strong> Drawing from standard deck</li>
-                    <li>• <strong>Coins:</strong> Flip sequences and patterns</li>
-                  </ul>
-                </div>
+    {/* Toggle content */}
+    {showProbabilityInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Calculate and predict probabilities for various scenarios involving dice, cards, coins, and real-world events.
+          </p>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    📊 Scoring
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Accuracy within tolerance range</li>
-                    <li>• Speed bonuses for quick calculations</li>
-                    <li>• Streak multipliers for consistency</li>
-                  </ul>
-                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎲 Scenario Types
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• <strong>Dice:</strong> Single and multiple rolls</li>
+            <li>• <strong>Cards:</strong> Drawing from standard deck</li>
+            <li>• <strong>Coins:</strong> Flip sequences and patterns</li>
+          </ul>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    💡 Strategy
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Use fundamental probability rules</li>
-                    <li>• Apply combinatorics for complex scenarios</li>
-                    <li>• Consider conditional probabilities</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Accuracy within tolerance range</li>
+            <li>• Speed bonuses for quick calculations</li>
+            <li>• Streak multipliers for consistency</li>
+          </ul>
+        </div>
+
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Use fundamental probability rules</li>
+            <li>• Apply combinatorics for complex scenarios</li>
+            <li>• Consider conditional probabilities</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
           </div>
+
         }
         category="Numerical Reasoning"
         gameState={gameState}

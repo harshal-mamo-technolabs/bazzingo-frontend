@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Link, Lightbulb, CheckCircle, XCircle, Target, Zap } from 'lucide-react';
+import { Link, Lightbulb, CheckCircle, XCircle, Target, Zap, ChevronUp, ChevronDown } from 'lucide-react';
 
 const WordChainLogicGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -31,6 +31,7 @@ const WordChainLogicGame = () => {
   const [selectedWord, setSelectedWord] = useState(null);
   const [validConnections, setValidConnections] = useState([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showWordChainInstructions, setShowWordChainInstructions] = useState(true);
 
   // Word database organized by difficulty and connection type
   const wordDatabase = {
@@ -442,56 +443,71 @@ const WordChainLogicGame = () => {
         gameTitle="Word Chain Logic"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                How to Play Word Chain Logic
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Objective
-                  </h4>
-                  <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Create logical word chains by connecting words through shared letters, meanings, or categories.
-                  </p>
-                </div>
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Header with toggle icon */}
+    <div
+      className="flex items-center justify-between mb-4 cursor-pointer"
+      onClick={() => setShowWordChainInstructions(!showWordChainInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Word Chain Logic
+      </h3>
+      <span className="text-blue-900 text-xl">
+       {showWordChainInstructions
+  ? <ChevronUp className="h-5 w-5 text-blue-900" />
+  : <ChevronDown className="h-5 w-5 text-blue-900" />}
+      </span>
+    </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🔗 Connection Types
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• <strong>Letter:</strong> Shared letter patterns</li>
-                    <li>• <strong>Meaning:</strong> Synonyms/related words</li>
-                    <li>• <strong>Category:</strong> Same group/theme</li>
-                  </ul>
-                </div>
+    {/* Toggle content */}
+    {showWordChainInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Create logical word chains by connecting words through shared letters, meanings, or categories.
+          </p>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    📊 Scoring
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Chain completion bonuses</li>
-                    <li>• Speed and accuracy rewards</li>
-                    <li>• Streak multipliers</li>
-                  </ul>
-                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🔗 Connection Types
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• <strong>Letter:</strong> Shared letter patterns</li>
+            <li>• <strong>Meaning:</strong> Synonyms/related words</li>
+            <li>• <strong>Category:</strong> Same group/theme</li>
+          </ul>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    💡 Strategy
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Plan your chain path</li>
-                    <li>• Use hints for tough connections</li>
-                    <li>• Think about word relationships</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Chain completion bonuses</li>
+            <li>• Speed and accuracy rewards</li>
+            <li>• Streak multipliers</li>
+          </ul>
+        </div>
+
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Plan your chain path</li>
+            <li>• Use hints for tough connections</li>
+            <li>• Think about word relationships</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
           </div>
+
         }
         category="Critical Thinking"
         gameState={gameState}

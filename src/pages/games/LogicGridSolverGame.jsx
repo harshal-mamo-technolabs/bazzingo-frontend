@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Grid, Lightbulb, CheckCircle, XCircle, Target, Zap, Brain, RefreshCw } from 'lucide-react';
+import { Grid, Lightbulb, CheckCircle, XCircle, Target, Zap, Brain, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
 
 const LogicGridSolverGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -32,6 +32,7 @@ const LogicGridSolverGame = () => {
   const [hintMessage, setHintMessage] = useState('');
   const [availableSymbols, setAvailableSymbols] = useState([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showLogicGridInstructions, setShowLogicGridInstructions] = useState(true);
   
 
   // Difficulty settings
@@ -515,56 +516,71 @@ const LogicGridSolverGame = () => {
         gameTitle="Logic Grid Solver"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                How to Play Logic Grid Solver
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Objective
-                  </h4>
-                  <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Fill the grid with symbols according to logical rules. Each puzzle has specific constraints that must be satisfied.
-                  </p>
-                </div>
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Toggle Header */}
+    <div
+      className="flex items-center justify-between mb-4 cursor-pointer"
+      onClick={() => setShowLogicGridInstructions(!showLogicGridInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Logic Grid Solver
+      </h3>
+      <span className="text-blue-900 text-xl">
+        {showLogicGridInstructions
+  ? <ChevronUp className="h-5 w-5 text-blue-900" />
+  : <ChevronDown className="h-5 w-5 text-blue-900" />}
+      </span>
+    </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🧩 Rules
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Each row/column must be unique</li>
-                    <li>• Adjacent cells may have restrictions</li>
-                    <li>• Diagonal constraints apply in harder levels</li>
-                  </ul>
-                </div>
+    {/* Toggle Content */}
+    {showLogicGridInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Fill the grid with symbols according to logical rules. Each puzzle has specific constraints that must be satisfied.
+          </p>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    📊 Scoring
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Points for each puzzle solved</li>
-                    <li>• Speed bonuses for quick solutions</li>
-                    <li>• Streak multipliers for consecutive wins</li>
-                  </ul>
-                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🧩 Rules
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Each row/column must be unique</li>
+            <li>• Adjacent cells may have restrictions</li>
+            <li>• Diagonal constraints apply in harder levels</li>
+          </ul>
+        </div>
 
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    💡 Strategy
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Start with obvious placements</li>
-                    <li>• Use elimination process</li>
-                    <li>• Consider all constraints simultaneously</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Points for each puzzle solved</li>
+            <li>• Speed bonuses for quick solutions</li>
+            <li>• Streak multipliers for consecutive wins</li>
+          </ul>
+        </div>
+
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Start with obvious placements</li>
+            <li>• Use elimination process</li>
+            <li>• Consider all constraints simultaneously</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
           </div>
+
         }
         category="Logic"
         gameState={gameState}

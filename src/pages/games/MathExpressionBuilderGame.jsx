@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Calculator, Lightbulb, CheckCircle, XCircle, Plus, Minus, X, Divide } from 'lucide-react';
+import { Calculator, Lightbulb, CheckCircle, XCircle, Plus, Minus, X, Divide, ChevronUp, ChevronDown } from 'lucide-react';
 
 const MathExpressionBuilderGame = () => {
     const [gameState, setGameState] = useState('ready');
@@ -31,6 +31,7 @@ const MathExpressionBuilderGame = () => {
     const [hintRevealed, setHintRevealed] = useState(false);
     const [possibleSolutions, setPossibleSolutions] = useState([]);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
+    const [showExpressionInstructions, setShowExpressionInstructions] = useState(true);
 
     // Operators with their symbols and functions
     const operators = {
@@ -411,56 +412,71 @@ const MathExpressionBuilderGame = () => {
                 gameTitle="Mathematical Expression Builder"
                 gameDescription={
                     <div className="mx-auto px-4 lg:px-0 mb-0">
-                        <div className="bg-[#E8E8E8] rounded-lg p-6">
-                            <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                How to Play Mathematical Expression Builder
-                            </h3>
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Header with toggle icon */}
+    <div
+      className="flex items-center justify-between mb-4 cursor-pointer"
+      onClick={() => setShowExpressionInstructions(!showExpressionInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Mathematical Expression Builder
+      </h3>
+      <span className="text-blue-900 text-xl">
+        {showExpressionInstructions
+  ? <ChevronUp className="h-5 w-5 text-blue-900" />
+  : <ChevronDown className="h-5 w-5 text-blue-900" />}
+      </span>
+    </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🎯 Objective
-                                    </h4>
-                                    <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Use the given numbers and operators to build a mathematical expression that equals the target value.
-                                    </p>
-                                </div>
+    {/* Conditional content */}
+    {showExpressionInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Use the given numbers and operators to build a mathematical expression that equals the target value.
+          </p>
+        </div>
 
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🔢 How to Play
-                                    </h4>
-                                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Click numbers and operators to build expression</li>
-                                        <li>• Follow order of operations (PEMDAS)</li>
-                                        <li>• Submit when result matches target</li>
-                                    </ul>
-                                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🔢 How to Play
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Click numbers and operators to build expression</li>
+            <li>• Follow order of operations (PEMDAS)</li>
+            <li>• Submit when result matches target</li>
+          </ul>
+        </div>
 
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        📊 Scoring
-                                    </h4>
-                                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Accuracy-based scoring</li>
-                                        <li>• Time & streak bonuses</li>
-                                        <li>• Difficulty multipliers</li>
-                                    </ul>
-                                </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Accuracy-based scoring</li>
+            <li>• Time & streak bonuses</li>
+            <li>• Difficulty multipliers</li>
+          </ul>
+        </div>
 
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        💡 Tips
-                                    </h4>
-                                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Remember order of operations</li>
-                                        <li>• Try different combinations</li>
-                                        <li>• Use hints for complex puzzles</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Tips
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Remember order of operations</li>
+            <li>• Try different combinations</li>
+            <li>• Use hints for complex puzzles</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
                 }
                 category="Problem Solving"
                 gameState={gameState}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header';
 import GameFramework from '../../components/GameFramework';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Lightbulb, CheckCircle, XCircle } from 'lucide-react';
+import { Lightbulb, CheckCircle, XCircle, ChevronUp, ChevronDown } from 'lucide-react';
 
 const NumberPatternMasterGame = () => {
   // Game state management
@@ -29,6 +29,7 @@ const NumberPatternMasterGame = () => {
   const [sequenceType, setSequenceType] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [shuffledPatterns, setShuffledPatterns] = useState([]);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   function shuffleArray(array) {
   const newArr = [...array];
@@ -391,7 +392,63 @@ const NumberPatternMasterGame = () => {
       <Header unreadCount={3} />
       <GameFramework
         gameTitle="Number Pattern Master"
-        gameDescription="Challenge your numerical reasoning! Identify patterns in number sequences and predict the next number to test your mathematical intelligence."
+        gameDescription={
+           <div className="mx-auto px-4 lg:px-0 mb-0">
+    <div className="bg-[#E8E8E8] rounded-lg p-6">
+      <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setShowInstructions(!showInstructions)}>
+        <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+          How to Play Number Pattern Master
+        </h3>
+        <span className="text-blue-900 text-xl">
+         {showInstructions ? <ChevronUp className="h-5 w-5 text-blue-900" /> : <ChevronDown className="h-5 w-5 text-blue-900" />}
+        </span>
+      </div>
+
+      {showInstructions && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className='bg-white p-3 rounded-lg'>
+            <h4 className="text-sm font-medium text-blue-800 mb-2">🎯 Objective</h4>
+            <p className="text-sm text-blue-700">
+              Identify the correct next number in a given sequence by analyzing mathematical patterns, such as arithmetic, geometric, or more advanced logic.
+            </p>
+          </div>
+
+          <div className='bg-white p-3 rounded-lg'>
+            <h4 className="text-sm font-medium text-blue-800 mb-2">🧠 Pattern Types</h4>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Arithmetic & geometric progressions</li>
+              <li>• Squares & Fibonacci-like series</li>
+              <li>• Prime numbers & polynomials</li>
+              <li>• Recursive and alternating patterns</li>
+            </ul>
+          </div>
+
+          <div className='bg-white p-3 rounded-lg'>
+            <h4 className="text-sm font-medium text-blue-800 mb-2">📊 Scoring</h4>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• +8 base points per correct answer</li>
+              <li>• +Streak & time bonuses</li>
+              <li>• −Hint penalty</li>
+              <li>• Multiplier based on difficulty</li>
+            </ul>
+          </div>
+
+          <div className='bg-white p-3 rounded-lg'>
+            <h4 className="text-sm font-medium text-blue-800 mb-2">💡 Tips</h4>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Spot the pattern (addition, multiplication...)</li>
+              <li>• Use hints when needed, but wisely</li>
+              <li>• Try to maintain streaks for bonuses</li>
+              <li>• Practice different difficulty levels</li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+          </div>
+
+
+        }
         category="Numerical Reasoning"
         gameState={gameState}
         setGameState={setGameState}
