@@ -126,47 +126,47 @@ const CodeBreakingCipherGame = () => {
     const settings = difficultySettings[difficulty];
     const availableTypes = settings.cipherTypes;
     const selectedType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-    
+
     setCipherType(selectedType);
-    
+
     // Get message based on difficulty
     const difficultyLevel = difficulty.toLowerCase();
     const messages = cipherMessages[difficultyLevel];
     const originalMessage = messages[Math.floor(Math.random() * messages.length)];
-    
+
     let encryptedMessage = '';
     let hint = '';
     let key = null;
-    
+
     switch (selectedType) {
       case 'caesar':
         key = Math.floor(Math.random() * 25) + 1; // 1-25 shift
         encryptedMessage = caesarCipher(originalMessage, key);
         hint = `Caesar cipher with shift of ${key}. Each letter is shifted ${key} positions in the alphabet.`;
         break;
-        
+
       case 'substitution':
         key = generateSubstitutionKey();
         encryptedMessage = substitutionCipher(originalMessage, key);
         hint = `Substitution cipher. Each letter is replaced with another letter consistently.`;
         break;
-        
+
       case 'morse':
         encryptedMessage = textToMorse(originalMessage);
         hint = `Morse code. Dots (.) and dashes (-) represent letters. / represents space.`;
         break;
-        
+
       case 'binary':
         encryptedMessage = textToBinary(originalMessage);
         hint = `Binary code. Each 8-bit sequence represents one character.`;
         break;
-        
+
       default:
         key = 3;
         encryptedMessage = caesarCipher(originalMessage, key);
         hint = `Caesar cipher with shift of 3.`;
     }
-    
+
     setCurrentCipher({
       original: originalMessage,
       encrypted: encryptedMessage,
@@ -174,7 +174,7 @@ const CodeBreakingCipherGame = () => {
       key: key,
       hint: hint
     });
-    
+
     setUserInput('');
     setShowFeedback(false);
     setShowHint(false);
@@ -182,44 +182,44 @@ const CodeBreakingCipherGame = () => {
   }, [difficulty]);
 
   // Calculate score
- const calculateScore = useCallback(() => {
-  if (totalAttempts === 0 || solvedCiphers === 0) return 0;
+  const calculateScore = useCallback(() => {
+    if (totalAttempts === 0 || solvedCiphers === 0) return 0;
 
-  const settings = difficultySettings[difficulty];
-  const successRate = solvedCiphers / totalAttempts;
-  const avgResponseTime = totalResponseTime / totalAttempts / 1000;
+    const settings = difficultySettings[difficulty];
+    const successRate = solvedCiphers / totalAttempts;
+    const avgResponseTime = totalResponseTime / totalAttempts / 1000;
 
-  // Base score from success rate (0-85 points)
-  let baseScore = successRate * 85;
+    // Base score from success rate (0-85 points)
+    let baseScore = successRate * 85;
 
-  // Time bonus (max 25 points)
-  const idealTime = difficulty === 'Easy' ? 25 : difficulty === 'Moderate' ? 35 : 45;
-  const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 1.2));
+    // Time bonus (max 25 points)
+    const idealTime = difficulty === 'Easy' ? 25 : difficulty === 'Moderate' ? 35 : 45;
+    const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 1.2));
 
-  // Streak bonus (max 30 points)
-  const streakBonus = Math.min(maxStreak * 2.8, 30);
+    // Streak bonus (max 30 points)
+    const streakBonus = Math.min(maxStreak * 2.8, 30);
 
-  // Level progression bonus (max 20 points)
-  const levelBonus = Math.min(currentLevel * 1.1, 20);
+    // Level progression bonus (max 20 points)
+    const levelBonus = Math.min(currentLevel * 1.1, 20);
 
-  // Lives bonus (max 15 points)
-  const livesBonus = (lives / settings.lives) * 15;
+    // Lives bonus (max 15 points)
+    const livesBonus = (lives / settings.lives) * 15;
 
-  // Hints penalty (subtract up to 15 points)
-  const hintsPenalty = (hintsUsed / settings.hints) * 15;
+    // Hints penalty (subtract up to 15 points)
+    const hintsPenalty = (hintsUsed / settings.hints) * 15;
 
-  // Difficulty multiplier
-  const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
+    // Difficulty multiplier
+    const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
 
-  // Time remaining bonus (max 15 points)
-  const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
+    // Time remaining bonus (max 15 points)
+    const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
 
-  let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
+    let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
 
-  finalScore = finalScore * 0.84;
+    finalScore = finalScore * 0.84;
 
-  return Math.round(Math.max(0, Math.min(200, finalScore)));
-}, [solvedCiphers, totalAttempts, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+    return Math.round(Math.max(0, Math.min(200, finalScore)));
+  }, [solvedCiphers, totalAttempts, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
 
 
   // Update score whenever relevant values change
@@ -229,61 +229,61 @@ const CodeBreakingCipherGame = () => {
   }, [calculateScore]);
 
   // Handle cipher submission
- const handleSubmit = useCallback(() => {
-  if (gameState !== 'playing' || showFeedback || !currentCipher) return;
+  const handleSubmit = useCallback(() => {
+    if (gameState !== 'playing' || showFeedback || !currentCipher) return;
 
-  if (!userInput.trim()) {
-    return;
-  }
+    if (!userInput.trim()) {
+      return;
+    }
 
-  const responseTime = Date.now() - cipherStartTime;
-  const userAnswer = userInput.toUpperCase().trim();
-  const correctAnswer = currentCipher.original;
+    const responseTime = Date.now() - cipherStartTime;
+    const userAnswer = userInput.toUpperCase().trim();
+    const correctAnswer = currentCipher.original;
 
-  setShowFeedback(true);
-  setTotalAttempts(prev => prev + 1);
-  setTotalResponseTime(prev => prev + responseTime);
+    setShowFeedback(true);
+    setTotalAttempts(prev => prev + 1);
+    setTotalResponseTime(prev => prev + responseTime);
 
-  if (userAnswer === correctAnswer) {
-    setFeedbackType('correct');
-    setSolvedCiphers(prev => prev + 1);
-    setStreak(prev => {
-      const newStreak = prev + 1;
-      setMaxStreak(current => Math.max(current, newStreak));
-      return newStreak;
-    });
-    setCurrentLevel(prev => prev + 1);
+    if (userAnswer === correctAnswer) {
+      setFeedbackType('correct');
+      setSolvedCiphers(prev => prev + 1);
+      setStreak(prev => {
+        const newStreak = prev + 1;
+        setMaxStreak(current => Math.max(current, newStreak));
+        return newStreak;
+      });
+      setCurrentLevel(prev => prev + 1);
 
-    setTimeout(() => {
-      generateNewCipher();
-    }, 2000);
-  } else {
-    setFeedbackType('incorrect');
-    setStreak(0);
-    setLives(prev => {
-      const newLives = prev - 1;
-      if (newLives <= 0) {
-        setGameState('finished');
-        setShowCompletionModal(true);
-      }
-      return Math.max(0, newLives);
-    });
+      setTimeout(() => {
+        generateNewCipher();
+      }, 2000);
+    } else {
+      setFeedbackType('incorrect');
+      setStreak(0);
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          setGameState('finished');
+          setShowCompletionModal(true);
+        }
+        return Math.max(0, newLives);
+      });
 
-    setTimeout(() => {
-      setShowFeedback(false);
-    }, 2000);
-  }
-}, [gameState, showFeedback, currentCipher, userInput, cipherStartTime, generateNewCipher]);
+      setTimeout(() => {
+        setShowFeedback(false);
+      }, 2000);
+    }
+  }, [gameState, showFeedback, currentCipher, userInput, cipherStartTime, generateNewCipher]);
 
 
   // Use hint
   const useHint = () => {
     if (hintsUsed >= maxHints || gameState !== 'playing' || !currentCipher) return;
-    
+
     setHintsUsed(prev => prev + 1);
     setHintMessage(currentCipher.hint);
     setShowHint(true);
-    
+
     setTimeout(() => {
       setShowHint(false);
     }, 5000);
@@ -381,7 +381,7 @@ const CodeBreakingCipherGame = () => {
   return (
     <div>
       <Header unreadCount={3} />
-      
+
       <GameFramework
         gameTitle="Code Breaking Cipher"
         gameDescription={
@@ -390,7 +390,7 @@ const CodeBreakingCipherGame = () => {
               <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 How to Play Code Breaking Cipher
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className='bg-white p-3 rounded-lg'>
                   <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -458,11 +458,10 @@ const CodeBreakingCipherGame = () => {
               <button
                 onClick={useHint}
                 disabled={hintsUsed >= maxHints}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                  hintsUsed >= maxHints
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${hintsUsed >= maxHints
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                }`}
+                  }`}
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
@@ -517,6 +516,14 @@ const CodeBreakingCipherGame = () => {
                     {cipherType} Cipher
                   </span>
                 </div>
+
+                {cipherType === 'caesar' && (
+                  <p className="text-blue-900 text-sm font-semibold">
+                    Shift&nbsp;=&nbsp;{currentCipher.key}
+                  </p>
+                )}
+
+
                 <p className="text-blue-700 text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   {getCipherTypeDescription(cipherType)}
                 </p>
@@ -571,11 +578,10 @@ const CodeBreakingCipherGame = () => {
                 <button
                   onClick={handleSubmit}
                   disabled={!userInput.trim()}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                    userInput.trim()
+                  className={`px-6 py-3 rounded-lg font-semibold transition-colors ${userInput.trim()
                       ? 'bg-[#FF6B3E] text-white hover:bg-[#e55a35]'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                    }`}
                   style={{ fontFamily: 'Roboto, sans-serif' }}
                 >
                   <Key className="h-5 w-5" />
@@ -586,9 +592,8 @@ const CodeBreakingCipherGame = () => {
 
           {/* Feedback */}
           {showFeedback && currentCipher && (
-            <div className={`w-full max-w-2xl text-center p-6 rounded-lg ${
-              feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
+            <div className={`w-full max-w-2xl text-center p-6 rounded-lg ${feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
               <div className="flex items-center justify-center gap-2 mb-2">
                 {feedbackType === 'correct' ? (
                   <CheckCircle className="h-6 w-6 text-green-600" />
@@ -611,7 +616,7 @@ const CodeBreakingCipherGame = () => {
           {/* Instructions */}
           <div className="text-center max-w-2xl mt-6">
             <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Analyze the encrypted message and use logical deduction to decode it. 
+              Analyze the encrypted message and use logical deduction to decode it.
               Look for patterns, letter frequencies, and use hints when stuck.
               Press Enter or click the key button to submit your answer.
             </p>
