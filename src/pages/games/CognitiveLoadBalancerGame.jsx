@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header';
 import GameFramework from '../../components/GameFramework';
+import GameCompletionModal from '../../components/games/GameCompletionModal';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 const CognitiveLoadBalancerGame = () => {
   // Game state management
@@ -17,6 +19,8 @@ const CognitiveLoadBalancerGame = () => {
   const [activeTaskCount, setActiveTaskCount] = useState(1);
   const [streakCount, setStreakCount] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // Task types with cognitive load
   const taskTypes = [
@@ -125,7 +129,7 @@ const CognitiveLoadBalancerGame = () => {
     setStreakCount(0);
     setMaxStreak(0);
 
-    const initialTime = difficulty === 'Easy' ? 120 : difficulty === 'Moderate' ? 90 : 60;
+    const initialTime = difficulty === 'Easy' ? 10 : difficulty === 'Moderate' ? 90 : 60;
     setTimeRemaining(initialTime);
     setActiveTaskCount(difficulty === 'Easy' ? 1 : difficulty === 'Moderate' ? 2 : 3);
   }, [difficulty]);
@@ -146,48 +150,53 @@ const CognitiveLoadBalancerGame = () => {
   }, [currentLevel, difficulty, taskTypes]);
 
   // Add new tasks
-  const addNewTasks = useCallback(() => {
-    if (gameState !== 'playing') return;
+ const addNewTasks = useCallback(() => {
+  if (gameState !== 'playing') return;
 
-    const newTasks = [];
-    const tasksNeeded = activeTaskCount - currentTasks.length;
+  const newTasks = [];
+  const tasksNeeded = activeTaskCount - currentTasks.length;
+  const usedTypes = currentTasks.map(t => t.type);
 
-    for (let i = 0; i < tasksNeeded; i++) {
-      newTasks.push(generateNewTask());
-    }
+  for (let i = 0; i < tasksNeeded; i++) {
+    let task;
+    let tries = 0;
+    do {
+      task = generateNewTask();
+      tries++;
+    } while (usedTypes.includes(task.type) && tries < 5); // avoid repetition
 
-    setCurrentTasks(prev => [...prev, ...newTasks]);
-  }, [gameState, activeTaskCount, currentTasks.length, generateNewTask]);
+    newTasks.push(task);
+    usedTypes.push(task.type); // track the new one
+  }
+
+  setCurrentTasks(prev => [...prev, ...newTasks]);
+}, [gameState, activeTaskCount, currentTasks, generateNewTask]);
+
 
   // Handle task completion
  const handleTaskComplete = useCallback((taskId, userAnswer) => {
-  setCurrentTasks(prev => {
-    const task = prev.find(t => t.id === taskId);
-    if (!task) {
-      // It’s gone — either timed out or already answered
-      return prev;
-    }
+  const task = currentTasks.find(t => t.id === taskId);
+  if (!task) return;
 
-    const isCorrect = userAnswer === task.answer;
+  setCurrentTasks(prev => prev.filter(t => t.id !== taskId)); // Remove the task first
 
-    const points = isCorrect ? (2 + (currentLevel - 1)) : 0;
+  const isCorrect = userAnswer === task.answer;
+  const points = isCorrect ? (2 + (currentLevel - 1)) : 0;
 
-    if (isCorrect) {
-      setScore(s => Math.min(s + points, 200));
-      setCompletedTasks(c => c + 1);
-      setStreakCount(s => {
-        const newStreak = s + 1;
-        setMaxStreak(max => Math.max(max, newStreak));
-        return newStreak;
-      });
-    } else {
-      setFailedTasks(f => f + 1);
-      setStreakCount(0);
-    }
+  if (isCorrect) {
+    setScore(s => Math.min(s + points, 200));
+    setCompletedTasks(c => c + 1);
+    setStreakCount(s => {
+      const newStreak = s + 1;
+      setMaxStreak(max => Math.max(max, newStreak));
+      return newStreak;
+    });
+  } else {
+    setFailedTasks(f => f + 1);
+    setStreakCount(0);
+  }
+}, [currentTasks, currentLevel]);
 
-    return prev.filter(t => t.id !== taskId);
-  });
-}, [currentLevel]);
 
 
   // Game timer
@@ -198,6 +207,7 @@ const CognitiveLoadBalancerGame = () => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             setGameState('finished');
+            setShowCompletionModal(true);
             return 0;
           }
           return prev - 1;
@@ -275,8 +285,58 @@ const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
       <Header unreadCount={3} />
       <GameFramework
         gameTitle="Cognitive Load Balancer"
-        gameDescription="Master the art of multitasking! Handle multiple cognitive challenges simultaneously to test your mental flexibility and working memory."
-        category="Executive Function"
+        gameDescription={
+          <div className="mx-auto px-4 lg:px-0 mb-6">
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    <div
+      className="flex items-center justify-between cursor-pointer mb-4"
+      onClick={() => setShowHowToPlay(prev => !prev)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Cognitive Load Balancer
+      </h3>
+      {showHowToPlay ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+    </div>
+
+    {showHowToPlay && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>🎯 Objective</h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            Handle multiple cognitive challenges—math, memory, color matching, and pattern solving—simultaneously under time pressure.
+          </p>
+        </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>🧠 Task Types</h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <li>• <strong>Math:</strong> Solve arithmetic problems quickly</li>
+            <li>• <strong>Memory:</strong> Memorize and recall digit sequences</li>
+            <li>• <strong>Color:</strong> Identify the actual color of the text</li>
+            <li>• <strong>Pattern:</strong> Complete number sequences logically</li>
+          </ul>
+        </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>📊 Scoring</h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <li>• Earn points for correct answers</li>
+            <li>• Longer streaks give bonus points</li>
+            <li>• Speed affects your level progress</li>
+          </ul>
+        </div>
+        <div className='bg-white p-3 rounded-lg'>
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>💡 Strategy</h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <li>• Focus on accuracy before speed</li>
+            <li>• Learn to juggle different task types</li>
+            <li>• Use memory phase wisely</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+        }
+        category="Critical Thinking"
         gameState={gameState}
         setGameState={setGameState}
         score={score}
@@ -436,6 +496,11 @@ const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
           )}
         </div>
       </GameFramework>
+      <GameCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        score={score}
+      />
     </div>
   );
 };
@@ -566,6 +631,7 @@ const TaskCard = ({ task, onComplete, gameState }) => {
           ))}
         </div>
       )}
+
     </div>
   );
 };

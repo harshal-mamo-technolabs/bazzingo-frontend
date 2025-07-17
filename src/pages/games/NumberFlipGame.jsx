@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
+import GameCompletionModal from '../../components/games/GameCompletionModal';
+import { ChevronUp, ChevronDown } from 'lucide-react';
+
 
 const NumberFlipGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -13,6 +16,8 @@ const NumberFlipGame = () => {
   const [attempts, setAttempts] = useState(0);
   const [matches, setMatches] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showNumberFlipInstructions, setShowNumberFlipInstructions] = useState(false);
 
   // Difficulty settings
   const difficultySettings = {
@@ -117,7 +122,8 @@ const NumberFlipGame = () => {
         newScore -= Math.floor(overtime / 3);
       }
 
-      setScore(Math.max(0, Math.min(200, newScore)));
+      setScore(Math.round(Math.max(0, Math.min(200, newScore))));
+
     }
   }, [attempts, matches, timeRemaining, difficulty]);
 
@@ -126,6 +132,7 @@ const NumberFlipGame = () => {
     const settings = difficultySettings[difficulty];
     if (matches === settings.pairs && gameState === 'playing') {
       setGameState('finished');
+      setShowCompletionModal(true);
     }
   }, [matches, difficulty, gameState]);
 
@@ -137,6 +144,7 @@ const NumberFlipGame = () => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             setGameState('finished');
+            setShowCompletionModal(true);
             return 0;
           }
           return prev - 1;
@@ -175,7 +183,75 @@ const NumberFlipGame = () => {
       <Header unreadCount={3} />
       <GameFramework
         gameTitle="Number Flip"
-        gameDescription="Match all hidden pairs of numbered cards before time runs out!"
+        gameDescription={
+          <div className="mx-auto px-4 lg:px-0 mb-0 mt-8">
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Toggle Header */}
+    <div
+      className="flex items-center justify-between cursor-pointer mb-4"
+      onClick={() => setShowNumberFlipInstructions(!showNumberFlipInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Number Flip
+      </h3>
+      {showNumberFlipInstructions ? (
+        <ChevronUp className="text-blue-900" size={20} />
+      ) : (
+        <ChevronDown className="text-blue-900" size={20} />
+      )}
+    </div>
+
+    {/* Toggle Content */}
+    {showNumberFlipInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Find and match all pairs of hidden numbers on the board before the timer runs out.
+          </p>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🔄 Gameplay
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Flip two cards at a time</li>
+            <li>• If they match, they stay revealed</li>
+            <li>• If not, they flip back after a moment</li>
+          </ul>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Accuracy affects your score</li>
+            <li>• Fewer attempts = higher score</li>
+            <li>• Time penalties reduce points</li>
+            <li>• Max score: 200</li>
+          </ul>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Pay attention to card positions</li>
+            <li>• Use memory to track numbers</li>
+            <li>• Flip fast, but think carefully</li>
+            <li>• Minimize wrong attempts</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+        }
         category="Memory"
         gameState={gameState}
         setGameState={setGameState}
@@ -255,6 +331,11 @@ const NumberFlipGame = () => {
           </div>
         </div>
       </GameFramework>
+      <GameCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        score={score}
+      />
     </div>
   );
 };

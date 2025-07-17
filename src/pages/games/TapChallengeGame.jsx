@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
+import GameCompletionModal from '../../components/games/GameCompletionModal';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 /* ───────── CONFIG ───────── */
 const DIFF = {
@@ -27,6 +29,8 @@ const TapChallengeGame = () => {
   const [misses, setMisses] = useState(0);
   const [rTimes, setRTimes] = useState([]);
   const [score, setScore] = useState(0);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showTapChallengeInstructions, setShowTapChallengeInstructions] = useState(false);
 
   /* ───────── helpers ───────── */
   const resetTimers = () => {
@@ -95,6 +99,7 @@ const TapChallengeGame = () => {
         if (t <= 1) {
           setGameState('finished');
           resetTimers();
+          setShowCompletionModal(true);
           return 0;
         }
         return t - 1;
@@ -153,7 +158,72 @@ const TapChallengeGame = () => {
       <Header unreadCount={3} />
       <GameFramework
         gameTitle="Tap Challenge"
-        gameDescription="Tap the moving circle as fast as you can!"
+        gameDescription={
+<div className="mx-auto px-4 lg:px-0 w-full">
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    <div
+      className="flex items-center justify-between cursor-pointer mb-4"
+      onClick={() => setShowTapChallengeInstructions(prev => !prev)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Tap Challenge
+      </h3>
+      {showTapChallengeInstructions ? (
+        <ChevronUp className="text-blue-900" size={20} />
+      ) : (
+        <ChevronDown className="text-blue-900" size={20} />
+      )}
+    </div>
+
+    {showTapChallengeInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Test your reflexes by tapping the moving orange circle as fast as possible before it relocates.
+          </p>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🕹️ Gameplay Mechanics
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Tap the orange circle immediately when it appears</li>
+            <li>• The circle randomly relocates every few seconds</li>
+            <li>• Avoid clicking outside the circle — that counts as a miss</li>
+          </ul>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring System
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Each successful tap earns you points based on reaction time</li>
+            <li>• Misses deduct 10 points each</li>
+            <li>• Final score = hits × multiplier − penalties</li>
+          </ul>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy Tips
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Focus on the center of the play area</li>
+            <li>• React quickly but avoid clicking too early</li>
+            <li>• Try to build accuracy streaks for high score</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
+        }
         category="Reflexes"
         gameState={gameState}
         setGameState={setGameState}
@@ -218,6 +288,11 @@ const TapChallengeGame = () => {
           </p>
         </div>
       </GameFramework>
+      <GameCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        score={score}
+      />
     </div>
   );
 };

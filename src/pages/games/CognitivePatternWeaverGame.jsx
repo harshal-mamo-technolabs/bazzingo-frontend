@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header';
 import GameFramework from '../../components/GameFramework';
+import GameCompletionModal from '../../components/games/GameCompletionModal';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 const CognitivePatternWeaverGame = () => {
   // Game state management
@@ -8,6 +10,7 @@ const CognitivePatternWeaverGame = () => {
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(180); // 3 minutes
   const [difficulty, setDifficulty] = useState('Easy');
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // Game-specific state
   const [currentLevel, setCurrentLevel] = useState(1);
@@ -20,6 +23,7 @@ const CognitivePatternWeaverGame = () => {
   const [accuracy, setAccuracy] = useState(0);
   const [showPattern, setShowPattern] = useState(true);
   const [patternPhase, setPatternPhase] = useState('study'); // study, recreate, feedback
+  const [showPatternWeaverInstructions, setShowPatternWeaverInstructions] = useState(false);
 
   // Pattern colors and shapes
   const colors = ['#FF6B3E', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
@@ -207,6 +211,7 @@ const CognitivePatternWeaverGame = () => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             setGameState('finished');
+            setShowCompletionModal(true);
             return 0;
           }
           return prev - 1;
@@ -251,7 +256,74 @@ const CognitivePatternWeaverGame = () => {
       <Header unreadCount={3} />
       <GameFramework
         gameTitle="Cognitive Pattern Weaver"
-        gameDescription="Master spatial memory and pattern recognition! Study complex patterns and recreate them from memory to test your visual-spatial intelligence."
+        gameDescription={
+          <div className="mx-auto px-4 lg:px-0 mb-0 mt-8">
+  <div className="bg-[#E8E8E8] rounded-lg p-6">
+    {/* Toggle Header */}
+    <div
+      className="flex items-center justify-between cursor-pointer mb-4"
+      onClick={() => setShowPatternWeaverInstructions(!showPatternWeaverInstructions)}
+    >
+      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        How to Play Cognitive Pattern Weaver
+      </h3>
+      {showPatternWeaverInstructions ? (
+        <ChevronUp className="text-blue-900" size={20} />
+      ) : (
+        <ChevronDown className="text-blue-900" size={20} />
+      )}
+    </div>
+
+    {/* Toggle Content */}
+    {showPatternWeaverInstructions && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🎯 Objective
+          </h4>
+          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            Test your spatial memory by recreating complex shape-color patterns from memory with precise order and positioning.
+          </p>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            🧠 Memory Challenge
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Study the grid pattern with colors, shapes, and numbers</li>
+            <li>• Memorize each element’s location and order</li>
+            <li>• Recreate the pattern after it disappears</li>
+          </ul>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            📊 Scoring
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Base points per correct pattern</li>
+            <li>• Accuracy bonus based on order match</li>
+            <li>• Streak bonus for consistency</li>
+            <li>• Difficulty multiplier applies</li>
+          </ul>
+        </div>
+
+        <div className="bg-white p-3 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            💡 Strategy
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+            <li>• Create visual associations for patterns</li>
+            <li>• Use spatial chunking to group elements</li>
+            <li>• Focus on both location and sequence</li>
+          </ul>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+        }
         category="Pattern Recognition"
         gameState={gameState}
         setGameState={setGameState}
@@ -556,6 +628,11 @@ const CognitivePatternWeaverGame = () => {
           )}
         </div>
       </GameFramework>
+      <GameCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        score={score}
+      />
     </div>
   );
 };
