@@ -5,23 +5,23 @@ import GamesGrid from '../components/games/GamesGrid';
 import DailyGameModal from '../components/games/DailyGameModal';
 
 const games = [
-  { id: 1, title: 'Whack a Box', category: 'Gameacy', difficulty: 'Easy', icon: './whack-a-box-game.png', bgColor: '#D5EBFF', path: "/games/whack-a-box-game" },
-  { id: 2, title: 'Tile Switch', category: 'Logic', difficulty: 'Hard', icon: './tile-switch-game.png', bgColor: '#D8F0E4', path: "/games/tile-switch-game" },
+  { id: 1, title: 'Code Breaking Cipher', category: 'Logic', difficulty: 'Easy', icon: './games-icon/code-breaking-ciper.png', bgColor: '#D5EBFF', path: "/games/code-breaking-cipher-game" },
+  { id: 2, title: 'Logic Grid Solver', category: 'Logic', difficulty: 'Hard', icon: './games-icon/logic-grid-solver.png', bgColor: '#D8F0E4', path: "/games/logic-grid-solver-game" },
   {
     id: 3,
-    title: 'Tower of Hanoi',
-    category: 'Logic',
+    title: 'Probability Prediction',
+    category: 'Numerical Reasoning',
     difficulty: 'Hard',
     featured: true,
     trending: true,
     description: "Best game for the exercise of your mind—it'll help you focus your daily tasks.",
-    icon: './tower-of-hanoi-game.png',
+    icon: './games-icon/probability-prediction.png',
     bgColor: '#ffffff',
-    path: '/games/tower-of-hanoi-game'
+    path: '/games/probability-prediction-game'
   },
-  { id: 4, title: 'Sound Memory', category: 'Gameacy', difficulty: 'Easy', icon: './sound-memory-game.png', bgColor: '#ffffff', path: "/games/sound-memory-game" },
-  { id: 5, title: 'Visual Memory Span', category: 'Logic', difficulty: 'Medium', icon: './whack-a-box-game.png', bgColor: '#1D1D1B', path: "/games/visual-memory-span-game" },
-  { id: 6, title: 'Neural Network Builder Game', category: 'Logic', difficulty: 'Medium', icon: './Neural-Network-Builder-Game.png', bgColor: '#FFFFFF', path: "/games/neural-network-builder-game" },
+  { id: 4, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
+  { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/word-chain-logic.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
+  { id: 6, title: 'Mathematical Deduction', category: 'Numerical Reasoning', difficulty: 'Medium', icon: './games-icon/mathematical-deduction.png', bgColor: '#FFFFFF', path: "/games/math-deduction-game" },
   { id: 7, title: 'Cognative Load Balancer', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image7.png', bgColor: '#D4E8DC', path: "/games/cognitive-load-balancer-game" },
   { id: 8, title: 'Mental Rotation 3D', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image8.png', bgColor: '#D8F0E4', path: "/games/mental-rotation-3d-game" },
   { id: 9, title: 'N-Back', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image9.png', bgColor: '#D4E8DC', path: "/games/n-back-game" },
@@ -64,7 +64,7 @@ export default function Games() {
             activeCategory={activeCategory}
             //activeLevel={activeLevel}
             onCategoryChange={setActiveCategory}
-            //onLevelChange={setActiveLevel}
+          //onLevelChange={setActiveLevel}
           />
 
           <GamesGrid
