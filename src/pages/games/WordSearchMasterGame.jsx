@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
+import GameCompletionModal from '../../components/games/GameCompletionModal';
 import Header from '../../components/Header';
-import { Search, Lightbulb, Target, CheckCircle } from 'lucide-react';
+import { Search, Lightbulb, Target, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
 
 const WordSearchMaster = () => {
     const [gameState, setGameState] = useState('ready');
@@ -22,6 +23,8 @@ const WordSearchMaster = () => {
     const [foundWordCells, setFoundWordCells] = useState([]);
     const [animatingCells, setAnimatingCells] = useState([]);
     const [celebrationAnimation, setCelebrationAnimation] = useState(false);
+    const [showWordSearchInstructions, setShowWordSearchInstructions] = useState(true);
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
 
     // Word lists by category
     const wordLists = {
@@ -334,6 +337,7 @@ const WordSearchMaster = () => {
                 setTimeRemaining(prev => {
                     if (prev <= 1) {
                         setGameState('finished');
+                        setShowCompletionModal(true);
                         return 0;
                     }
                     return prev - 1;
@@ -394,11 +398,23 @@ const WordSearchMaster = () => {
                 gameDescription={
                     <div className="mx-auto px-4 lg:px-0 mb-0">
                         <div className="bg-[#E8E8E8] rounded-lg p-6">
-                            <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                How to Play Word Search Master
-                            </h3>
+                            {/* Header with toggle icon */}
+                            <div
+                                className="flex items-center justify-between mb-4 cursor-pointer"
+                                onClick={() => setShowWordSearchInstructions(!showWordSearchInstructions)}
+                            >
+                                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                    How to Play Word Search Master
+                                </h3>
+                                <span className="text-blue-900 text-xl">
+                                    {showWordSearchInstructions
+                                        ? <ChevronUp className="h-5 w-5 text-blue-900" />
+                                        : <ChevronDown className="h-5 w-5 text-blue-900" />}
+                                </span>
+                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {/* Instructions */}
+                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showWordSearchInstructions ? '' : 'hidden'}`}>
                                 <div className="bg-white p-3 rounded-lg">
                                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                         🎯 Objective
@@ -616,6 +632,11 @@ const WordSearchMaster = () => {
                     </div>
                 </div>
             </GameFramework>
+            <GameCompletionModal
+                isOpen={showCompletionModal}
+                onClose={() => setShowCompletionModal(false)}
+                score={score}
+            />
         </div>
     );
 };
