@@ -66,6 +66,7 @@ import ResourceAllocationStrategyGame from './games/ResourceAllocationStrategyGa
 import ProbabilityPredictionGame from './games/ProbabilityPredictionGame';
 import LogicGridSolverGame from './games/LogicGridSolverGame';
 import WordSearchMaster from './games/WordSearchMasterGame';
+import TicTacToeGame from './games/TicTacToeGame';
 
 // Export all pages including games
 export {
@@ -136,5 +137,6 @@ export {
     ResourceAllocationStrategyGame,
     ProbabilityPredictionGame,
     LogicGridSolverGame,
-    WordSearchMaster
+    WordSearchMaster,
+    TicTacToeGame
 };

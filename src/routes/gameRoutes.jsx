@@ -46,6 +46,7 @@ import {
   ProbabilityPredictionGame,
   LogicGridSolverGame,
   WordSearchMaster,
+  TicTacToeGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -283,5 +284,10 @@ export const gameRoutes = [
     path: "/games/word-search-master-game",
     element: <WordSearchMaster />,
     name: "Word Search Master Game"
+  },
+  {
+    path: "/games/tic-tac-toe-game",
+    element: <TicTacToeGame />,
+    name: "Tic Tac Toe Game"
   }
 ];
