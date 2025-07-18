@@ -23,7 +23,7 @@ const games = [
   { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/word-chain-logic.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
   { id: 6, title: 'Mathematical Deduction', category: 'Numerical Reasoning', difficulty: 'Medium', icon: './games-icon/mathematical-deduction.png', bgColor: '#FFFFFF', path: "/games/math-deduction-game" },
   { id: 7, title: 'Cognative Load Balancer', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image7.png', bgColor: '#D4E8DC', path: "/games/cognitive-load-balancer-game" },
-  { id: 8, title: 'Mental Rotation 3D', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image8.png', bgColor: '#D8F0E4', path: "/games/mental-rotation-3d-game" },
+  { id: 8, title: 'Word Match Master', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/word-search-master.png', bgColor: '#1D1D1B', path: "/games/word-search-master-game" },
   { id: 9, title: 'N-Back', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image9.png', bgColor: '#D4E8DC', path: "/games/n-back-game" },
   { id: 10, title: 'Cognative Pattern Weaver', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image1.png', bgColor: '#FFFFFF', path: "/games/cognitive-pattern-weaver-game" },
   { id: 11, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },

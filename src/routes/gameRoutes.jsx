@@ -45,6 +45,7 @@ import {
   ResourceAllocationStrategyGame,
   ProbabilityPredictionGame,
   LogicGridSolverGame,
+  WordSearchMaster,
 } from '../pages';
 
 export const gameRoutes = [
@@ -277,5 +278,10 @@ export const gameRoutes = [
     path: "/games/number-pattern-master-game",
     element: <NumberPatternMasterGame />,
     name: "Number Pattern Master Game"
+  },
+  {
+    path: "/games/word-search-master-game",
+    element: <WordSearchMaster />,
+    name: "Word Search Master Game"
   }
 ];

@@ -65,6 +65,7 @@ import CodeBreakingCipherGame from './games/CodeBreakingCipherGame';
 import ResourceAllocationStrategyGame from './games/ResourceAllocationStrategyGame';
 import ProbabilityPredictionGame from './games/ProbabilityPredictionGame';
 import LogicGridSolverGame from './games/LogicGridSolverGame';
+import WordSearchMaster from './games/WordSearchMasterGame';
 
 // Export all pages including games
 export {
@@ -134,5 +135,6 @@ export {
     CodeBreakingCipherGame,
     ResourceAllocationStrategyGame,
     ProbabilityPredictionGame,
-    LogicGridSolverGame
+    LogicGridSolverGame,
+    WordSearchMaster
 };
