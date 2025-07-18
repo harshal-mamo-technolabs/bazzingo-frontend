@@ -25,7 +25,7 @@ const games = [
   { id: 7, title: 'Cognative Load Balancer', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image7.png', bgColor: '#D4E8DC', path: "/games/cognitive-load-balancer-game" },
   { id: 8, title: 'Word Match Master', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/word-search-master.png', bgColor: '#1D1D1B', path: "/games/word-search-master-game" },
   { id: 9, title: 'Tic Tac Toe', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/TicTacToe.png', bgColor: '#D4E8DC', path: "/games/tic-tac-toe-game" },
-  { id: 10, title: 'Cognative Pattern Weaver', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image1.png', bgColor: '#FFFFFF', path: "/games/cognitive-pattern-weaver-game" },
+  { id: 10, title: '2028', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/2048.png', bgColor: '#FFFFFF', path: "/games/2048-game" },
   { id: 11, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
   { id: 12, title: 'Number Flip', category: 'Logic', difficulty: 'Easy', icon: './games-icon/image3-main.png', bgColor: '#D0F2E8', path: "/games/number-flip-game" },
   { id: 13, title: 'Sequance Recall', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image4.png', bgColor: '#1D1D1B', path: "/games/sequence-recall-game" },

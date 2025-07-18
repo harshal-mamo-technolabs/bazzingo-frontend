@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
-import { Search, Lightbulb, Target, CheckCircle } from 'lucide-react';
+import { Search, Lightbulb, Target, CheckCircle, Sparkles, Zap, Star, Crown, Trophy, Flame } from 'lucide-react';
 
 const WordSearchMaster = () => {
     const [gameState, setGameState] = useState('ready');
@@ -22,6 +22,11 @@ const WordSearchMaster = () => {
     const [foundWordCells, setFoundWordCells] = useState([]);
     const [animatingCells, setAnimatingCells] = useState([]);
     const [celebrationAnimation, setCelebrationAnimation] = useState(false);
+    const [particleEffects, setParticleEffects] = useState([]);
+    const [comboMultiplier, setComboMultiplier] = useState(1);
+    const [perfectStreak, setPerfectStreak] = useState(false);
+    const [lastWordLength, setLastWordLength] = useState(0);
+    const [powerUpActive, setPowerUpActive] = useState(false);
 
     // Word lists by category
     const wordLists = {
@@ -272,8 +277,19 @@ const WordSearchMaster = () => {
         if (foundWord && !foundWords.includes(foundWord)) {
             // Word found!
             // Add animation to found cells
+            const wordLength = foundWord.length;
+            setLastWordLength(wordLength);
             setAnimatingCells(selectedCells);
             setCelebrationAnimation(true);
+
+            // Create particle effects
+            const particles = selectedCells.map((cell, index) => ({
+                id: Date.now() + index,
+                x: cell.col * 40 + 20,
+                y: cell.row * 40 + 20,
+                color: ['#FFD700', '#FF6B3E', '#4CAF50', '#2196F3'][Math.floor(Math.random() * 4)]
+            }));
+            setParticleEffects(particles);
 
             // Add to permanently found cells
             setFoundWordCells(prev => [...prev, ...selectedCells]);
@@ -282,6 +298,16 @@ const WordSearchMaster = () => {
             setTotalWordsFound(prev => prev + 1);
             setStreak(prev => {
                 const newStreak = prev + 1;
+
+                // Check for perfect streak (5+ consecutive)
+                if (newStreak >= 5) {
+                    setPerfectStreak(true);
+                    setTimeout(() => setPerfectStreak(false), 3000);
+                }
+
+                // Combo multiplier based on streak
+                setComboMultiplier(Math.min(3, 1 + (newStreak - 1) * 0.2));
+
                 setMaxStreak(current => Math.max(current, newStreak));
                 return newStreak;
             });
@@ -290,6 +316,7 @@ const WordSearchMaster = () => {
             setTimeout(() => {
                 setAnimatingCells([]);
                 setCelebrationAnimation(false);
+                setParticleEffects([]);
             }, 1000);
 
             // Check if all words found
@@ -300,6 +327,8 @@ const WordSearchMaster = () => {
             }
         } else {
             setStreak(0);
+            setComboMultiplier(1);
+            setPerfectStreak(false);
         }
 
         setSelectedCells([]);
@@ -308,6 +337,9 @@ const WordSearchMaster = () => {
     // Use hint
     const useHint = () => {
         if (hints <= 0 || gameState !== 'playing') return;
+
+        setPowerUpActive(true);
+        setTimeout(() => setPowerUpActive(false), 3000);
 
         const remainingWords = wordsToFind.filter(word => !foundWords.includes(word));
         if (remainingWords.length === 0) return;
@@ -371,6 +403,11 @@ const WordSearchMaster = () => {
         setFoundWordCells([]);
         setAnimatingCells([]);
         setCelebrationAnimation(false);
+        setParticleEffects([]);
+        setComboMultiplier(1);
+        setPerfectStreak(false);
+        setLastWordLength(0);
+        setPowerUpActive(false);
     };
 
     const handleGameComplete = (payload) => {
@@ -381,6 +418,7 @@ const WordSearchMaster = () => {
         wordsFound: foundWords.length,
         totalWords: wordsToFind.length,
         streak: maxStreak,
+        comboMultiplier: Math.round(comboMultiplier * 100) / 100,
         hintsUsed: difficultySettings[difficulty].hints - hints,
         completionRate: wordsToFind.length > 0 ? Math.round((foundWords.length / wordsToFind.length) * 100) : 0
     };
@@ -456,14 +494,33 @@ const WordSearchMaster = () => {
                 onGameComplete={handleGameComplete}
                 customStats={customStats}
             >
-                {/* Game Content */}
-                <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex flex-col lg:flex-row gap-8">
                     {/* Word Search Grid */}
-                    <div className="flex-1">
+                    <div className="flex-1 relative">
                         <div className="bg-gray-50 rounded-lg p-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 Word Search Grid
                             </h3>
+
+                            {/* Combo Multiplier Display */}
+                            {comboMultiplier > 1 && (
+                                <div className="absolute top-4 right-4 z-10">
+                                    <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                                        <Zap className="inline w-4 h-4 mr-1" />
+                                        {comboMultiplier.toFixed(1)}x COMBO!
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Perfect Streak Banner */}
+                            {perfectStreak && (
+                                <div className="absolute top-12 right-4 z-10">
+                                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg animate-bounce">
+                                        <Crown className="inline w-4 h-4 mr-1" />
+                                        PERFECT STREAK!
+                                    </div>
+                                </div>
+                            )}
 
                             {grid.length > 0 && (
                                 <div
@@ -472,7 +529,8 @@ const WordSearchMaster = () => {
                                         gridTemplateColumns: `repeat(${grid.length}, 1fr)`,
                                         maxWidth: '100%',
                                         width: 'min(500px, 100vw - 2rem)',
-                                        aspectRatio: '1'
+                                        aspectRatio: '1',
+                                        position: 'relative'
                                     }}
                                     onMouseLeave={() => setIsSelecting(false)}
                                 >
@@ -496,17 +554,22 @@ const WordSearchMaster = () => {
                                                     key={`${rowIndex}-${colIndex}`}
                                                     className={`
                             aspect-square flex items-center justify-center text-xs sm:text-sm font-bold
-                            border-2 cursor-pointer select-none transition-all duration-300 transform
+                            border-2 cursor-pointer select-none transition-all duration-500 transform relative
                             min-w-0 min-h-0
                             ${isSelected
-                                                            ? 'bg-gradient-to-br from-blue-400 to-blue-500 border-blue-600 text-white shadow-lg scale-105'
+                                                            ? 'bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 border-blue-600 text-white shadow-2xl scale-110 shadow-blue-500/50 animate-pulse'
                                                             : isFoundWord
-                                                                ? 'bg-gradient-to-br from-green-400 to-green-500 border-green-600 text-white shadow-md'
+                                                                ? 'bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 border-green-600 text-white shadow-xl shadow-green-500/30 animate-pulse'
                                                                 : isHinted
-                                                                    ? 'bg-gradient-to-br from-yellow-300 to-yellow-400 border-yellow-500 text-gray-800 shadow-lg animate-pulse'
-                                                                    : 'bg-gradient-to-br from-gray-50 to-white border-gray-200 text-gray-800 hover:from-orange-50 hover:to-orange-100 hover:border-orange-300 hover:shadow-md hover:scale-105'
+                                                                    ? 'bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500 border-yellow-500 text-gray-900 shadow-2xl animate-bounce shadow-yellow-500/50'
+                                                                    : `bg-gradient-to-br from-slate-50 via-white to-gray-50 border-gray-200 text-gray-800 
+                                 hover:from-orange-100 hover:via-pink-50 hover:to-purple-100 
+                                 hover:border-gradient-to-r hover:border-orange-300 
+                                 hover:shadow-xl hover:scale-110 hover:shadow-orange-200/50
+                                 hover:text-gray-900 hover:font-extrabold hover:rotate-3`
                                                         }
-                            ${isAnimating ? 'animate-bounce bg-gradient-to-br from-emerald-400 to-emerald-500 border-emerald-600 text-white shadow-xl scale-110' : ''}
+                            ${isAnimating ? 'animate-bounce bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 border-yellow-600 text-white shadow-2xl scale-125 shadow-yellow-500/60 animate-spin' : ''}
+                            ${powerUpActive && isHinted ? 'animate-spin' : ''}
                           `}
                                                     style={{
                                                         fontSize: `min(${Math.max(0.6, 2.5 / grid.length)}rem, 0.875rem)`
@@ -515,9 +578,41 @@ const WordSearchMaster = () => {
                                                     onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
                                                     onMouseUp={handleCellMouseUp}
                                                 >
-                                                    <span className={`${isAnimating ? 'animate-pulse font-extrabold' : ''}`}>
+                                                    {/* Shimmer Effect for Normal Cells */}
+                                                    {!isSelected && !isFoundWord && !isHinted && !isAnimating && (
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 hover:opacity-100 hover:animate-pulse transition-opacity duration-300"></div>
+                                                    )}
+
+                                                    {/* Cell Background Pattern */}
+                                                    <div className="absolute inset-0 opacity-10">
+                                                        <div className="w-full h-full bg-gradient-to-br from-transparent via-white to-transparent"></div>
+                                                    </div>
+
+                                                    <span className={`relative z-10 ${isAnimating ? 'animate-pulse font-extrabold text-shadow-lg' : ''} ${isSelected ? 'animate-bounce' : ''}`}>
                                                         {letter}
                                                     </span>
+
+                                                    {/* Enhanced Sparkle effect for found words */}
+                                                    {isFoundWord && (
+                                                        <div className="absolute top-0 right-0 animate-bounce">
+                                                            <Sparkles className="w-3 h-3 text-yellow-300 animate-ping drop-shadow-lg" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Glow effect for selected cells */}
+                                                    {isSelected && (
+                                                        <div className="absolute inset-0 bg-blue-400/30 rounded-lg animate-pulse blur-sm"></div>
+                                                    )}
+
+                                                    {/* Magic sparkles for animating cells */}
+                                                    {isAnimating && (
+                                                        <>
+                                                            <div className="absolute -top-1 -left-1 text-yellow-300 animate-ping">✨</div>
+                                                            <div className="absolute -top-1 -right-1 text-orange-300 animate-ping delay-100">⭐</div>
+                                                            <div className="absolute -bottom-1 -left-1 text-pink-300 animate-ping delay-200">💫</div>
+                                                            <div className="absolute -bottom-1 -right-1 text-purple-300 animate-ping delay-300">🌟</div>
+                                                        </>
+                                                    )}
                                                 </div>
                                             );
                                         })
@@ -525,47 +620,71 @@ const WordSearchMaster = () => {
                                 </div>
                             )}
 
+                            {/* Particle Effects */}
+                            {particleEffects.map((particle) => (
+                                <div
+                                    key={particle.id}
+                                    className="absolute w-3 h-3 rounded-full animate-ping pointer-events-none shadow-lg"
+                                    style={{
+                                        backgroundColor: particle.color,
+                                        left: particle.x,
+                                        top: particle.y,
+                                        animationDuration: '1.5s',
+                                        boxShadow: `0 0 10px ${particle.color}`
+                                    }}
+                                />
+                            ))}
+
                             {/* Celebration Animation */}
                             {celebrationAnimation && (
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="text-6xl animate-bounce">🎉</div>
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                                    <div className="text-8xl animate-bounce drop-shadow-2xl">🎉</div>
+                                    <div className="absolute text-4xl animate-spin drop-shadow-lg">✨</div>
+                                    <div className="absolute text-3xl animate-pulse drop-shadow-lg">🌟</div>
+                                    <div className="absolute text-2xl animate-ping text-yellow-400 top-8 left-8">💫</div>
+                                    <div className="absolute text-2xl animate-ping text-pink-400 top-8 right-8 delay-100">⭐</div>
+                                    <div className="absolute text-2xl animate-ping text-purple-400 bottom-8 left-8 delay-200">🌈</div>
+                                    <div className="absolute text-2xl animate-ping text-orange-400 bottom-8 right-8 delay-300">🔥</div>
+                                    {lastWordLength >= 6 && (
+                                        <div className="absolute top-16 text-2xl animate-bounce text-yellow-500 font-bold drop-shadow-lg bg-white/20 px-4 py-2 rounded-full">LONG WORD BONUS!</div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     </div>
 
                     {/* Side Panel */}
-                    <div className="w-full lg:w-80 space-y-4 mt-6 lg:mt-0">
+                    <div className="w-full lg:w-80 space-y-6 mt-6 lg:mt-0">
                         {/* Game Controls */}
-                        <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-5 shadow-lg border border-blue-100/50">
                             <h4 className="font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Game Controls
+                                <Zap className="inline w-4 h-4 mr-2" />Game Controls
                             </h4>
 
                             <div className="space-y-3">
                                 <button
                                     onClick={useHint}
                                     disabled={hints <= 0}
-                                    className={`w-full px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${hints > 0
-                                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    className={`w-full px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105 ${hints > 0
+                                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 shadow-lg hover:shadow-xl shadow-yellow-500/25'
+                                        : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-500 cursor-not-allowed'
                                         }`}
                                     style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                                 >
-                                    <Lightbulb className="h-4 w-4" />
+                                    <Lightbulb className={`h-4 w-4 ${powerUpActive ? 'animate-pulse' : ''}`} />
                                     Use Hint ({hints})
                                 </button>
 
-                                <div className="text-center text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                <div className="text-center text-xs sm:text-sm text-gray-600 bg-white/50 rounded-lg p-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                     Hints will highlight a random unfound word for 3 seconds
                                 </div>
                             </div>
                         </div>
 
                         {/* Words to Find */}
-                        <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="bg-gradient-to-br from-slate-50 to-purple-50 rounded-xl p-5 shadow-lg border border-purple-100/50">
                             <h4 className="font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Words to Find ({foundWords.length}/{wordsToFind.length})
+                                <Star className="inline w-4 h-4 mr-2" />Words to Find ({foundWords.length}/{wordsToFind.length})
                             </h4>
 
                             <div className="space-y-2 max-h-48 sm:max-h-60 overflow-y-auto">
@@ -573,15 +692,18 @@ const WordSearchMaster = () => {
                                     <div
                                         key={index}
                                         className={`p-2 rounded-lg flex items-center justify-between ${foundWords.includes(word)
-                                                ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 shadow-md transform scale-105'
-                                                : 'bg-gradient-to-r from-white to-gray-50 text-gray-700 hover:from-orange-50 hover:to-orange-100 hover:shadow-sm'
+                                            ? 'bg-gradient-to-r from-emerald-100 via-green-100 to-teal-100 text-green-800 shadow-lg transform scale-105 border border-green-200'
+                                            : 'bg-gradient-to-r from-white via-slate-50 to-gray-50 text-gray-700 hover:from-orange-50 hover:via-pink-50 hover:to-purple-50 hover:shadow-md hover:scale-102 transition-all duration-300'
                                             }`}
                                     >
-                                        <span className="font-medium text-sm sm:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                        <span className={`font-medium text-sm sm:text-base ${foundWords.includes(word) ? 'font-bold' : ''}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
                                             {word}
+                                            {foundWords.includes(word) && word.length >= 6 && (
+                                                <Flame className="inline w-3 h-3 ml-1 text-orange-500" />
+                                            )}
                                         </span>
                                         {foundWords.includes(word) && (
-                                            <CheckCircle className="h-4 w-4 text-green-600 animate-pulse" />
+                                            <CheckCircle className="h-4 w-4 text-green-600 animate-pulse drop-shadow-sm" />
                                         )}
                                     </div>
                                 ))}
@@ -589,30 +711,7 @@ const WordSearchMaster = () => {
                         </div>
 
                         {/* Game Stats */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Game Stats
-                            </h4>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="text-center">
-                                    <div className={`text-2xl font-bold text-[#FF6B3E] transition-all duration-300 ${streak > 0 ? 'animate-pulse' : ''}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        {streak}
-                                    </div>
-                                    <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        Current Streak
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <div className={`text-2xl font-bold text-green-600 transition-all duration-300 ${maxStreak > streak && maxStreak > 0 ? 'animate-bounce' : ''}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        {maxStreak}
-                                    </div>
-                                    <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        Best Streak
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </GameFramework>
