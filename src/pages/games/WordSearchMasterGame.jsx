@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
 import Header from '../../components/Header';
-import { Search, Lightbulb, Target, CheckCircle, Sparkles, Zap, Star, Crown, Trophy, Flame } from 'lucide-react';
+import { Search, Lightbulb, Target, CheckCircle, Sparkles, Zap, Star, Crown, Trophy, Flame, ChevronUp, ChevronDown } from 'lucide-react';
 
 const WordSearchMaster = () => {
     const [gameState, setGameState] = useState('ready');
@@ -28,6 +28,8 @@ const WordSearchMaster = () => {
     const [perfectStreak, setPerfectStreak] = useState(false);
     const [lastWordLength, setLastWordLength] = useState(0);
     const [powerUpActive, setPowerUpActive] = useState(false);
+    const [showWordSearchInstructions, setShowWordSearchInstructions] = useState(true);
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
 
     // Word lists by category
     const wordLists = {
