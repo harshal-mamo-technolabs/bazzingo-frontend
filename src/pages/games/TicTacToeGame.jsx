@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Brain, User, Cpu, Trophy, Lightbulb, CheckCircle, XCircle, Grid3X3, Zap } from 'lucide-react';
+import { Brain, User, Cpu, Trophy, Lightbulb, CheckCircle, XCircle, Grid3X3, Zap, ChevronUp, ChevronDown } from 'lucide-react';
 
 const TicTacToeGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -38,6 +38,8 @@ const TicTacToeGame = () => {
   const [aiSymbol, setAiSymbol] = useState('O');
   const [moveCount, setMoveCount] = useState(0);
   const [bestMove, setBestMove] = useState(null);
+  const [showTicTacToeInstructions, setShowTicTacToeInstructions] = useState(true);
+  
 
   // Difficulty settings
   const difficultySettings = {
@@ -426,11 +428,23 @@ const TicTacToeGame = () => {
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                How to Play Tic-Tac-Toe Strategy
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Header with toggle icon */}
+              <div
+                className="flex items-center justify-between mb-4 cursor-pointer"
+                onClick={() => setShowTicTacToeInstructions(!showTicTacToeInstructions)}
+              >
+                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  How to Play Tic-Tac-Toe Strategy
+                </h3>
+                <span className="text-blue-900 text-xl">
+                  {showTicTacToeInstructions
+  ? <ChevronUp className="h-5 w-5 text-blue-900" />
+  : <ChevronDown className="h-5 w-5 text-blue-900" />}
+                </span>
+              </div>
+
+              {/* Instructions */}
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showTicTacToeInstructions ? '' : 'hidden'}`}>
                 <div className='bg-white p-3 rounded-lg'>
                   <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                     🎯 Objective
