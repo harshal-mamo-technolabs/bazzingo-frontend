@@ -45,6 +45,7 @@ import {
   ResourceAllocationStrategyGame,
   ProbabilityPredictionGame,
   LogicGridSolverGame,
+  TicTacToeGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -277,5 +278,10 @@ export const gameRoutes = [
     path: "/games/number-pattern-master-game",
     element: <NumberPatternMasterGame />,
     name: "Number Pattern Master Game"
+  },
+  {
+    path: "/games/tic-tac-toe-game",
+    element: <TicTacToeGame />,
+    name: "Tic Tac Toe Game"
   }
 ];
