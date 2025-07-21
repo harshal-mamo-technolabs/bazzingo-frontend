@@ -87,6 +87,18 @@ export default function Header({ unreadCount = 0 }) {
                     {/* ───── Center nav links (desktop only) ───── */}
                     <div className="hidden lg:flex" style={{ gap: '28px' }}>
                         <button
+                            onClick={() => navigate('/dashboard')}
+                            style={{
+                                fontFamily: 'Roboto, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: isActiveNavItem('/dashboard') ? '#FF6B3E' : 'inherit'
+                            }}
+                            className="hover:text-orange-500 transition-colors"
+                        >
+                            Dashboard
+                        </button>
+                        <button
                             onClick={() => navigate('/games')}
                             style={{
                                 fontFamily: 'Roboto, sans-serif',
@@ -98,6 +110,7 @@ export default function Header({ unreadCount = 0 }) {
                         >
                             Games
                         </button>
+
                         <button
                             onClick={() => navigate('/assessments')}
                             style={{
