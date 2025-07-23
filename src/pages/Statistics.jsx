@@ -5,12 +5,14 @@ import MainLayout from "../components/Layout/MainLayout";
 import { RecentTest, TestScore } from "../components/Statistics";
 import ProgressChart from "../components/Charts/ProgressChart";
 import NoDataModal from "../components/Statistics/NoDataModal";
+import { useNavigate } from 'react-router-dom';
 
 
 const Statistics = () => {
   const [statsData, setStatsData] = useState([700, 800, 600, 950, 1250, 1100, 1300]);
   const xLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-   const [showChart, setShowChart] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Delay chart rendering by 1 second
@@ -179,6 +181,10 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
       setShowNoDataModal(true)
     }
   }
+
+  const handleAssesmentClick = () => {
+    navigate('/visual-reasoning');
+  };
 
   return (
     <MainLayout unreadCount={3}>
@@ -574,7 +580,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
           </div>
         </main>
       </div>
-      <NoDataModal isOpen={showNoDataModal} onClose={() => setShowNoDataModal(false)} />
+      <NoDataModal isOpen={showNoDataModal} onClose={() => setShowNoDataModal(false)} onAssesmentClick={handleAssesmentClick} />
     </MainLayout>
   );
 };
