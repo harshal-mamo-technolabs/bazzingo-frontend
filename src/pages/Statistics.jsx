@@ -1,12 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { BellIcon, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar } from 'recharts';
 import MainLayout from "../components/Layout/MainLayout";
 import { RecentTest, TestScore } from "../components/Statistics";
+import ProgressChart from "../components/Charts/ProgressChart";
+import NoDataModal from "../components/Statistics/NoDataModal";
+
 
 const Statistics = () => {
   const [statsData, setStatsData] = useState([500, 900, 1200, 500, 1600, 700, 2000]);
   const xLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+const [showTooltip1, setShowTooltip1] = useState(false);
+const [showTooltip2, setShowTooltip2] = useState(false);
+const [showTooltip3, setShowTooltip3] = useState(false);
+const [showTooltip4, setShowTooltip4] = useState(false);
+const [showTooltip6, setShowTooltip6] = useState(false);
+const iconRef = useRef(null);
+
+const handleTooltipClick = (setTooltipFn) => {
+  setTooltipFn(true);
+  setTimeout(() => {
+    setTooltipFn(false);
+  }, 3000); // auto close in 3 seconds
+};
+
+const CustomRadarTooltip = ({ active, payload, coordinate }) => {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: coordinate?.y ?? 0,
+        left: coordinate?.x ?? 0,
+        transform: "translate(-50%, -100%)",
+        background: "rgba(255,255,255,0.2)",
+        backdropFilter: "blur(6px)",
+        padding: "4px 8px",
+        borderRadius: "4px",
+        fontSize: "12px",
+        color: "#FF6C40",
+        pointerEvents: "none",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {`${payload[0].name}: ${payload[0].value}`}
+    </div>
+  );
+};
+
+
 
   // Transform data into Recharts format
   const chartData = statsData.map((value, index) => ({
@@ -92,41 +136,77 @@ const Statistics = () => {
     return () => clearInterval(interval);
   }, [slides.length]);
 
+  const scores = [
+    { label: 'Speed', value: 85 },
+    { label: 'Attention', value: 60 },
+    { label: 'Memory', value: 75 },
+    { label: 'Flexibility', value: 50 },
+    { label: 'Troubleshooting', value: 90 },
+  ];
+  
+  const [progressValues, setProgressValues] = useState(
+    scores.map(() => 0)
+  );
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setProgressValues(scores.map(score => score.value));
+    }, 200); // delay to trigger transition
+  
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const [activeCategory, setActiveCategory] = useState('IQ Test');
+
+  const categories = ['IQ Test', 'Driving License', 'Logic'];
+
+  const [showNoDataModal, setShowNoDataModal] = useState(false)
+
+  const handleCategoryClick = (category) => {
+    setActiveCategory(category)
+
+    if (category === 'Driving License') {
+      setShowNoDataModal(true)
+    }
+  }
 
   return (
     <MainLayout unreadCount={3}>
       <div className="bg-gray-50 min-h-screen">
         <main className="mx-auto px-4 lg:px-12 py-4 lg:py-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
           {/* Filter Buttons */}
-          <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 px-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+           <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 px-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
 
-              {/* Left - Category Tabs */}
-              <div className="flex flex-wrap justify-between gap-2 md:gap-2 w-full md:w-auto">
-                <button className="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium border border-orange-500 text-orange-600 bg-[#F0E2DD] shadow-sm">
-                  IQ Test
-                </button>
-                <button className="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-600 bg-white shadow-sm">
-                  Driving License
-                </button>
-                <button className="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-600 bg-white shadow-sm">
-                  Logic
-                </button>
-              </div>
-
-              {/* Right - Dropdown */}
-              <div className="w-full md:w-auto">
-                <button className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between">
-                  <span>Last 7 Days</span>
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-              </div>
-
-
-            </div>
+          {/* Left - Category Tabs */}
+          <div className="flex flex-wrap justify-between gap-2 md:gap-2 w-full md:w-auto">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategoryClick(category)}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium shadow-sm
+                  ${activeCategory === category
+                    ? 'border border-orange-500 text-orange-600 bg-[#F0E2DD]'
+                    : 'text-gray-600 bg-white'
+                  }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
+
+          {/* Right - Dropdown */}
+          <div className="w-full md:w-auto">
+            <button className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between">
+              <span>Last 7 Days</span>
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
 
 
           {/* Statistics Section */}
@@ -135,39 +215,69 @@ const Statistics = () => {
             <div className="xl:w-[500px] 2xl:w-[550px] lg:w-[290px] bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-gray-800">User Progress Overview</h3>
-                <Info className="w-4 h-4 text-black" />
+                  {/* Tooltip Trigger */}
+                <div
+                  ref={iconRef}
+                  className="relative cursor-pointer"
+                  onClick={() => handleTooltipClick(setShowTooltip1)}
+                >
+                  <Info className="w-4 h-4 text-black" />
+
+                  {/* Tooltip Popup */}
+                  {showTooltip1 && (
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
+                      This chart shows how your score improves over time based on your gameplay.
+                    </div>
+                  )}
+                </div>
+              
               </div>
 
               <div className="w-full">
                 <ResponsiveContainer width="100%" height={250}>
-                  <RadarChart cx="45%" cy="55%" outerRadius="90%" data={[
-                    { subject: 'Pattern Recognition', A: 80 },
-                    { subject: 'Spatial Orientation', A: 88 },
-                    { subject: 'Visual Perception', A: 86 },
-                    { subject: '', A: 119 }, // You may want to remove or replace the empty label
-                    { subject: 'Logic', A: 120 },
-                  ]}>
-                    <defs>
-                      <linearGradient id="colorRadar" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#FF6C40" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.2} />
-                      </linearGradient>
-                    </defs>
+  <RadarChart
+    cx="45%"
+    cy="55%"
+    outerRadius="90%"
+    data={[
+      { subject: 'Pattern Recognition', A: 100 },
+      { subject: 'Spatial Orientation', A: 130 },
+      { subject: 'Visual Perception', A: 106 },
+      { subject: 'Problem Solving', A: 86 }, // replaced empty subject
+      { subject: 'Logic', A: 120 },
+    ]}
+  >
+    <defs>
+      <linearGradient id="colorRadar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#FF6C40" stopOpacity={0.9} />
+        <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.2} />
+      </linearGradient>
+    </defs>
 
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#333', fontWeight: 'bold' }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 180]} tick={false} axisLine={false} />
+    <PolarGrid />
+    <PolarAngleAxis
+      dataKey="subject"
+      tick={{ fontSize: 11, fill: '#333', fontWeight: 'bold' }}
+    />
+    <PolarRadiusAxis angle={30} domain={[0, 180]} tick={false} axisLine={false} />
 
-                    <Radar
-                      name="Score"
-                      dataKey="A"
-                      stroke="#f97316"
-                      strokeWidth={2}
-                      fill="url(#colorRadar)"
-                      fillOpacity={1}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
+    <Radar
+      name="Score"
+      dataKey="A"
+      stroke="#f97316"
+      strokeWidth={2}
+      fill="url(#colorRadar)"
+      fillOpacity={1}
+      isAnimationActive={true}
+      animationDuration={3000}
+      animationEasing="ease-out"
+    />
+
+    {/* 🔥 This will show values on hover */}
+   <Tooltip content={<CustomRadarTooltip />} cursor={false} />
+  </RadarChart>
+              </ResponsiveContainer>
+
               </div>
 
             </div>
@@ -184,14 +294,28 @@ const Statistics = () => {
               >
                 {/* Info Icon */}
                 <div className="absolute top-2 right-2 text-black text-base cursor-pointer">
-                  <Info className="w-4 h-4" />
+                    {/* Tooltip Trigger */}
+                <div
+                  ref={iconRef}
+                  className="relative cursor-pointer"
+                  onClick={() => handleTooltipClick(setShowTooltip2)}
+                >
+                  <Info className="w-4 h-4 text-black" />
+
+                  {/* Tooltip Popup */}
+                  {showTooltip2 && (
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                      This chart shows how your score improves over time based on your gameplay.
+                    </div>
+                  )}
+                </div>
                 </div>
 
                 {/* Left Stars */}
-                <div className="flex items-center gap-[0px] text-orange-700">
-                  <span className="xl:text-2xl text-2xl lg:text-xl mt-5">★</span>
-                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3">★</span>
-                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1">★</span>
+                <div className="flex items-center gap-[0px] text-orange-800">
+                 <span className="drop-shadow-md animate-pulse text-2xl xl:text-2xl lg:text-xl mt-5">★</span>
+                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
+                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
                 </div>
                 {/* Center Text */}
                 <div className="flex flex-col items-center justify-center leading-tight text-white">
@@ -200,10 +324,10 @@ const Statistics = () => {
                 </div>
 
                 {/* Right Stars */}
-                <div className="flex items-center gap-[0px] text-orange-700">
-                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1">★</span>
-                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3">★</span>
-                  <span className="xl:text-2xl text-2xl lg:text-xl mt-5">★</span>
+                <div className="flex items-center gap-[0px] text-orange-800">
+                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
+                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
+                  <span className="xl:text-2xl text-2xl lg:text-xl mt-5 drop-shadow-md animate-pulse">★</span>
                 </div>
               </div>
 
@@ -218,28 +342,28 @@ const Statistics = () => {
                 <hr className="mb-2 border-gray-300" />
 
                 {/* Score Bars */}
-                {['Speed', 'Attention', 'Memory', 'Flexibility', 'Troubleshooting'].map((label, index) => (
-                  <div key={index} className="flex items-center mb-2 gap-2 w-full">
-                    {/* Label */}
-                    <span className="text-[11px] text-gray-800 w-[80px]">{label}</span>
+                {scores.map((score, index) => (
+  <div key={index} className="flex items-center mb-2 gap-2 w-full">
+    {/* Label */}
+    <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
 
-                    {/* Progress Bar */}
-                    <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
-                      <div
-                        className="h-2 rounded-full"
-                        style={{
-                          width: '65%',
-                          background: 'linear-gradient(to right, #c56b49, #f97316)',
-                        }}
-                      ></div>
-                    </div>
+    {/* Progress Bar */}
+    <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
+      <div
+        className="h-2 rounded-full shadow-md transition-all duration-2000 ease-out animate-pulse"
+        style={{
+          width: `${progressValues[index]}%`,
+          background: 'linear-gradient(to right, #c56b49, #f97316)',
+        }}
+      ></div>
+    </div>
 
-                    {/* Score Value */}
-                    <span className="text-[11px] text-gray-800 w-[30px] text-right">
-                      {index === 0 ? 1002 : 1001}
-                    </span>
-                  </div>
-                ))}
+    {/* Score Value */}
+    <span className="text-[11px] text-gray-800 w-[30px] text-right">
+      {1000 + score.value}
+    </span>
+  </div>
+    ))}
 
                 {/* Brain Score Index */}
                 <hr className="my-2 border-gray-300" />
@@ -263,60 +387,27 @@ const Statistics = () => {
             <div className="flex-1 bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-gray-800">Progress Over Time</h3>
-                <Info className="w-4 h-4 text-black" />
+                {/* Tooltip Trigger */}
+                <div
+                  ref={iconRef}
+                  className="relative cursor-pointer"
+                  onClick={() => handleTooltipClick(setShowTooltip3)}
+                >
+                  <Info className="w-4 h-4 text-black" />
+
+                  {/* Tooltip Popup */}
+                  {showTooltip3 && (
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
+                      This chart shows how your score improves over time based on your gameplay.
+                    </div>
+                  )}
+                </div>
               </div>
               {/* Your existing chart component goes here */}
               {/* <ProgressChart /> or directly the Recharts code */}
               {/* Chart */}
               <div className="relative h-52 mt-10 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={chartData}
-                    height="100%"
-                    margin={{ top: 0, right: 20, left: 0, bottom: 0 }} // Remove extra space
-                  >
-                    <defs>
-                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="60%" stopColor="#FF6C40" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.1} />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Grid only horizontal */}
-                    <CartesianGrid stroke="#D5D5D5" strokeDasharray="3 3" vertical={false} />
-
-                    {/* X-Axis */}
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 10, fontWeight: 'bold', fill: '#333' }}
-                      axisLine={false}
-                      tickLine={false}
-                      interval={0}
-                      height={20}
-                    />
-
-                    {/* Y-Axis */}
-                    <YAxis
-                      domain={[0, 2000]}
-                      ticks={[100, 500, 1000, 1500, 2000]}
-                      tick={{ fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                      width={30}
-                    />
-
-                    {/* Optional: Remove Tooltip if you don’t need it */}
-                    {/* <Tooltip /> */}
-
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#f97316"
-                      fill="url(#colorValue)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+               <ProgressChart />
               </div>
             </div>
           </div>
@@ -332,7 +423,21 @@ const Statistics = () => {
                 </h3>
 
                 {/* Show on md+ */}
-                <Info className="hidden md:block w-4 h-4 text-black cursor-pointer" />
+                 {/* Tooltip Trigger */}
+                <div
+                  ref={iconRef}
+                  className="relative cursor-pointer"
+                  onClick={() => handleTooltipClick(setShowTooltip4)}
+                >
+                  <Info className="w-4 h-4 text-black hidden md:block cursor-pointer" />
+
+                  {/* Tooltip Popup */}
+                  {showTooltip4 && (
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
+                      This chart shows how your score improves over time based on your gameplay.
+                    </div>
+                  )}
+                </div>
 
                 {/* Show only on mobile */}
                 <div className="block md:hidden w-[40%] md:w-auto">
@@ -376,7 +481,21 @@ const Statistics = () => {
                   Suggest for You
                 </h3>
                 <button>
+                    {/* Tooltip Trigger */}
+                <div
+                  ref={iconRef}
+                  className="relative cursor-pointer"
+                  onClick={() => handleTooltipClick(setShowTooltip6)}
+                >
                   <Info className="w-4 h-4 text-black" />
+
+                  {/* Tooltip Popup */}
+                  {showTooltip6 && (
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                      This chart shows how your score improves over time based on your gameplay.
+                    </div>
+                  )}
+                </div>
                 </button>
               </div>
 
@@ -396,6 +515,7 @@ const Statistics = () => {
           </div>
         </main>
       </div>
+      <NoDataModal isOpen={showNoDataModal} onClose={() => setShowNoDataModal(false)} />
     </MainLayout>
   );
 };

@@ -1,9 +1,19 @@
-import React,{ useState } from 'react';
+import React,{ useState, useRef } from 'react';
 import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 
 const Calender = () => {
     const [currentDate, setCurrentDate] = useState(dayjs());
+    const [showTooltip, setShowTooltip] = useState(false);
+    const iconRef = useRef(null);
+      
+    const handleTooltipClick = (setTooltipFn) => {
+      setTooltipFn(true);
+      setTimeout(() => {
+        setTooltipFn(false);
+      }, 3000); // auto close in 3 seconds
+    };
+      
 
   const startOfMonth = currentDate.startOf("month");
   //const endOfMonth = currentDate.endOf("month");
@@ -24,7 +34,21 @@ const Calender = () => {
         <div>
           <div className="flex justify-between items-center space-x-2">
             <h3 className="text-md font-semibold text-gray-900">Current Streak</h3>
-            <Info className="w-4 h-4" />
+            {/* Tooltip Trigger */}
+                                <div
+                                  ref={iconRef}
+                                  className="relative cursor-pointer"
+                                  onClick={() => handleTooltipClick(setShowTooltip)}
+                                >
+                                  <Info className="w-4 h-4 text-black" />
+                
+                                  {/* Tooltip Popup */}
+                                  {showTooltip && (
+                                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                                      This chart shows how your score improves over time based on your gameplay.
+                                    </div>
+                                  )}
+                                </div>
           </div>
           <div className="text-sm text-gray-500 mt-1">
             {currentDate.format("MMM, YYYY")}

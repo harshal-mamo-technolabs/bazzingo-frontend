@@ -6,7 +6,7 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 
 /* ───────── CONFIG ───────── */
 const DIFF = {
-  Easy: { relocate: 400, timeLimit: 1, size: 60 },
+  Easy: { relocate: 400, timeLimit: 100, size: 60 },
   Moderate: { relocate: 300, timeLimit: 50, size: 50 },
   Hard: { relocate: 200, timeLimit: 40, size: 40 },
 };

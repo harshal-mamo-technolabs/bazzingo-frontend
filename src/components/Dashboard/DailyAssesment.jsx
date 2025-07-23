@@ -1,7 +1,17 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Info } from "lucide-react";
 
+
 const DailyAssesment = ({ onAssesmentClick }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+    const iconRef = useRef(null);
+      
+    const handleTooltipClick = (setTooltipFn) => {
+      setTooltipFn(true);
+      setTimeout(() => {
+        setTooltipFn(false);
+      }, 3000); // auto close in 3 seconds
+    };
     return (
         <>
         <div className="bg-[#f6c8bc] h-full rounded-lg text-black w-full max-w-full md:max-w-none md:w-auto lg:max-w-none lg:w-auto p-4 lg:p-3">
@@ -12,7 +22,21 @@ const DailyAssesment = ({ onAssesmentClick }) => {
       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
       <span className="text-sm font-normal">Daily Quick Assesment</span>
     </div>
-    <Info className='w-4 h-4' />
+    {/* Tooltip Trigger */}
+                                              <div
+                                                ref={iconRef}
+                                                className="relative cursor-pointer"
+                                                onClick={() => handleTooltipClick(setShowTooltip)}
+                                              >
+                                                <Info className="w-4 h-4 text-black" />
+                              
+                                                {/* Tooltip Popup */}
+                                                {showTooltip && (
+                                                  <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                                                    This chart shows how your score improves over time based on your gameplay.
+                                                  </div>
+                                                )}
+                                              </div>
         </div>
          {/* Mobile Layout */}
         <div className="lg:hidden bg-white rounded-xl p-2 flex items-center space-x-3 mb-4">

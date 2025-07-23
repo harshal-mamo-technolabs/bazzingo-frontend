@@ -9,6 +9,7 @@ import DailyGameModal from '../components/games/DailyGameModal';
 import AssessmentModal from '../components/assessments/AssessmentModal';
 import { useNavigate } from 'react-router-dom';
 
+
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
@@ -29,6 +30,17 @@ const Dashboard = () => {
   const nextMonth = () => setCurrentDate(currentDate.add(1, "month"));
 
   const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
+
+  const [showTooltip1, setShowTooltip1] = useState(false);
+  const [showTooltip2, setShowTooltip2] = useState(false);
+    const iconRef = useRef(null);
+      
+    const handleTooltipClick = (setTooltipFn) => {
+      setTooltipFn(true);
+      setTimeout(() => {
+        setTooltipFn(false);
+      }, 3000); // auto close in 3 seconds
+    };
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -192,7 +204,21 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center space-x-2">
                     <h3 className="text-sm font-normal text-gray-900">Your statistics</h3>
-                    <Info className="w-4 h-4" />
+                    {/* Tooltip Trigger */}
+                                                                  <div
+                                                                    ref={iconRef}
+                                                                    className="relative cursor-pointer"
+                                                                    onClick={() => handleTooltipClick(setShowTooltip1)}
+                                                                  >
+                                                                    <Info className="w-4 h-4 text-black" />
+                                                  
+                                                                    {/* Tooltip Popup */}
+                                                                    {showTooltip1 && (
+                                                                      <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                                                                        This chart shows how your score improves over time based on your gameplay.
+                                                                      </div>
+                                                                    )}
+                                                                  </div>
                   </div>
                   <button className="text-black hover:text-orange-600 font-medium text-sm flex items-center space-x-1">
                     <span>Check Now</span>
@@ -210,7 +236,21 @@ const Dashboard = () => {
               <div className="bg-[#fef3c7] rounded-lg p-3 shadow-sm border border-gray-100 w-full">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-normal text-gray-900">Suggest for You</h3>
-                  <Info className="w-4 h-4" />
+                 {/* Tooltip Trigger */}
+                                                               <div
+                                                                 ref={iconRef}
+                                                                 className="relative cursor-pointer"
+                                                                 onClick={() => handleTooltipClick(setShowTooltip2)}
+                                                               >
+                                                                 <Info className="w-4 h-4 text-black" />
+                                               
+                                                                 {/* Tooltip Popup */}
+                                                                 {showTooltip2 && (
+                                                                   <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                                                                     This chart shows how your score improves over time based on your gameplay.
+                                                                   </div>
+                                                                 )}
+                                                               </div>
                 </div>
 
                 <div

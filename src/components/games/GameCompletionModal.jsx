@@ -41,11 +41,19 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
 
           {/* Gold badge */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-10">
-            <img
-              src="/conquer.png"
-              alt="Conquer badge"
-              className="object-contain w-16 h-16 md:w-20 md:h-20 lg:w-16 lg:h-16"
-            />
+            {score === 0 ? (
+              <img
+                src="/smile.png"
+                alt="Smile badge"
+                className="object-contain w-16 h-16 md:w-20 md:h-20 lg:w-16 lg:h-16"
+              />
+            ) : (
+              <img
+                src="/conquer.png"
+                alt="Conquer badge"
+                className="object-contain w-16 h-16 md:w-20 md:h-20 lg:w-16 lg:h-16"
+              />
+            )}
           </div>
 
           {/* “Assessment Complete” pill */}
@@ -59,10 +67,17 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
         </div>
 
         <div className="w-full text-center mt-2">
-          <span className="text-center text-3xl font-bold italic text-[#208900]">
-            Nice Job!
-          </span>
-        </div>
+    {score === 0 ? (
+    <span className="text-center text-3xl font-bold italic text-[#208900]">
+     Just the Begining!
+    </span>
+  ) : (
+    <span className="text-center text-3xl font-bold italic text-[#208900]">
+      Nice Job!
+    </span>
+  )}
+</div>
+
 
         <div className="mt-4 mx-5">
           <div className="bg-[#FFF4F2] border border-[#FF6947] rounded-lg p-4">

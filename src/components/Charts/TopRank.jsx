@@ -1,8 +1,37 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Info } from "lucide-react";
 
 
 const TopRank = () => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const iconRef = useRef(null);
+
+  const scores = [
+  { label: 'Speed', value: 85 },
+  { label: 'Attention', value: 60 },
+  { label: 'Memory', value: 75 },
+  { label: 'Flexibility', value: 50 },
+  { label: 'Troubleshooting', value: 90 },
+];
+
+const [progressValues, setProgressValues] = useState(
+  scores.map(() => 0)
+);
+
+useEffect(() => {
+  const timeout = setTimeout(() => {
+    setProgressValues(scores.map(score => score.value));
+  }, 200); // delay to trigger transition
+
+  return () => clearTimeout(timeout);
+}, []);
+  
+  const handleTooltipClick = (setTooltipFn) => {
+  setTooltipFn(true);
+  setTimeout(() => {
+    setTooltipFn(false);
+  }, 3000); // auto close in 3 seconds
+};
     return (
         <>
           {/* Middle Card - Rank and Bars */}
@@ -17,16 +46,29 @@ const TopRank = () => {
   >
     {/* Info Icon */}
     <div className="absolute top-2 right-2 text-black/70 text-base cursor-pointer">
-      <Info className="w-4 h-4" />
+      {/* Tooltip Trigger */}
+                          <div
+                            ref={iconRef}
+                            className="relative cursor-pointer"
+                            onClick={() => handleTooltipClick(setShowTooltip)}
+                          >
+                            <Info className="w-4 h-4 text-black" />
+          
+                            {/* Tooltip Popup */}
+                            {showTooltip && (
+                              <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                                This chart shows how your score improves over time based on your gameplay.
+                              </div>
+                            )}
+                          </div>
     </div>
 
     {/* Left Stars */}
-    <div className="flex items-center gap-[0px] text-orange-700">
-      <span className="text-2xl mt-5">★</span>
-      <span className="text-3xl mt-3">★</span>
-      <span className="text-4xl mt-1">★</span>
-    </div>
-
+    <div className="flex items-center gap-[0px] text-orange-800">
+                 <span className="drop-shadow-md animate-pulse text-2xl xl:text-2xl lg:text-xl mt-5">★</span>
+                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
+                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
+                </div>
     {/* Center Text */}
     <div className="flex flex-col items-center justify-center leading-tight text-white">
       <span className="text-[10px]">Your Rank</span>
@@ -34,11 +76,12 @@ const TopRank = () => {
     </div>
 
     {/* Right Stars */}
-    <div className="flex items-center gap-[0px] text-orange-700">
-      <span className="text-4xl mt-1">★</span>
-      <span className="text-3xl mt-3">★</span>
-      <span className="text-2xl mt-5">★</span>
+    <div className="flex items-center gap-[0px] text-orange-800">
+                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
+                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
+                  <span className="xl:text-2xl text-2xl lg:text-xl mt-5 drop-shadow-md animate-pulse">★</span>
     </div>
+
   </div>
 
   {/* Content below gradient */}
@@ -51,29 +94,30 @@ const TopRank = () => {
 
     <hr className="mb-2 border-gray-300" />
 
-    {/* Score Bars */}
-    {['Speed', 'Attention', 'Memory', 'Flexibility', 'Troubleshooting'].map((label, index) => (
-      <div key={index} className="flex items-center mb-2 gap-2 w-full">
-        {/* Label */}
-        <span className="text-[11px] text-gray-800 w-[80px]">{label}</span>
+    {scores.map((score, index) => (
+  <div key={index} className="flex items-center mb-2 gap-2 w-full">
+    {/* Label */}
+    <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
 
-        {/* Progress Bar */}
-        <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
-          <div
-            className="h-2 rounded-full"
-            style={{
-              width: '65%',
-              background: 'linear-gradient(to right, #c56b49, #f97316)',
-            }}
-          ></div>
-        </div>
+    {/* Progress Bar */}
+    <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
+      <div
+        className="h-2 rounded-full shadow-md transition-all duration-2000 ease-out animate-pulse"
+        style={{
+          width: `${progressValues[index]}%`,
+          background: 'linear-gradient(to right, #c56b49, #f97316)',
+          
+        }}
+      ></div>
+    </div>
 
-        {/* Score Value */}
-        <span className="text-[11px] text-gray-800 w-[30px] text-right">
-          {index === 0 ? 1002 : 1001}
-        </span>
-      </div>
+    {/* Score Value */}
+    <span className="text-[11px] text-gray-800 w-[30px] text-right">
+      {1000 + score.value}
+    </span>
+  </div>
     ))}
+
 
     {/* Brain Score Index */}
     <hr className="my-2 border-gray-300" />

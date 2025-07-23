@@ -25,7 +25,7 @@ const ChinaFlag = () => (
 
 // Sample data
 const leaderboardData = [
-  { rank: '001', username: 'Wade Warren', country: 'India', countryFlag: <IndiaFlag />, score: 13000, avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1' },
+  { rank: '5842', username: 'Harshal Chauhan', country: 'India', countryFlag: <IndiaFlag />, score: 13000, avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1' },
   { rank: '002', username: 'Robert Fox', country: 'Japan', countryFlag: <JapanFlag />, score: 12000, avatar: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1' },
   { rank: '003', username: 'Dianna Russell', country: 'China', countryFlag: <ChinaFlag />, score: 11800, avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1' },
   { rank: '004', username: 'Wade Warren', country: 'India', countryFlag: <IndiaFlag />, score: 10000, avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1' },
@@ -62,7 +62,7 @@ const LeaderboardTable = () => {
       {leaderboardData.map((entry, index) => (
         <tr
           key={index}
-          className={`hover:bg-[#fdb59f] ${index === 17 ? 'bg-[#fdb59f]' : ''}`}
+          className={`hover:bg-[#fdb59f] ${index === 0 ? 'bg-[#fdb59f] font-bold text-black' : ''}`}
         >
           <td className="px-3 py-2 font-medium text-center border border-gray-200">{entry.rank}</td>
           <td className="px-3 py-2 border border-gray-200">

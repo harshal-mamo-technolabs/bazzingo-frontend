@@ -1,3 +1,4 @@
 import RecentTest from "./RecentTest";
 import TestScore from "./TestScore";
-export { RecentTest, TestScore };
+import NoDataModal from "./NoDataModal";
+export { RecentTest, TestScore, NoDataModal };
