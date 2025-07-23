@@ -247,7 +247,7 @@ const Dashboard = () => {
                                                                  {/* Tooltip Popup */}
                                                                  {showTooltip2 && (
                                                                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                                                                     This chart shows how your score improves over time based on your gameplay.
+                                                                      Personalized suggestions to help improve your performance..
                                                                    </div>
                                                                  )}
                                                                </div>

@@ -8,8 +8,18 @@ import NoDataModal from "../components/Statistics/NoDataModal";
 
 
 const Statistics = () => {
-  const [statsData, setStatsData] = useState([500, 900, 1200, 500, 1600, 700, 2000]);
+  const [statsData, setStatsData] = useState([700, 800, 600, 950, 1250, 1100, 1300]);
   const xLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+   const [showChart, setShowChart] = useState(false);
+
+  useEffect(() => {
+    // Delay chart rendering by 1 second
+    const timer = setTimeout(() => {
+      setShowChart(true);
+    }, 2000); // 1000ms = 1 second delay before rendering chart
+
+    return () => clearTimeout(timer);
+  }, []);
 
 const [showTooltip1, setShowTooltip1] = useState(false);
 const [showTooltip2, setShowTooltip2] = useState(false);
@@ -45,7 +55,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
         whiteSpace: "nowrap",
       }}
     >
-      {`${payload[0].name}: ${payload[0].value}`}
+      {` ${payload[0].value}`}
     </div>
   );
 };
@@ -226,7 +236,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
                   {/* Tooltip Popup */}
                   {showTooltip1 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
-                      This chart shows how your score improves over time based on your gameplay.
+                      This chart shows how your Visual breakdown of your cognitive skill scores across key areas.
                     </div>
                   )}
                 </div>
@@ -305,7 +315,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
                   {/* Tooltip Popup */}
                   {showTooltip2 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      This chart shows how your score improves over time based on your gameplay.
+                      Summary of your rank and performance stats.
                     </div>
                   )}
                 </div>
@@ -406,9 +416,58 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
               {/* Your existing chart component goes here */}
               {/* <ProgressChart /> or directly the Recharts code */}
               {/* Chart */}
-              <div className="relative h-52 mt-10 w-full">
-               <ProgressChart />
-              </div>
+             <div
+  className={`relative h-52 mt-10 w-full transition-opacity duration-1500 ${
+    showChart ? 'opacity-100' : 'opacity-0'
+  }`}
+>
+
+      {showChart && (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={chartData}
+            height="100%"
+            margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="60%" stopColor="#FF6C40" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid stroke="#D5D5D5" strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 10, fontWeight: "bold", fill: "#333" }}
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+              height={20}
+            />
+            <YAxis
+              domain={[0, 2000]}
+              ticks={[100, 500, 1000, 1500, 2000]}
+              tick={{ fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+              width={30}
+            />
+             <Tooltip content={<CustomRadarTooltip />} cursor={false} />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="#f97316"
+              fill="url(#colorValue)"
+              strokeWidth={2}
+              animationDuration={3000} // full 3 seconds animation
+              animationBegin={0}
+              isAnimationActive={true}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
+            </div>
             </div>
           </div>
 
@@ -434,7 +493,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
                   {/* Tooltip Popup */}
                   {showTooltip4 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
-                      This chart shows how your score improves over time based on your gameplay.
+                      Shows certified IQ score and recent trend by date.
                     </div>
                   )}
                 </div>
@@ -492,7 +551,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
                   {/* Tooltip Popup */}
                   {showTooltip6 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      This chart shows how your score improves over time based on your gameplay.
+                      Personalized suggestions to help improve your performance.
                     </div>
                   )}
                 </div>
