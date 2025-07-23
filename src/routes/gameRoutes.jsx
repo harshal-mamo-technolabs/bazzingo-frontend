@@ -47,7 +47,8 @@ import {
   LogicGridSolverGame,
   WordSearchMaster,
   TicTacToeGame,
-  TwentyFortyEightGame
+  TwentyFortyEightGame,
+  SudokuMasterGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -295,5 +296,10 @@ export const gameRoutes = [
     path: "/games/2048-game",
     element: <TwentyFortyEightGame />,
     name: "2048 game"
+  },
+  {
+    path: "/games/sudoku-master-game",
+    element: <SudokuMasterGame />,
+    name: "Sudoku master game"
   }
 ];

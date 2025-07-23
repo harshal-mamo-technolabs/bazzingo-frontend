@@ -68,6 +68,7 @@ import LogicGridSolverGame from './games/LogicGridSolverGame';
 import WordSearchMaster from './games/WordSearchMasterGame';
 import TicTacToeGame from './games/TicTacToeGame';
 import TwentyFortyEightGame from './games/TwentyFortyEightGame';
+import SudokuMasterGame from './games/SudokuMasterGame';
 
 // Export all pages including games
 export {
@@ -140,5 +141,6 @@ export {
     LogicGridSolverGame,
     WordSearchMaster,
     TicTacToeGame,
-    TwentyFortyEightGame
+    TwentyFortyEightGame,
+    SudokuMasterGame
 };
