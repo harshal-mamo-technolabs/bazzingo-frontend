@@ -62,7 +62,7 @@ const NewAssessmentModal = ({ isOpen, onClose, selectedAssessment }) => {
               Your Score
             </p>
             <p className=" text-center text-4xl font-bold text-[#FF6947]">
-              0/10
+              4/10
             </p>
           </div>
         </div>
