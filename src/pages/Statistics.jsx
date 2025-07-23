@@ -23,19 +23,6 @@ const Statistics = () => {
     return () => clearTimeout(timer);
   }, []);
 
-const [showTooltip1, setShowTooltip1] = useState(false);
-const [showTooltip2, setShowTooltip2] = useState(false);
-const [showTooltip3, setShowTooltip3] = useState(false);
-const [showTooltip4, setShowTooltip4] = useState(false);
-const [showTooltip6, setShowTooltip6] = useState(false);
-const iconRef = useRef(null);
-
-const handleTooltipClick = (setTooltipFn) => {
-  setTooltipFn(true);
-  setTimeout(() => {
-    setTooltipFn(false);
-  }, 3000); // auto close in 3 seconds
-};
 
 const CustomRadarTooltip = ({ active, payload, coordinate }) => {
   if (!active || !payload?.length) return null;
@@ -62,6 +49,21 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
   );
 };
 
+
+
+const [showTooltip1, setShowTooltip1] = useState(false);
+const [showTooltip2, setShowTooltip2] = useState(false);
+const [showTooltip3, setShowTooltip3] = useState(false);
+const [showTooltip4, setShowTooltip4] = useState(false);
+const [showTooltip6, setShowTooltip6] = useState(false);
+const iconRef = useRef(null);
+
+const handleTooltipClick = (setTooltipFn) => {
+  setTooltipFn(true);
+  setTimeout(() => {
+    setTooltipFn(false);
+  }, 3000); // auto close in 3 seconds
+};
 
 
   // Transform data into Recharts format
@@ -241,7 +243,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
 
                   {/* Tooltip Popup */}
                   {showTooltip1 && (
-                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
                       This chart shows how your Visual breakdown of your cognitive skill scores across key areas.
                     </div>
                   )}
@@ -498,7 +500,7 @@ const CustomRadarTooltip = ({ active, payload, coordinate }) => {
 
                   {/* Tooltip Popup */}
                   {showTooltip4 && (
-                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
+                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
                       Shows certified IQ score and recent trend by date.
                     </div>
                   )}

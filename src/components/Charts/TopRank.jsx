@@ -65,10 +65,11 @@ useEffect(() => {
 
     {/* Left Stars */}
     <div className="flex items-center gap-[0px] text-orange-800">
-                 <span className="drop-shadow-md animate-pulse text-2xl xl:text-2xl lg:text-xl mt-5">★</span>
-                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
-                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
-                </div>
+      <span className="text-2xl mt-5 drop-shadow-md animate-pulse">★</span>
+      <span className="text-3xl mt-3 drop-shadow-md animate-pulse">★</span>
+      <span className="text-4xl mt-1 drop-shadow-md animate-pulse">★</span>
+    </div>
+
     {/* Center Text */}
     <div className="flex flex-col items-center justify-center leading-tight text-white">
       <span className="text-[10px]">Your Rank</span>
@@ -77,9 +78,9 @@ useEffect(() => {
 
     {/* Right Stars */}
     <div className="flex items-center gap-[0px] text-orange-800">
-                  <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
-                  <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
-                  <span className="xl:text-2xl text-2xl lg:text-xl mt-5 drop-shadow-md animate-pulse">★</span>
+      <span className="text-4xl mt-1 drop-shadow-md animate-pulse">★</span>
+      <span className="text-3xl mt-3 drop-shadow-md animate-pulse">★</span>
+      <span className="text-2xl mt-5 drop-shadow-md animate-pulse">★</span>
     </div>
 
   </div>
