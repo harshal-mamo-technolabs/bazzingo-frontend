@@ -70,6 +70,7 @@ import TwentyFortyEightGame from './games/TwentyFortyEightGame';
 import SudokuMasterGame from './games/SudokuMasterGame';
 import TapChallengeGame from './games/TapChallengeGame';
 import TapMinesweeperGame from './games/MineSweeperGame';
+import AnagramSolverGame from './games/AnagramSolverGame';
 
 // Export all pages including games
 export {
@@ -144,5 +145,6 @@ export {
     TwentyFortyEightGame,
     SudokuMasterGame,
     TapChallengeGame,
-    TapMinesweeperGame
+    TapMinesweeperGame,
+    AnagramSolverGame
 };

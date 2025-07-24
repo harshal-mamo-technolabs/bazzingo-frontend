@@ -49,7 +49,8 @@ import {
   TicTacToeGame,
   TwentyFortyEightGame,
   SudokuMasterGame,
-  TapMinesweeperGame
+  TapMinesweeperGame,
+  AnagramSolverGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -307,5 +308,10 @@ export const gameRoutes = [
     path: "/games/mine-sweeper-game",
     element: <TapMinesweeperGame />,
     name: "Mine sweeper game"
+  },
+  {
+    path: "/games/anagram-solver-game",
+    element: <AnagramSolverGame />,
+    name: "anagram solver game"
   }
 ];

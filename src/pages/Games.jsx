@@ -26,12 +26,13 @@ const games = [
   { id: 8, title: 'Word Match Master', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/word-search-master.png', bgColor: '#1D1D1B', path: "/games/word-search-master-game" },
   { id: 9, title: 'Tic Tac Toe', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/TicTacToe.png', bgColor: '#D4E8DC', path: "/games/tic-tac-toe-game" },
   { id: 10, title: '2028', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/2048.png', bgColor: '#FFFFFF', path: "/games/2048-game" },
-  { id: 11, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
+  { id: 11, title: 'Anagram Solver', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/anagram-solver-game.png', bgColor: '#ffffff', path: "/games/anagram-solver-game" },
   { id: 12, title: 'Number Flip', category: 'Logic', difficulty: 'Easy', icon: './games-icon/image3-main.png', bgColor: '#D0F2E8', path: "/games/number-flip-game" },
   { id: 13, title: 'Sequance Recall', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image4.png', bgColor: '#1D1D1B', path: "/games/sequence-recall-game" },
   { id: 14, title: 'Tap Challange', category: 'Gameacy', difficulty: 'Easy', icon: './tap-challenge-game.png', bgColor: '#D5EBFF', path: "/games/tap-challenge-game" },
   { id: 15, title: 'Sudoku Master', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/sudoku-master-game.png', bgColor: '#ffffff', path: "/games/sudoku-master-game" },
   { id: 16, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#ffffff', path: "/games/probability-prediction-game" },
+  { id: 17, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" }
 ];
 
 const categories = [
