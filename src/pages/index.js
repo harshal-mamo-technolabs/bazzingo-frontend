@@ -71,6 +71,10 @@ import SudokuMasterGame from './games/SudokuMasterGame';
 import TapChallengeGame from './games/TapChallengeGame';
 import TapMinesweeperGame from './games/MineSweeperGame';
 import AnagramSolverGame from './games/AnagramSolverGame';
+import KakuroLogicGame from './games/KakuroLogicGame';
+import MastermindDeductionGame from './games/MastermindDeductionGame';
+import SetCardMatchGame from './games/SetCardMatchGame';
+import StrategicOrbCommanderGame from './games/StrategicOrbCommanderGame';
 
 // Export all pages including games
 export {
@@ -146,5 +150,9 @@ export {
     SudokuMasterGame,
     TapChallengeGame,
     TapMinesweeperGame,
-    AnagramSolverGame
+    AnagramSolverGame,
+    KakuroLogicGame,
+    MastermindDeductionGame,
+    SetCardMatchGame,
+    StrategicOrbCommanderGame
 };

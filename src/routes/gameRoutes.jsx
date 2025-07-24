@@ -50,7 +50,11 @@ import {
   TwentyFortyEightGame,
   SudokuMasterGame,
   TapMinesweeperGame,
-  AnagramSolverGame
+  AnagramSolverGame,
+  KakuroLogicGame,
+  MastermindDeductionGame,
+  SetCardMatchGame,
+  StrategicOrbCommanderGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -313,5 +317,25 @@ export const gameRoutes = [
     path: "/games/anagram-solver-game",
     element: <AnagramSolverGame />,
     name: "anagram solver game"
+  },
+  {
+    path: "/games/kakuro-logic-game",
+    element: <KakuroLogicGame />,
+    name: "Kakuro Logic Game"
+  },
+  {
+    path: "/games/mastermind-deduction-game",
+    element: <MastermindDeductionGame />,
+    name: "Mastermind Deduction Game"
+  },
+  {
+    path: "/games/set-card-match-game",
+    element: <SetCardMatchGame />,
+    name: "Set Card Match Game"
+  },
+  {
+    path: "/games/strategic-orb-commander-game",
+    element: <StrategicOrbCommanderGame />,
+    name: "Strategic Orb Commander Game"
   }
 ];
