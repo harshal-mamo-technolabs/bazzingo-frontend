@@ -49,7 +49,11 @@ import {
   TicTacToeGame,
   TwentyFortyEightGame,
   SudokuMasterGame,
-  TapMinesweeperGame
+  TapMinesweeperGame,
+  KakuroLogicGame,
+  MastermindDeductionGame,
+  SetCardMatchGame,
+  StrategicOrbCommanderGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -307,5 +311,25 @@ export const gameRoutes = [
     path: "/games/mine-sweeper-game",
     element: <TapMinesweeperGame />,
     name: "Mine sweeper game"
+  },
+  {
+    path: "/games/kakuro-logic-game",
+    element: <KakuroLogicGame />,
+    name: "Kakuro Logic Game"
+  },
+  {
+    path: "/games/mastermind-deduction-game",
+    element: <MastermindDeductionGame />,
+    name: "Mastermind Deduction Game"
+  },
+  {
+    path: "/games/set-card-match-game",
+    element: <SetCardMatchGame />,
+    name: "Set Card Match Game"
+  },
+  {
+    path: "/games/strategic-orb-commander-game",
+    element: <StrategicOrbCommanderGame />,
+    name: "Strategic Orb Commander Game"
   }
 ];

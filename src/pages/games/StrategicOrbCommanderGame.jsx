@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import GameFramework from '.../../components/GameFramework';
+import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
-import GameCompletionModal from '../../components/GameCompletionModal';
+import GameCompletionModal from '../../components/games/GameCompletionModal';
 import { Target, Zap, Shield, ChevronUp, ChevronDown, Star, Flame, Sparkles } from 'lucide-react';
 
 // Game logic classes
