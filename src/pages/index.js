@@ -22,7 +22,6 @@ import VisualReasoningLayout from "./VisualReasoningLayout";
 import ShadowMatchGame from './games/ShadowMatchGame';
 import NumberFlipGame from './games/NumberFlipGame';
 import SequenceRecallGame from './games/SequenceRecallGame';
-import TapChallengeGame from './games/TapChallengeGame';
 import MazeLogicGame from './games/MazeLogicGame';
 import ShapeRotationGame from './games/ShapeRotationGame';
 import PatternMatchGame from './games/PatternMatchGame';
@@ -69,6 +68,7 @@ import WordSearchMaster from './games/WordSearchMasterGame';
 import TicTacToeGame from './games/TicTacToeGame';
 import TwentyFortyEightGame from './games/TwentyFortyEightGame';
 import SudokuMasterGame from './games/SudokuMasterGame';
+import TapChallengeGame from './games/TapChallengeGame';
 
 // Export all pages including games
 export {
@@ -96,7 +96,6 @@ export {
     ShadowMatchGame,
     NumberFlipGame,
     SequenceRecallGame,
-    TapChallengeGame,
     MazeLogicGame,
     ShapeRotationGame,
     PatternMatchGame,
@@ -142,5 +141,6 @@ export {
     WordSearchMaster,
     TicTacToeGame,
     TwentyFortyEightGame,
-    SudokuMasterGame
+    SudokuMasterGame,
+    TapChallengeGame
 };

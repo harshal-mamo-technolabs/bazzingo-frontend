@@ -68,11 +68,6 @@ export const gameRoutes = [
     name: "Sequence Recall Game"
   },
   {
-    path: "/games/tap-challenge-game",
-    element: <TapChallengeGame />,
-    name: "Tap Challenge Game"
-  },
-  {
     path: "/games/maze-logic-game",
     element: <MazeLogicGame />,
     name: "Maze Logic Game"
@@ -301,5 +296,10 @@ export const gameRoutes = [
     path: "/games/sudoku-master-game",
     element: <SudokuMasterGame />,
     name: "Sudoku master game"
+  },
+  {
+    path: "/games/tap-challenge-game",
+    element: <TapChallengeGame />,
+    name: "Tap challange game"
   }
 ];
