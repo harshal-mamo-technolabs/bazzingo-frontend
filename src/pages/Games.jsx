@@ -9,15 +9,15 @@ const games = [
   { id: 2, title: 'Logic Grid Solver', category: 'Logic', difficulty: 'Hard', icon: './games-icon/logic-grid-solver.png', bgColor: '#D8F0E4', path: "/games/logic-grid-solver-game" },
   {
     id: 3,
-    title: 'Probability Prediction',
-    category: 'Numerical Reasoning',
+    title: 'Mine Sweeper',
+    category: 'Problem Solving',
     difficulty: 'Hard',
     featured: true,
     trending: true,
-    description: "Best game for the exercise of your mind—it'll help you focus your daily tasks.",
-    icon: './games-icon/probability-prediction.png',
-    bgColor: '#ffffff',
-    path: '/games/probability-prediction-game'
+    description: "A fun brain workout that sharpens focus and boosts daily thinking.",
+    icon: './games-icon/mine-sweeper-game.png',
+    bgColor: '#1D1D1B',
+    path: '/games/mine-sweeper-game'
   },
   { id: 4, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
   { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/word-chain-logic.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
@@ -31,6 +31,7 @@ const games = [
   { id: 13, title: 'Sequance Recall', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image4.png', bgColor: '#1D1D1B', path: "/games/sequence-recall-game" },
   { id: 14, title: 'Tap Challange', category: 'Gameacy', difficulty: 'Easy', icon: './tap-challenge-game.png', bgColor: '#D5EBFF', path: "/games/tap-challenge-game" },
   { id: 15, title: 'Sudoku Master', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/sudoku-master-game.png', bgColor: '#ffffff', path: "/games/sudoku-master-game" },
+  { id: 16, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#ffffff', path: "/games/probability-prediction-game" },
 ];
 
 const categories = [

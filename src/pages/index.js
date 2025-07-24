@@ -69,6 +69,7 @@ import TicTacToeGame from './games/TicTacToeGame';
 import TwentyFortyEightGame from './games/TwentyFortyEightGame';
 import SudokuMasterGame from './games/SudokuMasterGame';
 import TapChallengeGame from './games/TapChallengeGame';
+import TapMinesweeperGame from './games/MineSweeperGame';
 
 // Export all pages including games
 export {
@@ -142,5 +143,6 @@ export {
     TicTacToeGame,
     TwentyFortyEightGame,
     SudokuMasterGame,
-    TapChallengeGame
+    TapChallengeGame,
+    TapMinesweeperGame
 };

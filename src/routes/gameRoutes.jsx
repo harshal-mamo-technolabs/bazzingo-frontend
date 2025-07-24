@@ -48,7 +48,8 @@ import {
   WordSearchMaster,
   TicTacToeGame,
   TwentyFortyEightGame,
-  SudokuMasterGame
+  SudokuMasterGame,
+  TapMinesweeperGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -301,5 +302,10 @@ export const gameRoutes = [
     path: "/games/tap-challenge-game",
     element: <TapChallengeGame />,
     name: "Tap challange game"
+  },
+  {
+    path: "/games/mine-sweeper-game",
+    element: <TapMinesweeperGame />,
+    name: "Mine sweeper game"
   }
 ];
