@@ -58,7 +58,8 @@ import {
   CardSortingFlexibility,
   FaceNameMemoryGame,
   CandyCrushGame,
-  AnalogReasoningGame
+  AnalogReasoningGame,
+  StopSignalGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -361,5 +362,10 @@ export const gameRoutes = [
     path: "/games/analog-reasoning-game",
     element: <AnalogReasoningGame />,
     name: "Analog Reasoning Game"
+  },
+  {
+    path: "/games/stop-signal-game",
+    element: <StopSignalGame />,
+    name: "Stop Signal Game"
   }
 ];

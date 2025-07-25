@@ -19,7 +19,7 @@ const games = [
     bgColor: '#1D1D1B',
     path: '/games/mine-sweeper-game'
   },
-  { id: 4, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
+  { id: 4, title: 'Stop Signal', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/stop-signal-game.png', bgColor: '#ffffff', path: "/games/stop-signal-game" },
   { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/word-chain-logic.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
   { id: 6, title: 'Mathematical Deduction', category: 'Numerical Reasoning', difficulty: 'Medium', icon: './games-icon/mathematical-deduction.png', bgColor: '#FFFFFF', path: "/games/math-deduction-game" },
   { id: 7, title: 'Cognative Load Balancer', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image7.png', bgColor: '#D4E8DC', path: "/games/cognitive-load-balancer-game" },
@@ -34,7 +34,8 @@ const games = [
   { id: 16, title: 'Sudoku Master', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/sudoku-master-game.png', bgColor: '#ffffff', path: "/games/sudoku-master-game" },
   { id: 17, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#D5EBFF', path: "/games/probability-prediction-game" },
   { id: 18, title: 'Card Sorting Flexibility', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/card-sorting-flexibility-game.png', bgColor: '#ffffff', path: "/games/card-sorting-fleibility-game" },
-  { id: 19, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" }
+  { id: 19, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
+  { id: 20, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
 ];
 
 const categories = [

@@ -79,6 +79,7 @@ import CardSortingFlexibility from './games/CardSortingFlexibility';
 import FaceNameMemoryGame from './games/FaceNameMemoryGame';
 import CandyCrushGame from './games/CandyCrushGame';
 import AnalogReasoningGame from './games/AnalogReasoningGame';
+import StopSignalGame from './games/StopSignalGame';
 
 // Export all pages including games
 export {
@@ -162,5 +163,6 @@ export {
     CardSortingFlexibility,
     FaceNameMemoryGame,
     CandyCrushGame,
-    AnalogReasoningGame
+    AnalogReasoningGame,
+    StopSignalGame
 };
