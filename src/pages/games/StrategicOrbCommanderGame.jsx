@@ -46,7 +46,7 @@ class OrbGame {
         special: Math.random() < 0.05 ? this.specialOrbs[Math.floor(Math.random() * this.specialOrbs.length)] : null
       }))
     );
-    
+
     // Ensure no initial matches
     this.removeInitialMatches();
   }
@@ -68,29 +68,29 @@ class OrbGame {
 
   hasMatch(row, col) {
     const currentType = this.grid[row][col].type;
-    
+
     // Check horizontal matches
     let horizontalCount = 1;
     for (let c = col - 1; c >= 0 && this.grid[row][c].type === currentType; c--) horizontalCount++;
     for (let c = col + 1; c < this.gridSize && this.grid[row][c].type === currentType; c++) horizontalCount++;
-    
+
     // Check vertical matches
     let verticalCount = 1;
     for (let r = row - 1; r >= 0 && this.grid[r][col].type === currentType; r--) verticalCount++;
     for (let r = row + 1; r < this.gridSize && this.grid[r][col].type === currentType; r++) verticalCount++;
-    
+
     return horizontalCount >= 3 || verticalCount >= 3;
   }
 
   selectOrb(row, col) {
     if (this.grid[row][col].matched) return false;
-    
+
     // Clear previous selections
     this.clearSelections();
-    
+
     // Select current orb and connected orbs of same type
     this.selectConnectedOrbs(row, col, this.grid[row][col].type);
-    
+
     return this.getSelectedCount() >= 3;
   }
 
@@ -98,10 +98,10 @@ class OrbGame {
     const key = `${row}-${col}`;
     if (visited.has(key) || row < 0 || row >= this.gridSize || col < 0 || col >= this.gridSize) return;
     if (this.grid[row][col].type !== targetType || this.grid[row][col].matched) return;
-    
+
     visited.add(key);
     this.grid[row][col].selected = true;
-    
+
     // Check adjacent cells (4-directional)
     this.selectConnectedOrbs(row - 1, col, targetType, visited);
     this.selectConnectedOrbs(row + 1, col, targetType, visited);
@@ -130,10 +130,10 @@ class OrbGame {
   popSelectedOrbs() {
     const selectedCount = this.getSelectedCount();
     if (selectedCount < 3) return { score: 0, combo: false };
-    
+
     let score = selectedCount * 100;
     let hasSpecial = false;
-    
+
     // Mark selected orbs as matched and check for special orbs
     for (let row = 0; row < this.gridSize; row++) {
       for (let col = 0; col < this.gridSize; col++) {
@@ -146,20 +146,20 @@ class OrbGame {
         }
       }
     }
-    
+
     // Combo bonus
     if (selectedCount >= 5) {
       this.combos++;
       score *= (1 + this.combos * 0.2);
     }
-    
+
     // Apply gravity and fill gaps
     this.applyGravity();
     this.fillGaps();
-    
+
     this.moves++;
     this.score += Math.round(score);
-    
+
     return { score: Math.round(score), combo: selectedCount >= 5, special: hasSpecial };
   }
 
@@ -195,9 +195,9 @@ class OrbGame {
 
   usePowerUp(type, row, col) {
     if (this.powerUps[type] <= 0) return false;
-    
+
     this.powerUps[type]--;
-    
+
     switch (type) {
       case 'bombs':
         this.explodeBomb(row, col);
@@ -209,7 +209,7 @@ class OrbGame {
         this.activateShield();
         break;
     }
-    
+
     return true;
   }
 
@@ -232,7 +232,7 @@ class OrbGame {
   lightningStrike(row, col) {
     const orbType = this.grid[row][col].type;
     let count = 0;
-    
+
     for (let r = 0; r < this.gridSize; r++) {
       for (let c = 0; c < this.gridSize; c++) {
         if (this.grid[r][c].type === orbType && !this.grid[r][c].matched) {
@@ -241,7 +241,7 @@ class OrbGame {
         }
       }
     }
-    
+
     this.score += count * 150;
     this.applyGravity();
     this.fillGaps();
@@ -269,7 +269,7 @@ const StrategicOrbCommanderGame = () => {
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes default
   const [showInstructions, setShowInstructions] = useState(true);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  
+
   // Game specific state
   const [orbGame, setOrbGame] = useState(null);
   const [gameGrid, setGameGrid] = useState([]);
@@ -279,7 +279,7 @@ const StrategicOrbCommanderGame = () => {
   const [gameStartTime, setGameStartTime] = useState(0);
   const [lastMove, setLastMove] = useState(null);
   const [powerUps, setPowerUps] = useState({ bombs: 2, lightning: 2, shields: 1 });
-  
+
   // Difficulty settings
   const difficultySettings = {
     Easy: {
@@ -313,7 +313,7 @@ const StrategicOrbCommanderGame = () => {
     setSelectedOrbs(0);
     setLastMove(null);
     setPowerUps({ bombs: 2, lightning: 2, shields: 1 });
-    
+
     const newGame = new OrbGame(difficulty);
     newGame.initializeGrid();
     setOrbGame(newGame);
@@ -323,13 +323,13 @@ const StrategicOrbCommanderGame = () => {
   // Handle orb click
   const handleOrbClick = (row, col) => {
     if (gameState !== 'playing' || !orbGame) return;
-    
+
     const canSelect = orbGame.selectOrb(row, col);
     const selectedCount = orbGame.getSelectedCount();
-    
+
     setSelectedOrbs(selectedCount);
     setGameGrid([...orbGame.grid]);
-    
+
     if (canSelect && selectedCount >= 3) {
       // Auto-pop after a short delay to show selection
       setTimeout(() => {
@@ -338,7 +338,7 @@ const StrategicOrbCommanderGame = () => {
         setMoves(orbGame.moves);
         setCombos(orbGame.combos);
         setLastMove(result);
-        
+
         // Check win condition
         if (orbGame.isGameWon()) {
           endGame(true);
@@ -350,7 +350,7 @@ const StrategicOrbCommanderGame = () => {
   // Use power-up
   const usePowerUp = (type, row, col) => {
     if (gameState !== 'playing' || !orbGame) return;
-    
+
     if (orbGame.usePowerUp(type, row, col)) {
       setGameGrid([...orbGame.grid]);
       setPowerUps({ ...orbGame.powerUps });
@@ -361,36 +361,36 @@ const StrategicOrbCommanderGame = () => {
   // Calculate score
   const calculateScore = useCallback(() => {
     if (!orbGame || gameState !== 'playing') return score;
-    
+
     const settings = difficultySettings[difficulty];
-    
+
     // Base game score
     const gameScore = orbGame.score;
-    
+
     // Progress bonus (0-50 points)
     const progress = orbGame.getCompletionPercentage() / 100;
     const progressBonus = progress * 50;
-    
+
     // Efficiency bonus (0-40 points)
     const efficiency = moves > 0 ? Math.min(1, gameScore / (moves * 100)) : 0;
     const efficiencyBonus = efficiency * 40;
-    
+
     // Time bonus (0-30 points)
     const timeUsed = settings.timeLimit - timeRemaining;
     const timeEfficiency = Math.max(0, 1 - (timeUsed / settings.timeLimit));
     const timeBonus = timeEfficiency * 30;
-    
+
     // Combo bonus (0-25 points)
     const comboBonus = Math.min(25, combos * 5);
-    
+
     // Difficulty multiplier
     const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
-    
+
     let finalScore = (progressBonus + efficiencyBonus + timeBonus + comboBonus) * difficultyMultiplier;
-    
+
     // Add a portion of game score
     finalScore += Math.min(55, gameScore / 100); // Cap game score contribution
-    
+
     return Math.round(Math.max(0, Math.min(200, finalScore)));
   }, [orbGame, gameState, difficulty, timeRemaining, moves, combos, score]);
 
@@ -452,21 +452,21 @@ const StrategicOrbCommanderGame = () => {
   const getOrbClassName = (row, col) => {
     const orb = gameGrid[row] && gameGrid[row][col];
     if (!orb) return '';
-    
+
     const baseClass = 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl cursor-pointer transition-all duration-300 transform hover:scale-110 active:scale-95 border-2';
-    
+
     let className = baseClass;
-    
+
     if (orb.selected) {
       className += ' ring-4 ring-yellow-400 ring-opacity-75 animate-pulse scale-110 shadow-lg';
     }
-    
+
     if (orb.matched) {
       className += ' opacity-50 scale-75';
     } else {
       className += ' hover:shadow-lg';
     }
-    
+
     // Add color-specific styling
     if (orb.type === '🔴') className += ' bg-red-100 border-red-300';
     else if (orb.type === '🟡') className += ' bg-yellow-100 border-yellow-300';
@@ -475,7 +475,7 @@ const StrategicOrbCommanderGame = () => {
     else if (orb.type === '🟣') className += ' bg-purple-100 border-purple-300';
     else if (orb.type === '🟠') className += ' bg-orange-100 border-orange-300';
     else className += ' bg-gray-100 border-gray-300';
-    
+
     return className;
   };
 
@@ -491,7 +491,7 @@ const StrategicOrbCommanderGame = () => {
   return (
     <div>
       <Header unreadCount={3} />
-      
+
       <GameFramework
         gameTitle="Strategic Orb Commander"
         gameDescription={
@@ -653,10 +653,10 @@ const StrategicOrbCommanderGame = () => {
           {/* Orb Grid */}
           {gameGrid.length > 0 && (
             <div className="bg-white p-2 sm:p-4 rounded-lg shadow-xl border-2 border-gray-300 transition-all duration-500 hover:shadow-2xl">
-              <div 
+              <div
                 className="grid gap-1 sm:gap-2 max-w-2xl mx-auto"
-                style={{ 
-                  gridTemplateColumns: `repeat(${difficultySettings[difficulty].gridSize}, minmax(0, 1fr))` 
+                style={{
+                  gridTemplateColumns: `repeat(${difficultySettings[difficulty].gridSize}, minmax(0, 1fr))`
                 }}
               >
                 {gameGrid.map((row, rowIndex) =>
@@ -685,7 +685,7 @@ const StrategicOrbCommanderGame = () => {
           {orbGame && (
             <div className="w-full max-w-2xl px-2">
               <div className="bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-green-400 to-blue-500 transition-all duration-500 ease-out relative"
                   style={{ width: `${orbGame.getCompletionPercentage()}%` }}
                 >
@@ -693,7 +693,7 @@ const StrategicOrbCommanderGame = () => {
                 </div>
               </div>
               <div className="text-center mt-2 text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Progress: {Math.round(orbGame.getCompletionPercentage())}% 
+                Progress: {Math.round(orbGame.getCompletionPercentage())}%
                 ({orbGame.score} / {orbGame.targetScore})
               </div>
             </div>
@@ -715,7 +715,7 @@ const StrategicOrbCommanderGame = () => {
           {/* Instructions */}
           <div className="text-center max-w-2xl text-xs sm:text-sm text-gray-600 px-4" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
             <p className="mb-2 leading-relaxed">
-              Click connected orbs of the same color to select and pop them. Minimum 3 orbs required. 
+              Click connected orbs of the same color to select and pop them. Minimum 3 orbs required.
               Plan your strategy to reach the target score!
             </p>
             <p className="leading-relaxed">
@@ -725,7 +725,7 @@ const StrategicOrbCommanderGame = () => {
         </div>
       </GameFramework>
 
-      <GameCompletionModal 
+      <GameCompletionModal
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
         score={finalScore}

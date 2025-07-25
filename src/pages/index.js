@@ -75,6 +75,7 @@ import KakuroLogicGame from './games/KakuroLogicGame';
 import MastermindDeductionGame from './games/MastermindDeductionGame';
 import SetCardMatchGame from './games/SetCardMatchGame';
 import StrategicOrbCommanderGame from './games/StrategicOrbCommanderGame';
+import CardSortingFlexibility from './games/CardSortingFlexibility';
 
 // Export all pages including games
 export {
@@ -154,5 +155,6 @@ export {
     KakuroLogicGame,
     MastermindDeductionGame,
     SetCardMatchGame,
-    StrategicOrbCommanderGame
+    StrategicOrbCommanderGame,
+    CardSortingFlexibility
 };

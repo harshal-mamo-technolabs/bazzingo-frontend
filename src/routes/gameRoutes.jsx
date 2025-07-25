@@ -54,7 +54,8 @@ import {
   KakuroLogicGame,
   MastermindDeductionGame,
   SetCardMatchGame,
-  StrategicOrbCommanderGame
+  StrategicOrbCommanderGame,
+  CardSortingFlexibility
 } from '../pages';
 
 export const gameRoutes = [
@@ -337,5 +338,10 @@ export const gameRoutes = [
     path: "/games/strategic-orb-commander-game",
     element: <StrategicOrbCommanderGame />,
     name: "Strategic Orb Commander Game"
+  },
+  {
+    path: "/games/card-sorting-fleibility-game",
+    element: <CardSortingFlexibility />,
+    name: "Card sorting flexibility game"
   }
 ];

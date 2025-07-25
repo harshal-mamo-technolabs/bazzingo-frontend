@@ -31,7 +31,8 @@ const games = [
   { id: 13, title: 'Sequance Recall', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image4.png', bgColor: '#1D1D1B', path: "/games/sequence-recall-game" },
   { id: 14, title: 'Tap Challange', category: 'Gameacy', difficulty: 'Easy', icon: './tap-challenge-game.png', bgColor: '#D5EBFF', path: "/games/tap-challenge-game" },
   { id: 15, title: 'Sudoku Master', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/sudoku-master-game.png', bgColor: '#ffffff', path: "/games/sudoku-master-game" },
-  { id: 16, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#ffffff', path: "/games/probability-prediction-game" },
+  { id: 16, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#D5EBFF', path: "/games/probability-prediction-game" },
+  { id: 17, title: 'Card Sorting Flexibility', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/card-sorting-flexibility-game.png', bgColor: '#ffffff', path: "/games/card-sorting-fleibility-game" },
   { id: 17, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" }
 ];
 
