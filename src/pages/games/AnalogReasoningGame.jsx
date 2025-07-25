@@ -121,7 +121,7 @@ const AnalogicalReasoningGame = () => {
 
     // Shuffle options
     const shuffledOptions = [...selectedAnalogy.options].sort(() => Math.random() - 0.5);
-    
+
     setCurrentAnalogy({
       ...selectedAnalogy,
       category: selectedCategory,
@@ -421,8 +421,8 @@ const AnalogicalReasoningGame = () => {
                 onClick={useHint}
                 disabled={hintsUsed >= maxHints}
                 className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${hintsUsed >= maxHints
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-yellow-500 text-white hover:bg-yellow-600'
                   }`}
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
@@ -433,15 +433,7 @@ const AnalogicalReasoningGame = () => {
           </div>
 
           {/* Game Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Level
-              </div>
-              <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {currentLevel}
-              </div>
-            </div>
+          <div className="grid grid-cols-3 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Lives
@@ -478,11 +470,11 @@ const AnalogicalReasoningGame = () => {
                     {currentAnalogy.category} Analogy
                   </span>
                 </div>
-                
+
                 <div className="text-3xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {currentAnalogy.a} : {currentAnalogy.b} :: {currentAnalogy.c} : ?
                 </div>
-                
+
                 <p className="text-blue-700 text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   Find the relationship between "{currentAnalogy.a}" and "{currentAnalogy.b}", then apply it to "{currentAnalogy.c}"
                 </p>

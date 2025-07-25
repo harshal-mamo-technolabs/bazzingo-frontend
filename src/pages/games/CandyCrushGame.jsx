@@ -35,7 +35,7 @@ const CandyCrushGame = () => {
 
   const candyColors = {
     '🍎': 'bg-red-400',
-    '🍊': 'bg-orange-400', 
+    '🍊': 'bg-orange-400',
     '🍋': 'bg-yellow-400',
     '🍇': 'bg-purple-400',
     '🍓': 'bg-pink-400',
@@ -45,9 +45,9 @@ const CandyCrushGame = () => {
 
   // Difficulty settings
   const difficultySettings = {
-    Easy: { gridSize: 6, timeLimit: 120, moves: 30, candyTypes: 5 },
-    Moderate: { gridSize: 8, timeLimit: 100, moves: 25, candyTypes: 6 },
-    Hard: { gridSize: 10, timeLimit: 80, moves: 20, candyTypes: 7 }
+    Easy: { gridSize: 5, timeLimit: 120, moves: 30, candyTypes: 5 },
+    Moderate: { gridSize: 5, timeLimit: 100, moves: 25, candyTypes: 6 },
+    Hard: { gridSize: 5, timeLimit: 80, moves: 20, candyTypes: 7 }
   };
 
   // Initialize board
@@ -55,7 +55,7 @@ const CandyCrushGame = () => {
     const settings = difficultySettings[difficulty];
     const size = settings.gridSize;
     const types = candyTypes[difficulty.toLowerCase()];
-    
+
     const newBoard = [];
     for (let row = 0; row < size; row++) {
       const boardRow = [];
@@ -72,7 +72,7 @@ const CandyCrushGame = () => {
       }
       newBoard.push(boardRow);
     }
-    
+
     setBoard(newBoard);
     setGridSize(size);
   }, [difficulty]);
@@ -80,7 +80,7 @@ const CandyCrushGame = () => {
   // Check for matches
   const checkForMatches = useCallback(() => {
     if (!board.length) return [];
-    
+
     const matches = [];
     const size = board.length;
 
@@ -88,7 +88,7 @@ const CandyCrushGame = () => {
     for (let row = 0; row < size; row++) {
       let matchCount = 1;
       let currentType = board[row][0].type;
-      
+
       for (let col = 1; col < size; col++) {
         if (board[row][col].type === currentType && !board[row][col].matched) {
           matchCount++;
@@ -102,7 +102,7 @@ const CandyCrushGame = () => {
           currentType = board[row][col].type;
         }
       }
-      
+
       if (matchCount >= 3) {
         for (let i = size - matchCount; i < size; i++) {
           matches.push({ row, col: i });
@@ -114,7 +114,7 @@ const CandyCrushGame = () => {
     for (let col = 0; col < size; col++) {
       let matchCount = 1;
       let currentType = board[0][col].type;
-      
+
       for (let row = 1; row < size; row++) {
         if (board[row][col].type === currentType && !board[row][col].matched) {
           matchCount++;
@@ -128,7 +128,7 @@ const CandyCrushGame = () => {
           currentType = board[row][col].type;
         }
       }
-      
+
       if (matchCount >= 3) {
         for (let i = size - matchCount; i < size; i++) {
           matches.push({ row: i, col });
@@ -145,7 +145,7 @@ const CandyCrushGame = () => {
 
     const newBoard = [...board];
     let matchScore = 0;
-    
+
     // Mark matched candies and calculate score
     matchPositions.forEach(({ row, col }) => {
       if (newBoard[row] && newBoard[row][col]) {
@@ -162,7 +162,7 @@ const CandyCrushGame = () => {
     setBoard(newBoard);
     setMatches(prev => prev + matchPositions.length);
     setTotalMatches(prev => prev + 1);
-    
+
     // Flash the matched cells
     setFlashingCells(matchPositions);
     setTimeout(() => setFlashingCells([]), 300);
@@ -223,7 +223,7 @@ const CandyCrushGame = () => {
     }
 
     setBoard(newBoard);
-    
+
     // Check for new matches after gravity
     setTimeout(() => {
       const newMatches = checkForMatches();
@@ -248,12 +248,12 @@ const CandyCrushGame = () => {
       // Check if candies are adjacent
       const rowDiff = Math.abs(selectedCandy.row - clickedCandy.row);
       const colDiff = Math.abs(selectedCandy.col - clickedCandy.col);
-      
+
       if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
         // Swap candies
         swapCandies(selectedCandy, clickedCandy);
       }
-      
+
       setSelectedCandy(null);
     }
   }, [selectedCandy, isAnimating, gameState]);
@@ -261,17 +261,17 @@ const CandyCrushGame = () => {
   // Swap two candies
   const swapCandies = useCallback((candy1, candy2) => {
     setIsAnimating(true);
-    
+
     const newBoard = [...board];
     const temp = { ...newBoard[candy1.row][candy1.col] };
-    
+
     newBoard[candy1.row][candy1.col] = {
       ...newBoard[candy2.row][candy2.col],
       row: candy1.row,
       col: candy1.col,
       id: `${candy1.row}-${candy1.col}`
     };
-    
+
     newBoard[candy2.row][candy2.col] = {
       ...temp,
       row: candy2.row,
@@ -291,14 +291,14 @@ const CandyCrushGame = () => {
         // No matches, swap back
         const revertBoard = [...board];
         const revertTemp = { ...revertBoard[candy1.row][candy1.col] };
-        
+
         revertBoard[candy1.row][candy1.col] = {
           ...revertBoard[candy2.row][candy2.col],
           row: candy1.row,
           col: candy1.col,
           id: `${candy1.row}-${candy1.col}`
         };
-        
+
         revertBoard[candy2.row][candy2.col] = {
           ...revertTemp,
           row: candy2.row,
@@ -318,26 +318,26 @@ const CandyCrushGame = () => {
     if (totalMatches === 0) return 0;
 
     const settings = difficultySettings[difficulty];
-    
+
     // Base score from matches (0-100 points)
     const matchScore = Math.min(100, matches * 2);
-    
+
     // Combo bonus (0-40 points)
     const comboBonus = Math.min(40, longestCombo * 8);
-    
+
     // Moves efficiency bonus (0-30 points)
     const movesUsed = settings.moves - moves;
     const moveEfficiency = movesUsed > 0 ? matches / movesUsed : 0;
     const moveBonus = Math.min(30, moveEfficiency * 15);
-    
+
     // Time bonus (0-20 points)
     const timeBonus = Math.min(20, (timeRemaining / settings.timeLimit) * 20);
-    
+
     // Difficulty multiplier
     const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
-    
+
     let finalScore = (matchScore + comboBonus + moveBonus + timeBonus) * difficultyMultiplier;
-    
+
     return Math.round(Math.max(0, Math.min(200, finalScore)));
   }, [matches, longestCombo, moves, timeRemaining, difficulty, totalMatches]);
 
@@ -414,6 +414,7 @@ const CandyCrushGame = () => {
 
       <GameFramework
         gameTitle="Candy Crush Master"
+        modifiedPadding="p-2"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -545,9 +546,9 @@ const CandyCrushGame = () => {
 
           {/* Game Board */}
           <div className="mb-6">
-            <div 
+            <div
               className="grid gap-1 p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl shadow-lg"
-              style={{ 
+              style={{
                 gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
                 maxWidth: '600px',
                 aspectRatio: '1'
@@ -557,7 +558,7 @@ const CandyCrushGame = () => {
                 row.map((candy, colIndex) => {
                   const isSelected = selectedCandy && selectedCandy.row === rowIndex && selectedCandy.col === colIndex;
                   const isFlashing = flashingCells.some(cell => cell.row === rowIndex && cell.col === colIndex);
-                  
+
                   return (
                     <div
                       key={candy.id}
@@ -571,7 +572,7 @@ const CandyCrushGame = () => {
                         shadow-md hover:shadow-lg
                       `}
                       onClick={() => handleCandyClick(rowIndex, colIndex)}
-                      style={{ 
+                      style={{
                         fontSize: gridSize > 8 ? '1.2rem' : '1.5rem',
                         minHeight: gridSize > 8 ? '40px' : '50px'
                       }}
@@ -590,13 +591,13 @@ const CandyCrushGame = () => {
           {/* Instructions */}
           <div className="text-center max-w-2xl">
             <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              {selectedCandy ? 
-                'Click an adjacent candy to swap and create matches!' : 
+              {selectedCandy ?
+                'Click an adjacent candy to swap and create matches!' :
                 'Click a candy to select it, then click an adjacent candy to swap.'
               }
             </p>
             <div className="text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {gridSize}×{gridSize} grid | {difficultySettings[difficulty].moves} moves | 
+              {difficulty} Mode: {gridSize}×{gridSize} grid | {difficultySettings[difficulty].moves} moves |
               {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
               {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit
             </div>

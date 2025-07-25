@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, Trophy } from 'lucide-react';
 
-const GameFramework = ({ 
-  gameTitle, 
-  gameDescription, 
-  category, 
-  onGameComplete, 
-  children, 
-  gameState, 
+const GameFramework = ({
+  gameTitle,
+  gameDescription,
+  category,
+  onGameComplete,
+  children,
+  gameState,
   setGameState,
   score,
   timeRemaining,
@@ -15,7 +15,8 @@ const GameFramework = ({
   setDifficulty,
   onStart,
   onReset,
-  customStats = {}
+  customStats = {},
+  modifiedPadding = "p-6"
 }) => {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
@@ -139,7 +140,7 @@ const GameFramework = ({
                   Start Game
                 </button>
               )}
-              
+
               <button
                 onClick={handleReset}
                 className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
@@ -188,7 +189,7 @@ const GameFramework = ({
           </div>
 
           {/* Game Area */}
-          <div className="bg-white rounded-lg p-6 min-h-[400px]">
+          <div className={`bg-white rounded-lg ${modifiedPadding} min-h-[400px]`}>
             {gameState === 'ready' && (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="text-6xl mb-4">🎮</div>
@@ -242,7 +243,7 @@ const GameFramework = ({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
