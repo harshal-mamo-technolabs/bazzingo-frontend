@@ -56,7 +56,9 @@ import {
   SetCardMatchGame,
   StrategicOrbCommanderGame,
   CardSortingFlexibility,
-  FaceNameMemoryGame
+  FaceNameMemoryGame,
+  CandyCrushGame,
+  AnalogReasoningGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -349,5 +351,15 @@ export const gameRoutes = [
     path: "/games/face-name-memory-game",
     element: <FaceNameMemoryGame />,
     name: "Face name memory game"
+  },
+  {
+    path: "/games/candy-crush-game",
+    element: <CandyCrushGame />,
+    name: "Candy Crush Game"
+  },
+  {
+    path: "/games/analog-reasoning-game",
+    element: <AnalogReasoningGame />,
+    name: "Analog Reasoning Game"
   }
 ];

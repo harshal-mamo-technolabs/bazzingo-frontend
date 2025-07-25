@@ -77,6 +77,8 @@ import SetCardMatchGame from './games/SetCardMatchGame';
 import StrategicOrbCommanderGame from './games/StrategicOrbCommanderGame';
 import CardSortingFlexibility from './games/CardSortingFlexibility';
 import FaceNameMemoryGame from './games/FaceNameMemoryGame';
+import CandyCrushGame from './games/CandyCrushGame';
+import AnalogReasoningGame from './games/AnalogReasoningGame';
 
 // Export all pages including games
 export {
@@ -158,5 +160,7 @@ export {
     SetCardMatchGame,
     StrategicOrbCommanderGame,
     CardSortingFlexibility,
-    FaceNameMemoryGame
+    FaceNameMemoryGame,
+    CandyCrushGame,
+    AnalogReasoningGame
 };
