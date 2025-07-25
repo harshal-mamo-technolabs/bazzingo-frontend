@@ -76,6 +76,7 @@ import MastermindDeductionGame from './games/MastermindDeductionGame';
 import SetCardMatchGame from './games/SetCardMatchGame';
 import StrategicOrbCommanderGame from './games/StrategicOrbCommanderGame';
 import CardSortingFlexibility from './games/CardSortingFlexibility';
+import FaceNameMemoryGame from './games/FaceNameMemoryGame';
 
 // Export all pages including games
 export {
@@ -156,5 +157,6 @@ export {
     MastermindDeductionGame,
     SetCardMatchGame,
     StrategicOrbCommanderGame,
-    CardSortingFlexibility
+    CardSortingFlexibility,
+    FaceNameMemoryGame
 };

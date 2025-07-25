@@ -55,7 +55,8 @@ import {
   MastermindDeductionGame,
   SetCardMatchGame,
   StrategicOrbCommanderGame,
-  CardSortingFlexibility
+  CardSortingFlexibility,
+  FaceNameMemoryGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -343,5 +344,10 @@ export const gameRoutes = [
     path: "/games/card-sorting-fleibility-game",
     element: <CardSortingFlexibility />,
     name: "Card sorting flexibility game"
+  },
+  {
+    path: "/games/face-name-memory-game",
+    element: <FaceNameMemoryGame />,
+    name: "Face name memory game"
   }
 ];

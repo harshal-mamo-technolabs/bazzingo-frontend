@@ -16,7 +16,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",
-    "framer-motion": "^12.23.6",
+    "framer-motion": "^12.23.9",
     "lucide-react": "^0.518.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
