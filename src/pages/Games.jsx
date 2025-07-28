@@ -36,6 +36,7 @@ const games = [
   { id: 18, title: 'Card Sorting Flexibility', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/card-sorting-flexibility-game.png', bgColor: '#ffffff', path: "/games/card-sorting-fleibility-game" },
   { id: 19, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
   { id: 20, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
+  { id: 20, title: 'Syllogism', category: 'Logic', difficulty: 'Easy', icon: './games-icon/syllogism-game.png', bgColor: '#1D1D1B', path: "/games/syllogism-game" },
 ];
 
 const categories = [

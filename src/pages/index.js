@@ -80,6 +80,7 @@ import FaceNameMemoryGame from './games/FaceNameMemoryGame';
 import CandyCrushGame from './games/CandyCrushGame';
 import AnalogReasoningGame from './games/AnalogReasoningGame';
 import StopSignalGame from './games/StopSignalGame';
+import SyllogismGame from './games/SyllogismGame';
 
 // Export all pages including games
 export {
@@ -164,5 +165,6 @@ export {
     FaceNameMemoryGame,
     CandyCrushGame,
     AnalogReasoningGame,
-    StopSignalGame
+    StopSignalGame,
+    SyllogismGame
 };
