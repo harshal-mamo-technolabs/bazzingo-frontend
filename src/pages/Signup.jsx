@@ -15,6 +15,9 @@ const Signup = () => {
   const navigate = useNavigate();
   const { status: isAuthenticated } = useSelector((state) => state.user);
 
+  // === TEST SWITCH (set to false to restore real API calls) ===
+  const TEST_BYPASS_SIGNUP = true;
+
   useEffect(() => {
     dispatch(checkAndValidateToken());
   }, [dispatch]);
@@ -28,13 +31,33 @@ const Signup = () => {
   const signupHandler = async (formData) => {
     try {
       dispatch(loadingAction());
+
+      // -------- TEST BYPASS (no API call; go straight to dashboard) --------
+      if (TEST_BYPASS_SIGNUP) {
+        const userData = {
+          user: {
+            name: formData?.name || 'Test User',
+            email: formData?.email || 'test@example.com',
+            age: formData?.age ?? 18,
+            country: formData?.country || 'IN',
+          },
+          accessToken: 'dev-test-token',
+          tokenExpiry: getTokenExpiry(),
+        };
+
+        dispatch(loginAction(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
+        toast.success('Signed up');
+        navigate('/dashboard');
+        return; // finally{} will still run and reset loading
+      }
+      // ---------------------------------------------------------------------
+
       const response = await signup(formData.email, formData.password, formData.age, formData.country);
 
-      // Debug: Log the actual response structure
       console.log("Signup response:", response);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
-        // Handle different possible response structures
         const userData = {
           user: response.data?.user || response.user || response.data,
           accessToken: response.data?.accessToken || response.accessToken || response.data?.token || response.token,
@@ -62,11 +85,9 @@ const Signup = () => {
       dispatch(loadingAction());
       const response = await googleLogin(credentialResponse.credential);
 
-      // Debug: Log the actual response structure
       console.log("Google login response:", response);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
-        // Handle different possible response structures
         const userData = {
           user: response.data?.user || response.user || response.data,
           accessToken: response.data?.accessToken || response.accessToken || response.data?.token || response.token,
@@ -117,6 +138,7 @@ const Signup = () => {
       </div>
     </div>
   );
+
   return (
     <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-head.png">
       <div className="text-center">
