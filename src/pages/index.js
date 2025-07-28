@@ -81,6 +81,9 @@ import CandyCrushGame from './games/CandyCrushGame';
 import AnalogReasoningGame from './games/AnalogReasoningGame';
 import StopSignalGame from './games/StopSignalGame';
 import SyllogismGame from './games/SyllogismGame';
+import KenKenMathPuzzleGame from './games/KenKenMathPuzzleGame';
+import OneLineDrawGame from './games/OneLineDraw';
+
 
 // Export all pages including games
 export {
@@ -166,5 +169,7 @@ export {
     CandyCrushGame,
     AnalogReasoningGame,
     StopSignalGame,
-    SyllogismGame
+    SyllogismGame,
+    KenKenMathPuzzleGame,
+    OneLineDrawGame
 };
