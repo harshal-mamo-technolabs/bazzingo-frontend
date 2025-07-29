@@ -40,6 +40,7 @@ const games = [
   { id: 22, title: 'Candy Crush', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/candy-crush-game.png', bgColor: '#ffffff', path: "/games/candy-crush-game" },
   { id: 23, title: 'Number Puzzle Game', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/number-puzzle-game.png', bgColor: '#1D1D1B', path: "/games/ken-ken-math-puzzle-game" },
   { id: 24, title: 'One Line Draw', category: 'Logic', difficulty: 'Easy', icon: './games-icon/one-line-draw-game.png', bgColor: '#ffffff', path: "/games/one-line-draw-game" },
+  { id: 24, title: 'Matrix Reasoning', category: 'Logic', difficulty: 'Easy', icon: './games-icon/matrix-reasoning-game.png', bgColor: '#D5EBFF', path: "/games/matrix-reasoning-game" },
 ];
 
 const categories = [
