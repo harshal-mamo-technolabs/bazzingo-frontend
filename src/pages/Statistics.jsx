@@ -15,55 +15,55 @@ const Statistics = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Delay chart rendering by 1 second
+    setShowChart(true);
     const timer = setTimeout(() => {
-      setShowChart(true);
-    }, 2000); // 1000ms = 1 second delay before rendering chart
+      // setShowChart(true);
+    }, 1000); // 1000ms = 1 second delay before rendering chart
 
     return () => clearTimeout(timer);
   }, []);
 
 
-const CustomRadarTooltip = ({ active, payload, coordinate }) => {
-  if (!active || !payload?.length) return null;
+  const CustomRadarTooltip = ({ active, payload, coordinate }) => {
+    if (!active || !payload?.length) return null;
 
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: coordinate?.y ?? 0,
-        left: coordinate?.x ?? 0,
-        transform: "translate(-50%, -100%)",
-        background: "rgba(255,255,255,0.2)",
-        backdropFilter: "blur(6px)",
-        padding: "4px 8px",
-        borderRadius: "4px",
-        fontSize: "12px",
-        color: "#FF6C40",
-        pointerEvents: "none",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {` ${payload[0].value}`}
-    </div>
-  );
-};
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: coordinate?.y ?? 0,
+          left: coordinate?.x ?? 0,
+          transform: "translate(-50%, -100%)",
+          background: "rgba(255,255,255,0.2)",
+          backdropFilter: "blur(6px)",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+          color: "#FF6C40",
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {` ${payload[0].value}`}
+      </div>
+    );
+  };
 
 
 
-const [showTooltip1, setShowTooltip1] = useState(false);
-const [showTooltip2, setShowTooltip2] = useState(false);
-const [showTooltip3, setShowTooltip3] = useState(false);
-const [showTooltip4, setShowTooltip4] = useState(false);
-const [showTooltip6, setShowTooltip6] = useState(false);
-const iconRef = useRef(null);
+  const [showTooltip1, setShowTooltip1] = useState(false);
+  const [showTooltip2, setShowTooltip2] = useState(false);
+  const [showTooltip3, setShowTooltip3] = useState(false);
+  const [showTooltip4, setShowTooltip4] = useState(false);
+  const [showTooltip6, setShowTooltip6] = useState(false);
+  const iconRef = useRef(null);
 
-const handleTooltipClick = (setTooltipFn) => {
-  setTooltipFn(true);
-  setTimeout(() => {
-    setTooltipFn(false);
-  }, 3000); // auto close in 3 seconds
-};
+  const handleTooltipClick = (setTooltipFn) => {
+    setTooltipFn(true);
+    setTimeout(() => {
+      setTooltipFn(false);
+    }, 3000); // auto close in 3 seconds
+  };
 
 
   // Transform data into Recharts format
@@ -143,12 +143,12 @@ const handleTooltipClick = (setTooltipFn) => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [slides.length]);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentIndex((prev) => (prev + 1) % slides.length);
+  //   }, 100);
+  //   return () => clearInterval(interval);
+  // }, [slides.length]);
 
   const scores = [
     { label: 'Speed', value: 85 },
@@ -157,16 +157,16 @@ const handleTooltipClick = (setTooltipFn) => {
     { label: 'Flexibility', value: 50 },
     { label: 'Troubleshooting', value: 90 },
   ];
-  
+
   const [progressValues, setProgressValues] = useState(
     scores.map(() => 0)
   );
-  
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setProgressValues(scores.map(score => score.value));
     }, 200); // delay to trigger transition
-  
+
     return () => clearTimeout(timeout);
   }, []);
 
@@ -193,38 +193,38 @@ const handleTooltipClick = (setTooltipFn) => {
       <div className="bg-gray-50 min-h-screen">
         <main className="mx-auto px-4 lg:px-12 py-4 lg:py-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
           {/* Filter Buttons */}
-           <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 px-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+          <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 px-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
 
-          {/* Left - Category Tabs */}
-          <div className="flex flex-wrap justify-between gap-2 md:gap-2 w-full md:w-auto">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleCategoryClick(category)}
-                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium shadow-sm
+              {/* Left - Category Tabs */}
+              <div className="flex flex-wrap justify-between gap-2 md:gap-2 w-full md:w-auto">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryClick(category)}
+                    className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium shadow-sm
                   ${activeCategory === category
-                    ? 'border border-orange-500 text-orange-600 bg-[#F0E2DD]'
-                    : 'text-gray-600 bg-white'
-                  }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+                        ? 'border border-orange-500 text-orange-600 bg-[#F0E2DD]'
+                        : 'text-gray-600 bg-white'
+                      }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
 
-          {/* Right - Dropdown */}
-          <div className="w-full md:w-auto">
-            <button className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between">
-              <span>Last 7 Days</span>
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
+              {/* Right - Dropdown */}
+              <div className="w-full md:w-auto">
+                <button className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between">
+                  <span>Last 7 Days</span>
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
 
-        </div>
-      </div>
+            </div>
+          </div>
 
 
           {/* Statistics Section */}
@@ -233,7 +233,7 @@ const handleTooltipClick = (setTooltipFn) => {
             <div className="xl:w-[500px] 2xl:w-[550px] lg:w-[290px] bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-gray-800">User Progress Overview</h3>
-                  {/* Tooltip Trigger */}
+                {/* Tooltip Trigger */}
                 <div
                   ref={iconRef}
                   className="relative cursor-pointer"
@@ -248,53 +248,53 @@ const handleTooltipClick = (setTooltipFn) => {
                     </div>
                   )}
                 </div>
-              
+
               </div>
 
               <div className="w-full">
                 <ResponsiveContainer width="100%" height={250}>
-  <RadarChart
-    cx="45%"
-    cy="55%"
-    outerRadius="90%"
-    data={[
-      { subject: 'Pattern Recognition', A: 100 },
-      { subject: 'Spatial Orientation', A: 130 },
-      { subject: 'Visual Perception', A: 106 },
-      { subject: 'Problem Solving', A: 86 }, // replaced empty subject
-      { subject: 'Logic', A: 120 },
-    ]}
-  >
-    <defs>
-      <linearGradient id="colorRadar" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#FF6C40" stopOpacity={0.9} />
-        <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.2} />
-      </linearGradient>
-    </defs>
+                  <RadarChart
+                    cx="45%"
+                    cy="55%"
+                    outerRadius="90%"
+                    data={[
+                      { subject: 'Pattern Recognition', A: 100 },
+                      { subject: 'Spatial Orientation', A: 130 },
+                      { subject: 'Visual Perception', A: 106 },
+                      { subject: 'Problem Solving', A: 86 }, // replaced empty subject
+                      { subject: 'Logic', A: 120 },
+                    ]}
+                  >
+                    <defs>
+                      <linearGradient id="colorRadar" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FF6C40" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.2} />
+                      </linearGradient>
+                    </defs>
 
-    <PolarGrid />
-    <PolarAngleAxis
-      dataKey="subject"
-      tick={{ fontSize: 11, fill: '#333', fontWeight: 'bold' }}
-    />
-    <PolarRadiusAxis angle={30} domain={[0, 180]} tick={false} axisLine={false} />
+                    <PolarGrid />
+                    <PolarAngleAxis
+                      dataKey="subject"
+                      tick={{ fontSize: 11, fill: '#333', fontWeight: 'bold' }}
+                    />
+                    <PolarRadiusAxis angle={30} domain={[0, 180]} tick={false} axisLine={false} />
 
-    <Radar
-      name="Score"
-      dataKey="A"
-      stroke="#f97316"
-      strokeWidth={2}
-      fill="url(#colorRadar)"
-      fillOpacity={1}
-      isAnimationActive={true}
-      animationDuration={3000}
-      animationEasing="ease-out"
-    />
+                    <Radar
+                      name="Score"
+                      dataKey="A"
+                      stroke="#f97316"
+                      strokeWidth={2}
+                      fill="url(#colorRadar)"
+                      fillOpacity={1}
+                      isAnimationActive={true}
+                      animationDuration={3000}
+                      animationEasing="ease-out"
+                    />
 
-    {/* 🔥 This will show values on hover */}
-   <Tooltip content={<CustomRadarTooltip />} cursor={false} />
-  </RadarChart>
-              </ResponsiveContainer>
+                    {/* 🔥 This will show values on hover */}
+                    <Tooltip content={<CustomRadarTooltip />} cursor={false} />
+                  </RadarChart>
+                </ResponsiveContainer>
 
               </div>
 
@@ -312,26 +312,26 @@ const handleTooltipClick = (setTooltipFn) => {
               >
                 {/* Info Icon */}
                 <div className="absolute top-2 right-2 text-black text-base cursor-pointer">
-                    {/* Tooltip Trigger */}
-                <div
-                  ref={iconRef}
-                  className="relative cursor-pointer"
-                  onClick={() => handleTooltipClick(setShowTooltip2)}
-                >
-                  <Info className="w-4 h-4 text-black" />
+                  {/* Tooltip Trigger */}
+                  <div
+                    ref={iconRef}
+                    className="relative cursor-pointer"
+                    onClick={() => handleTooltipClick(setShowTooltip2)}
+                  >
+                    <Info className="w-4 h-4 text-black" />
 
-                  {/* Tooltip Popup */}
-                  {showTooltip2 && (
-                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      Summary of your rank and performance stats.
-                    </div>
-                  )}
-                </div>
+                    {/* Tooltip Popup */}
+                    {showTooltip2 && (
+                      <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                        Summary of your rank and performance stats.
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Left Stars */}
                 <div className="flex items-center gap-[0px] text-orange-800">
-                 <span className="drop-shadow-md animate-pulse text-2xl xl:text-2xl lg:text-xl mt-5">★</span>
+                  <span className="drop-shadow-md animate-pulse text-2xl xl:text-2xl lg:text-xl mt-5">★</span>
                   <span className="xl:text-3xl text-3xl lg:text-2xl mt-3 drop-shadow-md animate-pulse">★</span>
                   <span className="xl:text-4xl text-4xl lg:text-3xl mt-1 drop-shadow-md animate-pulse">★</span>
                 </div>
@@ -361,27 +361,27 @@ const handleTooltipClick = (setTooltipFn) => {
 
                 {/* Score Bars */}
                 {scores.map((score, index) => (
-  <div key={index} className="flex items-center mb-2 gap-2 w-full">
-    {/* Label */}
-    <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
+                  <div key={index} className="flex items-center mb-2 gap-2 w-full">
+                    {/* Label */}
+                    <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
 
-    {/* Progress Bar */}
-    <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
-      <div
-        className="h-2 rounded-full shadow-md transition-all duration-2000 ease-out animate-pulse"
-        style={{
-          width: `${progressValues[index]}%`,
-          background: 'linear-gradient(to right, #c56b49, #f97316)',
-        }}
-      ></div>
-    </div>
+                    {/* Progress Bar */}
+                    <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
+                      <div
+                        className="h-2 rounded-full shadow-md transition-all duration-2000 ease-out animate-pulse"
+                        style={{
+                          width: `${progressValues[index]}%`,
+                          background: 'linear-gradient(to right, #c56b49, #f97316)',
+                        }}
+                      ></div>
+                    </div>
 
-    {/* Score Value */}
-    <span className="text-[11px] text-gray-800 w-[30px] text-right">
-      {1000 + score.value}
-    </span>
-  </div>
-    ))}
+                    {/* Score Value */}
+                    <span className="text-[11px] text-gray-800 w-[30px] text-right">
+                      {1000 + score.value}
+                    </span>
+                  </div>
+                ))}
 
                 {/* Brain Score Index */}
                 <hr className="my-2 border-gray-300" />
@@ -424,58 +424,57 @@ const handleTooltipClick = (setTooltipFn) => {
               {/* Your existing chart component goes here */}
               {/* <ProgressChart /> or directly the Recharts code */}
               {/* Chart */}
-             <div
-  className={`relative h-52 mt-10 w-full transition-opacity duration-1500 ${
-    showChart ? 'opacity-100' : 'opacity-0'
-  }`}
->
+              <div
+                className={`relative h-52 mt-10 w-full transition-opacity duration-1500 ${showChart ? 'opacity-100' : 'opacity-0'
+                  }`}
+              >
 
-      {showChart && (
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={chartData}
-            height="100%"
-            margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="60%" stopColor="#FF6C40" stopOpacity={0.9} />
-                <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
+                {showChart && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={chartData}
+                      height="100%"
+                      margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="60%" stopColor="#FF6C40" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
 
-            <CartesianGrid stroke="#D5D5D5" strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 10, fontWeight: "bold", fill: "#333" }}
-              axisLine={false}
-              tickLine={false}
-              interval={0}
-              height={20}
-            />
-            <YAxis
-              domain={[0, 2000]}
-              ticks={[100, 500, 1000, 1500, 2000]}
-              tick={{ fontSize: 10 }}
-              axisLine={false}
-              tickLine={false}
-              width={30}
-            />
-             <Tooltip content={<CustomRadarTooltip />} cursor={false} />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="#f97316"
-              fill="url(#colorValue)"
-              strokeWidth={2}
-              animationDuration={3000} // full 3 seconds animation
-              animationBegin={0}
-              isAnimationActive={true}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      )}
-            </div>
+                      <CartesianGrid stroke="#D5D5D5" strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 10, fontWeight: "bold", fill: "#333" }}
+                        axisLine={false}
+                        tickLine={false}
+                        interval={0}
+                        height={20}
+                      />
+                      <YAxis
+                        domain={[0, 2000]}
+                        ticks={[100, 500, 1000, 1500, 2000]}
+                        tick={{ fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={30}
+                      />
+                      <Tooltip content={<CustomRadarTooltip />} cursor={false} />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#f97316"
+                        fill="url(#colorValue)"
+                        strokeWidth={2}
+                        animationDuration={3000} // full 3 seconds animation
+                        animationBegin={0}
+                        isAnimationActive={true}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
           </div>
 
@@ -490,7 +489,7 @@ const handleTooltipClick = (setTooltipFn) => {
                 </h3>
 
                 {/* Show on md+ */}
-                 {/* Tooltip Trigger */}
+                {/* Tooltip Trigger */}
                 <div
                   ref={iconRef}
                   className="relative cursor-pointer"
@@ -548,21 +547,21 @@ const handleTooltipClick = (setTooltipFn) => {
                   Suggest for You
                 </h3>
                 <button>
-                    {/* Tooltip Trigger */}
-                <div
-                  ref={iconRef}
-                  className="relative cursor-pointer"
-                  onClick={() => handleTooltipClick(setShowTooltip6)}
-                >
-                  <Info className="w-4 h-4 text-black" />
+                  {/* Tooltip Trigger */}
+                  <div
+                    ref={iconRef}
+                    className="relative cursor-pointer"
+                    onClick={() => handleTooltipClick(setShowTooltip6)}
+                  >
+                    <Info className="w-4 h-4 text-black" />
 
-                  {/* Tooltip Popup */}
-                  {showTooltip6 && (
-                    <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      Personalized suggestions to help improve your performance.
-                    </div>
-                  )}
-                </div>
+                    {/* Tooltip Popup */}
+                    {showTooltip6 && (
+                      <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
+                        Personalized suggestions to help improve your performance.
+                      </div>
+                    )}
+                  </div>
                 </button>
               </div>
 
