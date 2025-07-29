@@ -64,6 +64,7 @@ import {
   MatrixReasoningGame,
   KenKenMathPuzzleGame,
   OneLineDrawGame,
+  NonogramPicrossGame,
 } from '../pages';
 
 export const gameRoutes = [
@@ -392,4 +393,9 @@ export const gameRoutes = [
     element: <OneLineDrawGame />,
     name: "One Line Draw Game"
   },
+  {
+    path: "/games/nonogram-picross-game",
+    element: <NonogramPicrossGame />,
+    name: "Nonogram Picross Game"
+  }
 ];

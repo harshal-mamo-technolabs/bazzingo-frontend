@@ -84,6 +84,7 @@ import SyllogismGame from './games/SyllogismGame';
 import MatrixReasoningGame from './games/MatrixReasoningGame';
 import KenKenMathPuzzleGame from './games/KenKenMathPuzzleGame';
 import OneLineDrawGame from './games/OneLineDraw';
+import NonogramPicrossGame from './games/NonogramPicrossGame';
 
 // Export all pages including games
 export {
@@ -172,5 +173,6 @@ export {
     SyllogismGame,
     MatrixReasoningGame,
     KenKenMathPuzzleGame,
-    OneLineDrawGame
+    OneLineDrawGame,
+    NonogramPicrossGame
 };

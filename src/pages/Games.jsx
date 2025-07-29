@@ -41,6 +41,7 @@ const games = [
   { id: 23, title: 'Number Puzzle Game', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/number-puzzle-game.png', bgColor: '#1D1D1B', path: "/games/ken-ken-math-puzzle-game" },
   { id: 24, title: 'One Line Draw', category: 'Logic', difficulty: 'Easy', icon: './games-icon/one-line-draw-game.png', bgColor: '#ffffff', path: "/games/one-line-draw-game" },
   { id: 24, title: 'Matrix Reasoning', category: 'Logic', difficulty: 'Easy', icon: './games-icon/matrix-reasoning-game.png', bgColor: '#D5EBFF', path: "/games/matrix-reasoning-game" },
+  { id: 24, title: 'Nonogram Picross', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/nonogram-picross-game.png', bgColor: '#1D1D1B', path: "/games/nonogram-picross-game" }
 ];
 
 const categories = [
