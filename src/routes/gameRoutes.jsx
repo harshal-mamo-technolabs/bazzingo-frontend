@@ -61,7 +61,9 @@ import {
   AnalogReasoningGame,
   StopSignalGame,
   SyllogismGame,
-  MatrixReasoningGame
+  MatrixReasoningGame,
+  KenKenMathPuzzleGame,
+  OneLineDrawGame,
 } from '../pages';
 
 export const gameRoutes = [
@@ -379,5 +381,15 @@ export const gameRoutes = [
     path: "/games/matrix-reasoning-game",
     element: <MatrixReasoningGame />,
     name: "Matrix Reasoning Game"
-  }
+  },
+  {
+    path: "/games/ken-ken-math-puzzle-game",
+    element: <KenKenMathPuzzleGame />,
+    name: "Ken Math Puzzle Game"
+  },
+  {
+    path: "/games/one-line-draw-game",
+    element: <OneLineDrawGame />,
+    name: "One Line Draw Game"
+  },
 ];

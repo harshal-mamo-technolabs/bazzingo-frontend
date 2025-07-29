@@ -36,7 +36,10 @@ const games = [
   { id: 18, title: 'Card Sorting Flexibility', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/card-sorting-flexibility-game.png', bgColor: '#ffffff', path: "/games/card-sorting-fleibility-game" },
   { id: 19, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
   { id: 20, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
-  { id: 20, title: 'Syllogism', category: 'Logic', difficulty: 'Easy', icon: './games-icon/syllogism-game.png', bgColor: '#1D1D1B', path: "/games/syllogism-game" },
+  { id: 21, title: 'Syllogism', category: 'Logic', difficulty: 'Easy', icon: './games-icon/syllogism-game.png', bgColor: '#1D1D1B', path: "/games/syllogism-game" },
+  { id: 22, title: 'Candy Crush', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/candy-crush-game.png', bgColor: '#ffffff', path: "/games/candy-crush-game" },
+  { id: 23, title: 'Number Puzzle Game', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/number-puzzle-game.png', bgColor: '#1D1D1B', path: "/games/ken-ken-math-puzzle-game" },
+  { id: 24, title: 'One Line Draw', category: 'Logic', difficulty: 'Easy', icon: './games-icon/one-line-draw-game.png', bgColor: '#ffffff', path: "/games/one-line-draw-game" },
 ];
 
 const categories = [

@@ -25,6 +25,9 @@ const CandyCrushGame = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [comboCount, setComboCount] = useState(0);
   const [flashingCells, setFlashingCells] = useState([]);
+  const [explodingCells, setExplodingCells] = useState([]);
+  const [fallingCandies, setFallingCandies] = useState([]);
+  const [particles, setParticles] = useState([]);
 
   // Candy types and colors
   const candyTypes = {
@@ -67,7 +70,9 @@ const CandyCrushGame = () => {
           row,
           col,
           matched: false,
-          special: false
+          special: false,
+          isNew: false,
+          fallDistance: 0
         });
       }
       newBoard.push(boardRow);
@@ -76,6 +81,35 @@ const CandyCrushGame = () => {
     setBoard(newBoard);
     setGridSize(size);
   }, [difficulty]);
+
+  // Create particles for animation
+  const createParticles = useCallback((positions) => {
+    const newParticles = [];
+    positions.forEach(({ row, col }, index) => {
+      for (let i = 0; i < 5; i++) {
+        newParticles.push({
+          id: `particle-${row}-${col}-${i}-${Date.now()}`,
+          x: col * 60 + 30 + (Math.random() - 0.5) * 20,
+          y: row * 60 + 30 + (Math.random() - 0.5) * 20,
+          color: ['#FFD700', '#FF6B35', '#FF1744', '#9C27B0', '#2196F3'][Math.floor(Math.random() * 5)],
+          size: Math.random() * 6 + 4,
+          life: 1.0,
+          decay: 0.02 + Math.random() * 0.01,
+          velocityX: (Math.random() - 0.5) * 4,
+          velocityY: (Math.random() - 0.5) * 4 - 2
+        });
+      }
+    });
+    
+    setParticles(prev => [...prev, ...newParticles]);
+
+    // Remove particles after animation
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => 
+        !newParticles.some(np => np.id === p.id)
+      ));
+    }, 2000);
+  }, []);
 
   // Check for matches
   const checkForMatches = useCallback(() => {
@@ -139,12 +173,18 @@ const CandyCrushGame = () => {
     return matches;
   }, [board]);
 
-  // Remove matches and update score
+  // Remove matches and update score with enhanced animations
   const removeMatches = useCallback((matchPositions) => {
     if (matchPositions.length === 0) return;
 
     const newBoard = [...board];
     let matchScore = 0;
+
+    // Create explosion animation for matched candies
+    setExplodingCells(matchPositions);
+    
+    // Create particles at match positions
+    createParticles(matchPositions);
 
     // Mark matched candies and calculate score
     matchPositions.forEach(({ row, col }) => {
@@ -163,68 +203,117 @@ const CandyCrushGame = () => {
     setMatches(prev => prev + matchPositions.length);
     setTotalMatches(prev => prev + 1);
 
-    // Flash the matched cells
+    // Flash and explode animation sequence
     setFlashingCells(matchPositions);
-    setTimeout(() => setFlashingCells([]), 300);
+    
+    setTimeout(() => {
+      setFlashingCells([]);
+      setExplodingCells([]);
+    }, 600);
 
-    // Update combo
+    // Update combo with enhanced feedback
     setComboCount(prev => {
       const newCombo = prev + 1;
       setLongestCombo(current => Math.max(current, newCombo));
+      
+      // Show combo celebration
+      if (newCombo > 2) {
+        setTimeout(() => {
+          // Add screen shake effect or other celebration
+        }, 100);
+      }
+      
       return newCombo;
     });
 
-    // Apply gravity after a delay
+    // Apply gravity after explosion animation
     setTimeout(() => {
       applyGravity();
-    }, 400);
+    }, 700);
 
     // Update score based on matches
     setScore(prev => prev + Math.round(matchScore));
-  }, [board, comboCount]);
+  }, [board, comboCount, createParticles]);
 
-  // Apply gravity to fill empty spaces
+  // Apply gravity with smooth falling animation
   const applyGravity = useCallback(() => {
     const newBoard = [...board];
     const size = newBoard.length;
     const types = candyTypes[difficulty.toLowerCase()];
+    const fallingAnimations = [];
 
     for (let col = 0; col < size; col++) {
-      // Find empty spaces (matched candies)
-      const column = [];
+      // Count empty spaces from bottom
+      let emptySpaces = 0;
       for (let row = size - 1; row >= 0; row--) {
-        if (!newBoard[row][col].matched) {
-          column.push(newBoard[row][col]);
+        if (newBoard[row][col].matched) {
+          emptySpaces++;
+        } else if (emptySpaces > 0) {
+          // Move candy down
+          const candy = newBoard[row][col];
+          const newRow = row + emptySpaces;
+          
+          fallingAnimations.push({
+            from: { row, col },
+            to: { row: newRow, col },
+            candy: { ...candy }
+          });
+
+          newBoard[newRow][col] = {
+            ...candy,
+            row: newRow,
+            id: `${newRow}-${col}`,
+            fallDistance: emptySpaces
+          };
+          
+          newBoard[row][col] = {
+            type: '',
+            matched: true,
+            row,
+            col,
+            id: `empty-${row}-${col}`
+          };
         }
       }
 
-      // Fill with new candies from top
-      while (column.length < size) {
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        column.push({
-          type: randomType,
-          id: `new-${Date.now()}-${Math.random()}`,
-          row: 0,
-          col,
-          matched: false,
-          special: false
-        });
-      }
-
-      // Place candies back in column
+      // Fill empty spaces at top with new candies
       for (let row = 0; row < size; row++) {
-        newBoard[size - 1 - row][col] = {
-          ...column[row],
-          row: size - 1 - row,
-          col,
-          id: `${size - 1 - row}-${col}`
-        };
+        if (newBoard[row][col].matched || newBoard[row][col].type === '') {
+          const randomType = types[Math.floor(Math.random() * types.length)];
+          newBoard[row][col] = {
+            type: randomType,
+            id: `new-${Date.now()}-${row}-${col}`,
+            row,
+            col,
+            matched: false,
+            special: false,
+            isNew: true,
+            fallDistance: emptySpaces + (size - row)
+          };
+
+          fallingAnimations.push({
+            from: { row: row - (emptySpaces + (size - row)), col },
+            to: { row, col },
+            candy: newBoard[row][col],
+            isNew: true
+          });
+        }
       }
     }
 
+    setFallingCandies(fallingAnimations);
     setBoard(newBoard);
 
-    // Check for new matches after gravity
+    // Clear falling animation after completion
+    setTimeout(() => {
+      setFallingCandies([]);
+      const clearedBoard = newBoard.map(row => 
+        row.map(candy => ({ ...candy, isNew: false, fallDistance: 0 }))
+      );
+      setBoard(clearedBoard);
+    }, 500);
+
+    // Check for new matches after gravity settles
     setTimeout(() => {
       const newMatches = checkForMatches();
       if (newMatches.length > 0) {
@@ -233,7 +322,7 @@ const CandyCrushGame = () => {
         setComboCount(0);
         setIsAnimating(false);
       }
-    }, 300);
+    }, 600);
   }, [board, difficulty, checkForMatches, removeMatches]);
 
   // Handle candy selection and swapping
@@ -258,7 +347,7 @@ const CandyCrushGame = () => {
     }
   }, [selectedCandy, isAnimating, gameState]);
 
-  // Swap two candies
+  // Swap two candies with animation
   const swapCandies = useCallback((candy1, candy2) => {
     setIsAnimating(true);
 
@@ -288,8 +377,8 @@ const CandyCrushGame = () => {
       if (matches.length > 0) {
         removeMatches(matches);
       } else {
-        // No matches, swap back
-        const revertBoard = [...board];
+        // No matches, swap back with animation
+        const revertBoard = [...newBoard];
         const revertTemp = { ...revertBoard[candy1.row][candy1.col] };
 
         revertBoard[candy1.row][candy1.col] = {
@@ -383,6 +472,9 @@ const CandyCrushGame = () => {
     setSelectedCandy(null);
     setIsAnimating(false);
     setFlashingCells([]);
+    setExplodingCells([]);
+    setFallingCandies([]);
+    setParticles([]);
     initializeBoard();
   }, [difficulty, initializeBoard]);
 
@@ -533,53 +625,100 @@ const CandyCrushGame = () => {
             </div>
           </div>
 
-          {/* Combo Indicator */}
+          {/* Enhanced Combo Indicator */}
           {comboCount > 1 && (
-            <div className="mb-4 animate-pulse">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                <span className="font-bold">COMBO {comboCount}x!</span>
-                <Sparkles className="h-4 w-4" />
+            <div className="mb-4 relative">
+              <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white px-6 py-3 rounded-full flex items-center gap-2 animate-bounce shadow-lg">
+                <Zap className="h-5 w-5 animate-pulse" />
+                <span className="font-bold text-lg">
+                  {comboCount >= 5 ? 'SUPER COMBO!' : comboCount >= 3 ? 'MEGA COMBO!' : 'COMBO'} {comboCount}x
+                </span>
+                <Sparkles className="h-5 w-5 animate-spin" />
               </div>
+              {comboCount >= 3 && (
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-full blur opacity-75 animate-pulse"></div>
+              )}
             </div>
           )}
 
-          {/* Game Board */}
-          <div className="mb-6">
+          {/* Game Board with Enhanced Animations */}
+          <div className="mb-6 relative">
             <div
-              className="grid gap-1 p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl shadow-lg"
+              className="grid gap-1 p-4 bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-xl shadow-2xl relative overflow-hidden"
               style={{
                 gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
                 maxWidth: '600px',
                 aspectRatio: '1'
               }}
             >
+              {/* Particle Effects */}
+              {particles.map((particle) => (
+                <div
+                  key={particle.id}
+                  className="absolute pointer-events-none animate-ping"
+                  style={{
+                    left: `${particle.x}px`,
+                    top: `${particle.y}px`,
+                    width: `${particle.size}px`,
+                    height: `${particle.size}px`,
+                    backgroundColor: particle.color,
+                    borderRadius: '50%',
+                    opacity: particle.life,
+                    transform: `translate(${particle.velocityX * 10}px, ${particle.velocityY * 10}px)`,
+                    animation: `particleFloat 2s ease-out forwards`
+                  }}
+                />
+              ))}
+
               {board.map((row, rowIndex) =>
                 row.map((candy, colIndex) => {
                   const isSelected = selectedCandy && selectedCandy.row === rowIndex && selectedCandy.col === colIndex;
                   const isFlashing = flashingCells.some(cell => cell.row === rowIndex && cell.col === colIndex);
+                  const isExploding = explodingCells.some(cell => cell.row === rowIndex && cell.col === colIndex);
+                  const isFalling = fallingCandies.some(f => f.to.row === rowIndex && f.to.col === colIndex);
 
                   return (
                     <div
                       key={candy.id}
                       className={`
-                        aspect-square rounded-lg cursor-pointer transition-all duration-200
-                        flex items-center justify-center text-2xl font-bold
+                        aspect-square rounded-lg cursor-pointer transition-all duration-300
+                        flex items-center justify-center text-2xl font-bold relative
                         ${candyColors[candy.type] || 'bg-gray-300'}
-                        ${isSelected ? 'ring-4 ring-yellow-400 scale-110' : ''}
-                        ${isFlashing ? 'animate-pulse bg-white' : ''}
-                        ${isAnimating ? 'pointer-events-none' : 'hover:scale-105'}
-                        shadow-md hover:shadow-lg
+                        ${isSelected ? 'ring-4 ring-yellow-400 scale-110 shadow-xl' : ''}
+                        ${isFlashing ? 'animate-pulse bg-white scale-110' : ''}
+                        ${isExploding ? 'animate-ping scale-150 opacity-75' : ''}
+                        ${isFalling ? 'animate-bounce' : ''}
+                        ${candy.isNew ? 'animate-bounce scale-110' : ''}
+                        ${isAnimating && !isSelected ? 'pointer-events-none' : 'hover:scale-105 hover:rotate-3'}
+                        shadow-lg hover:shadow-xl
+                        ${comboCount > 2 ? 'animate-pulse' : ''}
                       `}
                       onClick={() => handleCandyClick(rowIndex, colIndex)}
                       style={{
                         fontSize: gridSize > 8 ? '1.2rem' : '1.5rem',
-                        minHeight: gridSize > 8 ? '40px' : '50px'
+                        minHeight: gridSize > 8 ? '40px' : '50px',
+                        animationDelay: `${(rowIndex + colIndex) * 0.1}s`,
+                        filter: isExploding ? 'brightness(2) saturate(2)' : 'none',
+                        transform: `
+                          ${isExploding ? 'scale(1.3) rotate(360deg)' : ''}
+                          ${isSelected ? 'scale(1.1) translateY(-5px)' : ''}
+                          ${candy.fallDistance > 0 ? `translateY(-${candy.fallDistance * 20}px)` : ''}
+                        `
                       }}
                     >
                       {candy.type}
                       {candy.special && (
-                        <Star className="absolute h-3 w-3 text-yellow-300 top-0 right-0" />
+                        <Star className="absolute h-3 w-3 text-yellow-300 top-0 right-0 animate-spin" />
+                      )}
+                      
+                      {/* Glow effect for selected candy */}
+                      {isSelected && (
+                        <div className="absolute inset-0 rounded-lg bg-yellow-400 opacity-30 animate-pulse"></div>
+                      )}
+                      
+                      {/* Explosion effect */}
+                      {isExploding && (
+                        <div className="absolute inset-0 rounded-lg bg-white opacity-80 animate-ping"></div>
                       )}
                     </div>
                   );
@@ -592,8 +731,8 @@ const CandyCrushGame = () => {
           <div className="text-center max-w-2xl">
             <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
               {selectedCandy ?
-                'Click an adjacent candy to swap and create matches!' :
-                'Click a candy to select it, then click an adjacent candy to swap.'
+                '✨ Click an adjacent candy to swap and create matches!' :
+                '🎯 Click a candy to select it, then click an adjacent candy to swap.'
               }
             </p>
             <div className="text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -610,6 +749,57 @@ const CandyCrushGame = () => {
         onClose={() => setShowCompletionModal(false)}
         score={score}
       />
+
+      {/* Custom CSS for enhanced animations */}
+      <style jsx>{`
+        @keyframes particleFloat {
+          0% {
+            opacity: 1;
+            transform: translate(0, 0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(var(--particle-x, 0), var(--particle-y, -50px)) scale(0);
+          }
+        }
+        
+        @keyframes explode {
+          0% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.5) rotate(180deg);
+            opacity: 0.8;
+          }
+          100% {
+            transform: scale(0) rotate(360deg);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes fallDown {
+          0% {
+            transform: translateY(-100px);
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-explode {
+          animation: explode 0.6s ease-out forwards;
+        }
+        
+        .animate-fall {
+          animation: fallDown 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
