@@ -60,7 +60,8 @@ import {
   CandyCrushGame,
   AnalogReasoningGame,
   StopSignalGame,
-  SyllogismGame
+  SyllogismGame,
+  MatrixReasoningGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -373,5 +374,10 @@ export const gameRoutes = [
     path: "/games/syllogism-game",
     element: <SyllogismGame />,
     name: "Syllogism Game"
+  },
+  {
+    path: "/games/matrix-reasoning-game",
+    element: <MatrixReasoningGame />,
+    name: "Matrix Reasoning Game"
   }
 ];

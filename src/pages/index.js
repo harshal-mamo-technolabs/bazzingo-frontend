@@ -81,6 +81,7 @@ import CandyCrushGame from './games/CandyCrushGame';
 import AnalogReasoningGame from './games/AnalogReasoningGame';
 import StopSignalGame from './games/StopSignalGame';
 import SyllogismGame from './games/SyllogismGame';
+import MatrixReasoningGame from './games/MatrixReasoningGame';
 
 // Export all pages including games
 export {
@@ -166,5 +167,6 @@ export {
     CandyCrushGame,
     AnalogReasoningGame,
     StopSignalGame,
-    SyllogismGame
+    SyllogismGame,
+    MatrixReasoningGame
 };
