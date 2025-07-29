@@ -358,7 +358,7 @@ const Statistics = () => {
                 </div>
 
                 <hr className="mb-2 border-gray-300" />
-
+                {/* hello */}
                 {/* Score Bars */}
                 {scores.map((score, index) => (
                   <div key={index} className="flex items-center mb-2 gap-2 w-full">
