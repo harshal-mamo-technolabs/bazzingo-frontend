@@ -478,6 +478,9 @@ const SyllogismGame = () => {
     const [maxQuestions, setMaxQuestions] = useState(20);
     const [usedQuestionIds, setUsedQuestionIds] = useState(new Set());
 
+    const DIFFICULTY_ALIASES = { Moderate: 'Medium', medium: 'Medium', easy: 'Easy', hard: 'Hard' };
+    const normalizeDifficulty = (d) => DIFFICULTY_ALIASES[d] || d;
+
     const POINTS_PER_QUESTION = useMemo(() => {
         return 200 / (maxQuestions || 1);
     }, [maxQuestions]);
@@ -494,12 +497,13 @@ const SyllogismGame = () => {
 
     // Load next question
     const loadNextQuestion = useCallback(() => {
+        const diffKey = normalizeDifficulty(difficulty);
         let newQuestion;
         let attempts = 0;
         const maxAttempts = 50;
 
         do {
-            newQuestion = getRandomSyllogism(difficulty);
+            newQuestion = getRandomSyllogism(diffKey);
             attempts++;
         } while (usedQuestionIds.has(newQuestion.id) && attempts < maxAttempts);
 
@@ -627,7 +631,10 @@ const SyllogismGame = () => {
 
     // Initialize game
     const initializeGame = useCallback(() => {
-        const settings = difficultySettings[difficulty];
+        const diffKey = normalizeDifficulty(difficulty);
+        const settings = difficultySettings[diffKey] || difficultySettings.Easy;
+
+
         setScore(0);
         setFinalScore(0);
         setTimeRemaining(settings.timeLimit);
