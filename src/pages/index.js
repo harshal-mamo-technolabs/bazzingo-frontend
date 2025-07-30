@@ -85,6 +85,8 @@ import MatrixReasoningGame from './games/MatrixReasoningGame';
 import KenKenMathPuzzleGame from './games/KenKenMathPuzzleGame';
 import OneLineDrawGame from './games/OneLineDraw';
 import NonogramPicrossGame from './games/NonogramPicrossGame';
+import DataStreamSecurityGame from './games/DataStreamSecurityGame';
+import EmotionDecoderGame from './games/EmotionDecoderGame';
 
 // Export all pages including games
 export {
@@ -174,5 +176,7 @@ export {
     MatrixReasoningGame,
     KenKenMathPuzzleGame,
     OneLineDrawGame,
-    NonogramPicrossGame
+    NonogramPicrossGame,
+    DataStreamSecurityGame,
+    EmotionDecoderGame,
 };
