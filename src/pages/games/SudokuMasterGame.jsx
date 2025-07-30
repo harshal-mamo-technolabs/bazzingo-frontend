@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
@@ -267,6 +267,10 @@ class SudokuGenerator {
     }
 }
 
+// aliases can stay here or above the component
+const DIFFICULTY_ALIASES = { Moderate: 'Medium', medium: 'Medium', easy: 'Easy', hard: 'Hard' };
+const normalizeDifficulty = (d) => DIFFICULTY_ALIASES[d] || d;
+
 const SudokuGame = () => {
     const [gameState, setGameState] = useState('ready');
     const [difficulty, setDifficulty] = useState('Easy');
@@ -297,6 +301,9 @@ const SudokuGame = () => {
     const [correctMoves, setCorrectMoves] = useState(0);
     const [totalMoves, setTotalMoves] = useState(0);
 
+    const diffKey = useMemo(() => normalizeDifficulty(difficulty), [difficulty]);
+
+
     // Difficulty settings
     const difficultySettings = {
         Easy: {
@@ -324,7 +331,7 @@ const SudokuGame = () => {
 
     // Initialize game with difficulty settings
     const initializeGame = useCallback(() => {
-        const settings = difficultySettings[difficulty];
+        const settings = difficultySettings[diffKey] || difficultySettings.Medium;
         setScore(0);
         setFinalScore(0);
         setTimeRemaining(settings.timeLimit);
@@ -337,11 +344,11 @@ const SudokuGame = () => {
         setCompletionPercentage(0);
         setConflicts([]);
         setSelectedCell({ row: -1, col: -1 });
-    }, [difficulty]);
+    }, [diffKey]);
 
     // Generate new puzzle
     const generateNewPuzzle = useCallback(() => {
-        const { puzzle: newPuzzle, solution: newSolution } = sudokuGenerator.generatePuzzle(difficulty);
+        const { puzzle: newPuzzle, solution: newSolution } = sudokuGenerator.generatePuzzle(diffKey);
         setPuzzle(newPuzzle);
         setSolution(newSolution);
         setCurrentGrid(newPuzzle.map(row => [...row]));
@@ -350,7 +357,7 @@ const SudokuGame = () => {
         // Count initially filled cells
         const initialFilled = newPuzzle.flat().filter(cell => cell !== 0).length;
         setFilledCells(initialFilled);
-    }, [difficulty, sudokuGenerator]);
+    }, [diffKey, sudokuGenerator]);
 
     // Handle cell selection
     const handleCellClick = (row, col) => {
@@ -473,18 +480,18 @@ const SudokuGame = () => {
 
     // Calculate completion percentage
     useEffect(() => {
-        const settings = difficultySettings[difficulty];
+        const settings = difficultySettings[diffKey] || difficultySettings.Medium;
         const totalToFill = settings.cellsToFill;
         const currentFilled = filledCells - (81 - totalToFill); // Subtract pre-filled cells
         const percentage = Math.max(0, Math.min(100, (currentFilled / totalToFill) * 100));
         setCompletionPercentage(percentage);
-    }, [filledCells, difficulty]);
+    }, [filledCells, diffKey]);
 
     // Calculate score
     const calculateScore = useCallback(() => {
         if (gameState !== 'playing') return score;
 
-        const settings = difficultySettings[difficulty];
+        const settings = difficultySettings[diffKey] || difficultySettings.Medium;
 
         // Base completion score (0-80 points)
         const completionScore = (completionPercentage / 100) * 80;
@@ -505,7 +512,7 @@ const SudokuGame = () => {
         const hintPenalty = (hintsUsed / settings.maxHints) * 15;
 
         // Difficulty multiplier
-        const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Medium' ? 1.0 : 1.2;
+        const difficultyMultiplier = diffKey === 'Easy' ? 0.8 : diffKey === 'Medium' ? 1.0 : 1.2;
 
         // Speed bonus for fast completion (0-15 points)
         const avgTimePerCell = totalMoves > 0 ? timeUsed / totalMoves : 0;
@@ -517,7 +524,7 @@ const SudokuGame = () => {
         finalScore = finalScore * 0.9;
 
         return Math.round(Math.max(0, Math.min(200, finalScore)));
-    }, [gameState, completionPercentage, totalMoves, correctMoves, timeRemaining, mistakes, hintsUsed, difficulty, score]);
+    }, [gameState, completionPercentage, totalMoves, correctMoves, timeRemaining, mistakes, hintsUsed, diffKey, score]);
 
     // Update score
     useEffect(() => {
@@ -564,7 +571,7 @@ const SudokuGame = () => {
     // Handle difficulty change
     const handleDifficultyChange = (newDifficulty) => {
         if (gameState === 'ready') {
-            setDifficulty(newDifficulty);
+            setDifficulty(normalizeDifficulty(newDifficulty));
         }
     };
 
@@ -619,7 +626,7 @@ const SudokuGame = () => {
         completionPercentage: Math.round(completionPercentage),
         accuracy: totalMoves > 0 ? Math.round((correctMoves / totalMoves) * 100) : 100,
         filledCells,
-        totalCells: difficultySettings[difficulty].cellsToFill
+        totalCells: (difficultySettings[diffKey] || difficultySettings.Medium).cellsToFill
     };
 
     return (
