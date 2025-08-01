@@ -51,10 +51,8 @@ function App() {
         }
     ];
 
-    const unreadCount = 3;
-
     return (
-        <MainLayout unreadCount={unreadCount}>
+        <MainLayout>
             <div className="bg-white min-h-screen" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
                 {/* Main Content */}
                 <main>
