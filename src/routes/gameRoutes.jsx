@@ -66,7 +66,8 @@ import {
   OneLineDrawGame,
   NonogramPicrossGame,
   DataStreamSecurityGame,
-  EmotionDecoderGame
+  EmotionDecoderGame,
+  SokobanMicroGame,
 } from '../pages';
 
 export const gameRoutes = [
@@ -399,6 +400,11 @@ export const gameRoutes = [
     path: "/games/nonogram-picross-game",
     element: <NonogramPicrossGame />,
     name: "Nonogram Picross Game"
+  },
+  {
+    path: "/games/sokoban-micro-game",
+    element: <SokobanMicroGame />,
+    name: "Sokoban micro game"
   },
   {
     path: "/games/data-stream-security-game",

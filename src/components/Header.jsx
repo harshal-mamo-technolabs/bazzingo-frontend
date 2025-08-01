@@ -12,7 +12,7 @@ import hamburgerIcon from '../../public/header/hamburger.png';
 const NAV = [
     {path: '/dashboard', label: 'Dashboard', matchChildren: false},
     {path: '/games', label: 'Games', matchChildren: true},
-    {path: '/assessments', label: 'Assessments', matchChildren: false},
+    {path: '/assessments', label: 'Assessments', matchChildren: true},
     {path: '/statistics', label: 'Statistics', matchChildren: false},
     {path: '/leadboard', label: 'Leaderboard', matchChildren: false},
 ];

@@ -1,9 +1,9 @@
 import Header from '../Header';
 
-const MainLayout = ({ children, unreadCount = 0 }) => {
+const MainLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-white">
-      <Header unreadCount={unreadCount} />
+      <Header />
       <main>
         {children}
       </main>

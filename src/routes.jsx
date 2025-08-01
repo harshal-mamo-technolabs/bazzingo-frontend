@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
 
 // Import non-game pages
-import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, Assessments, Dashboard, Games, Profile, Statistics, Leadboard, NotFound, VisualReasoningLayout } from "./pages";
+import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, Assessments, Dashboard, Games, Profile, Statistics, Leadboard, NotFound, VisualReasoningStaticAssessment } from "./pages";
 
 // Import game routes
 import { gameRoutes } from "./routes/gameRoutes";
@@ -76,8 +76,8 @@ const router = createBrowserRouter([
         element: <Leadboard />,
     },
     {
-        path: "/visual-reasoning",
-        element: <VisualReasoningLayout />,
+        path: "/assessments/visual-reasoning",
+        element: <VisualReasoningStaticAssessment />,
     },
     ...gameRoutes,
     {

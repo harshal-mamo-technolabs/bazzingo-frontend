@@ -4,7 +4,7 @@ import DailyPuzzleIcon from "../../public/daily-puzzle-icon.png";
 import DailyAssessmentIcon from "../../public/daily-assessment-icon.png";
 import MageScapeIcon from "../../public/maze-escape-icon.png";
 import CheckIcon from "../../public/carbon_checkmark-filled.png";
-import NewAssessmentModal from "../components/assessments/NewAssessmentModal";
+import AssessmentCompletionModal from "../components/assessments/AssessmentCompletionModal.jsx";
 
 export default function VisualReasoningLayout() {
   const [showAllQuestions, setShowAllQuestions] = useState(false);
@@ -385,7 +385,7 @@ const activities = [
         </div>
       </div>
       {/* New Assessment Modal */}
-        <NewAssessmentModal
+        <AssessmentCompletionModal
           isOpen={isModalOpen}
           //selectedAssessment={selectedAssessment}
           onClose={() => setIsModalOpen(false)}

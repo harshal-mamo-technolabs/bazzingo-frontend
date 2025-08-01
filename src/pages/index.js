@@ -16,7 +16,7 @@ import Profile from './Profile';
 import Statistics from './Statistics';
 import Leadboard from './Leadboard';
 import NotFound from './NotFound';
-import VisualReasoningLayout from "./VisualReasoningLayout";
+import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
 
 // Game imports
 import ShadowMatchGame from './games/ShadowMatchGame';
@@ -87,6 +87,7 @@ import OneLineDrawGame from './games/OneLineDraw';
 import NonogramPicrossGame from './games/NonogramPicrossGame';
 import DataStreamSecurityGame from './games/DataStreamSecurityGame';
 import EmotionDecoderGame from './games/EmotionDecoderGame';
+import SokobanMicroGame from "./games/SokobanMicroGame.jsx";
 
 // Export all pages including games
 export {
@@ -108,7 +109,7 @@ export {
     Statistics,
     Leadboard,
     NotFound,
-    VisualReasoningLayout,
+    VisualReasoningStaticAssessment,
 
     // Game pages
     ShadowMatchGame,
@@ -179,4 +180,5 @@ export {
     NonogramPicrossGame,
     DataStreamSecurityGame,
     EmotionDecoderGame,
+    SokobanMicroGame
 };
