@@ -40,8 +40,13 @@ const games = [
   { id: 22, title: 'Candy Crush', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/candy-crush-game.png', bgColor: '#ffffff', path: "/games/candy-crush-game" },
   { id: 23, title: 'Number Puzzle Game', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/number-puzzle-game.png', bgColor: '#1D1D1B', path: "/games/ken-ken-math-puzzle-game" },
   { id: 24, title: 'One Line Draw', category: 'Logic', difficulty: 'Easy', icon: './games-icon/one-line-draw-game.png', bgColor: '#ffffff', path: "/games/one-line-draw-game" },
-  { id: 24, title: 'Matrix Reasoning', category: 'Logic', difficulty: 'Easy', icon: './games-icon/matrix-reasoning-game.png', bgColor: '#D5EBFF', path: "/games/matrix-reasoning-game" },
-  { id: 24, title: 'Nonogram Picross', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/nonogram-picross-game.png', bgColor: '#1D1D1B', path: "/games/nonogram-picross-game" }
+  { id: 25, title: 'Matrix Reasoning', category: 'Logic', difficulty: 'Easy', icon: './games-icon/matrix-reasoning-game.png', bgColor: '#D5EBFF', path: "/games/matrix-reasoning-game" },
+  { id: 26, title: 'Nonogram Picross', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/nonogram-picross-game.png', bgColor: '#1D1D1B', path: "/games/nonogram-picross-game" },
+  { id: 27, title: 'Who Is? Guess', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/who-is-brain-game.png', bgColor: '#FFFFFF', path: "/games/who-is-brain-game" },
+  { id: 28, title: 'Data Stream Security', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/data-stream-security-game.png', bgColor: '#1D1D1B', path: "/games/data-stream-security-game" },
+  { id: 29, title: 'Mirror Match', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/mirror-match-game.png', bgColor: '#D5EBFF', path: "/games/mirror-match-game" },
+  { id: 30, title: 'Emotion Decoder', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/emotion-decoder.png', bgColor: '#000000', path: "/games/emotion-decoder-game" },
+
 ];
 
 const categories = [

@@ -65,6 +65,8 @@ import {
   KenKenMathPuzzleGame,
   OneLineDrawGame,
   NonogramPicrossGame,
+  DataStreamSecurityGame,
+  EmotionDecoderGame
 } from '../pages';
 
 export const gameRoutes = [
@@ -397,5 +399,15 @@ export const gameRoutes = [
     path: "/games/nonogram-picross-game",
     element: <NonogramPicrossGame />,
     name: "Nonogram Picross Game"
-  }
+  },
+  {
+    path: "/games/data-stream-security-game",
+    element: <DataStreamSecurityGame/>,
+    name: "Data Security Game"
+  },
+  {
+    path: "/games/emotion-decoder-game",
+    element: <EmotionDecoderGame/>,
+    name: "Emotion Decoder Game"
+  },
 ];
