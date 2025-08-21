@@ -40,7 +40,6 @@ const TicTacToeGame = () => {
   const [bestMove, setBestMove] = useState(null);
   const [showTicTacToeInstructions, setShowTicTacToeInstructions] = useState(true);
   
-
   // Difficulty settings
   const difficultySettings = {
     Easy: { timeLimit: 300, lives: 5, hints: 3, aiStrength: 0.3, description: 'AI makes random moves 70% of the time' },

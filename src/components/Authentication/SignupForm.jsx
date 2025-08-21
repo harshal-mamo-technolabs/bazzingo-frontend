@@ -16,6 +16,26 @@ export default function SignupForm({ signupHandler }) {
   return (
     <form onSubmit={handleSubmit(signupHandler)} className="flex flex-col gap-5 md:gap-6">
       <div className="flex flex-col gap-3 md:gap-4">
+        {/* Name Field */}
+        <div>
+          <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
+            Full Name
+          </label>
+          <Input
+            type="text"
+            placeholder="Enter your full name"
+            className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
+            {...register("name", {
+              required: "Full name is required",
+              minLength: {
+                value: 2,
+                message: "Name must be at least 2 characters long",
+              },
+            })}
+          />
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+        </div>
+
         {/* Email Field */}
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">

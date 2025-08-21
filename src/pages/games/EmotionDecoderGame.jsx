@@ -2,23 +2,18 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/EmotionDecoder';
 import { 
   Play, 
-  Pause, 
   RotateCcw, 
   Lightbulb, 
   CheckCircle, 
   XCircle, 
   Clock, 
   Eye, 
-  Heart,
   Brain,
-  Users,
   ChevronUp,
   ChevronDown,
-  Tag,
-  Rewind,
-  FastForward
 } from 'lucide-react';
 
 const EmotionDecoderGame = () => {
@@ -55,407 +50,12 @@ const EmotionDecoderGame = () => {
   const [canScrubTimeline, setCanScrubTimeline] = useState(false);
 
   const animationRef = useRef(null);
-  const timelineRef = useRef(null);
-
-  // All emotion scenarios data
-  const allScenarios = [
-    // Easy Level - Single Character Emotions (0-7)
-    {
-      id: 1,
-      type: 'single',
-      character: {
-        name: 'Alex',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😕', duration: 1000, description: 'Confused and frustrated', phase: 'confusion' },
-        { emotion: '🤔', duration: 1200, description: 'Thinking deeply', phase: 'thinking' },
-        { emotion: '💡', duration: 800, description: 'Moment of realization', phase: 'realization' },
-        { emotion: '😊', duration: 1000, description: 'Happy and satisfied', phase: 'satisfaction' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Solved a difficult puzzle after struggling',
-        'Received unexpected good news',
-        'Found a lost item they were looking for',
-        'Remembered an important appointment'
-      ],
-      correctAnswer: 0,
-      explanation: 'The progression from confusion to deep thinking to realization to satisfaction clearly indicates solving a challenging problem.',
-      hints: [
-        'Notice the thinking phase - this suggests mental effort',
-        'The "lightbulb moment" is key to identifying the trigger',
-        'The satisfaction comes from overcoming a challenge'
-      ]
-    },
-    {
-      id: 2,
-      type: 'single',
-      character: {
-        name: 'Maya',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😰', duration: 1200, description: 'Anxious and worried', phase: 'anxiety' },
-        { emotion: '😨', duration: 800, description: 'Peak nervousness', phase: 'peak_stress' },
-        { emotion: '😌', duration: 1000, description: 'Relief washing over', phase: 'relief' },
-        { emotion: '😊', duration: 1000, description: 'Happy and relieved', phase: 'joy' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Got a good grade on a test they were worried about',
-        'Successfully performed in front of a large audience',
-        'Reconciled with a friend after an argument',
-        'Avoided getting in trouble for something'
-      ],
-      correctAnswer: 1,
-      explanation: 'The intense anxiety building to peak nervousness followed by relief suggests performing under pressure.',
-      hints: [
-        'The anxiety builds to a peak - this suggests a performance moment',
-        'The immediate relief indicates the stressful event is over',
-        'This pattern is common when facing an audience'
-      ]
-    },
-    {
-      id: 3,
-      type: 'single',
-      character: {
-        name: 'Jordan',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😢', duration: 1000, description: 'Sad and disappointed', phase: 'sadness' },
-        { emotion: '🥺', duration: 1000, description: 'Hopeful but uncertain', phase: 'hope' },
-        { emotion: '😮', duration: 800, description: 'Surprised', phase: 'surprise' },
-        { emotion: '😄', duration: 1200, description: 'Extremely happy', phase: 'elation' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Won a competition they thought they lost',
-        'Got accepted to their dream school',
-        'Received an unexpected gift from someone special',
-        'Found out their pet was going to be okay'
-      ],
-      correctAnswer: 0,
-      explanation: 'The journey from sadness through hope to surprise and extreme joy suggests an unexpected victory.',
-      hints: [
-        'The initial sadness suggests they thought something was lost',
-        'The surprise element is crucial - something unexpected happened',
-        'The extreme joy indicates a reversal of fortune'
-      ]
-    },
-    {
-      id: 4,
-      type: 'single',
-      character: {
-        name: 'Sam',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😬', duration: 1000, description: 'Uncomfortable and awkward', phase: 'discomfort' },
-        { emotion: '😅', duration: 1200, description: 'Nervous laughter', phase: 'nervousness' },
-        { emotion: '😄', duration: 800, description: 'Genuine laughter', phase: 'amusement' },
-        { emotion: '🤣', duration: 1000, description: 'Uncontrollable laughter', phase: 'hilarity' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Heard a funny comment that broke the tension',
-        'Successfully told a joke to impress someone',
-        'Watched a funny video during a serious moment',
-        'Realized they were overreacting to something silly'
-      ],
-      correctAnswer: 0,
-      explanation: 'The progression from discomfort through nervous laughter to genuine hilarity suggests humor breaking tension.',
-      hints: [
-        'The initial discomfort suggests an awkward situation',
-        'The transition through nervous to genuine laughter is key',
-        'Something external seemed to break the tension'
-      ]
-    },
-    {
-      id: 5,
-      type: 'single',
-      character: {
-        name: 'Riley',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😑', duration: 1000, description: 'Bored and uninterested', phase: 'boredom' },
-        { emotion: '🙄', duration: 800, description: 'Eye-rolling skepticism', phase: 'skepticism' },
-        { emotion: '😯', duration: 1000, description: 'Suddenly interested', phase: 'interest' },
-        { emotion: '🤩', duration: 1200, description: 'Amazed and excited', phase: 'amazement' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Discovered something unexpectedly awesome',
-        'Met their favorite celebrity by surprise',
-        'Found out they won a contest they forgot about',
-        'Learned their friend had a hidden talent'
-      ],
-      correctAnswer: 0,
-      explanation: 'The shift from boredom and skepticism to sudden amazement indicates discovering something unexpectedly impressive.',
-      hints: [
-        'The initial boredom suggests low expectations',
-        'The eye-rolling shows they were dismissive at first',
-        'The dramatic shift to amazement suggests surprise discovery'
-      ]
-    },
-    {
-      id: 6,
-      type: 'single',
-      character: {
-        name: 'Casey',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😊', duration: 1000, description: 'Happy and content', phase: 'happiness' },
-        { emotion: '😕', duration: 1000, description: 'Slight concern', phase: 'concern' },
-        { emotion: '😰', duration: 1200, description: 'Growing worry', phase: 'worry' },
-        { emotion: '😱', duration: 800, description: 'Shock and panic', phase: 'panic' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Noticed a mistake during an important interview',
-        'Realized they forgot something crucial',
-        'Saw someone they were trying to avoid',
-        'Got caught doing something they shouldn\'t'
-      ],
-      correctAnswer: 0,
-      explanation: 'The gradual decline from happiness to panic suggests realizing a serious mistake in a high-stakes situation.',
-      hints: [
-        'They started happy, suggesting things were going well',
-        'The gradual realization pattern suggests discovering an error',
-        'The final panic suggests high stakes or importance'
-      ]
-    },
-    {
-      id: 7,
-      type: 'single',
-      character: {
-        name: 'Taylor',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '🤨', duration: 1000, description: 'Suspicious and questioning', phase: 'suspicion' },
-        { emotion: '😮', duration: 800, description: 'Realization dawning', phase: 'realization' },
-        { emotion: '😤', duration: 1000, description: 'Indignant and upset', phase: 'indignation' },
-        { emotion: '😠', duration: 1200, description: 'Angry and frustrated', phase: 'anger' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Found out someone was lying to them',
-        'Discovered they were being pranked',
-        'Realized someone took credit for their work',
-        'Caught someone going through their things'
-      ],
-      correctAnswer: 0,
-      explanation: 'The progression from suspicion to realization to indignation and anger suggests discovering deception.',
-      hints: [
-        'The initial suspicion suggests something seemed off',
-        'The realization moment is when the truth becomes clear',
-        'The growing anger suggests betrayal of trust'
-      ]
-    },
-    {
-      id: 8,
-      type: 'single',
-      character: {
-        name: 'Morgan',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😔', duration: 1200, description: 'Feeling down and dejected', phase: 'dejection' },
-        { emotion: '🙂', duration: 1000, description: 'Small smile appearing', phase: 'hope' },
-        { emotion: '😊', duration: 800, description: 'Growing happiness', phase: 'joy' },
-        { emotion: '🥰', duration: 1000, description: 'Feeling loved and appreciated', phase: 'love' }
-      ],
-      totalDuration: 4000,
-      choices: [
-        'Saw a friend after years of being apart',
-        'Received an unexpected compliment',
-        'Got a surprise visit from family',
-        'Found an old photo with happy memories'
-      ],
-      correctAnswer: 0,
-      explanation: 'The transition from dejection to growing joy to feeling loved suggests an emotional reunion.',
-      hints: [
-        'They started feeling down and lonely',
-        'The gradual warming suggests human connection',
-        'The final loving feeling suggests deep emotional bond'
-      ]
-    },
-    
-    // Moderate Level - Complex Single Characters (8-14)
-    {
-      id: 9,
-      type: 'single',
-      character: {
-        name: 'Avery',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '😌', duration: 800, description: 'Calm and confident', phase: 'confidence' },
-        { emotion: '😬', duration: 1000, description: 'Growing tension', phase: 'tension' },
-        { emotion: '😅', duration: 1000, description: 'Nervous but trying', phase: 'effort' },
-        { emotion: '😎', duration: 800, description: 'Cool and accomplished', phase: 'success' },
-        { emotion: '🤗', duration: 1400, description: 'Warm and embracing', phase: 'celebration' }
-      ],
-      totalDuration: 5000,
-      choices: [
-        'Successfully asked someone out on a date',
-        'Gave a presentation that went better than expected',
-        'Stood up to a bully for the first time',
-        'Performed on stage despite stage fright'
-      ],
-      correctAnswer: 0,
-      explanation: 'The journey from confidence through tension and nervous effort to cool success and warm embrace suggests a romantic achievement.',
-      hints: [
-        'Started confident but tension built up',
-        'The nervous effort suggests pushing through fear',
-        'The cool success followed by warm embrace suggests interpersonal victory'
-      ]
-    },
-    {
-      id: 10,
-      type: 'single',
-      character: {
-        name: 'Quinn',
-        baseEmoji: '😐'
-      },
-      emotionSequence: [
-        { emotion: '🤔', duration: 1000, description: 'Deep in thought', phase: 'contemplation' },
-        { emotion: '😰', duration: 1200, description: 'Anxious about decision', phase: 'anxiety' },
-        { emotion: '😤', duration: 800, description: 'Determined resolve', phase: 'determination' },
-        { emotion: '😢', duration: 1000, description: 'Sad but necessary tears', phase: 'sadness' },
-        { emotion: '😌', duration: 1000, description: 'Peaceful acceptance', phase: 'peace' }
-      ],
-      totalDuration: 5000,
-      choices: [
-        'Decided to end a toxic relationship',
-        'Chose to quit a job they hated',
-        'Made the hard choice to move away from home',
-        'Decided to confront a difficult family issue'
-      ],
-      correctAnswer: 0,
-      explanation: 'The emotional journey from contemplation through anxiety and determination to sad acceptance suggests ending something harmful but difficult to let go.',
-      hints: [
-        'Deep thought suggests a major life decision',
-        'The anxiety shows the difficulty of the choice',
-        'Sadness followed by peace suggests letting go of something toxic'
-      ]
-    },
-
-    // Hard Level - Multiple Characters (15-19)
-    {
-      id: 11,
-      type: 'group',
-      characters: [
-        {
-          name: 'Chris',
-          baseEmoji: '😐',
-          emotionSequence: [
-            { emotion: '😊', duration: 1000, description: 'Happy and proud', phase: 'pride' },
-            { emotion: '😕', duration: 1000, description: 'Noticing something wrong', phase: 'concern' },
-            { emotion: '😔', duration: 1500, description: 'Disappointed and hurt', phase: 'hurt' }
-          ]
-        },
-        {
-          name: 'Jamie',
-          baseEmoji: '😐',
-          emotionSequence: [
-            { emotion: '😒', duration: 1000, description: 'Feeling left out', phase: 'resentment' },
-            { emotion: '😠', duration: 1000, description: 'Growing jealous', phase: 'jealousy' },
-            { emotion: '😤', duration: 1500, description: 'Defensive and defiant', phase: 'defiance' }
-          ]
-        }
-      ],
-      totalDuration: 3500,
-      choices: [
-        'Chris got recognition that Jamie felt they deserved',
-        'Chris succeeded at something Jamie had failed at',
-        'Chris was chosen for something Jamie wanted',
-        'Chris received praise while Jamie was ignored'
-      ],
-      correctAnswer: 0,
-      explanation: 'Chris shows pride turning to hurt disappointment, while Jamie displays resentment and jealousy, suggesting recognition given to the wrong person.',
-      hints: [
-        'Chris starts proud but ends hurt - suggests their joy was ruined',
-        'Jamie shows clear jealousy and resentment patterns',
-        'This dynamic suggests competition over recognition or reward'
-      ]
-    },
-    {
-      id: 12,
-      type: 'group',
-      characters: [
-        {
-          name: 'Alex',
-          baseEmoji: '😐',
-          emotionSequence: [
-            { emotion: '🤔', duration: 1000, description: 'Contemplating carefully', phase: 'thinking' },
-            { emotion: '😊', duration: 1500, description: 'Happy to help', phase: 'kindness' },
-            { emotion: '😌', duration: 1000, description: 'Satisfied with choice', phase: 'satisfaction' }
-          ]
-        },
-        {
-          name: 'Sam',
-          baseEmoji: '😐',
-          emotionSequence: [
-            { emotion: '😰', duration: 1000, description: 'Worried and desperate', phase: 'desperation' },
-            { emotion: '🥺', duration: 1500, description: 'Hopeful and grateful', phase: 'gratitude' },
-            { emotion: '😭', duration: 1000, description: 'Overwhelmed with relief', phase: 'relief' }
-          ]
-        }
-      ],
-      totalDuration: 3500,
-      choices: [
-        'Alex lent money to Sam who was in financial trouble',
-        'Alex offered to help Sam with a difficult project',
-        'Alex shared their lunch with hungry Sam',
-        'Alex gave Sam their notes before an important test'
-      ],
-      correctAnswer: 0,
-      explanation: 'Alex shows thoughtful consideration before happy helpfulness, while Sam displays desperation turning to overwhelming gratitude and relief, suggesting significant financial help.',
-      hints: [
-        'Alex took time to think - suggests a big decision',
-        'Sam shows desperation turning to overwhelming relief',
-        'The intensity of Sam\'s gratitude suggests major help with serious problem'
-      ]
-    }
-  ];
-
-  // Get scenarios based on difficulty level
-  const getScenariosByDifficulty = (difficulty) => {
-    switch (difficulty) {
-      case 'Easy':
-        return allScenarios.slice(0, 8); // First 8 scenarios
-      case 'Moderate':
-        return allScenarios.slice(8, 11); // Scenarios 8-10 (complex single characters)
-      case 'Hard':
-        return allScenarios.slice(11, 13); // Scenarios 11-12 (group dynamics)
-      default:
-        return allScenarios.slice(0, 8);
-    }
-  };
-
-  // Difficulty settings
-  const difficultySettings = {
-    Easy: { timeLimit: 300, lives: 5, hints: 3, questionCount: 8, pointsPerQuestion: 25 },
-    Moderate: { timeLimit: 240, lives: 4, hints: 2, questionCount: 3, pointsPerQuestion: 50 },
-    Hard: { timeLimit: 180, lives: 3, hints: 1, questionCount: 2, pointsPerQuestion: 75 }
-  };
-
-  // Simplified scoring system
-  const calculateScore = useCallback(() => {
-    const settings = difficultySettings[difficulty];
-    return solvedScenarios * settings.pointsPerQuestion;
-  }, [solvedScenarios, difficulty]);
-
+  //const timelineRef = useRef(null);
   // Update score whenever relevant values change
   useEffect(() => {
-    const newScore = calculateScore();
+    const newScore = calculateScore(solvedScenarios, difficulty);
     setScore(newScore);
-  }, [calculateScore]);
+  }, [solvedScenarios, difficulty]);
 
   // Animation system
   const startAnimation = useCallback(() => {
@@ -624,13 +224,6 @@ const EmotionDecoderGame = () => {
     }, 4000);
   };
 
-  // Emotion tagging
-  const tagEmotion = (emotionPhase) => {
-    if (!taggedEmotions.includes(emotionPhase)) {
-      setTaggedEmotions(prev => [...prev, emotionPhase]);
-    }
-  };
-
   // Timer countdown
   useEffect(() => {
     let interval;
@@ -793,8 +386,8 @@ const EmotionDecoderGame = () => {
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                       <li>• Easy: 25 points per correct answer</li>
-                      <li>• Moderate: 50 points per correct answer</li>
-                      <li>• Hard: 75 points per correct answer</li>
+                      <li>• Moderate: 40 points per correct answer</li>
+                      <li>• Hard: 50 points per correct answer</li>
                     </ul>
                   </div>
 
@@ -804,8 +397,8 @@ const EmotionDecoderGame = () => {
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                       <li>• Easy: 8 single character emotions</li>
-                      <li>• Moderate: 3 complex emotional journeys</li>
-                      <li>• Hard: 2 group dynamics scenarios</li>
+                      <li>• Moderate: 5 complex emotional journeys</li>
+                      <li>• Hard: 4 group dynamics scenarios</li>
                     </ul>
                   </div>
                 </div>
@@ -1033,21 +626,25 @@ const EmotionDecoderGame = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {currentScenarioData.choices.map((choice, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswerSelect(index)}
-                    className="p-4 text-left bg-white border-2 border-gray-200 rounded-lg hover:border-[#F97316] hover:bg-orange-50 transition-all duration-200"
-                    style={{ fontFamily: 'Roboto, sans-serif' }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-[#F97316] text-white rounded-full flex items-center justify-center text-sm font-medium">
-                        {String.fromCharCode(65 + index)}
-                      </div>
-                      <div className="text-gray-800">
-                        {choice}
-                      </div>
-                    </div>
-                  </button>
+                <button
+    key={index}
+    onClick={() => handleAnswerSelect(index)}
+    className={`p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+      selectedAnswer === index
+        ? 'border-[#F97316] bg-orange-100'
+        : 'bg-white border-gray-200 hover:border-[#F97316] hover:bg-orange-50'
+    }`}
+    style={{ fontFamily: 'Roboto, sans-serif' }}
+  >
+    <div className="flex items-start gap-3">
+      <div className="flex-shrink-0 w-6 h-6 bg-[#F97316] text-white rounded-full flex items-center justify-center text-sm font-medium">
+        {String.fromCharCode(65 + index)}
+      </div>
+      <div className="text-gray-800">
+        {choice}
+      </div>
+    </div>
+                </button>
                 ))}
               </div>
             </div>

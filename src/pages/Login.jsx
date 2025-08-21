@@ -16,9 +16,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { status: isAuthenticated } = useSelector((state) => state.user);
 
-  // === TEST SWITCH (set to false to restore real API calls) ===
-  const TEST_BYPASS_LOGIN = true;
-
   useEffect(() => {
     dispatch(checkAndValidateToken());
   }, [dispatch]);
@@ -32,25 +29,6 @@ const Login = () => {
   const loginHandler = async (formData) => {
     try {
       dispatch(loadingAction());
-
-      // -------- TEST BYPASS (no API call; go straight to dashboard) --------
-      if (TEST_BYPASS_LOGIN) {
-        const userData = {
-          user: {
-            name: 'Test User',
-            email: formData?.email || 'test@example.com',
-          },
-          accessToken: 'dev-test-token',
-          tokenExpiry: getTokenExpiry(),
-        };
-
-        dispatch(loginAction(userData));
-        localStorage.setItem('user', JSON.stringify(userData));
-        toast.success('Logged in');
-        navigate('/dashboard');
-        return; // finally{} will still run and toggle loading off
-      }
-      // ---------------------------------------------------------------------
 
       const response = await loginService(formData.email, formData.password);
 

@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/WhoIsBrain';
-import { Eye, Lightbulb, CheckCircle, XCircle, Lock, Unlock, Search, ChevronUp, ChevronDown, Users } from 'lucide-react';
+import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/BorderlineBrain';
+import { Eye, Lightbulb, CheckCircle, XCircle, Plane, ChevronUp, ChevronDown, Flag, UtensilsCrossed, Shirt, Coins } from 'lucide-react';
 
-const WhoIsBrainGame = () => {
+const BorderlineBrainsGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
@@ -16,53 +16,52 @@ const WhoIsBrainGame = () => {
   const [lives, setLives] = useState(3);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [maxHints, setMaxHints] = useState(3);
-  const [solvedScenarios, setSolvedScenarios] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [wrongAnswers, setWrongAnswers] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [totalResponseTime, setTotalResponseTime] = useState(0);
   const [scenarioStartTime, setScenarioStartTime] = useState(0);
   const [currentScenarios, setCurrentScenarios] = useState([]);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // Game state
-  const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
   const [discoveredClues, setDiscoveredClues] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackType, setFeedbackType] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [hintMessage, setHintMessage] = useState('');
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
-
 
   // Update score whenever relevant values change
   useEffect(() => {
-    const newScore = calculateScore(difficulty, solvedScenarios);
+    const newScore = calculateScore(difficulty, correctAnswers, wrongAnswers);
     setScore(newScore);
-  }, [difficulty, solvedScenarios]);
+  }, [difficulty, correctAnswers, wrongAnswers]);
 
   // Handle clue discovery
-  const handleClueDiscovery = useCallback((characterId, clueType) => {
-    const clueKey = `${characterId}-${clueType}`;
-    if (!discoveredClues.includes(clueKey)) {
-      setDiscoveredClues(prev => [...prev, clueKey]);
+  const handleClueDiscovery = useCallback((clueType) => {
+    if (!discoveredClues.includes(clueType)) {
+      setDiscoveredClues(prev => [...prev, clueType]);
     }
   }, [discoveredClues]);
 
-  // Handle character selection
-  const handleCharacterSelect = useCallback((characterId) => {
+  // Handle country selection
+  const handleCountrySelect = useCallback((countryName) => {
     if (gameState !== 'playing' || showFeedback || !currentScenarios[currentScenario]) return;
 
     const responseTime = Date.now() - scenarioStartTime;
     const currentScenarioData = currentScenarios[currentScenario];
-    const isCorrect = characterId === currentScenarioData.correctAnswer;
+    const isCorrect = countryName === currentScenarioData.correctAnswer;
 
-    setSelectedCharacter(characterId);
+    setSelectedCountry(countryName);
     setShowFeedback(true);
     setTotalAttempts(prev => prev + 1);
     setTotalResponseTime(prev => prev + responseTime);
 
     if (isCorrect) {
       setFeedbackType('correct');
-      setSolvedScenarios(prev => prev + 1);
+      setCorrectAnswers(prev => prev + 1);
       setStreak(prev => {
         const newStreak = prev + 1;
         setMaxStreak(current => Math.max(current, newStreak));
@@ -72,10 +71,9 @@ const WhoIsBrainGame = () => {
       setTimeout(() => {
         if (currentScenario + 1 >= currentScenarios.length) {
           setGameState('finished');
-          setShowCompletionModal(true);
         } else {
           setCurrentScenario(prev => prev + 1);
-          setSelectedCharacter(null);
+          setSelectedCountry(null);
           setDiscoveredClues([]);
           setShowFeedback(false);
           setScenarioStartTime(Date.now());
@@ -84,12 +82,12 @@ const WhoIsBrainGame = () => {
     } else {
       setFeedbackType('incorrect');
       setStreak(0);
+      setWrongAnswers(prev => prev + 1);
       setLives(prev => {
         const newLives = prev - 1;
         if (newLives <= 0) {
           setTimeout(() => {
             setGameState('finished');
-            setShowCompletionModal(true);
           }, 2000);
         }
         return Math.max(0, newLives);
@@ -98,7 +96,7 @@ const WhoIsBrainGame = () => {
       setTimeout(() => {
         if (lives > 1) {
           setShowFeedback(false);
-          setSelectedCharacter(null);
+          setSelectedCountry(null);
         }
       }, 2500);
     }
@@ -111,24 +109,18 @@ const WhoIsBrainGame = () => {
     setHintsUsed(prev => prev + 1);
     
     const currentScenarioData = currentScenarios[currentScenario];
-    const correctCharacter = currentScenarioData.characters.find(char => char.isCorrect);
+    const correctCountry = currentScenarioData.correctAnswer;
     
-    if (correctCharacter) {
-      // Find a suspicious clue that hasn't been discovered
-      const suspiciousClues = Object.entries(correctCharacter.clues)
-        .filter(([clueType, clue]) => {
-          const clueKey = `${correctCharacter.id}-${clueType}`;
-          return clue.suspicious && !discoveredClues.includes(clueKey);
-        });
+    // Find an undiscovered clue
+    const clueTypes = ['flag', 'food', 'clothing', 'currency'];
+    const undiscoveredClues = clueTypes.filter(clueType => !discoveredClues.includes(clueType));
 
-      if (suspiciousClues.length > 0) {
-        const [clueType] = suspiciousClues[0];
-        const clueKey = `${correctCharacter.id}-${clueType}`;
-        setDiscoveredClues(prev => [...prev, clueKey]);
-        setHintMessage(`Check ${correctCharacter.name}'s ${clueType} - there's something suspicious there!`);
-      } else {
-        setHintMessage(`Focus on ${correctCharacter.name} - they show signs of deception.`);
-      }
+    if (undiscoveredClues.length > 0) {
+      const hintClue = undiscoveredClues[0];
+      setDiscoveredClues(prev => [...prev, hintClue]);
+      setHintMessage(`Check the traveler's ${hintClue} - it contains important evidence about ${correctCountry}!`);
+    } else {
+      setHintMessage(`This traveler is from ${correctCountry} - look at all the cultural evidence!`);
     }
 
     setShowHint(true);
@@ -169,10 +161,11 @@ const WhoIsBrainGame = () => {
     setLives(settings.lives);
     setMaxHints(settings.hints);
     setHintsUsed(0);
-    setSolvedScenarios(0);
+    setCorrectAnswers(0);
+    setWrongAnswers(0);
     setTotalAttempts(0);
     setTotalResponseTime(0);
-    setSelectedCharacter(null);
+    setSelectedCountry(null);
     setDiscoveredClues([]);
     setShowFeedback(false);
     setShowHint(false);
@@ -188,7 +181,7 @@ const WhoIsBrainGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Who Is Brain Game completed:', payload);
+    console.log('Borderline Brains Game completed:', payload);
   };
 
   const customStats = {
@@ -197,7 +190,8 @@ const WhoIsBrainGame = () => {
     streak: maxStreak,
     lives,
     hintsUsed,
-    solvedScenarios,
+    correctAnswers,
+    wrongAnswers,
     totalAttempts,
     averageResponseTime: totalAttempts > 0 ? Math.round(totalResponseTime / totalAttempts / 1000) : 0,
     cluesDiscovered: discoveredClues.length
@@ -205,12 +199,69 @@ const WhoIsBrainGame = () => {
 
   const currentScenarioData = currentScenarios[currentScenario] || currentScenarios[0];
 
+  const getClueIcon = (clueType) => {
+    switch (clueType) {
+      case 'flag': return <Flag className="h-3 w-3" />;
+      case 'food': return <UtensilsCrossed className="h-3 w-3" />;
+      case 'clothing': return <Shirt className="h-3 w-3" />;
+      case 'currency': return <Coins className="h-3 w-3" />;
+      default: return <Eye className="h-3 w-3" />;
+    }
+  };
+
+  const getCountryFlag = (country) => {
+    const flagMap = {
+      'Italy': '🇮🇹',
+      'Spain': '🇪🇸',
+      'France': '🇫🇷',
+      'Japan': '🇯🇵',
+      'South Korea': '🇰🇷',
+      'China': '🇨🇳',
+      'Germany': '🇩🇪',
+      'Austria': '🇦🇹',
+      'Netherlands': '🇳🇱',
+      'Portugal': '🇵🇹',
+      'Mexico': '🇲🇽',
+      'Egypt': '🇪🇬',
+      'Morocco': '🇲🇦',
+      'Tunisia': '🇹🇳',
+      'India': '🇮🇳',
+      'Pakistan': '🇵🇰',
+      'Bangladesh': '🇧🇩',
+      'United Kingdom': '🇬🇧',
+      'Ireland': '🇮🇪',
+      'Australia': '🇦🇺',
+      'Belgium': '🇧🇪',
+      'Switzerland': '🇨🇭',
+      'Slovenia': '🇸🇮',
+      'Russia': '🇷🇺',
+      'Ukraine': '🇺🇦',
+      'Belarus': '🇧🇾',
+      'North Korea': '🇰🇵',
+      'Brazil': '🇧🇷',
+      'Argentina': '🇦🇷',
+      'Colombia': '🇨🇴',
+      'Saudi Arabia': '🇸🇦',
+      'UAE': '🇦🇪',
+      'Qatar': '🇶🇦',
+      'Norway': '🇳🇴',
+      'Sweden': '🇸🇪',
+      'Finland': '🇫🇮',
+      'Ethiopia': '🇪🇹',
+      'Kenya': '🇰🇪',
+      'Uganda': '🇺🇬',
+      'Myanmar': '🇲🇲',
+      'Poland': '🇵🇱',
+      'Czech Republic': '🇨🇿'
+    };
+    return flagMap[country] || '🌍';
+  };
+
   return (
     <div>
       <Header unreadCount={3} />
-
       <GameFramework
-        gameTitle="Who Is? Brain Game"
+        gameTitle="🌍 Borderline Brains"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -220,7 +271,7 @@ const WhoIsBrainGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Who Is? Brain Game
+                  How to Play Borderline Brains
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -234,10 +285,10 @@ const WhoIsBrainGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🕵️ Objective
+                      🛂 Objective
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Analyze characters and discover clues to identify who is lying, stealing, or guilty in each scenario.
+                      You're a customs officer! Examine travelers' belongings to identify their country of origin from visual clues.
                     </p>
                   </div>
 
@@ -246,9 +297,10 @@ const WhoIsBrainGame = () => {
                       🔍 Investigation
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Click on body parts to examine clues</li>
-                      <li>• Look for suspicious evidence</li>
-                      <li>• Compare statements to evidence</li>
+                      <li>• Examine flag patches and symbols</li>
+                      <li>• Check for traditional food evidence</li>
+                      <li>• Inspect clothing and cultural items</li>
+                      <li>• Look for currency clues</li>
                     </ul>
                   </div>
 
@@ -257,20 +309,20 @@ const WhoIsBrainGame = () => {
                       📊 Scoring
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25 points per correct answer</li>
-                      <li>• Moderate: 28 points per correct answer</li>
-                      <li>• Hard: 40 points per correct answer</li>
+                      <li>• Easy: +25 correct, -10 wrong</li>
+                      <li>• Moderate: +40 correct, -20 wrong</li>
+                      <li>• Hard: +50 correct, -25 wrong</li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📝 Questions
+                      ✈️ Travelers
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 different questions</li>
-                      <li>• Moderate: 7 different questions</li>
-                      <li>• Hard: 5 different questions</li>
+                      <li>• Easy: 8 travelers to process</li>
+                      <li>• Moderate: 5 travelers to process</li>
+                      <li>• Hard: 4 travelers to process</li>
                     </ul>
                   </div>
                 </div>
@@ -278,7 +330,7 @@ const WhoIsBrainGame = () => {
             </div>
           </div>
         }
-        category="Deductive Reasoning"
+        category="Geography Puzzle"
         gameState={gameState}
         setGameState={setGameState}
         score={score}
@@ -314,7 +366,7 @@ const WhoIsBrainGame = () => {
           <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Question
+                Traveler
               </div>
               <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
@@ -341,26 +393,26 @@ const WhoIsBrainGame = () => {
                 Clues Found
               </div>
               <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {discoveredClues.length}
+                {discoveredClues.length}/4
               </div>
             </div>
           </div>
 
-          {/* Scenario Question */}
+          {/* Scenario Header */}
           {currentScenarioData && (
             <div className="w-full max-w-4xl mb-6">
               <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Search className="h-5 w-5 text-blue-800" />
+                  <Plane className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Mystery #{currentScenario + 1} - {difficulty} Level
+                    Customs Control - Traveler #{currentScenario + 1} ({difficulty} Level)
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {currentScenarioData.question}
+                  Where is this traveler from?
                 </h3>
                 <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {currentScenarioData.description}
+                  Examine their belongings for clues about their country of origin. Look for cultural evidence!
                 </p>
               </div>
             </div>
@@ -373,7 +425,7 @@ const WhoIsBrainGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-5 w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
+                    Customs Hint:
                   </span>
                 </div>
                 <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
@@ -383,81 +435,80 @@ const WhoIsBrainGame = () => {
             </div>
           )}
 
-          {/* Characters */}
+          {/* Traveler Card */}
           {currentScenarioData && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mb-6">
-              {currentScenarioData.characters.map((character) => (
-                <div
-                  key={character.id}
-                  className={`bg-white border-2 rounded-lg p-6 transition-all duration-300 ${
-                    selectedCharacter === character.id
-                      ? character.isCorrect
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-red-500 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } ${showFeedback ? 'pointer-events-none' : 'cursor-pointer hover:shadow-lg'}`}
-                  //onClick={() => handleCharacterSelect(character.id)}
-                >
-                  {/* Character Header */}
-                  <div className="text-center mb-4">
-                    <div className="text-6xl mb-2">{character.emoji}</div>
-                    <h4 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      {character.name}
-                    </h4>
-                    <p className="text-sm text-gray-600 italic mt-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      "{character.statement}"
-                    </p>
-                  </div>
+            <div className="w-full max-w-4xl mb-6">
+              <div className="bg-white border-2 border-gray-200 rounded-lg p-6 shadow-lg">
+                {/* Traveler Header */}
+                <div className="text-center mb-6">
+                  <div className="text-8xl mb-4">{currentScenarioData.traveler.emoji}</div>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                    {currentScenarioData.traveler.name}
+                  </h4>
+                  <p className="text-lg text-gray-600 italic" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                    "{currentScenarioData.traveler.statement}"
+                  </p>
+                </div>
 
-                  {/* Clue Investigation */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(character.clues).map(([clueType, clue]) => {
-                      const clueKey = `${character.id}-${clueType}`;
-                      const isDiscovered = discoveredClues.includes(clueKey);
-                      
-                      return (
-                        <button
-                          key={clueType}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleClueDiscovery(character.id, clueType);
-                          }}
-                          disabled={showFeedback}
-                          className={`p-2 rounded border text-xs transition-colors ${
-                            isDiscovered
-                              ? clue.suspicious
-                                ? 'bg-red-100 border-red-300 text-red-800'
-                                : 'bg-green-100 border-green-300 text-green-800'
-                              : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          style={{ fontFamily: 'Roboto, sans-serif' }}
-                        >
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Eye className="h-3 w-3" />
-                            <span className="capitalize font-medium">{clueType}</span>
+                {/* Clue Investigation */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  {Object.entries(currentScenarioData.traveler.clues).map(([clueType, clue]) => {
+                    const isDiscovered = discoveredClues.includes(clueType);
+                    
+                    return (
+                      <button
+                        key={clueType}
+                        onClick={() => handleClueDiscovery(clueType)}
+                        disabled={showFeedback}
+                        className={`p-4 rounded border transition-colors ${
+                          isDiscovered
+                            ? 'bg-blue-100 border-blue-300 text-blue-800'
+                            : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        style={{ fontFamily: 'Roboto, sans-serif' }}
+                      >
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          {getClueIcon(clueType)}
+                          <span className="capitalize font-medium text-sm">{clueType}</span>
+                        </div>
+                        {isDiscovered ? (
+                          <div className="text-xs mt-2 font-medium">
+                            {clue.evidence}
                           </div>
-                          {isDiscovered && (
-                            <div className="text-xs mt-1">
-                              {clue.evidence}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                        ) : (
+                          <div className="text-xs mt-2 text-gray-500">
+                            Click to examine
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
 
-                  {/* Selection Button */}
-                  {!showFeedback && (
+                {/* Country Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {currentScenarioData.countries.map((country) => (
                     <button
-                      onClick={() => handleCharacterSelect(character.id)}
-                      className="w-full mt-4 bg-[#FF6B3E] text-white py-2 rounded-lg hover:bg-[#e55a35] transition-colors font-medium"
+                      key={country}
+                      onClick={() => handleCountrySelect(country)}
+                      disabled={showFeedback}
+                      className={`p-4 rounded-lg border-2 transition-all duration-300 ${
+                        selectedCountry === country
+                          ? country === currentScenarioData.correctAnswer
+                            ? 'border-green-500 bg-green-50 text-green-800'
+                            : 'border-red-500 bg-red-50 text-red-800'
+                          : 'border-gray-300 bg-white hover:border-blue-300 hover:bg-blue-50'
+                      } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                       style={{ fontFamily: 'Roboto, sans-serif' }}
                     >
-                      Select {character.name}
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="text-3xl">{getCountryFlag(country)}</span>
+                        <span className="font-semibold text-lg">{country}</span>
+                      </div>
                     </button>
-                  )}
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           )}
 
@@ -473,7 +524,7 @@ const WhoIsBrainGame = () => {
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Correct!' : 'Wrong Choice!'}
+                  {feedbackType === 'correct' ? 'Customs Approved! ✅' : 'Further Investigation Needed! ❌'}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
@@ -484,9 +535,14 @@ const WhoIsBrainGame = () => {
                   +{difficultySettings[difficulty].pointsPerQuestion} points earned!
                 </div>
               )}
+              {feedbackType === 'incorrect' && (
+                <div className="text-red-700 font-medium mb-2">
+                  -{difficultySettings[difficulty].penalty} points lost
+                </div>
+              )}
               {feedbackType === 'correct' && currentScenario + 1 < currentScenarios.length && (
                 <p className="text-green-700 font-medium">
-                  Moving to next scenario...
+                  Processing next traveler...
                 </p>
               )}
               {feedbackType === 'incorrect' && lives > 1 && (
@@ -499,29 +555,27 @@ const WhoIsBrainGame = () => {
 
           {/* Instructions */}
           <div className="text-center max-w-2xl mt-6">
-            <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Click on character body parts (hands, face, clothes, behavior) to discover clues.
-              Look for suspicious evidence that contradicts their statements.
-              Use hints wisely to reveal important clues when you're stuck.
+            <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+              🛂 Click on clue categories (Flag, Food, Clothing, Currency) to examine evidence.
+              Look for cultural indicators that reveal the traveler's country of origin.
             </p>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].questionCount} questions | 
+              {difficulty} Mode: {difficultySettings[difficulty].questionCount} travelers | 
               {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
               {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
               {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              {difficultySettings[difficulty].pointsPerQuestion} points per correct answer
+              +{difficultySettings[difficulty].pointsPerQuestion}/-{difficultySettings[difficulty].penalty} points
             </div>
           </div>
         </div>
       </GameFramework>
-      
       <GameCompletionModal
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
         score={score}
-      />
+            />
     </div>
   );
 };
 
-export default WhoIsBrainGame;
+export default BorderlineBrainsGame;

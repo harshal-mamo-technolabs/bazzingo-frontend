@@ -30,6 +30,8 @@ const Calender = () => {
     return (
         <>
         {/* Header */}
+          <div className="w-full lg:w-[280px] flex-shrink-0">
+            <div className="bg-[#ffece6] rounded-lg p-3 shadow-sm border border-gray-100 h-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex justify-between items-center space-x-2">
@@ -109,6 +111,8 @@ const Calender = () => {
           })}
         </div>
       </div>
+            </div>
+          </div>
         </>
     );
 };

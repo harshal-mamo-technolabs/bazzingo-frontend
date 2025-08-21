@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import MainLayout from '../components/Layout/MainLayout';
 import FilterBar from '../components/games/FilterBar';
 import GamesGrid from '../components/games/GamesGrid';
-import DailyGameModal from '../components/games/DailyGameModal';
+import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 
 const games = [
   { id: 1, title: 'Code Breaking Cipher', category: 'Logic', difficulty: 'Easy', icon: './games-icon/code-breaking-ciper.png', bgColor: '#D5EBFF', path: "/games/code-breaking-cipher-game" },

@@ -1,9 +1,9 @@
 import axios from "axios";
 import { API_CONNECTION_HOST_URL, SIGNUP_ENDPOINT, LOGIN_ENDPOINT, GOOGLE_LOGIN_ENDPOINT, FORGOT_PASSWORD_ENDPOINT, UPDATE_PASSWORD_ENDPOINT } from "../utils/constant";
 
-export async function signup(email, password, age, country) {
+export async function signup(name, email, password, age, country) {
     const response = await axios.post(`${API_CONNECTION_HOST_URL}${SIGNUP_ENDPOINT}`, {
-        name: "test",
+        name,
         email,
         password,
         age,

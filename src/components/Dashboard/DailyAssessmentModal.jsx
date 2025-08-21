@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
+const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
   const navigate = useNavigate();
   if (!isOpen || !selectedAssessment) return null;
 
@@ -105,4 +105,4 @@ const AssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
   );
 };
 
-export default AssessmentModal;
+export default DailyAssessmentModal;

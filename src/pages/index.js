@@ -1,4 +1,3 @@
-// Non-game page imports
 import Signup from './Signup';
 import Login from './Login';
 import ForgotPassword from './ForgotPassword';
@@ -18,46 +17,13 @@ import Leadboard from './Leadboard';
 import NotFound from './NotFound';
 import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
 
-// Game imports
-import ShadowMatchGame from './games/ShadowMatchGame';
+// Working games import
+import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
+import CognitiveLoadBalancerGame from './games/CognitiveLoadBalancerGame';
+import WhoIsBrainGame from './games/WhoIsBrainGame';
+import MirrorMatchGame from './games/MirrorMatchGame';
 import NumberFlipGame from './games/NumberFlipGame';
 import SequenceRecallGame from './games/SequenceRecallGame';
-import MazeLogicGame from './games/MazeLogicGame';
-import ShapeRotationGame from './games/ShapeRotationGame';
-import PatternMatchGame from './games/PatternMatchGame';
-import ColorRushGame from './games/ColorRushGame';
-import LogicPuzzleGame from './games/LogicPuzzleGame';
-import LogicPatternSequenceGame from './games/LogicPatternSequenceGame';
-import BlockStackingGame from './games/BlockStackingGame';
-import SequenceMathGame from './games/SequenceMathGame';
-import TileSwitchGame from './games/TileSwitchGame';
-import GridNavigationGame from './games/GridNavigationGame';
-import ObjectFitGame from './games/ObjectFitGame';
-import ObjectFitGame2 from './games/ObjectFitGame2';
-import SoundMemoryGame from './games/SoundMemoryGame';
-import WhackABoxGame from './games/WhackABoxGame';
-import MirrorMatchGame from './games/MirrorMatchGame';
-import PathFinderGame from './games/PathFinderGame';
-import TowerOfHanoiGame from './games/TowerOfHanoiGame';
-import DividedAttentionGame from './games/DividedAttentionGame';
-import DistanceEstimationGame from './games/DistanceEstimationGame';
-import SpeedEstimationGame from './games/SpeedEstimationGame';
-import LexicalMemoryGame from './games/LexicalMemoryGame';
-import MultimodalMemoryGame from './games/MultimodalMemoryGame';
-import ConcentrationGame from './games/ConcentrationGame';
-import VisualMemorySpanGame from './games/VisualMemorySpanGame';
-import StroopTestGame from './games/StroopTestGame';
-import WhoIsBrainGame from './games/WhoIsBrainGame';
-import NBackGame from './games/NBackGame';
-import MentalRotation3DGame from './games/MentalRotation3DGame';
-import CognitiveLoadBalancerGame from './games/CognitiveLoadBalancerGame';
-import NeuralNetworkBuilderGame from './games/NeuralNetworkBuilderGame';
-import TemporalReasoningArchitectGame from './games/TemporalReasoningArchitectGame';
-import CognitivePatternWeaverGame from './games/CognitivePatternWeaverGame';
-import CognitiveFlexibilityArchitectGame from './games/CognitiveFlexibilityArchitectGame';
-import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
-import MathExpressionBuilderGame from './games/MathExpressionBuilderGame';
-import NumberPatternMasterGame from './games/NumberPatternMasterGame';
 import MathDeductionGame from './games/MathDeductionGame';
 import WordChainLogicGame from './games/WordChainLogicGame';
 import CodeBreakingCipherGame from './games/CodeBreakingCipherGame';
@@ -71,14 +37,9 @@ import SudokuMasterGame from './games/SudokuMasterGame';
 import TapChallengeGame from './games/TapChallengeGame';
 import TapMinesweeperGame from './games/MineSweeperGame';
 import AnagramSolverGame from './games/AnagramSolverGame';
-import KakuroLogicGame from './games/KakuroLogicGame';
-import MastermindDeductionGame from './games/MastermindDeductionGame';
-import SetCardMatchGame from './games/SetCardMatchGame';
-import StrategicOrbCommanderGame from './games/StrategicOrbCommanderGame';
 import CardSortingFlexibility from './games/CardSortingFlexibility';
 import FaceNameMemoryGame from './games/FaceNameMemoryGame';
 import CandyCrushGame from './games/CandyCrushGame';
-import AnalogReasoningGame from './games/AnalogReasoningGame';
 import StopSignalGame from './games/StopSignalGame';
 import SyllogismGame from './games/SyllogismGame';
 import MatrixReasoningGame from './games/MatrixReasoningGame';
@@ -87,98 +48,161 @@ import OneLineDrawGame from './games/OneLineDraw';
 import NonogramPicrossGame from './games/NonogramPicrossGame';
 import DataStreamSecurityGame from './games/DataStreamSecurityGame';
 import EmotionDecoderGame from './games/EmotionDecoderGame';
-import SokobanMicroGame from "./games/SokobanMicroGame.jsx";
-
+import EscapeGridGame from './UnusedGames/EcsapeGridGame';
+import MathMindGame from './games/MathMindGame';
+import MemoryTownBuilderGame from './games/MemoryTownBuilderGame';
+import AIAlignmentLabGame from './games/AIAlignmentGame';
+import AdriaticCodebreaker from './games/AdriaticCodebreaker';
+import MarketRushGame from './games/MarketRushGame';
+import BorderlineBrainsGame from './games/BorderlineBrainsGame';
+ 
+/*
+// Unused Game imports
+import AnalogReasoningGame from './UnusedGames/AnalogReasoningGame';
+import ShadowMatchGame from './UnusedGames/ShadowMatchGame';
+import MazeLogicGame from './UnusedGames/MazeLogicGame';
+import ShapeRotationGame from './UnusedGames/ShapeRotationGame';
+import PatternMatchGame from './UnusedGames/PatternMatchGame';
+import ColorRushGame from './UnusedGames/ColorRushGame';
+import LogicPuzzleGame from './UnusedGames/LogicPuzzleGame';
+import LogicPatternSequenceGame from './UnusedGames/LogicPatternSequenceGame';
+import BlockStackingGame from './UnusedGames/BlockStackingGame';
+import SequenceMathGame from './UnusedGames/SequenceMathGame';
+import TileSwitchGame from './UnusedGames/TileSwitchGame';
+import GridNavigationGame from './UnusedGames/GridNavigationGame';
+import ObjectFitGame from './UnusedGames/ObjectFitGame';
+import ObjectFitGame2 from './UnusedGames/ObjectFitGame2';
+import SoundMemoryGame from './UnusedGames/SoundMemoryGame';
+import WhackABoxGame from './UnusedGames/WhackABoxGame';
+import PathFinderGame from './UnusedGames/PathFinderGame';
+import TowerOfHanoiGame from './UnusedGames/TowerOfHanoiGame';
+import DividedAttentionGame from './UnusedGames/DividedAttentionGame';
+import DistanceEstimationGame from './UnusedGames/DistanceEstimationGame';
+import SpeedEstimationGame from './UnusedGames/SpeedEstimationGame';
+import LexicalMemoryGame from './UnusedGames/LexicalMemoryGame';
+import MultimodalMemoryGame from './UnusedGames/MultimodalMemoryGame';
+import ConcentrationGame from './UnusedGames/ConcentrationGame';
+import VisualMemorySpanGame from './UnusedGames/VisualMemorySpanGame';
+import StroopTestGame from './UnusedGames/StroopTestGame';
+import NBackGame from './UnusedGames/NBackGame';
+import MentalRotation3DGame from './UnusedGames/MentalRotation3DGame';
+import NeuralNetworkBuilderGame from './UnusedGames/NeuralNetworkBuilderGame';
+import TemporalReasoningArchitectGame from './UnusedGames/TemporalReasoningArchitectGame';
+import CognitivePatternWeaverGame from './UnusedGames/CognitivePatternWeaverGame';
+import CognitiveFlexibilityArchitectGame from './UnusedGames/CognitiveFlexibilityArchitectGame';
+import MathExpressionBuilderGame from './UnusedGames/MathExpressionBuilderGame';
+import NumberPatternMasterGame from './UnusedGames/NumberPatternMasterGame';
+import KakuroLogicGame from './UnusedGames/KakuroLogicGame';
+import MastermindDeductionGame from './UnusedGames/MastermindDeductionGame';
+import SetCardMatchGame from './UnusedGames/SetCardMatchGame';
+import StrategicOrbCommanderGame from './UnusedGames/StrategicOrbCommanderGame';
+import EchoChamberGame from './UnusedGames/EchoChamberGame';
+import LocksmithLogicGame from './UnusedGames/LockSmithLogicGame';
+*/
+ 
 // Export all pages including games
 export {
-    // Non-game pages
-    Signup,
-    Login,
-    ForgotPassword,
-    ResetPassword,
-    UpdatePassword,
-    ClientTicket,
-    HelpFAQs,
-    NotificationPreferences,
-    PrivacyPolicy,
-    TermsOfUse,
-    Assessments,
-    Dashboard,
-    Games,
-    Profile,
-    Statistics,
-    Leadboard,
-    NotFound,
-    VisualReasoningStaticAssessment,
-
-    // Game pages
-    ShadowMatchGame,
-    NumberFlipGame,
-    SequenceRecallGame,
-    MazeLogicGame,
-    ShapeRotationGame,
-    PatternMatchGame,
-    ColorRushGame,
-    LogicPuzzleGame,
-    LogicPatternSequenceGame,
-    BlockStackingGame,
-    SequenceMathGame,
-    TileSwitchGame,
-    GridNavigationGame,
-    ObjectFitGame,
-    ObjectFitGame2,
-    SoundMemoryGame,
-    WhackABoxGame,
-    MirrorMatchGame,
-    PathFinderGame,
-    TowerOfHanoiGame,
-    DividedAttentionGame,
-    DistanceEstimationGame,
-    SpeedEstimationGame,
-    LexicalMemoryGame,
-    MultimodalMemoryGame,
-    ConcentrationGame,
-    VisualMemorySpanGame,
-    StroopTestGame,
-    WhoIsBrainGame,
-    NBackGame,
-    MentalRotation3DGame,
-    CognitiveLoadBalancerGame,
-    NeuralNetworkBuilderGame,
-    TemporalReasoningArchitectGame,
-    CognitivePatternWeaverGame,
-    CognitiveFlexibilityArchitectGame,
-    MetacognitiveStrategyNavigatorGame,
-    MathExpressionBuilderGame,
-    NumberPatternMasterGame,
-    MathDeductionGame,
-    WordChainLogicGame,
-    CodeBreakingCipherGame,
-    ResourceAllocationStrategyGame,
-    ProbabilityPredictionGame,
-    LogicGridSolverGame,
-    WordSearchMaster,
-    TicTacToeGame,
-    TwentyFortyEightGame,
-    SudokuMasterGame,
-    TapChallengeGame,
-    TapMinesweeperGame,
-    AnagramSolverGame,
-    KakuroLogicGame,
-    MastermindDeductionGame,
-    SetCardMatchGame,
-    StrategicOrbCommanderGame,
-    CardSortingFlexibility,
-    FaceNameMemoryGame,
-    CandyCrushGame,
-    AnalogReasoningGame,
-    StopSignalGame,
-    SyllogismGame,
-    MatrixReasoningGame,
-    KenKenMathPuzzleGame,
-    OneLineDrawGame,
-    NonogramPicrossGame,
-    DataStreamSecurityGame,
-    EmotionDecoderGame,
-    SokobanMicroGame
+  // Non-game pages
+  Signup,
+  Login,
+  ForgotPassword,
+  ResetPassword,
+  UpdatePassword,
+  ClientTicket,
+  HelpFAQs,
+  NotificationPreferences,
+  PrivacyPolicy,
+  TermsOfUse,
+  Assessments,
+  Dashboard,
+  Games,
+  Profile,
+  Statistics,
+  Leadboard,
+  NotFound,
+  VisualReasoningStaticAssessment,
+ 
+  // ✅ Working game pages
+  MetacognitiveStrategyNavigatorGame,
+  CognitiveLoadBalancerGame,
+  WhoIsBrainGame,
+  MirrorMatchGame,
+  NumberFlipGame,
+  SequenceRecallGame,
+  MathDeductionGame,
+  WordChainLogicGame,
+  CodeBreakingCipherGame,
+  ResourceAllocationStrategyGame,
+  ProbabilityPredictionGame,
+  LogicGridSolverGame,
+  WordSearchMaster, // <- this still has inconsistent name, fix if needed
+  TicTacToeGame,
+  TwentyFortyEightGame,
+  SudokuMasterGame,
+  TapChallengeGame,
+  TapMinesweeperGame,
+  AnagramSolverGame,
+  CardSortingFlexibility,
+  FaceNameMemoryGame,
+  CandyCrushGame,
+  StopSignalGame,
+  SyllogismGame,
+  MatrixReasoningGame,
+  KenKenMathPuzzleGame,
+  OneLineDrawGame,
+  NonogramPicrossGame,
+  DataStreamSecurityGame,
+  EmotionDecoderGame,
+  EscapeGridGame,
+  MathMindGame,
+  MemoryTownBuilderGame,
+  AIAlignmentLabGame,
+  AdriaticCodebreaker,
+  MarketRushGame,
+  BorderlineBrainsGame
+ 
+/*
+  // 🚫 Unused game pages
+  AnalogReasoningGame,
+  ShadowMatchGame,
+  MazeLogicGame,
+  ShapeRotationGame,
+  PatternMatchGame,
+  ColorRushGame,
+  LogicPuzzleGame,
+  LogicPatternSequenceGame,
+  BlockStackingGame,
+  SequenceMathGame,
+  TileSwitchGame,
+  GridNavigationGame,
+  ObjectFitGame,
+  ObjectFitGame2,
+  SoundMemoryGame,
+  WhackABoxGame,
+  PathFinderGame,
+  TowerOfHanoiGame,
+  DividedAttentionGame,
+  DistanceEstimationGame,
+  SpeedEstimationGame,
+  LexicalMemoryGame,
+  MultimodalMemoryGame,
+  ConcentrationGame,
+  VisualMemorySpanGame,
+  StroopTestGame,
+  NBackGame,
+  MentalRotation3DGame,
+  NeuralNetworkBuilderGame,
+  TemporalReasoningArchitectGame,
+  CognitivePatternWeaverGame,
+  CognitiveFlexibilityArchitectGame,
+  MathExpressionBuilderGame,
+  NumberPatternMasterGame,
+  KakuroLogicGame,
+  MastermindDeductionGame,
+  SetCardMatchGame,
+  StrategicOrbCommanderGame,
+  EchoChamberGame,
+  LocksmithLogicGame,
+  EscapeGridGame
+*/
 };

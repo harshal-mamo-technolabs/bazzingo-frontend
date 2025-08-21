@@ -1,7 +1,7 @@
-import ScoreNGame from "./ScoreNGame";
-import SuggestforYou from "./SuggestforYou";
+import RecommendationGameCarousel from "./RecommendationGameCarousel.jsx";
 import Calender from "./Calender";
-import DailyGame from "./DailyGame";
-import DailyAssesment from "./DailyAssesment";
+import DailyGameCard from "./DailyGameCard.jsx";
+import DailyAssessmentCard from "./DailyAssessmentCard.jsx";
+import IQAndGamesSummary from './IQAndGamesSummary.jsx';
 
-export {ScoreNGame, SuggestforYou, Calender, DailyGame, DailyAssesment};
+export {IQAndGamesSummary, RecommendationGameCarousel, Calender, DailyGameCard, DailyAssessmentCard};

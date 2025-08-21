@@ -1,5 +1,5 @@
 import React from 'react';
-import DailyGameCard from './DailyGameCard';
+import DailyGameCard from '../games/DailyGameCard.jsx';
 
 const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
   if (!isOpen) return null;
