@@ -1,7 +1,14 @@
 export const USER_SLICE_NAME = "user";
 
-export const API_CONNECTION_HOST_URL = "http://localhost:4000";
+// Prefer environment variables (Vite) with sensible fallbacks for local dev
+export const API_CONNECTION_HOST_URL = import.meta?.env?.VITE_API_URL || "http://localhost:4000";
+export const VAPID_PUBLIC_KEY = "BIYXHY1jiZqnePRbhgA1Tvnny1N7vpjgFcBhXD4hqNYfGm3VHxr8wRHTNC1mhM9V2BWS5jP9CxngbL29mhwq2E4";
+
 export const SIGNUP_ENDPOINT = "/auth/signup";
+
+// Push notification endpoints
+export const PUSH_SUBSCRIBE_ENDPOINT = "/push/subscribe";
+export const PUSH_UNSUBSCRIBE_ENDPOINT = "/push/unsubscribe";
 export const LOGIN_ENDPOINT = "/auth/login";
 export const GOOGLE_LOGIN_ENDPOINT = "/auth/google-login";
 export const FORGOT_PASSWORD_ENDPOINT = "/auth/forgot-password";
