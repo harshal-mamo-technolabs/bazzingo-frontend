@@ -1,4 +1,4 @@
-import {Calendar} from "../../../public/dashboard";
+import {Calendar} from "../../utils/dashboard-image.js";
 import {ChevronDown} from "lucide-react";
 import React from "react";
 

@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
-import {OrangeHeadBrainIllustrationIcon, RoyalStarBadgeIcon} from "../../../public/dashboard/index.js";
+import {OrangeHeadBrainIllustrationIcon, RoyalStarBadgeIcon} from "../../utils/dashboard-image.js";
 
 const DailyGameCard = ({ onGameClick }) => {
   const [showTooltip, setShowTooltip] = useState(false);

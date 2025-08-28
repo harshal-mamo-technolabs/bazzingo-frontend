@@ -6,7 +6,7 @@ import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 import DailyAssessmentModal from '../components/Dashboard/DailyAssessmentModal.jsx';
 import RecentActivity from '../components/Tables/RecentActivity';
 import {DAILY_GAMES} from "../utils/dashboardUtills.js";
-import {CognitiveFocusBrainIcon} from '../../public/dashboard';
+import {CognitiveFocusBrainIcon} from '../utils/dashboard-image.js';
 import PageHeader from "../components/Dashboard/PageHeader.jsx";
 import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlightCard.jsx";
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
@@ -36,7 +36,7 @@ const Dashboard = () => {
     setSelectedAssessment({
       title: 'Memory Match',
       description: 'Mini Test, 5–10 Question',
-      icon: {CognitiveFocusBrainIcon},
+      icon: CognitiveFocusBrainIcon,
     });
     setIsAssessmentModalOpen(true);
   }, []);

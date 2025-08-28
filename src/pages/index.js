@@ -55,6 +55,10 @@ import AIAlignmentLabGame from './games/AIAlignmentGame';
 import AdriaticCodebreaker from './games/AdriaticCodebreaker';
 import MarketRushGame from './games/MarketRushGame';
 import BorderlineBrainsGame from './games/BorderlineBrainsGame';
+import RiverCrossingGame from './games/RiverCrossingGame.jsx';
+import CastleDefenderGame from './games/CastleDefenderGame.jsx';
+import MaskMemoryGame from './games/MaskMemoryGame.jsx';
+import FishermansCatchGame from './games/FishermansCatchGame.jsx';
  
 /*
 // Unused Game imports
@@ -159,7 +163,11 @@ export {
   AIAlignmentLabGame,
   AdriaticCodebreaker,
   MarketRushGame,
-  BorderlineBrainsGame
+  BorderlineBrainsGame,
+  RiverCrossingGame,
+  CastleDefenderGame,
+  MaskMemoryGame,
+  FishermansCatchGame
  
 /*
   // 🚫 Unused game pages

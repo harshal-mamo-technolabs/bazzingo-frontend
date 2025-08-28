@@ -1,4 +1,4 @@
-import {MedalIcon} from "../../../public/dashboard";
+import {MedalIcon} from "../../utils/dashboard-image.js";
 
 export default function AssessmentUpsellCard() {
     return (
