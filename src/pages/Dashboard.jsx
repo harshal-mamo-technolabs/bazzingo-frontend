@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import { IQAndGamesSummary, RecommendationGameCarousel, Calender, DailyGameCard, DailyAssessmentCard} from '../components/Dashboard';
@@ -11,6 +11,7 @@ import PageHeader from "../components/Dashboard/PageHeader.jsx";
 import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlightCard.jsx";
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
+import { getDashboardData } from '../services/dashbaordService.js';
 
 const Dashboard = () => {
 
@@ -21,8 +22,27 @@ const Dashboard = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showTooltipStats, setShowTooltipStats] = useState(false);
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
+  const [iqScore, setIqScore] = useState(0);
+  const [totalGames, setTotalGames] = useState(0);
 
   const dailyGames = DAILY_GAMES;
+
+  useEffect(()=>{
+    const fetchDashboardData = async ()=> {
+      try{
+        const response = await getDashboardData();
+        if(response?.status === "success"){
+          setIqScore(response.data.iq || 0);
+          setTotalGames(response.data.uniqueGamesPlayed || 0);
+        }
+      }
+      catch(err){
+        console.error("Failed to fetch dashboard data: ",err);
+      }
+    };
+
+    fetchDashboardData();
+  },[]);
 
   const handleGameClick = useCallback(
       (game) => {
@@ -58,7 +78,7 @@ const Dashboard = () => {
 
             {/* Top Row */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-              <IQAndGamesSummary iqScore="125" totalGames="25"/>
+              <IQAndGamesSummary iqScore={iqScore} totalGames={totalGames}/>
               <AssessmentHighlightCard />
               <AssessmentUpsellCard />
             </div>

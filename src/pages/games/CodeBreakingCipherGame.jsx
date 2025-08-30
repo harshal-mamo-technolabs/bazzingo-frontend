@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import {cipherMessages, caesarCipher, substitutionCipher, textToMorse, textToBinary, generateSubstitutionKey, difficultySettings, getCipherTypeDescription} from "../../utils/games/CodeBreakingCipher";
 import { Key, Lightbulb, CheckCircle, XCircle, Lock, Unlock, RotateCw, ChevronUp, ChevronDown } from 'lucide-react';
 
 const CodeBreakingCipherGame = () => {
@@ -31,96 +32,6 @@ const CodeBreakingCipherGame = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showCipherInstructions, setShowCipherInstructions] = useState(true);
 
-  // Cipher messages by difficulty
-  const cipherMessages = {
-    easy: [
-      'HELLO WORLD',
-      'GOOD LUCK',
-      'WELL DONE',
-      'NICE WORK',
-      'GREAT JOB',
-      'KEEP GOING',
-      'ALMOST THERE',
-      'SUCCESS'
-    ],
-    moderate: [
-      'BREAK THE CODE',
-      'CIPHER MASTER',
-      'LOGIC PUZZLE',
-      'DECODE THIS MESSAGE',
-      'CRYPTOGRAPHY RULES',
-      'PATTERN RECOGNITION',
-      'ANALYTICAL THINKING',
-      'PROBLEM SOLVING'
-    ],
-    hard: [
-      'ADVANCED CRYPTANALYSIS TECHNIQUES',
-      'FREQUENCY ANALYSIS REQUIRED',
-      'MULTIPLE CIPHER LAYERS',
-      'COMPLEX SUBSTITUTION PATTERNS',
-      'HISTORICAL ENCRYPTION METHODS',
-      'MATHEMATICAL CIPHER ALGORITHMS',
-      'STEGANOGRAPHY AND CODES',
-      'INTELLIGENCE GATHERING SKILLS'
-    ]
-  };
-
-  // Caesar cipher implementation
-  const caesarCipher = (text, shift) => {
-    return text.split('').map(char => {
-      if (char.match(/[A-Z]/)) {
-        return String.fromCharCode(((char.charCodeAt(0) - 65 + shift) % 26) + 65);
-      }
-      return char;
-    }).join('');
-  };
-
-  // Substitution cipher implementation
-  const substitutionCipher = (text, key) => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    return text.split('').map(char => {
-      if (char.match(/[A-Z]/)) {
-        const index = alphabet.indexOf(char);
-        return key[index] || char;
-      }
-      return char;
-    }).join('');
-  };
-
-  // Morse code implementation
-  const morseCode = {
-    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
-    'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
-    'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
-    'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
-    'Y': '-.--', 'Z': '--..', ' ': '/'
-  };
-
-  const textToMorse = (text) => {
-    return text.split('').map(char => morseCode[char] || char).join(' ');
-  };
-
-  // Binary implementation
-  const textToBinary = (text) => {
-    return text.split('').map(char => {
-      if (char === ' ') return '00100000';
-      return char.charCodeAt(0).toString(2).padStart(8, '0');
-    }).join(' ');
-  };
-
-  // Generate random substitution key
-  const generateSubstitutionKey = () => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const shuffled = alphabet.split('').sort(() => Math.random() - 0.5);
-    return shuffled.join('');
-  };
-
-  // Difficulty settings
-  const difficultySettings = {
-    Easy: { timeLimit: 120, lives: 5, hints: 3, cipherTypes: ['caesar'] },
-    Moderate: { timeLimit: 100, lives: 4, hints: 2, cipherTypes: ['caesar', 'substitution', 'morse'] },
-    Hard: { timeLimit: 80, lives: 3, hints: 1, cipherTypes: ['caesar', 'substitution', 'morse', 'binary'] }
-  };
 
   // Generate new cipher
   const generateNewCipher = useCallback(() => {
@@ -182,45 +93,25 @@ const CodeBreakingCipherGame = () => {
     setCipherStartTime(Date.now());
   }, [difficulty]);
 
-  // Calculate score
-  const calculateScore = useCallback(() => {
-    if (totalAttempts === 0 || solvedCiphers === 0) return 0;
+// Calculate score
+const calculateScore = useCallback(() => {
+  let maxQuestions = 0;
+  let pointsPerCorrect = 0;
 
-    const settings = difficultySettings[difficulty];
-    const successRate = solvedCiphers / totalAttempts;
-    const avgResponseTime = totalResponseTime / totalAttempts / 1000;
+  if (difficulty === "Easy") {
+    maxQuestions = 8;
+    pointsPerCorrect = 25;
+  } else if (difficulty === "Moderate") {
+    maxQuestions = 5;
+    pointsPerCorrect = 40;
+  } else if (difficulty === "Hard") {
+    maxQuestions = 4;
+    pointsPerCorrect = 50;
+  }
 
-    // Base score from success rate (0-85 points)
-    let baseScore = successRate * 85;
-
-    // Time bonus (max 25 points)
-    const idealTime = difficulty === 'Easy' ? 25 : difficulty === 'Moderate' ? 35 : 45;
-    const timeBonus = Math.max(0, Math.min(25, (idealTime - avgResponseTime) * 1.2));
-
-    // Streak bonus (max 30 points)
-    const streakBonus = Math.min(maxStreak * 2.8, 30);
-
-    // Level progression bonus (max 20 points)
-    const levelBonus = Math.min(currentLevel * 1.1, 20);
-
-    // Lives bonus (max 15 points)
-    const livesBonus = (lives / settings.lives) * 15;
-
-    // Hints penalty (subtract up to 15 points)
-    const hintsPenalty = (hintsUsed / settings.hints) * 15;
-
-    // Difficulty multiplier
-    const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
-
-    // Time remaining bonus (max 15 points)
-    const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
-
-    let finalScore = (baseScore + timeBonus + streakBonus + levelBonus + livesBonus + timeRemainingBonus - hintsPenalty) * difficultyMultiplier;
-
-    finalScore = finalScore * 0.84;
-
-    return Math.round(Math.max(0, Math.min(200, finalScore)));
-  }, [solvedCiphers, totalAttempts, totalResponseTime, currentLevel, lives, hintsUsed, maxStreak, timeRemaining, difficulty]);
+  const score = Math.min(solvedCiphers, maxQuestions) * pointsPerCorrect;
+  return Math.min(score, 200);
+}, [solvedCiphers, difficulty]);
 
 
   // Update score whenever relevant values change
@@ -229,52 +120,71 @@ const CodeBreakingCipherGame = () => {
     setScore(newScore);
   }, [calculateScore]);
 
-  // Handle cipher submission
-  const handleSubmit = useCallback(() => {
-    if (gameState !== 'playing' || showFeedback || !currentCipher) return;
+// Handle cipher submission
+const handleSubmit = useCallback(() => {
+  if (gameState !== 'playing' || showFeedback || !currentCipher) return;
 
-    if (!userInput.trim()) {
-      return;
-    }
+  if (!userInput.trim()) {
+    return;
+  }
 
-    const responseTime = Date.now() - cipherStartTime;
-    const userAnswer = userInput.toUpperCase().trim();
-    const correctAnswer = currentCipher.original;
+  const responseTime = Date.now() - cipherStartTime;
+  const userAnswer = userInput.toUpperCase().trim();
+  const correctAnswer = currentCipher.original;
 
-    setShowFeedback(true);
-    setTotalAttempts(prev => prev + 1);
-    setTotalResponseTime(prev => prev + responseTime);
+  setShowFeedback(true);
+  setTotalAttempts(prev => prev + 1);
+  setTotalResponseTime(prev => prev + responseTime);
 
-    if (userAnswer === correctAnswer) {
-      setFeedbackType('correct');
-      setSolvedCiphers(prev => prev + 1);
-      setStreak(prev => {
-        const newStreak = prev + 1;
-        setMaxStreak(current => Math.max(current, newStreak));
-        return newStreak;
-      });
-      setCurrentLevel(prev => prev + 1);
+  if (userAnswer === correctAnswer) {
+    setFeedbackType('correct');
+    setSolvedCiphers(prev => {
+      const newSolved = prev + 1;
 
-      setTimeout(() => {
-        generateNewCipher();
-      }, 2000);
-    } else {
-      setFeedbackType('incorrect');
-      setStreak(0);
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        }
-        return Math.max(0, newLives);
-      });
+      // ✅ End game when max questions reached
+      const maxQuestions =
+        difficulty === "Easy" ? 8 :
+        difficulty === "Moderate" ? 5 : 4;
 
-      setTimeout(() => {
-        setShowFeedback(false);
-      }, 2000);
-    }
-  }, [gameState, showFeedback, currentCipher, userInput, cipherStartTime, generateNewCipher]);
+      if (newSolved >= maxQuestions) {
+        setGameState('finished');
+        setShowCompletionModal(true);
+      } else {
+        // Only generate next cipher if game not finished
+        setTimeout(() => {
+          generateNewCipher();
+        }, 2000);
+      }
+
+      return newSolved;
+    });
+
+    setStreak(prev => {
+      const newStreak = prev + 1;
+      setMaxStreak(current => Math.max(current, newStreak));
+      return newStreak;
+    });
+
+    setCurrentLevel(prev => prev + 1);
+
+  } else {
+    setFeedbackType('incorrect');
+    setStreak(0);
+    setLives(prev => {
+      const newLives = prev - 1;
+      if (newLives <= 0) {
+        setGameState('finished');
+        setShowCompletionModal(true);
+      }
+      return Math.max(0, newLives);
+    });
+
+    setTimeout(() => {
+      setShowFeedback(false);
+    }, 2000);
+  }
+}, [gameState, showFeedback, currentCipher, userInput, cipherStartTime, generateNewCipher, difficulty]);
+
 
 
   // Use hint
@@ -357,16 +267,6 @@ const CodeBreakingCipherGame = () => {
     totalAttempts,
     averageResponseTime: totalAttempts > 0 ? Math.round(totalResponseTime / totalAttempts / 1000) : 0,
     cipherType
-  };
-
-  const getCipherTypeDescription = (type) => {
-    switch (type) {
-      case 'caesar': return 'Caesar Cipher - Letters shifted by a fixed number';
-      case 'substitution': return 'Substitution Cipher - Each letter replaced with another';
-      case 'morse': return 'Morse Code - Dots and dashes represent letters';
-      case 'binary': return 'Binary Code - 8-bit sequences represent characters';
-      default: return 'Unknown cipher type';
-    }
   };
 
   const getCipherIcon = (type) => {

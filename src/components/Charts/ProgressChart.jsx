@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -10,6 +10,7 @@ import {
   Layer
 } from "recharts";
 import { motion } from "framer-motion";
+import { getWeeklyScores } from "../../services/dashbaordService";
 
 const CustomTooltip = ({ active, payload, coordinate }) => {
   if (!active || !payload?.length) return null;
@@ -36,8 +37,9 @@ const CustomTooltip = ({ active, payload, coordinate }) => {
 };
 
 const ProgressChart = () => {
-  const [statsData] = useState([500, 900, 1200, 700, 1600, 700, 1800]);
+  const [statsData, setStatsData] = useState([]);
   const [activePos, setActivePos] = useState(null);
+
   const xLabels = [
     "Sunday",
     "Monday",
@@ -47,16 +49,44 @@ const ProgressChart = () => {
     "Friday",
     "Saturday",
   ];
-  const chartData = statsData.map((value, i) => ({
-    name: xLabels[i],
-    value,
-  }));
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const res = await getWeeklyScores();
+        // API shape: res.data.scores = { MONDAY: 0, TUESDAY: 0, ... }
+        const scores = res?.data?.scores || {};
+
+        // Map API scores into chartData format
+        const orderedDays = [
+          "SUNDAY",
+          "MONDAY",
+          "TUESDAY",
+          "WEDNESDAY",
+          "THURSDAY",
+          "FRIDAY",
+          "SATURDAY",
+        ];
+
+        const chartReadyData = orderedDays.map((day, i) => ({
+          name: xLabels[i],
+          value: scores[day] ?? 0,
+        }));
+
+        setStatsData(chartReadyData);
+      } catch (err) {
+        console.error("Error loading weekly scores:", err);
+      }
+    };
+
+    fetchScores();
+  }, []);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          data={chartData}
+          data={statsData}
           margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
           onMouseMove={({ chartX, chartY, activePayload }) => {
             if (activePayload) setActivePos({ x: chartX, y: chartY });
@@ -71,7 +101,6 @@ const ProgressChart = () => {
               <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.1} />
             </linearGradient>
 
-            {/* Glow filter */}
             <filter id="glow">
               <feGaussianBlur stdDeviation="4" result="coloredBlur" />
               <feMerge>
