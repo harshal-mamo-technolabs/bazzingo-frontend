@@ -11,7 +11,8 @@ import PageHeader from "../components/Dashboard/PageHeader.jsx";
 import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlightCard.jsx";
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
-import { getDashboardData } from '../services/dashbaordService.js';
+import { getDashboardData, getDailyGames } from '../services/dashbaordService.js';
+
 
 const Dashboard = () => {
 
@@ -24,8 +25,9 @@ const Dashboard = () => {
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
   const [iqScore, setIqScore] = useState(0);
   const [totalGames, setTotalGames] = useState(0);
+  const [dailyGames, setDailyGames] = useState([]); // initially empty
 
-  const dailyGames = DAILY_GAMES;
+  //const dailyGames = DAILY_GAMES;
 
   useEffect(()=>{
     const fetchDashboardData = async ()=> {
@@ -41,7 +43,26 @@ const Dashboard = () => {
       }
     };
 
+    const fetchDailyGames = async () => {
+      try {
+        const res = await getDailyGames();
+        if (res?.status === "success") {
+          const mappedGames = res.data.suggestion.games.map((g) => ({
+            id: g.gameId._id,
+            title: g.gameId.name,
+            icon: g.gameId.thumbnail,
+            path: g.gameId.url,
+            difficulty: g.difficulty,
+          }));
+          setDailyGames(mappedGames);
+        }
+      } catch (err) {
+        console.error("Failed to fetch daily games:", err);
+      }
+    };
+
     fetchDashboardData();
+    fetchDailyGames();
   },[]);
 
   const handleGameClick = useCallback(
