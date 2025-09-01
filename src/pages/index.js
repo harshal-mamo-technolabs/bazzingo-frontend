@@ -16,6 +16,7 @@ import Statistics from './Statistics';
 import Leadboard from './Leadboard';
 import NotFound from './NotFound';
 import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
+import Payment from './Payment';
 
 // Working games import
 import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
@@ -121,6 +122,7 @@ export {
   Leadboard,
   NotFound,
   VisualReasoningStaticAssessment,
+  Payment,
  
   // ✅ Working game pages
   MetacognitiveStrategyNavigatorGame,
