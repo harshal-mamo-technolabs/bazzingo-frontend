@@ -6,6 +6,12 @@ export const VAPID_PUBLIC_KEY = "BIYXHY1jiZqnePRbhgA1Tvnny1N7vpjgFcBhXD4hqNYfGm3
 
 export const SIGNUP_ENDPOINT = "/auth/signup";
 
+// Dashboard page endpoints
+export const DASHBOARD_ENDPOINT = "/dashboard";  // IQ and Games Played endpoint
+export const PROGRESS_CHART_ENDPOINT = "/game/stats/weekly-scores";
+export const STREAK_ENDPOINT = "/streak";
+export const DAILY_GAMES_ENDPOINT = "/game/suggestions/daily";
+
 // Push notification endpoints
 export const PUSH_SUBSCRIBE_ENDPOINT = "/push/subscribe";
 export const PUSH_UNSUBSCRIBE_ENDPOINT = "/push/unsubscribe";

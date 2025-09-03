@@ -1,4 +1,4 @@
-import { BrainSilhouetteOrangeIcon } from "../../../public/dashboard";
+import { BrainSilhouetteOrangeIcon } from "../../utils/dashboard-image.js";
 import React from "react";
 
 export default function AssessmentHighlightCard() {

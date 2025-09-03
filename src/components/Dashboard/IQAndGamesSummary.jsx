@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import {BrainDuotoneIcon, DownloadCertificateIcon, PuzzlePiecesIcon} from "../../../public/dashboard";
+import {BrainDuotoneIcon, DownloadCertificateIcon, PuzzlePiecesIcon} from "../../utils/dashboard-image.js";
 
 const InfoDot = memo(({ title = "More info" }) => (
     <span

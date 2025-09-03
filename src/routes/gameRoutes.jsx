@@ -36,7 +36,11 @@ import {
   AIAlignmentLabGame,
   AdriaticCodebreaker,
   MarketRushGame,
-  BorderlineBrainsGame
+  BorderlineBrainsGame,
+  RiverCrossingGame,
+  CastleDefenderGame,
+  MaskMemoryGame,
+  FishermansCatchGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -264,5 +268,25 @@ export const gameRoutes = [
     path: "/games/borderline-brains-game",
     element: <BorderlineBrainsGame/>,
     name: "Border line Brains Game"
+  },
+  {
+    path: "/games/river-crossing-game",
+    element: <RiverCrossingGame/>,
+    name: "River Crossing Game"
+  },
+  {
+    path: "/games/castle-defender-game",
+    element: <CastleDefenderGame/>,
+    name: "Castle Defender Game"
+  },
+  {
+    path: "/games/mask-memory-game",
+    element: <MaskMemoryGame/>,
+    name: "Mask Memory Game"
+  },
+  {
+    path: "/games/fishermans-catch-game",
+    element: <FishermansCatchGame/>,
+    name: "Fishermans Catch Game"
   }
 ];

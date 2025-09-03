@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
 import { IQAndGamesSummary, RecommendationGameCarousel, Calender, DailyGameCard, DailyAssessmentCard} from '../components/Dashboard';
@@ -6,11 +6,13 @@ import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 import DailyAssessmentModal from '../components/Dashboard/DailyAssessmentModal.jsx';
 import RecentActivity from '../components/Tables/RecentActivity';
 import {DAILY_GAMES} from "../utils/dashboardUtills.js";
-import {CognitiveFocusBrainIcon} from '../../public/dashboard';
+import {CognitiveFocusBrainIcon} from '../utils/dashboard-image.js';
 import PageHeader from "../components/Dashboard/PageHeader.jsx";
 import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlightCard.jsx";
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
+import { getDashboardData, getDailyGames } from '../services/dashbaordService.js';
+
 
 const Dashboard = () => {
 
@@ -21,8 +23,47 @@ const Dashboard = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showTooltipStats, setShowTooltipStats] = useState(false);
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
+  const [iqScore, setIqScore] = useState(0);
+  const [totalGames, setTotalGames] = useState(0);
+  const [dailyGames, setDailyGames] = useState([]); // initially empty
 
-  const dailyGames = DAILY_GAMES;
+  //const dailyGames = DAILY_GAMES;
+
+  useEffect(()=>{
+    const fetchDashboardData = async ()=> {
+      try{
+        const response = await getDashboardData();
+        if(response?.status === "success"){
+          setIqScore(response.data.iq || 0);
+          setTotalGames(response.data.uniqueGamesPlayed || 0);
+        }
+      }
+      catch(err){
+        console.error("Failed to fetch dashboard data: ",err);
+      }
+    };
+
+    const fetchDailyGames = async () => {
+      try {
+        const res = await getDailyGames();
+        if (res?.status === "success") {
+          const mappedGames = res.data.suggestion.games.map((g) => ({
+            id: g.gameId._id,
+            title: g.gameId.name,
+            icon: g.gameId.thumbnail,
+            path: g.gameId.url,
+            difficulty: g.difficulty,
+          }));
+          setDailyGames(mappedGames);
+        }
+      } catch (err) {
+        console.error("Failed to fetch daily games:", err);
+      }
+    };
+
+    fetchDashboardData();
+    fetchDailyGames();
+  },[]);
 
   const handleGameClick = useCallback(
       (game) => {
@@ -36,7 +77,7 @@ const Dashboard = () => {
     setSelectedAssessment({
       title: 'Memory Match',
       description: 'Mini Test, 5–10 Question',
-      icon: {CognitiveFocusBrainIcon},
+      icon: CognitiveFocusBrainIcon,
     });
     setIsAssessmentModalOpen(true);
   }, []);
@@ -58,7 +99,7 @@ const Dashboard = () => {
 
             {/* Top Row */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-              <IQAndGamesSummary iqScore="125" totalGames="25"/>
+              <IQAndGamesSummary iqScore={iqScore} totalGames={totalGames}/>
               <AssessmentHighlightCard />
               <AssessmentUpsellCard />
             </div>
