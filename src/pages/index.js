@@ -16,6 +16,9 @@ import Statistics from './Statistics';
 import Leadboard from './Leadboard';
 import NotFound from './NotFound';
 import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
+import AssessmentPaymentDemo from './AssessmentPaymentDemo';
+import PaymentSuccess from './PaymentSuccess';
+import PaymentCancel from './PaymentCancel';
 import Payment from './Payment';
 
 // Working games import
@@ -126,6 +129,9 @@ export {
   Leadboard,
   NotFound,
   VisualReasoningStaticAssessment,
+  AssessmentPaymentDemo,
+  PaymentSuccess,
+  PaymentCancel,
   Payment,
  
   // ✅ Working game pages
