@@ -98,6 +98,24 @@ export async function getLeaderboard({ scope = "global", page = 1, limit = 20, c
   }
 }
 
+// Fetch recent assessment activity (latest scores)
+export async function getRecentAssessmentActivity() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/assessment/recent-activity`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching recent assessment activity:", err);
+    throw err;
+  }
+}
+
 function getAuthHeaders() {
   const userData = localStorage.getItem("user");
   if (!userData) throw new Error("User not authenticated");

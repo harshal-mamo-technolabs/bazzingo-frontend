@@ -4,14 +4,15 @@ import MainLayout from '../components/Layout/MainLayout';
 import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentCompletionModal from '../components/assessments/AssessmentCompletionModal.jsx';
-import { recentAssessments } from "../utils/assessmentStaticData.js";
 import { getAllAssessment } from '../services/dashbaordService'; // Import the API function
+import { getRecentAssessmentActivity } from '../services/dashbaordService';
 
 const Assessments = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedAssessment, setSelectedAssessment] = useState(null);
     const [assessments, setAssessments] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [recentActivity, setRecentActivity] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,7 +31,26 @@ const Assessments = () => {
             }
         };
 
+        const fetchRecent = async () => {
+            try {
+                const res = await getRecentAssessmentActivity();
+                const scores = res?.data?.scores || [];
+                const mapped = scores.map((s, idx) => ({
+                    id: idx,
+                    // map to RecentAssessmentCard props
+                    title: s.assessmentName || 'Assessment',
+                    status: s.type === 'quick' ? 'Quick' : 'Completed',
+                    score: s.totalScore ?? 0,
+                    type: s.type === 'quick' ? 'car' : 'message',
+                }));
+                setRecentActivity(mapped);
+            } catch (e) {
+                setRecentActivity([]);
+            }
+        };
+
         fetchAssessments();
+        fetchRecent();
     }, []);
 
     const handleAssessmentClick = (assessment) => {
@@ -72,7 +92,7 @@ const Assessments = () => {
 
                         {/* Right Section - Recent Assessments - Hidden on mobile */}
                         <div className="hidden lg:block w-full lg:w-[340px]">
-                            <RecentAssessments assessments={recentAssessments}/>
+                            <RecentAssessments assessments={recentActivity}/>
                         </div>
                     </div>
                 </div>
