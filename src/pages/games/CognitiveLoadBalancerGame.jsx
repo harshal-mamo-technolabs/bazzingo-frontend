@@ -21,6 +21,29 @@ const CognitiveLoadBalancerGame = () => {
   const [maxStreak, setMaxStreak] = useState(0);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
+
+  // Difficulty settings - updated with your requirements
+  const difficultySettings = {
+    Easy: { 
+      initialTime: 180, 
+      activeTaskCount: 1, 
+      questions: 8, 
+      pointsPerQuestion: 25 
+    },
+    Moderate: { 
+      initialTime: 90, 
+      activeTaskCount: 2, 
+      questions: 5, 
+      pointsPerQuestion: 40 
+    },
+    Hard: { 
+      initialTime: 60, 
+      activeTaskCount: 3, 
+      questions: 4, 
+      pointsPerQuestion: 50 
+    }
+  };
 
   // Task types with cognitive load
   const taskTypes = [
@@ -121,6 +144,7 @@ const CognitiveLoadBalancerGame = () => {
 
   // Initialize game
   const initializeGame = useCallback(() => {
+    const settings = difficultySettings[difficulty];
     setScore(0);
     setCurrentTasks([]);
     setCompletedTasks(0);
@@ -128,10 +152,8 @@ const CognitiveLoadBalancerGame = () => {
     setCurrentLevel(1);
     setStreakCount(0);
     setMaxStreak(0);
-
-    const initialTime = difficulty === 'Easy' ? 10 : difficulty === 'Moderate' ? 90 : 60;
-    setTimeRemaining(initialTime);
-    setActiveTaskCount(difficulty === 'Easy' ? 1 : difficulty === 'Moderate' ? 2 : 3);
+    setTimeRemaining(settings.initialTime);
+    setActiveTaskCount(settings.activeTaskCount);
   }, [difficulty]);
 
   // Generate new task
@@ -150,59 +172,62 @@ const CognitiveLoadBalancerGame = () => {
   }, [currentLevel, difficulty, taskTypes]);
 
   // Add new tasks
- const addNewTasks = useCallback(() => {
-  if (gameState !== 'playing') return;
+  const addNewTasks = useCallback(() => {
+    if (gameState !== 'playing') return;
+    if (completedTasks >= difficultySettings[difficulty].questions) return;
 
-  const newTasks = [];
-  const tasksNeeded = activeTaskCount - currentTasks.length;
-  const usedTypes = currentTasks.map(t => t.type);
+    const newTasks = [];
+    const tasksNeeded = Math.min(
+      activeTaskCount - currentTasks.length,
+      difficultySettings[difficulty].questions - completedTasks - currentTasks.length
+    );
+    
+    const usedTypes = currentTasks.map(t => t.type);
 
-  for (let i = 0; i < tasksNeeded; i++) {
-    let task;
-    let tries = 0;
-    do {
-      task = generateNewTask();
-      tries++;
-    } while (usedTypes.includes(task.type) && tries < 5); // avoid repetition
+    for (let i = 0; i < tasksNeeded; i++) {
+      let task;
+      let tries = 0;
+      do {
+        task = generateNewTask();
+        tries++;
+      } while (usedTypes.includes(task.type) && tries < 5); // avoid repetition
 
-    newTasks.push(task);
-    usedTypes.push(task.type); // track the new one
-  }
+      newTasks.push(task);
+      usedTypes.push(task.type); // track the new one
+    }
 
-  setCurrentTasks(prev => [...prev, ...newTasks]);
-}, [gameState, activeTaskCount, currentTasks, generateNewTask]);
-
+    setCurrentTasks(prev => [...prev, ...newTasks]);
+  }, [gameState, activeTaskCount, currentTasks, generateNewTask, completedTasks, difficulty]);
 
   // Handle task completion
- const handleTaskComplete = useCallback((taskId, userAnswer) => {
-  const task = currentTasks.find(t => t.id === taskId);
-  if (!task) return;
+  const handleTaskComplete = useCallback((taskId, userAnswer) => {
+    const task = currentTasks.find(t => t.id === taskId);
+    if (!task) return;
 
-  setCurrentTasks(prev => prev.filter(t => t.id !== taskId)); // Remove the task first
+    setCurrentTasks(prev => prev.filter(t => t.id !== taskId)); // Remove the task first
 
-  const isCorrect = userAnswer === task.answer;
-  const points = isCorrect ? (2 + (currentLevel - 1)) : 0;
+    const isCorrect = userAnswer === task.answer;
+    const settings = difficultySettings[difficulty];
+    const points = isCorrect ? settings.pointsPerQuestion : 0;
 
-  if (isCorrect) {
-    setScore(s => Math.min(s + points, 200));
-    setCompletedTasks(c => c + 1);
-    setStreakCount(s => {
-      const newStreak = s + 1;
-      setMaxStreak(max => Math.max(max, newStreak));
-      return newStreak;
-    });
-  } else {
-    setFailedTasks(f => f + 1);
-    setStreakCount(0);
-  }
-}, [currentTasks, currentLevel]);
-
-
+    if (isCorrect) {
+      setScore(s => Math.min(s + points, 200));
+      setCompletedTasks(c => c + 1);
+      setStreakCount(s => {
+        const newStreak = s + 1;
+        setMaxStreak(max => Math.max(max, newStreak));
+        return newStreak;
+      });
+    } else {
+      setFailedTasks(f => f + 1);
+      setStreakCount(0);
+    }
+  }, [currentTasks, difficulty]);
 
   // Game timer
   useEffect(() => {
     let interval;
-    if (gameState === 'playing' && timeRemaining > 0) {
+    if (gameState === 'playing' && timeRemaining > 0 && completedTasks < difficultySettings[difficulty].questions) {
       interval = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
@@ -215,25 +240,28 @@ const CognitiveLoadBalancerGame = () => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [gameState, timeRemaining]);
-const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
+  }, [gameState, timeRemaining, completedTasks, difficulty]);
+
+  // Check if game is completed (all questions answered)
+  useEffect(() => {
+    if (gameState === 'playing' && completedTasks >= difficultySettings[difficulty].questions) {
+      setGameState('finished');
+      setShowCompletionModal(true);
+    }
+  }, [completedTasks, gameState, difficulty]);
 
   // Task management
   useEffect(() => {
-    if (gameState === 'playing') {
+    if (gameState === 'playing' && completedTasks < difficultySettings[difficulty].questions) {
       addNewTasks();
 
-      // Level progression
-      if (
-  completedTasks > 0 &&
-  completedTasks % 10 === 0 &&
-  completedTasks !== lastLevelUpTasks
-) {
-  setCurrentLevel(prev => prev + 1);
-  setLastLevelUpTasks(completedTasks);
-}
+      // Level progression (optional - you can remove if not needed)
+      if (completedTasks > 0 && completedTasks % 5 === 0 && completedTasks !== lastLevelUpTasks) {
+        setCurrentLevel(prev => prev + 1);
+        setLastLevelUpTasks(completedTasks);
+      }
     }
-  }, [gameState, addNewTasks, completedTasks, lastLevelUpTasks]);
+  }, [gameState, addNewTasks, completedTasks, lastLevelUpTasks, difficulty]);
 
   // Task timeout management
   useEffect(() => {
@@ -273,11 +301,13 @@ const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
 
   const customStats = {
     completedTasks,
+    totalTasks: difficultySettings[difficulty].questions,
     failedTasks,
     currentLevel,
     streakCount,
     maxStreak,
-    activeTasks: currentTasks.length
+    activeTasks: currentTasks.length,
+    progress: Math.round((completedTasks / difficultySettings[difficulty].questions) * 100)
   };
 
   return (
@@ -318,9 +348,10 @@ const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
         <div className='bg-white p-3 rounded-lg'>
           <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>📊 Scoring</h4>
           <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            <li>• Earn points for correct answers</li>
-            <li>• Longer streaks give bonus points</li>
-            <li>• Speed affects your level progress</li>
+            <li>• Easy: 8 questions × 25 points</li>
+            <li>• Moderate: 5 questions × 40 points</li>
+            <li>• Hard: 4 questions × 50 points</li>
+            <li>• Max score: 200 points</li>
           </ul>
         </div>
         <div className='bg-white p-3 rounded-lg'>
@@ -366,7 +397,7 @@ const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
                 Completed
               </div>
               <div className="text-lg sm:text-2xl font-bold text-emerald-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {completedTasks}
+                {completedTasks}/{difficultySettings[difficulty].questions}
               </div>
             </div>
 
@@ -477,7 +508,7 @@ const [lastLevelUpTasks, setLastLevelUpTasks] = useState(0);
                   </div>
                   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
                     <div className="text-sm text-green-700" style={{ fontFamily: 'Roboto, sans-serif' }}>Tasks Completed</div>
-                    <div className="text-2xl font-bold text-green-900" style={{ fontFamily: 'Roboto, sans-serif' }}>{completedTasks}</div>
+                    <div className="text-2xl font-bold text-green-900" style={{ fontFamily: 'Roboto, sans-serif' }}>{completedTasks}/{difficultySettings[difficulty].questions}</div>
                   </div>
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
                     <div className="text-sm text-purple-700" style={{ fontFamily: 'Roboto, sans-serif' }}>Max Streak</div>

@@ -21,7 +21,7 @@ const Game2048 = () => {
     // Difficulty settings
     const difficultySettings = {
         Easy: { timeLimit: 180, scoreMultiplier: 1.0, target: 128 },
-        Medium: { timeLimit: 120, scoreMultiplier: 1.2, target: 512 },
+        Moderate: { timeLimit: 120, scoreMultiplier: 1.2, target: 512 },
         Hard: { timeLimit: 90, scoreMultiplier: 1.5, target: 1024 }
     };
 

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, memo } from 'react';
 import { X } from 'lucide-react';
 import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBadge } from "../../../public/assessment";
 
-const AssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions = 0 }) => {
+const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions = 0 }) => {
   const dialogRef = useRef(null);
   const closeBtnRef = useRef(null);
   const lastFocusedRef = useRef(null);
@@ -112,42 +112,66 @@ const AssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions 
           <hr className="border-t border-gray-200 mx-5 mt-4 mb-3" />
 
           <div className="px-5">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Suggested for You</h3>
+            <h3 className="text-[14px] font-semibold text-gray-800 mb-3"> Unlock a full certified test of this and get a detailed report</h3>
           </div>
 
-          <div className="flex mb-5">
-            <div className="bg-white border border-orange-300 md:max-w-full 2xl:max-w-full lg:max-w-sm rounded-lg overflow-hidden shadow-sm w-full mx-5 my-auto">
-              <div className="bg-[#ffd9ce] w-full px-3 py-2">
-                <div className="flex items-center gap-3">
-                  <img src={BrainSilhouetteIcon} alt="General Cognitive test" className="w-10 h-10 rounded p-0" />
-                  <div>
-                    <p className="text-md lg:text-sm font-semibold text-gray-800">General Cognitive test</p>
-                    <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
-                    Mini Test, 5-10 Question
-                  </span>
-                  </div>
-                </div>
-              </div>
+        <div className="flex mb-5">
+  <div className="bg-white border-2 border-orange-400 rounded-xl shadow-md w-full mx-5 my-auto overflow-hidden">
+    {/* Header */}
+    <div className="bg-gradient-to-r from-orange-200 to-orange-100 px-4 py-2 
+                flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+  <div className="flex items-center gap-3">
+    <img
+      src={BrainSilhouetteIcon}
+      alt="Full Driving Assessment"
+      className="w-10 h-10 sm:w-11 sm:h-11 p-1 bg-white rounded-full shadow"
+    />
+    <div>
+      <p className="text-sm sm:text-[14px] font-bold text-gray-900">Full Driving Assessment</p>
+      <span className="text-[10px] sm:text-[11px] bg-white text-gray-700 font-medium px-2 py-[2px] rounded-md inline-block mt-1 shadow-sm">
+        Big Test, 15–20 Questions • Certified
+      </span>
+    </div>
+  </div>
+  {/* Locked Icon */}
+  <div className="text-orange-600 font-bold text-[15px] sm:text-sm flex items-center gap-1">
+    <svg className="w-6 h-6 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M17 9h-1V7a4 4 0 00-8 0v2H7a2 2 0 00-2 2v9a2 2 0 
+               002 2h10a2 2 0 002-2v-9a2 2 0 00-2-2zm-5 
+               7a2 2 0 110-4 2 2 0 010 4zm3-7H9V7a3 3 0 
+               016 0v2z"/>
+    </svg>
+    Locked
+  </div>
+</div>
 
-              <div className="p-2.5 flex flex-col justify-between gap-0">
-                <div className="flex items-start gap-2 text-[13px] text-gray-700">
-                  <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5" />
-                  <p className="text-[12px] 2xl:text[14px]">
-                    Get a certified result you can share on LinkedIn or with employers.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center justify-between mt-1 p-1 gap-2">
-                  <div className="text-xs text-gray-700 leading-4">
-                    <p className="text-[12px]">Only</p>
-                    <p className="text-[18px] font-bold text-black">€0.99</p>
-                  </div>
-                  <button className="px-4 py-1.5 text-[13px] bg-[#FF6B3D] min-w-[150px] text-white rounded-md font-semibold">
-                    Start Certified Test
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+
+    {/* Body */}
+    <div className="p-4 space-y-3">
+      <div className="flex items-start gap-3 text-[13px] text-gray-700">
+        <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5 mt-0.5" />
+        <p className="text-[12px] leading-snug">
+          Get a <span className="font-semibold text-gray-900">detailed certified report </span>
+          with strengths, weaknesses, and recommendations and maintain<span className="font-semibold text-gray-900"> your progress in leaderboard</span>. Share on LinkedIn or with employers.
+        </p>
+      </div>
+    </div>
+
+    {/* Footer */}
+    <div className="bg-gray-50 px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+  <div className="text-center sm:text-left">
+    <p className="text-xs text-gray-500">Unlock for only</p>
+    <p className="text-lg sm:text-xl font-bold text-orange-600">€0.99</p>
+  </div>
+  <button className="w-full sm:w-auto px-5 py-2 text-sm bg-orange-500 hover:bg-orange-600 
+                     transition text-white rounded-lg font-semibold shadow-md">
+    Unlock & Start Test
+  </button>
+</div>
+
+  </div>
+</div>
+
 
           <button
               ref={closeBtnRef}
@@ -162,4 +186,4 @@ const AssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions 
   );
 };
 
-export default memo(AssessmentCompletionModal);
+export default memo(MiniAssessmentCompletionModal);

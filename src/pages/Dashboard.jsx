@@ -65,13 +65,20 @@ const Dashboard = () => {
     fetchDailyGames();
   },[]);
 
-  const handleGameClick = useCallback(
-      (game) => {
-        setIsModalOpen(false);
-        navigate(game.path);
-      },
-      [navigate]
-  );
+  // In Dashboard.jsx - Update the handleGameClick function
+const handleGameClick = useCallback(
+  (game) => {
+    setIsModalOpen(false);
+    // Pass difficulty via navigate state instead of just navigating to path
+    navigate(game.path, { 
+      state: { 
+        fromDailyGame: true, 
+        difficulty: game.difficulty 
+      } 
+    });
+  },
+  [navigate]
+);
 
   const openAssessment = useCallback(() => {
     setSelectedAssessment({

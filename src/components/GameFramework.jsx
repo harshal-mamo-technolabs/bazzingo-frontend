@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, Trophy } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const GameFramework = ({
   gameTitle,
@@ -20,6 +21,17 @@ const GameFramework = ({
 }) => {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const location = useLocation();
+
+  // Handle daily game difficulty from navigation state
+  useEffect(() => {
+    if (location.state?.fromDailyGame && gameState === 'ready') {
+      // Capitalize first letter to match your system
+      const formattedDifficulty = location.state.difficulty.charAt(0).toUpperCase() + 
+                                 location.state.difficulty.slice(1);
+      setDifficulty(formattedDifficulty);
+    }
+  }, [location.state, gameState, setDifficulty]);
 
   // Timer management
   useEffect(() => {
@@ -113,7 +125,7 @@ const GameFramework = ({
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                disabled={gameState !== 'ready'}
+                disabled={gameState !== 'ready' || location.state?.fromDailyGame}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
                 style={{ fontFamily: 'Roboto, sans-serif' }}
               >
@@ -126,6 +138,13 @@ const GameFramework = ({
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(difficulty)}`}>
                 {difficulty}
               </span>
+
+              {/* Daily Challenge Indicator */}
+              {location.state?.fromDailyGame && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  Daily Challenge
+                </span>
+              )}
             </div>
 
             {/* Control Buttons */}
@@ -145,7 +164,7 @@ const GameFramework = ({
                 onClick={handleReset}
                 className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-              >
+                >
                 <RotateCcw className="h-4 w-4" />
                 Reset
               </button>
@@ -197,7 +216,9 @@ const GameFramework = ({
                   Ready to Play?
                 </h3>
                 <p className="text-gray-600 mb-6" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Select your difficulty level and click "Start Game" to begin.
+                  {location.state?.fromDailyGame 
+                    ? `Daily Challenge: ${difficulty} mode` 
+                    : 'Select your difficulty level and click "Start Game" to begin.'}
                 </p>
                 <button
                   onClick={handleStart}

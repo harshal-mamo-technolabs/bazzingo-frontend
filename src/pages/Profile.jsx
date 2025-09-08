@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FinishedCertificates, Achievements } from "../components/Profile";
@@ -12,11 +12,14 @@ import {
   DocumentTextIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
+import { getUserProfile } from "../services/dashbaordService";
 import MainLayout from "../components/Layout/MainLayout";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const settings = [
     { label: 'Notification Preference', icon: BellIcon, route: '/notification-preferences' },
@@ -29,11 +32,38 @@ const Profile = () => {
   ];
   const unreadCount = 3;
 
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await getUserProfile();
+        setUserData(response.data.user);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   const handleSettingClick = (route) => {
     if (route) {
       navigate(route);
     }
   };
+
+  if (loading) {
+    return (
+      <MainLayout unreadCount={unreadCount}>
+        <div className="bg-white min-h-screen flex items-center justify-center">
+          <div className="text-gray-600">Loading profile...</div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout unreadCount={unreadCount}>
@@ -49,19 +79,24 @@ const Profile = () => {
                 <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
-                      src="https://i.pravatar.cc/80"
+                      src={userData?.avatar || "https://i.pravatar.cc/80"}
                       alt="Avatar"
                       className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "https://i.pravatar.cc/80";
+                      }}
                     />
                     <div>
                       <h2 className="text-[15px] font-normal text-gray-800">
-                        Alex Johnson
+                        {userData?.name || "Alex Johnson"}
                       </h2>
                       <div className="flex gap-2">
-                        <p className="text-[13px] text-gray-500">Age: 25</p>
-                        <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
-                          Premium
-                        </span>
+                        <p className="text-[13px] text-gray-500">Age: {userData?.age || 25}</p>
+                        {userData?.stripeCustomerId && (
+                          <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
+                            Premium
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -119,19 +154,24 @@ const Profile = () => {
             <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src="https://i.pravatar.cc/80"
+                  src={userData?.avatar || "https://i.pravatar.cc/80"}
                   alt="Avatar"
                   className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "https://i.pravatar.cc/80";
+                  }}
                 />
                 <div>
                   <h2 className="text-[15px] font-normal text-gray-800">
-                    Alex Johnson
+                    {userData?.name || "Alex Johnson"}
                   </h2>
                   <div className="flex gap-2">
-                    <p className="text-[13px] text-gray-500">Age: 25</p>
-                    <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
-                      Premium
-                    </span>
+                    <p className="text-[13px] text-gray-500">Age: {userData?.age || 25}</p>
+                    {userData?.stripeCustomerId && (
+                      <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
+                        Premium
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -181,8 +221,17 @@ const Profile = () => {
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        currentProfile={{}}
-        onSave={() => { }}
+        currentProfile={userData || {}}
+        onSave={async (updatedData) => {
+          try {
+            await updateUserProfile(updatedData);
+            // Refresh user data
+            const response = await getUserProfile();
+            setUserData(response.data.user);
+          } catch (error) {
+            console.error('Failed to update profile:', error);
+          }
+        }}
       />
     </MainLayout>
   );

@@ -92,7 +92,9 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
                 }}
                 onClick={() => {
                   onClose();
-                  navigate(`/visual-reasoning`);
+                  navigate(`/assessments/visual-reasoning`, {
+                  state: { fromQuickAssessment: true }   // ✅ pass flag
+                  });
                 }}
               >
                 Play
