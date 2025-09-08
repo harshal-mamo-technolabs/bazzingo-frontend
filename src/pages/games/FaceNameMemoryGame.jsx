@@ -65,7 +65,7 @@ const FaceNameMemoryGame = () => {
             lives: 3,
             description: '6 faces, 15s learning time'
         },
-        Medium: {
+        Moderate: {
             faceCount: 8,
             learningTime: 15,
             timeLimit: 120,
@@ -181,7 +181,7 @@ const FaceNameMemoryGame = () => {
         let baseScore = accuracy * 70;
 
         // Speed bonus (max 25 points)
-        const idealResponseTime = difficulty === 'Easy' ? 6 : difficulty === 'Medium' ? 5 : 4;
+        const idealResponseTime = difficulty === 'Easy' ? 6 : difficulty === 'Moderate' ? 5 : 4;
         const speedBonus = Math.max(0, Math.min(25, (idealResponseTime - avgResponseTime) * 4));
 
         // Streak bonus (max 30 points)
@@ -194,7 +194,7 @@ const FaceNameMemoryGame = () => {
         const timeRemainingBonus = Math.min(25, (timeRemaining / settings.timeLimit) * 25);
 
         // Difficulty multiplier
-        const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Medium' ? 1.0 : 1.2;
+        const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.2;
 
         // Perfect game bonus
         const perfectBonus = (accuracy === 1.0 && lives === settings.lives) ? 20 : 0;

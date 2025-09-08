@@ -1,7 +1,8 @@
 export const USER_SLICE_NAME = "user";
 
 // Prefer environment variables (Vite) with sensible fallbacks for local dev
-export const API_CONNECTION_HOST_URL = "https://bazzingo-backend-1.onrender.com";
+//export const API_CONNECTION_HOST_URL = "https://bazzingo-backend-1.onrender.com";
+export const API_CONNECTION_HOST_URL = "http://localhost:4000";
 export const VAPID_PUBLIC_KEY = "BIYXHY1jiZqnePRbhgA1Tvnny1N7vpjgFcBhXD4hqNYfGm3VHxr8wRHTNC1mhM9V2BWS5jP9CxngbL29mhwq2E4";
 
 export const SIGNUP_ENDPOINT = "/auth/signup";
@@ -11,6 +12,12 @@ export const DASHBOARD_ENDPOINT = "/dashboard";  // IQ and Games Played endpoint
 export const PROGRESS_CHART_ENDPOINT = "/game/stats/weekly-scores";
 export const STREAK_ENDPOINT = "/streak";
 export const DAILY_GAMES_ENDPOINT = "/game/suggestions/daily";
+export const PLANS_ENDPOINT = "/plans";
+
+// Assessment page endpoints
+export const ASSESSMENT_ENDPOINT = '/assessment';
+export const QUICK_ASSESSMENT_ENDPOINT = '/assessment/quick';
+export const SUBMIT_ASSESSMENT_ENDPOINT = '/assessment/submit';
 
 // Push notification endpoints
 export const PUSH_SUBSCRIBE_ENDPOINT = "/push/subscribe";

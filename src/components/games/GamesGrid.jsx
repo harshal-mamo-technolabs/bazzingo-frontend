@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameCard from './GameCard';
 
-const GamesGrid = ({ games, pillConfig }) => {
+const GamesGrid = ({ games, pillConfig, activeCategory }) => {
 
   const navigate = useNavigate();
 
@@ -21,6 +21,7 @@ const GamesGrid = ({ games, pillConfig }) => {
           key={game.id}
           game={game}
           pillConfig={pillConfig}
+          activeCategory={activeCategory}
           onClick={() => navigate(game.path)}
         />
       ))}

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_CONNECTION_HOST_URL, DASHBOARD_ENDPOINT, PROGRESS_CHART_ENDPOINT, STREAK_ENDPOINT, DAILY_GAMES_ENDPOINT } from "../utils/constant";
+import { API_CONNECTION_HOST_URL, DASHBOARD_ENDPOINT, PROGRESS_CHART_ENDPOINT, STREAK_ENDPOINT, DAILY_GAMES_ENDPOINT, ASSESSMENT_ENDPOINT,QUICK_ASSESSMENT_ENDPOINT, SUBMIT_ASSESSMENT_ENDPOINT, PLANS_ENDPOINT  } from "../utils/constant";
 
 export async function getDashboardData(){
     const userData = localStorage.getItem("user");
@@ -78,12 +78,13 @@ export async function getLeaderboard({ scope = "global", page = 1, limit = 20, c
 
     let url = `${API_CONNECTION_HOST_URL}/leaderboard?scope=${scope}&page=${page}&limit=${limit}`;
 
-    if (scope === "country" && country) {
-      url += `&country=${country}`;
+    // Always pass filters when provided to enable combined filtering across scopes
+    if (country) {
+      url += `&country=${encodeURIComponent(country)}`;
     }
 
-    if (scope === "age" && ageGroup) {
-      url += `&ageGroup=${ageGroup}`;
+    if (ageGroup) {
+      url += `&ageGroup=${encodeURIComponent(ageGroup)}`;
     }
 
     const response = await axios.get(url, {
@@ -95,4 +96,164 @@ export async function getLeaderboard({ scope = "global", page = 1, limit = 20, c
     console.error("Error fetching leaderboard:", err);
     throw err;
   }
+}
+
+// Fetch recent assessment activity (latest scores)
+export async function getRecentAssessmentActivity() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/assessment/recent-activity`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching recent assessment activity:", err);
+    throw err;
+  }
+}
+
+function getAuthHeaders() {
+  const userData = localStorage.getItem("user");
+  if (!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try {
+    parsedUserData = JSON.parse(userData);
+  } catch (err) {
+    throw new Error("Invalid User Data. Please log in again");
+  }
+
+  const token = parsedUserData?.accessToken;
+  if (!token) throw new Error("Authentication token not found");
+
+  return {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+// Quick Assessment (10 questions from /assessment/quick)
+export async function getQuickAssessment() {
+  try {
+    const response = await axios.get(`${API_CONNECTION_HOST_URL}${QUICK_ASSESSMENT_ENDPOINT}`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching quick assessment:", error);
+    throw error;
+  }
+}
+
+// Full Assessment (30 questions from /assessment/:id)
+export async function getFullAssessment(assessmentId) {
+  try {
+    const response = await axios.get(`${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/${assessmentId}`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching full assessment:", error);
+    throw error;
+  }
+}
+
+// All Assessment (all assessments from /assessment)
+export async function getAllAssessment() {
+  try {
+    const response = await axios.get(`${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all assessment:", error);
+    throw error;
+  }
+}
+
+// Submit Assessment
+export async function submitAssessment(payload) {
+  try {
+    const response = await axios.post(
+      `${API_CONNECTION_HOST_URL}${SUBMIT_ASSESSMENT_ENDPOINT}`,
+      payload,
+      { headers: getAuthHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting assessment:", error);
+    throw error;
+  }
+}
+
+export async function getUserProfile() {
+  const userData = localStorage.getItem("user");
+  if (!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try {
+    parsedUserData = JSON.parse(userData);
+  } catch (err) {
+    throw new Error("Invalid User Data. Please log in again: ", err);
+  }
+
+  const token = parsedUserData?.accessToken;
+  if (!token) throw new Error("Authentication token not found");
+
+  const response = await axios.get(`${API_CONNECTION_HOST_URL}/user`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+}
+
+export async function updateUserProfile(profileData) {
+  const userData = localStorage.getItem("user");
+  if (!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try {
+    parsedUserData = JSON.parse(userData);
+  } catch (err) {
+    throw new Error("Invalid User Data. Please log in again: ", err);
+  }
+
+  const token = parsedUserData?.accessToken;
+  if (!token) throw new Error("Authentication token not found");
+
+  const response = await axios.put(`${API_CONNECTION_HOST_URL}/user`, profileData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.data;
+}
+
+export async function getPlansData(){
+  const userData = localStorage.getItem("user");
+  if(!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try{
+      parsedUserData = JSON.parse(userData);
+  }
+  catch(err){
+      throw new Error("Invalid User Data. Please log in again: ",err);
+  }
+
+  const token = parsedUserData?.accessToken;
+  if(!token) throw new Error("Authentication token not found");
+
+  const response = await axios.get(`${API_CONNECTION_HOST_URL}${PLANS_ENDPOINT}`, {
+      headers: {
+          Authorization: `Bearer ${token}`,
+      },
+  });
+  return response.data;
 }

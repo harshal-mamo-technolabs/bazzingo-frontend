@@ -1,8 +1,11 @@
-import React,{useState, useRef} from "react";
+import React,{useState, useRef, useEffect} from "react";
 import { Info } from "lucide-react";
+import { getRecentAssessmentActivity } from "../../services/dashbaordService";
 
 const RecentTest = () =>{
   const [showTooltip, setShowTooltip] = useState(false);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const iconRef = useRef(null);
   
   const handleTooltipClick = (setTooltipFn) => {
@@ -11,6 +14,31 @@ const RecentTest = () =>{
     setTooltipFn(false);
   }, 3000); // auto close in 3 seconds
 };
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        setLoading(true);
+        const res = await getRecentAssessmentActivity();
+        const scores = res?.data?.scores || [];
+        const mapped = scores.slice(0, 5).map((s) => ({
+          title: s.assessmentName || "Assessment",
+          score: s.totalScore ?? 0,
+          icon: "/Brain_game.png",
+          date: (() => {
+            const d = new Date(s.submittedAt);
+            return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit' });
+          })(),
+        }));
+        setItems(mapped);
+      } catch (err) {
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecent();
+  }, []);
   
     return (
         <>
@@ -35,16 +63,22 @@ const RecentTest = () =>{
                     </div>
   </div>
   <div className="space-y-3">
-    {[24, 56].map((score, i) => (
+    {loading && (
+      <div className="text-sm text-gray-600">Loading...</div>
+    )}
+    {!loading && items.length === 0 && (
+      <div className="text-sm text-gray-600">No recent tests found.</div>
+    )}
+    {!loading && items.map((item, i) => (
       <div key={i} className="flex justify-between items-center bg-white rounded-xl px-4 py-3">
         <div className="flex items-center gap-3">
-          <img src="/Brain_game.png" alt="test" className="w-10 h-10 rounded" />
+          <img src={item.icon} alt="test" className="w-10 h-10 rounded" />
           <div>
-            <p className="text-sm font-medium text-gray-800 leading-none">General Cognitive Assessment</p>
-            <p className="text-xs text-gray-500">Apr 20</p>
+            <p className="text-sm font-medium text-gray-800 leading-none">{item.title}</p>
+            <p className="text-xs text-gray-500">{item.date}</p>
           </div>
         </div>
-        <div className="text-lg font-bold text-black">{score}</div>
+        <div className="text-lg font-bold text-black">{item.score}</div>
       </div>
     ))}
   </div>

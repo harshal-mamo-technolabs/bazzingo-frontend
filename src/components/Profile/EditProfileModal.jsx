@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Globe, ChevronDown } from 'lucide-react';
 import { countries } from '../../utils/constant';
+import { updateUserProfile } from '../../services/dashbaordService';
 
 const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
   // Available avatar images
@@ -17,20 +18,33 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: currentProfile?.name || '',
-    age: currentProfile?.age || '',
-    country: currentProfile?.country || '',
-    avatar: currentProfile?.avatar || avatarImages[0]
+    name: '',
+    age: '',
+    country: '',
+    avatar: ''
   });
 
-  const [currentAvatarIndex, setCurrentAvatarIndex] = useState(
-    avatarImages.indexOf(formData.avatar) !== -1 ? avatarImages.indexOf(formData.avatar) : 0
-  );
+  const [currentAvatarIndex, setCurrentAvatarIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // Update form data when currentProfile changes or modal opens
+  useEffect(() => {
+    if (currentProfile && isOpen) {
+      setFormData({
+        name: currentProfile.name || '',
+        age: currentProfile.age || '',
+        country: currentProfile.country || '',
+        avatar: currentProfile.avatar || avatarImages[0]
+      });
+
+      // Set current avatar index
+      const avatarIndex = avatarImages.indexOf(currentProfile.avatar);
+      setCurrentAvatarIndex(avatarIndex !== -1 ? avatarIndex : 0);
+    }
+  }, [currentProfile, isOpen]);
 
   // Track selected country for styling
   const selectedCountry = formData.country;
-
-
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
@@ -59,12 +73,35 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
     }));
   };
 
-
-
   // Handle form submission
-  const handleSave = () => {
-    onSave(formData);
-    onClose();
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      
+      // Prepare data for API (only include fields that should be updated)
+      const profileData = {
+        name: formData.name,
+        age: parseInt(formData.age),
+        country: formData.country,
+        avatar: formData.avatar
+      };
+
+      // Call the update API
+      await updateUserProfile(profileData);
+      
+      // Call the parent onSave callback with updated data
+      if (onSave) {
+        onSave(profileData);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      // You might want to show an error message to the user here
+      alert('Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -75,7 +112,8 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full p-1"
+          disabled={loading}
+          className="absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full p-1 disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -100,7 +138,8 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                   {/* Previous Button */}
                   <button
                     onClick={handlePrevAvatar}
-                    className="group p-3 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                    disabled={loading}
+                    className="group p-3 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="w-3 h-3 text-white group-hover:animate-pulse" />
                   </button>
@@ -114,7 +153,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                     {/* Avatar Container */}
                     <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden bg-white shadow-2xl transform transition-all duration-500 hover:scale-105">
                       <img
-                        src={avatarImages[currentAvatarIndex]}
+                        src={formData.avatar}
                         alt="Avatar"
                         className="w-full h-full object-cover transition-all duration-500 hover:brightness-110"
                         onError={(e) => {
@@ -127,13 +166,13 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                     </div>
 
                     {/* Selection Checkmark */}
-
                   </div>
 
                   {/* Next Button */}
                   <button
                     onClick={handleNextAvatar}
-                    className="group p-3 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                    disabled={loading}
+                    className="group p-3 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronRight className="w-3 h-3 text-white group-hover:animate-pulse" />
                   </button>
@@ -153,7 +192,8 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
+                disabled={loading}
+                className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] disabled:opacity-50"
                 placeholder="Enter your full name"
               />
             </div>
@@ -169,7 +209,8 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                   type="number"
                   value={formData.age}
                   onChange={(e) => handleInputChange('age', e.target.value)}
-                  className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
+                  disabled={loading}
+                  className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] disabled:opacity-50"
                   placeholder="Enter your age"
                   min="1"
                   max="120"
@@ -186,13 +227,17 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                   <select
                     value={formData.country}
                     onChange={(e) => handleInputChange('country', e.target.value)}
-                    className={`w-full pl-12 pr-12 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] bg-white appearance-none ${selectedCountry ? "text-gray-800" : "text-gray-400"
-                      }`}
+                    disabled={loading}
+                    className={`w-full pl-12 pr-12 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] bg-white appearance-none disabled:opacity-50 ${
+                      selectedCountry ? "text-gray-800" : "text-gray-400"
+                    }`}
                     style={{
                       color: selectedCountry ? '#1F2937' : '#9CA3AF'
                     }}
                   >
-                    <option value="" disabled hidden style={{ color: '#9CA3AF' }}>Select your country</option>
+                    <option value="" disabled hidden style={{ color: '#9CA3AF' }}>
+                      Select your country
+                    </option>
                     {countries.map((country) => (
                       <option key={country} value={country} style={{ color: '#1F2937' }}>
                         {country}
@@ -208,15 +253,17 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
             <div className="flex space-x-4 mt-8">
               <button
                 onClick={onClose}
-                className="flex-1 py-[10px] md:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors md:text-[16px] text-[12px] font-bold tracking-wide"
+                disabled={loading}
+                className="flex-1 py-[10px] md:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors md:text-[16px] text-[12px] font-bold tracking-wide disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-[10px] md:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors md:text-[16px] text-[12px] font-bold tracking-wide"
+                disabled={loading}
+                className="flex-1 py-[10px] md:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors md:text-[16px] text-[12px] font-bold tracking-wide disabled:opacity-50"
               >
-                Save
+                {loading ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

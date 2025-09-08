@@ -1,52 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import MainLayout from '../components/Layout/MainLayout';
-
-const PLANS = [
-  {
-    key: 'starter',
-    title: 'Starter',
-    desc: 'Kickstart your cognitive journey',
-    monthly: 4.99,
-    yearly: 39.99,
-    monthlyIntervalMonths: 1,
-    features: ['Access to core games', 'Daily brain teaser', 'Basic insights']
-  },
-  {
-    key: 'pro',
-    title: 'Pro',
-    desc: 'Level up with advanced analytics',
-    monthly: 9.99,
-    yearly: 79.99,
-    monthlyIntervalMonths: 2, // billed every 2 months
-    isPopular: true,
-    features: [
-      'All games & assessments',
-      'Personalized training plan',
-      'Deep performance analytics',
-      'Priority support'
-    ]
-  },
-  {
-    key: 'elite',
-    title: 'Elite',
-    desc: 'Max results with coaching & insights',
-    monthly: 19.99,
-    yearly: 159.99,
-    monthlyIntervalMonths: 3, // billed every 3 months
-    features: [
-      'Everything in Pro',
-      '1:1 expert sessions',
-      'Advanced cognitive reports',
-      'Exclusive challenges'
-    ]
-  }
-];
+import { getPlansData } from '../services/dashbaordService';
 
 function CurrencyAmount({ amount, suffix }) {
   return (
     <div className="flex items-end gap-1">
       <span className="text-gray-900" style={{ fontSize: '28px', fontWeight: 700 }}>
-        $
+        €
       </span>
       <span className="text-gray-900" style={{ fontSize: '44px', fontWeight: 800, lineHeight: 1 }}>
         {amount}
@@ -100,26 +60,54 @@ const Toggle = ({ value, onChange }) => {
   );
 };
 
-const PlanCard = ({ plan, billing, onSelect }) => {
-  const perMonth = useMemo(
-    () => (billing === 'yearly' ? plan.yearly / 12 : plan.monthly),
-    [billing, plan]
-  );
+const PlanCard = ({ plan, billing, onSelect, onTrialSelect }) => {
+  // Get the price based on billing period
+  const priceData = plan.prices[billing === 'monthly' ? 'monthly' : 'yearly'];
+  const trialPriceData = plan.prices.trial;
+  
+  // Calculate per month price - handle cases where intervalCount might be missing or 0
+  const perMonth = useMemo(() => {
+    if (!priceData || !priceData.priceId) return 0;
+    
+    if (billing === 'yearly') {
+      return priceData.priceId.unitAmount / 12;
+    }
+    
+    const intervalCount = priceData.intervalCount || 1;
+    return priceData.priceId.unitAmount / intervalCount;
+  }, [billing, priceData]);
 
-  // for Monthly view, we also show the period charge (perMonth * intervalMonths)
-  const periodMonths = billing === 'monthly' ? plan.monthlyIntervalMonths || 1 : 12;
-  const periodTotal =
-    billing === 'monthly'
-      ? (plan.monthly * (plan.monthlyIntervalMonths || 1))
-      : plan.yearly;
+  // Calculate period total
+  const periodTotal = useMemo(() => {
+    if (!priceData || !priceData.priceId) return 0;
+    return priceData.priceId.unitAmount;
+  }, [priceData]);
 
-  const priceSuffix =
-    billing === 'yearly' ? '/mo billed yearly' : `/mo`;
+  const priceSuffix = billing === 'yearly' ? '/mo billed yearly' : `/mo`;
+
+  // Features array - keeping the static features as per your requirement
+  const features = [
+    'Access to core games', 
+    'Daily brain teaser', 
+    'Basic insights'
+  ];
+  
+  // Add more features for higher plans
+  if (plan.name.includes('Gold') || plan.name.includes('Diamond')) {
+    features.push('All games & assessments', 'Personalized training plan');
+  }
+  
+  if (plan.name.includes('Diamond')) {
+    features.push('1:1 expert sessions', 'Advanced cognitive reports');
+  }
+
+  // Get interval count for display
+  const intervalCount = priceData?.intervalCount || 1;
 
   return (
     <div className="relative p-[1.5px] rounded-2xl bg-gradient-to-br from-[#FF6B3E] via-[#ffb199] to-[#ffd3c8] transition-transform duration-200 hover:-translate-y-1">
       <div className="relative rounded-2xl overflow-hidden h-full bg-white">
-        {plan.isPopular && (
+        {plan.name.includes('Gold') && (
           <div className="absolute -right-10 top-4 rotate-45 bg-[#FF6B3E] text-white text-xs px-10 py-1 font-semibold">
             POPULAR
           </div>
@@ -134,29 +122,37 @@ const PlanCard = ({ plan, billing, onSelect }) => {
         <div className="p-6 relative">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-gray-900" style={{ fontSize: '20px', fontWeight: 800 }}>
-              {plan.title}
+              {plan.name}
             </h3>
           </div>
 
           <p className="text-gray-500 mb-5" style={{ fontSize: '13px' }}>
-            {plan.desc}
+            {plan.description}
           </p>
 
-          <CurrencyAmount amount={perMonth.toFixed(2)} suffix={priceSuffix} />
+          {priceData && priceData.priceId ? (
+            <>
+              <CurrencyAmount amount={perMonth.toFixed(2)} suffix={priceSuffix} />
 
-          {/* Secondary line explaining the actual billing period & total */}
-          {billing === 'monthly' ? (
-            <div className="text-gray-500 mt-1" style={{ fontSize: '12px' }}>
-              Billed ${periodTotal.toFixed(2)} every {periodMonths} month{periodMonths > 1 ? 's' : ''}
-            </div>
+              {/* Secondary line explaining the actual billing period & total */}
+              {billing === 'monthly' ? (
+                <div className="text-gray-500 mt-1" style={{ fontSize: '12px' }}>
+                  Billed €{periodTotal.toFixed(2)} every {intervalCount} month{intervalCount > 1 ? 's' : ''}
+                </div>
+              ) : (
+                <div className="text-gray-500 mt-1" style={{ fontSize: '12px' }}>
+                  Billed €{periodTotal.toFixed(2)}/yr
+                </div>
+              )}
+            </>
           ) : (
-            <div className="text-gray-500 mt-1" style={{ fontSize: '12px' }}>
-              Billed ${plan.yearly.toFixed(2)}/yr
+            <div className="text-gray-500 mt-4" style={{ fontSize: '14px' }}>
+              Pricing not available
             </div>
           )}
 
           <ul className="mt-5 space-y-2">
-            {plan.features.map(f => (
+            {features.map(f => (
               <li key={f} className="flex items-start gap-2 text-gray-700" style={{ fontSize: '13px' }}>
                 <img src="/carbon_checkmark-filled.png" alt="check" className="w-4 h-4 mt-0.5" />
                 <span>{f}</span>
@@ -164,14 +160,34 @@ const PlanCard = ({ plan, billing, onSelect }) => {
             ))}
           </ul>
 
-          <button
-            onClick={() => onSelect(plan.key, billing)}
-            className={`mt-6 w-full py-3 rounded-xl text-white font-semibold transition-all shadow ${
-              plan.isPopular ? 'bg-[#FF6B3E] hover:brightness-95' : 'bg-gray-900 hover:brightness-110'
-            }`}
-          >
-            Choose {plan.title}
-          </button>
+          {priceData && priceData.priceId ? (
+            <>
+              <button
+                onClick={() => onSelect(plan, billing)}
+                className={`mt-4 w-full py-3 rounded-xl text-white font-semibold transition-all shadow ${
+                  plan.name.includes('Gold') ? 'bg-[#FF6B3E] hover:brightness-95' : 'bg-gray-900 hover:brightness-110'
+                }`}
+              >
+                Choose {plan.name}
+              </button>
+              
+              {trialPriceData && trialPriceData.unitAmount && (
+                <button
+                  onClick={() => onTrialSelect(plan, 'trial')}
+                  className="mt-2 w-full py-2 rounded-xl border border-gray-300 text-gray-700 font-semibold transition-all hover:bg-gray-50"
+                >
+                  Try {plan.name} Trial - €{trialPriceData.unitAmount}
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              className="mt-4 w-full py-3 rounded-xl bg-gray-400 text-white font-semibold cursor-not-allowed"
+              disabled
+            >
+              Currently unavailable
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -180,11 +196,65 @@ const PlanCard = ({ plan, billing, onSelect }) => {
 
 function Payment() {
   const [billing, setBilling] = useState('monthly');
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleSelect = (planKey, currentBilling) => {
-    console.log('Selected plan:', { planKey, billing: currentBilling });
-    alert(`Selected ${planKey} (${currentBilling})`);
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoading(true);
+        const response = await getPlansData();
+        setPlans(response.data.plans);
+      } catch (err) {
+        setError(err.message);
+        console.error('Failed to fetch plans:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  const handleSelect = (plan, currentBilling) => {
+    console.log('Selected plan:', { plan, billing: currentBilling });
+    const priceData = plan.prices[currentBilling === 'monthly' ? 'monthly' : 'yearly'];
+    if (priceData && priceData.priceId) {
+      alert(`Selected ${plan.name} (${currentBilling}) for €${priceData.priceId.unitAmount}`);
+    } else {
+      alert(`Pricing not available for ${plan.name} (${currentBilling})`);
+    }
   };
+
+  const handleTrialSelect = (plan, type) => {
+    console.log('Selected trial:', { plan, type });
+    if (plan.prices.trial && plan.prices.trial.unitAmount) {
+      alert(`Selected ${plan.name} trial for €${plan.prices.trial.unitAmount}`);
+    } else {
+      alert(`Trial not available for ${plan.name}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-64">
+          <p>Loading plans...</p>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-red-500">Error: {error}</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -207,8 +277,14 @@ function Payment() {
             <Toggle value={billing} onChange={setBilling} />
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {PLANS.map(p => (
-                <PlanCard key={p.key} plan={p} billing={billing} onSelect={handleSelect} />
+              {plans.map(plan => (
+                <PlanCard 
+                  key={plan._id} 
+                  plan={plan} 
+                  billing={billing} 
+                  onSelect={handleSelect}
+                  onTrialSelect={handleTrialSelect}
+                />
               ))}
             </div>
 

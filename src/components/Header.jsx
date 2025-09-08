@@ -5,6 +5,7 @@ import {logout} from '../app/userSlice';
 import brainIcon from '../../public/header/bxs_brain.png';
 import bellIcon from '../../public/header/bell.png';
 import hamburgerIcon from '../../public/header/hamburger.png';
+import { getUserProfile } from '../services/dashbaordService';
 
 /** ---------------------------
  *  Config & shared styles
@@ -28,6 +29,7 @@ export default function Header({unreadCount = 0}) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [notificationCount] = useState(5);
+    const [userData, setUserData] = useState(null);
 
     const notificationRef = useRef(null);
     const profileRef = useRef(null);
@@ -47,6 +49,20 @@ export default function Header({unreadCount = 0}) {
         },
         [location.pathname]
     );
+
+     // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await getUserProfile();
+        setUserData(response.data.user);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
     // Close menus on route change (prevents sticky open dropdowns)
     useEffect(() => {
@@ -208,11 +224,26 @@ export default function Header({unreadCount = 0}) {
                                 }}
                                 title="Open profile menu"
                             >
-                                A
+                                  {userData?.avatar ? (
+                  <img
+                    src={userData.avatar}
+                    alt="Profile"
+                    className="w-full h-full object-cover "
+                    onError={(e) => {
+                      e.target.src = "https://i.pravatar.cc/80";
+                      e.target.className = "w-full h-full object-cover bg-gray-300";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg">
+                    {userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'}
+                  </div>
+                )}
                             </button>
 
                             {isProfileOpen && (
                                 <ProfileDropdown
+                                    userName={userData?.name || 'Alex Johnson'}
                                     onProfile={() => navigate('/profile')}
                                     onDashboard={() => navigate('/dashboard')}
                                     onStatistics={() => navigate('/statistics')}
@@ -338,6 +369,7 @@ const NotificationsDropdown = memo(function NotificationsDropdown({notifications
  *  Profile Dropdown
  *  ------------------------- */
 const ProfileDropdown = memo(function ProfileDropdown({
+                                                          userName,
                                                           onProfile,
                                                           onDashboard,
                                                           onStatistics,
@@ -354,11 +386,11 @@ const ProfileDropdown = memo(function ProfileDropdown({
                 <div className="flex items-center space-x-3">
                     <div
                         className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center font-medium text-lg">
-                        A
+                      {userName.charAt(0).toUpperCase()}
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900" style={TEXT_BASE}>
-                            Alex Johnson
+                            {userName}
                         </h3>
                     </div>
                 </div>

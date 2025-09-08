@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import MainLayout from '../components/Layout/MainLayout';
 import FilterBar from '../components/games/FilterBar';
 import GamesGrid from '../components/games/GamesGrid';
@@ -51,7 +51,7 @@ const games = [
 
 const categories = [
   'All', 'Gameacy', 'Numerical Reasoning',
-  'Problem Solving', 'Critical Thinking', 'Logic', 'Memory'
+  'Problem Solving', 'Critical Thinking', 'Logic', 'Memory', 'Puzzle'
 ];
 //const levels = ['Easy', 'Medium', 'Hard'];
 
@@ -70,6 +70,14 @@ export default function Games() {
 
   const dailyGames = games.slice(0, 3);
 
+  // Filter games based on active category
+const filteredGames = useMemo(() => {
+  if (activeCategory === 'All') {
+    return games;
+  }
+  return games.filter(game => game.category === activeCategory);
+}, [activeCategory]);
+
   return (
     <MainLayout unreadCount={unread}>
       <div className="text-[12px]" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -84,8 +92,9 @@ export default function Games() {
           />
 
           <GamesGrid
-            games={games}
+            games={filteredGames}
             pillConfig={pillConfig}
+            activeCategory={activeCategory}
             onGameClick={() => setIsModalOpen(true)}
           />
         </div>

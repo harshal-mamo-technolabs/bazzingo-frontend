@@ -31,27 +31,32 @@ const WordSearchMaster = () => {
     const [showWordSearchInstructions, setShowWordSearchInstructions] = useState(true);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-    // Word lists by category
+    // Word lists by category - expanded for more variety
     const wordLists = {
         Easy: [
-            'CAT', 'DOG', 'SUN', 'MOON', 'STAR', 'TREE', 'BIRD', 'FISH',
-            'BOOK', 'PLAY', 'JUMP', 'RUN', 'FAST', 'SLOW', 'BIG', 'SMALL'
+            'CAT', 'DOG', 'SUN', 'MOON', 'STAR', 'TREE', 'BIRD', 'FISH', 'BOOK', 'PLAY', 
+            'JUMP', 'RUN', 'FAST', 'SLOW', 'BIG', 'SMALL', 'HAPPY', 'SAD', 'HOT', 'COLD',
+            'RED', 'BLUE', 'GREEN', 'YELLOW', 'FUN', 'GAME', 'LOVE', 'FRIEND', 'HOME', 'FOOD'
         ],
-        Medium: [
+        Moderate: [
             'HOUSE', 'MUSIC', 'HAPPY', 'LIGHT', 'OCEAN', 'MOUNTAIN', 'FLOWER', 'ANIMAL',
-            'SCHOOL', 'FRIEND', 'FAMILY', 'NATURE', 'BEAUTY', 'SIMPLE', 'BRIGHT', 'STRONG'
+            'SCHOOL', 'FRIEND', 'FAMILY', 'NATURE', 'BEAUTY', 'SIMPLE', 'BRIGHT', 'STRONG',
+            'WATER', 'EARTH', 'PLANET', 'COLOR', 'SOUND', 'SMILE', 'LAUGH', 'DANCE', 'SING',
+            'LEARN', 'TEACH', 'PEACE', 'DREAM', 'MAGIC'
         ],
         Hard: [
             'KNOWLEDGE', 'ADVENTURE', 'CREATIVE', 'PEACEFUL', 'JOURNEY', 'WISDOM', 'HARMONY', 'FREEDOM',
-            'CHALLENGE', 'DISCOVER', 'INSPIRATION', 'EXCELLENCE', 'BEAUTIFUL', 'WONDERFUL', 'AMAZING', 'FANTASTIC'
+            'CHALLENGE', 'DISCOVER', 'INSPIRATION', 'EXCELLENCE', 'BEAUTIFUL', 'WONDERFUL', 'AMAZING', 'FANTASTIC',
+            'MYSTERIOUS', 'IMAGINATION', 'UNIVERSE', 'EXPLORATION', 'DISCOVERY', 'INTELLIGENCE', 'CURIOSITY', 'POSSIBILITY',
+            'EXTRAORDINARY', 'PHENOMENAL', 'SPECTACULAR', 'MAGNIFICENT', 'ASTONISHING', 'BREATHTAKING'
         ]
     };
 
-    // Difficulty settings
+    // Difficulty settings - updated with your requirements
     const difficultySettings = {
-        Easy: { gridSize: 10, wordCount: 6, timeLimit: 180, hints: 3 },
-        Medium: { gridSize: 12, wordCount: 8, timeLimit: 240, hints: 2 },
-        Hard: { gridSize: 15, wordCount: 10, timeLimit: 300, hints: 1 }
+        Easy: { gridSize: 10, wordCount: 8, timeLimit: 180, hints: 3, pointsPerWord: 25 },
+        Moderate: { gridSize: 12, wordCount: 5, timeLimit: 240, hints: 2, pointsPerWord: 40 },
+        Hard: { gridSize: 15, wordCount: 4, timeLimit: 300, hints: 1, pointsPerWord: 50 }
     };
 
     // Generate random letter
@@ -119,16 +124,22 @@ const WordSearchMaster = () => {
         const settings = difficultySettings[difficulty];
         const size = settings.gridSize;
         const wordCount = settings.wordCount;
-        const availableWords = wordLists[difficulty];
+        const availableWords = [...wordLists[difficulty]]; // Create a copy to avoid mutation
 
         const grid = createEmptyGrid(size);
         const wordsToPlace = [];
         const wordPositions = [];
 
         // Select random words
-        const selectedWords = [...availableWords]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, wordCount);
+        const selectedWords = [];
+        for (let i = 0; i < wordCount; i++) {
+            if (availableWords.length === 0) break;
+            
+            const randomIndex = Math.floor(Math.random() * availableWords.length);
+            const word = availableWords[randomIndex];
+            selectedWords.push(word);
+            availableWords.splice(randomIndex, 1); // Remove to avoid duplicates
+        }
 
         // Place words in grid
         selectedWords.forEach(word => {
@@ -136,7 +147,7 @@ const WordSearchMaster = () => {
             let placed = false;
             let attempts = 0;
 
-            while (!placed && attempts < 100) {
+            while (!placed && attempts < 200) { // Increased attempts for better placement
                 const direction = directions[Math.floor(Math.random() * directions.length)];
                 const row = Math.floor(Math.random() * size);
                 const col = Math.floor(Math.random() * size);
@@ -166,51 +177,50 @@ const WordSearchMaster = () => {
         setFoundWords([]);
         setSelectedCells([]);
         setHintCells([]);
+        setFoundWordCells([]);
 
         // Store word positions for validation
         window.wordPositions = wordPositions;
     }, [difficulty]);
 
-    // Calculate score
-    const calculateScore = useCallback(() => {
-        if (wordsToFind.length === 0) return 0;
-
-        const settings = difficultySettings[difficulty];
-        const completionRate = foundWords.length / wordsToFind.length;
-
-        // Base score from completion (0-100 points)
-        let baseScore = completionRate * 100;
-
-        // Time bonus (max 40 points)
-        const timeBonus = Math.min(40, (timeRemaining / settings.timeLimit) * 40);
-
-        // Streak bonus (max 30 points)
-        const streakBonus = Math.min(maxStreak * 5, 30);
-
-        // Hints penalty (subtract up to 15 points)
+   // Calculate score when words are found or game ends
+// Calculate score when words are found or game ends - SIMPLIFIED VERSION
+useEffect(() => {
+    if (wordsToFind.length === 0 || gameState === 'ready') return;
+    
+    const settings = difficultySettings[difficulty];
+    
+    // Base score exactly as specified
+    let newScore = foundWords.length * settings.pointsPerWord;
+    
+    // Only add bonuses when game is finished
+    if (gameState === 'finished') {
+        // Time bonus
+        const timeBonus = Math.min(50, (timeRemaining / settings.timeLimit) * 50);
+        newScore += timeBonus;
+        
+        // Streak bonus
+        const streakBonus = Math.min(maxStreak * 3, 30);
+        newScore += streakBonus;
+        
+        // Hints penalty
         const maxHints = settings.hints;
         const hintsUsed = maxHints - hints;
-        const hintsPenalty = (hintsUsed / maxHints) * 15;
-
-        // Difficulty multiplier
-        const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Medium' ? 1.0 : 1.2;
-
-        // Speed bonus (max 15 points)
-        const avgTimePerWord = foundWords.length > 0 ? totalTimeSpent / foundWords.length : 0;
-        const speedBonus = Math.max(0, Math.min(15, (30 - avgTimePerWord) * 0.5));
-
-        let finalScore = (baseScore + timeBonus + streakBonus + speedBonus - hintsPenalty) * difficultyMultiplier;
-
-        // Apply final scaling to make 200 challenging but achievable
-        finalScore = finalScore * 0.85;
-
-        return Math.max(0, Math.min(200, Math.round(finalScore)));
-    }, [foundWords.length, wordsToFind.length, timeRemaining, difficulty, maxStreak, hints, totalTimeSpent]);
-
-    // Update score
-    useEffect(() => {
-        setScore(calculateScore());
-    }, [calculateScore]);
+        const hintsPenalty = (hintsUsed / maxHints) * 20;
+        newScore = Math.max(0, newScore - hintsPenalty);
+        
+        // Apply difficulty multiplier to bonuses only
+        const difficultyMultiplier = difficulty === 'Easy' ? 1 : difficulty === 'Medium' ? 1.2 : 1.5;
+        const baseScore = foundWords.length * settings.pointsPerWord;
+        const bonuses = (newScore - baseScore) * difficultyMultiplier;
+        newScore = baseScore + bonuses;
+    }
+    
+    // Cap at 200 points
+    newScore = Math.min(200, Math.round(newScore));
+    
+    setScore(newScore);
+}, [foundWords.length, gameState, difficulty, maxStreak, hints, timeRemaining, wordsToFind.length]);
 
     // Cell selection handlers
     const handleCellMouseDown = (row, col) => {
@@ -326,6 +336,7 @@ const WordSearchMaster = () => {
             if (foundWords.length + 1 === wordsToFind.length) {
                 setTimeout(() => {
                     setGameState('finished');
+                    setShowCompletionModal(true);
                 }, 1000);
             }
         } else {
@@ -380,38 +391,40 @@ const WordSearchMaster = () => {
         return () => clearInterval(interval);
     }, [gameState, timeRemaining]);
 
-    // Initialize game
-    const initializeGame = useCallback(() => {
-        const settings = difficultySettings[difficulty];
-        setScore(0);
-        setTimeRemaining(settings.timeLimit);
-        setHints(settings.hints);
-        setStreak(0);
-        setMaxStreak(0);
-        setTotalWordsFound(0);
-        setTotalTimeSpent(0);
-        setFoundWords([]);
-        setSelectedCells([]);
-        setHintCells([]);
-    }, [difficulty]);
+// Initialize game
+const initializeGame = useCallback(() => {
+    const settings = difficultySettings[difficulty];
+    setScore(0); // This line should already be there
+    setTimeRemaining(settings.timeLimit);
+    setHints(settings.hints);
+    setStreak(0);
+    setMaxStreak(0);
+    setTotalWordsFound(0);
+    setTotalTimeSpent(0);
+    setFoundWords([]);
+    setSelectedCells([]);
+    setHintCells([]);
+    setFoundWordCells([]);
+    setAnimatingCells([]);
+    setCelebrationAnimation(false);
+    setParticleEffects([]);
+    setComboMultiplier(1);
+    setPerfectStreak(false);
+    setLastWordLength(0);
+    setPowerUpActive(false);
+}, [difficulty]);
 
     const handleStart = () => {
         initializeGame();
         generateWordSearch();
+        setGameState('playing');
     };
 
     const handleReset = () => {
         initializeGame();
         setGrid([]);
         setWordsToFind([]);
-        setFoundWordCells([]);
-        setAnimatingCells([]);
-        setCelebrationAnimation(false);
-        setParticleEffects([]);
-        setComboMultiplier(1);
-        setPerfectStreak(false);
-        setLastWordLength(0);
-        setPowerUpActive(false);
+        setGameState('ready');
     };
 
     const handleGameComplete = (payload) => {
@@ -424,7 +437,9 @@ const WordSearchMaster = () => {
         streak: maxStreak,
         comboMultiplier: Math.round(comboMultiplier * 100) / 100,
         hintsUsed: difficultySettings[difficulty].hints - hints,
-        completionRate: wordsToFind.length > 0 ? Math.round((foundWords.length / wordsToFind.length) * 100) : 0
+        completionRate: wordsToFind.length > 0 ? Math.round((foundWords.length / wordsToFind.length) * 100) : 0,
+        // Add this line to show base score calculation:
+        baseScore: foundWords.length * difficultySettings[difficulty].pointsPerWord
     };
 
     return (
@@ -478,9 +493,10 @@ const WordSearchMaster = () => {
                                         📊 Scoring
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Points for each word found</li>
-                                        <li>• Time bonus for quick completion</li>
-                                        <li>• Streak bonus for consecutive finds</li>
+                                        <li>• Easy: 8 words × 25 points</li>
+                                        <li>• Medium: 5 words × 40 points</li>
+                                        <li>• Hard: 4 words × 50 points</li>
+                                        <li>• Max score: 200 points</li>
                                     </ul>
                                 </div>
 
@@ -727,7 +743,34 @@ const WordSearchMaster = () => {
                         </div>
 
                         {/* Game Stats */}
-
+                        <div className="bg-gradient-to-br from-slate-50 to-green-50 rounded-xl p-5 shadow-lg border border-green-100/50">
+                            <h4 className="font-semibold text-gray-900 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                <Trophy className="inline w-4 h-4 mr-2" />Game Stats
+                            </h4>
+                            
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span>Score:</span>
+                                    <span className="font-bold">{score}/200</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Max Streak:</span>
+                                    <span className="font-bold">{maxStreak}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Combo Multiplier:</span>
+                                    <span className="font-bold">{comboMultiplier.toFixed(1)}x</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Hints Used:</span>
+                                    <span className="font-bold">{difficultySettings[difficulty].hints - hints}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Completion:</span>
+                                    <span className="font-bold">{customStats.completionRate}%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </GameFramework>
