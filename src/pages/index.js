@@ -17,6 +17,11 @@ import Leadboard from './Leadboard';
 import NotFound from './NotFound';
 import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
 import AssessmentPaymentDemo from './AssessmentPaymentDemo';
+import AssessmentElementsDemo from './AssessmentElementsDemo';
+import SubscriptionTest from './SubscriptionTest';
+import PlanCheckoutDemo from './PlanCheckoutDemo';
+import PlanSubscribeElementsDemo from './PlanSubscribeElementsDemo';
+import PlanSubscribePaymentElementDemo from './PlanSubscribePaymentElementDemo';
 import PaymentSuccess from './PaymentSuccess';
 import PaymentCancel from './PaymentCancel';
 import Payment from './Payment';
@@ -130,6 +135,11 @@ export {
   NotFound,
   VisualReasoningStaticAssessment,
   AssessmentPaymentDemo,
+  AssessmentElementsDemo,
+  PlanCheckoutDemo,
+  SubscriptionTest,
+  PlanSubscribeElementsDemo,
+  PlanSubscribePaymentElementDemo,
   PaymentSuccess,
   PaymentCancel,
   Payment,
