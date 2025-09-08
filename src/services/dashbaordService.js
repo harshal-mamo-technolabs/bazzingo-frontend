@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_CONNECTION_HOST_URL, DASHBOARD_ENDPOINT, PROGRESS_CHART_ENDPOINT, STREAK_ENDPOINT, DAILY_GAMES_ENDPOINT, ASSESSMENT_ENDPOINT,QUICK_ASSESSMENT_ENDPOINT, SUBMIT_ASSESSMENT_ENDPOINT  } from "../utils/constant";
+import { API_CONNECTION_HOST_URL, DASHBOARD_ENDPOINT, PROGRESS_CHART_ENDPOINT, STREAK_ENDPOINT, DAILY_GAMES_ENDPOINT, ASSESSMENT_ENDPOINT,QUICK_ASSESSMENT_ENDPOINT, SUBMIT_ASSESSMENT_ENDPOINT, PLANS_ENDPOINT  } from "../utils/constant";
 
 export async function getDashboardData(){
     const userData = localStorage.getItem("user");
@@ -78,12 +78,13 @@ export async function getLeaderboard({ scope = "global", page = 1, limit = 20, c
 
     let url = `${API_CONNECTION_HOST_URL}/leaderboard?scope=${scope}&page=${page}&limit=${limit}`;
 
-    if (scope === "country" && country) {
-      url += `&country=${country}`;
+    // Always pass filters when provided to enable combined filtering across scopes
+    if (country) {
+      url += `&country=${encodeURIComponent(country)}`;
     }
 
-    if (scope === "age" && ageGroup) {
-      url += `&ageGroup=${ageGroup}`;
+    if (ageGroup) {
+      url += `&ageGroup=${encodeURIComponent(ageGroup)}`;
     }
 
     const response = await axios.get(url, {
@@ -212,6 +213,29 @@ export async function updateUserProfile(profileData) {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+  });
+  return response.data;
+}
+
+export async function getPlansData(){
+  const userData = localStorage.getItem("user");
+  if(!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try{
+      parsedUserData = JSON.parse(userData);
+  }
+  catch(err){
+      throw new Error("Invalid User Data. Please log in again: ",err);
+  }
+
+  const token = parsedUserData?.accessToken;
+  if(!token) throw new Error("Authentication token not found");
+
+  const response = await axios.get(`${API_CONNECTION_HOST_URL}${PLANS_ENDPOINT}`, {
+      headers: {
+          Authorization: `Bearer ${token}`,
+      },
   });
   return response.data;
 }

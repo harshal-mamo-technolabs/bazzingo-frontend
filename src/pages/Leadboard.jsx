@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import LeaderboardTable from "../components/Tables/LeadboardTable";
 import MainLayout from "../components/Layout/MainLayout";
@@ -55,6 +55,44 @@ const Leadboard = () => {
   const [ageGroup, setAgeGroup] = useState("");
   const [leaderboardData, setLeaderboardData] = useState({});
   const [loading, setLoading] = useState(false);
+  const countrySelectRef = useRef(null);
+  const ageSelectRef = useRef(null);
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const [isAgeOpen, setIsAgeOpen] = useState(false);
+
+  const handleCountryClick = () => {
+    if (country) {
+      // Toggle off filter when re-clicked
+      setCountry("");
+      setIsCountryOpen(false);
+      return;
+    }
+    setIsAgeOpen(false);
+    setIsCountryOpen(true);
+    setTimeout(() => {
+      if (countrySelectRef.current) {
+        countrySelectRef.current.focus();
+        countrySelectRef.current.click();
+      }
+    }, 0);
+  };
+
+  const handleAgeClick = () => {
+    if (ageGroup) {
+      // Toggle off filter when re-clicked
+      setAgeGroup("");
+      setIsAgeOpen(false);
+      return;
+    }
+    setIsCountryOpen(false);
+    setIsAgeOpen(true);
+    setTimeout(() => {
+      if (ageSelectRef.current) {
+        ageSelectRef.current.focus();
+        ageSelectRef.current.click();
+      }
+    }, 0);
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -82,7 +120,7 @@ const Leadboard = () => {
               {/* Left - Category Tabs */}
               <div className="hidden md:flex items-center space-x-2">
                 <button
-                  onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
+                  onClick={() => { setScope("global"); }}
                   className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
                     scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
                                       : "text-gray-600 bg-white"
@@ -93,19 +131,21 @@ const Leadboard = () => {
 
                 <div className="relative">
                   <button
-                    onClick={() => setScope("country")}
+                    onClick={handleCountryClick}
                     className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                      scope === "country" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
+                      (country || isCountryOpen) ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
                                         : "text-gray-600 bg-white"
                     }`}
                   >
                     Country <ChevronDown className="inline-block ml-1" size={14} />
                   </button>
-                  {scope === "country" && (
+                  {isCountryOpen && (
                     <select
                       className="absolute top-full left-0 mt-1 px-2 py-1 border rounded text-sm bg-white"
+                      ref={countrySelectRef}
                       value={country}
-                      onChange={(e) => setCountry(e.target.value)}
+                      onChange={(e) => { setCountry(e.target.value); setIsCountryOpen(false); }}
+                      onBlur={() => setIsCountryOpen(false)}
                     >
                       <option value="">Select Country</option>
                       {countries.map((c, i) => (
@@ -117,19 +157,21 @@ const Leadboard = () => {
 
                 <div className="relative">
                   <button
-                    onClick={() => setScope("age")}
+                    onClick={handleAgeClick}
                     className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                      scope === "age" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
+                      (ageGroup || isAgeOpen) ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
                                     : "text-gray-600 bg-white"
                     }`}
                   >
                     By Age <ChevronDown className="inline-block ml-1" size={14} />
                   </button>
-                  {scope === "age" && (
+                  {isAgeOpen && (
                     <select
                       className="absolute top-full left-0 mt-1 px-2 py-1 border rounded text-sm bg-white"
+                      ref={ageSelectRef}
                       value={ageGroup}
-                      onChange={(e) => setAgeGroup(e.target.value)}
+                      onChange={(e) => { setAgeGroup(e.target.value); setIsAgeOpen(false); }}
+                      onBlur={() => setIsAgeOpen(false)}
                     >
                       <option value="">Select Age Group</option>
                       <option value="0-12">0-12</option>
@@ -144,13 +186,23 @@ const Leadboard = () => {
                 </div>
 
                 <button
-                  onClick={() => { setScope("assessment"); setCountry(""); setAgeGroup(""); }}
+                  onClick={() => { setScope("assessment"); }}
                   className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
                     scope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
                                         : "text-gray-600 bg-white"
                   }`}
                 >
                   By Assessment
+                </button>
+
+                <button
+                  onClick={() => { setScope("game"); }}
+                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                    scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
+                                      : "text-gray-600 bg-white"
+                  }`}
+                >
+                  By Game
                 </button>
               </div>
 
@@ -167,12 +219,44 @@ const Leadboard = () => {
             <div className="flex flex-col-reverse lg:flex-row gap-6">
               {/* Left Column (Web): LeaderboardTable (Web middle), (Mobile middle) */}
               <div className="w-full lg:w-[750px] order-2 lg:order-1">
-                <LeaderboardTable 
-                  data={leaderboardData.results || []} 
-                  currentUser={leaderboardData.currentUser}
-                  scope={scope}
-                  loading={loading}
-                />
+                {(() => {
+                  const results = leaderboardData.results || [];
+                  const [minAge, maxAge] = (() => {
+                    if (!ageGroup) return [null, null];
+                    const parts = ageGroup.split('-');
+                    const min = parseInt(parts[0], 10);
+                    const max = parseInt(parts[1], 10);
+                    return [isNaN(min) ? null : min, isNaN(max) ? null : max];
+                  })();
+
+                  const matchesAgeGroup = (entry) => {
+                    if (!ageGroup) return true;
+                    if (entry.ageGroup && typeof entry.ageGroup === 'string') {
+                      return entry.ageGroup === ageGroup;
+                    }
+                    if (typeof entry.age === 'number' && minAge !== null && maxAge !== null) {
+                      return entry.age >= minAge && entry.age <= maxAge;
+                    }
+                    return true;
+                  };
+
+                  const filteredResults = results.filter((entry) => {
+                    const countryOk = country ? String(entry.country).trim().toLowerCase() === country.trim().toLowerCase() : true;
+                    const ageOk = matchesAgeGroup(entry);
+                    return countryOk && ageOk;
+                  });
+
+                  return (
+                    <LeaderboardTable 
+                      data={filteredResults} 
+                      currentUser={leaderboardData.currentUser}
+                      scope={scope}
+                      loading={loading}
+                      selectedCountry={country}
+                      selectedAgeGroup={ageGroup}
+                    />
+                  );
+                })()}
               </div>
 
               {/* Right Column (Web right), (Mobile top + bottom) */}
@@ -236,12 +320,44 @@ const Leadboard = () => {
 
             {/* Leaderboard - Second on mobile, left on desktop */}
             <div className="order-2 lg:order-1 w-full lg:w-[750px]">
-              <LeaderboardTable 
-                data={leaderboardData.results || []} 
-                currentUser={leaderboardData.currentUser}
-                scope={scope}
-                loading={loading}
-              />
+              {(() => {
+                const results = leaderboardData.results || [];
+                const [minAge, maxAge] = (() => {
+                  if (!ageGroup) return [null, null];
+                  const parts = ageGroup.split('-');
+                  const min = parseInt(parts[0], 10);
+                  const max = parseInt(parts[1], 10);
+                  return [isNaN(min) ? null : min, isNaN(max) ? null : max];
+                })();
+
+                const matchesAgeGroup = (entry) => {
+                  if (!ageGroup) return true;
+                  if (entry.ageGroup && typeof entry.ageGroup === 'string') {
+                    return entry.ageGroup === ageGroup;
+                  }
+                  if (typeof entry.age === 'number' && minAge !== null && maxAge !== null) {
+                    return entry.age >= minAge && entry.age <= maxAge;
+                  }
+                  return true;
+                };
+
+                const filteredResults = results.filter((entry) => {
+                  const countryOk = country ? String(entry.country).trim().toLowerCase() === country.trim().toLowerCase() : true;
+                  const ageOk = matchesAgeGroup(entry);
+                  return countryOk && ageOk;
+                });
+
+                return (
+                  <LeaderboardTable 
+                    data={filteredResults} 
+                    currentUser={leaderboardData.currentUser}
+                    scope={scope}
+                    loading={loading}
+                    selectedCountry={country}
+                    selectedAgeGroup={ageGroup}
+                  />
+                );
+              })()}
             </div>
 
             {/* Recent Activity - Last on mobile, bottom right on desktop */}

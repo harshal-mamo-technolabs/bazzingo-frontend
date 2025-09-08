@@ -12,6 +12,7 @@ export const DASHBOARD_ENDPOINT = "/dashboard";  // IQ and Games Played endpoint
 export const PROGRESS_CHART_ENDPOINT = "/game/stats/weekly-scores";
 export const STREAK_ENDPOINT = "/streak";
 export const DAILY_GAMES_ENDPOINT = "/game/suggestions/daily";
+export const PLANS_ENDPOINT = "/plans";
 
 // Assessment page endpoints
 export const ASSESSMENT_ENDPOINT = '/assessment';

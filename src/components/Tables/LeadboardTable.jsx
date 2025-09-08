@@ -1,7 +1,7 @@
 import React from 'react';
 import { getFlagByCountry } from '../../utils/CountryFlags';
 
-const LeaderboardTable = ({ data = [], currentUser, scope, loading }) => {
+const LeaderboardTable = ({ data = [], currentUser, scope, loading, selectedCountry, selectedAgeGroup }) => {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 p-4 text-center">
@@ -37,6 +37,17 @@ const LeaderboardTable = ({ data = [], currentUser, scope, loading }) => {
           </tr>
         </thead>
         <tbody>
+          {(!currentUser && (!data || data.length === 0)) && (
+            <tr>
+              <td colSpan={4} className="px-3 py-6 text-center text-gray-500">
+                {`No data is available for ${
+                  selectedCountry || selectedAgeGroup
+                    ? `the selected ${selectedCountry ? `country "${selectedCountry}"` : ""}${selectedCountry && selectedAgeGroup ? " and " : ""}${selectedAgeGroup ? `age group "${selectedAgeGroup}"` : ""}`
+                    : "the selected filters"
+                }.`}
+              </td>
+            </tr>
+          )}
           {/* Current user row */}
           {currentUser && (
             <tr className="bg-[#fdb59f] font-bold text-black">

@@ -1816,6 +1816,20 @@ export const countryFlags = {
 
 // Helper function to get flag component by country name
 export const getFlagByCountry = (countryName) => {
-  const FlagComponent = countryFlags[countryName];
-  return FlagComponent ? <FlagComponent /> : null;
+  if (!countryName || typeof countryName !== 'string') return null;
+  // Try exact match first
+  let FlagComponent = countryFlags[countryName];
+  if (FlagComponent) return <FlagComponent />;
+
+  // Try case-insensitive/trimmed match
+  const normalized = countryName.trim().toLowerCase();
+  const matchedKey = Object.keys(countryFlags).find(
+    (key) => key.toLowerCase() === normalized
+  );
+  if (matchedKey) {
+    const MatchComponent = countryFlags[matchedKey];
+    return MatchComponent ? <MatchComponent /> : null;
+  }
+
+  return null;
 };
