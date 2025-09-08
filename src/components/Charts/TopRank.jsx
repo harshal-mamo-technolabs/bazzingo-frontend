@@ -1,30 +1,49 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Info } from "lucide-react";
+import { getGameStatistics } from "../../services/dashbaordService";
 
 
 const TopRank = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const iconRef = useRef(null);
 
-  const scores = [
-  { label: 'Speed', value: 85 },
-  { label: 'Attention', value: 60 },
-  { label: 'Memory', value: 75 },
-  { label: 'Flexibility', value: 50 },
-  { label: 'Troubleshooting', value: 90 },
-];
+  const [rank, setRank] = useState(0);
+  const [totalPlayed, setTotalPlayed] = useState(0);
+  const [brainIndex, setBrainIndex] = useState(0);
+  const [scores, setScores] = useState([]);
+  const [progressValues, setProgressValues] = useState([]);
 
-const [progressValues, setProgressValues] = useState(
-  scores.map(() => 0)
-);
-
-useEffect(() => {
-  const timeout = setTimeout(() => {
-    setProgressValues(scores.map(score => score.value));
-  }, 200); // delay to trigger transition
-
-  return () => clearTimeout(timeout);
-}, []);
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const res = await getGameStatistics();
+        const today = res?.data?.statistics?.today;
+        const overallRank = res?.data?.rank;
+        if (today) {
+          setTotalPlayed(today.totalGamePlayed || 0);
+          setBrainIndex(today.brainIndex || 0);
+          setRank(today.rank ?? overallRank ?? 0);
+          const mapped = Object.entries(today.statistics || {}).map(([label, value]) => ({ label, value }));
+          setScores(mapped);
+          setProgressValues(mapped.map(() => 0));
+          // animate after a tick
+          setTimeout(() => {
+            setProgressValues(mapped.map(s => s.value));
+          }, 200);
+        } else {
+          setScores([]);
+          setProgressValues([]);
+        }
+      } catch (e) {
+        setScores([]);
+        setProgressValues([]);
+        setRank(0);
+        setTotalPlayed(0);
+        setBrainIndex(0);
+      }
+    };
+    loadStats();
+  }, []);
   
   const handleTooltipClick = (setTooltipFn) => {
   setTooltipFn(true);
@@ -73,7 +92,7 @@ useEffect(() => {
     {/* Center Text */}
     <div className="flex flex-col items-center justify-center leading-tight text-white">
       <span className="text-[10px]">Your Rank</span>
-      <span className="text-3xl font-bold">250</span>
+      <span className="text-3xl font-bold">{rank}</span>
     </div>
 
     {/* Right Stars */}
@@ -90,7 +109,7 @@ useEffect(() => {
     {/* Total Game Played */}
     <div className="flex justify-between items-center text-sm text-black font-medium mb-1">
       <span>Total Game Played</span>
-      <span className="text-orange-500 font-bold">25</span>
+      <span className="text-orange-500 font-bold">{totalPlayed}</span>
     </div>
 
     <hr className="mb-2 border-gray-300" />
@@ -114,7 +133,7 @@ useEffect(() => {
 
     {/* Score Value */}
     <span className="text-[11px] text-gray-800 w-[30px] text-right">
-      {1000 + score.value}
+      {score.value}
     </span>
   </div>
     ))}
@@ -124,7 +143,7 @@ useEffect(() => {
     <hr className="my-2 border-gray-300" />
     <div className="flex justify-between items-center text-xs font-semibold text-black">
       <span>Brain Score Index</span>
-      <span>1002</span>
+      <span>{brainIndex}</span>
     </div>
 
     {/* Button */}

@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 import LeaderboardTable from "../components/Tables/LeadboardTable";
 import MainLayout from "../components/Layout/MainLayout";
 import TopRank from "../components/Charts/TopRank";
-import { getLeaderboard } from "../services/dashbaordService";
+import { getLeaderboard, getRecentDashboardActivity } from "../services/dashbaordService";
 import { countries } from "../utils/constant";
 
 const ProgressBar = ({ percentage }) => (
@@ -59,6 +59,7 @@ const Leadboard = () => {
   const ageSelectRef = useRef(null);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const [isAgeOpen, setIsAgeOpen] = useState(false);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   const handleCountryClick = () => {
     if (country) {
@@ -67,6 +68,8 @@ const Leadboard = () => {
       setIsCountryOpen(false);
       return;
     }
+    setScope("country");
+    setAgeGroup("");
     setIsAgeOpen(false);
     setIsCountryOpen(true);
     setTimeout(() => {
@@ -84,6 +87,8 @@ const Leadboard = () => {
       setIsAgeOpen(false);
       return;
     }
+    setScope("age");
+    setCountry("");
     setIsCountryOpen(false);
     setIsAgeOpen(true);
     setTimeout(() => {
@@ -109,6 +114,24 @@ const Leadboard = () => {
     fetchData();
   }, [scope, country, ageGroup]);
 
+  useEffect(() => {
+    const loadRecent = async () => {
+      try {
+        const res = await getRecentDashboardActivity();
+        const acts = res?.data?.activities || [];
+        const mapped = acts.map((a) => ({
+          label: a.name,
+          pct: a.percentage ?? 0,
+          statusType: a.percentage === 100 ? 'completed' : 'resume',
+        }));
+        setRecentActivities(mapped);
+      } catch (e) {
+        setRecentActivities([]);
+      }
+    };
+    loadRecent();
+  }, []);
+
   return (
     <MainLayout unreadCount={unreadCount}>
       <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -119,15 +142,26 @@ const Leadboard = () => {
             <div className="flex items-center justify-between">
               {/* Left - Category Tabs */}
               <div className="hidden md:flex items-center space-x-2">
-                <button
-                  onClick={() => { setScope("global"); }}
-                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                    scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
-                                      : "text-gray-600 bg-white"
-                  }`}
-                >
-                  Global
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => { setScope("global"); }}
+                    className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                      scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
+                                        : "text-gray-600 bg-white"
+                    }`}
+                  >
+                    Global
+                  </button>
+                  <button
+                    onClick={() => { setScope("game"); }}
+                    className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                      (scope === "game" || scope === "global") ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
+                                        : "text-gray-600 bg-white"
+                    }`}
+                  >
+                    By Game
+                  </button>
+                </div>
 
                 <div className="relative">
                   <button
@@ -195,15 +229,7 @@ const Leadboard = () => {
                   By Assessment
                 </button>
 
-                <button
-                  onClick={() => { setScope("game"); }}
-                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                    scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
-                                      : "text-gray-600 bg-white"
-                  }`}
-                >
-                  By Game
-                </button>
+                
               </div>
 
               {/* Mobile layout: Statistics + Icon aligned at ends */}
@@ -270,7 +296,18 @@ const Leadboard = () => {
                 <div className="order-3 lg:order-2 bg-[#EEEEEE] rounded-lg p-2 md:p-3 shadow-sm h-[350px]">
                   <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4">Recent Activity</h3>
                   <div className="space-y-4 mt-4">
-                    {activities.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
+                    {(
+                      (recentActivities.length
+                        ? recentActivities.map((r, i) => ({
+                            icon: activities[i % activities.length].icon,
+                            alt: activities[i % activities.length].alt,
+                            iconBg: activities[i % activities.length].iconBg,
+                            label: r.label,
+                            pct: r.pct,
+                            statusType: 'completed',
+                          }))
+                        : activities)
+                    ).map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
                       <div
                         key={idx}
                         className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"

@@ -4,8 +4,8 @@ import MainLayout from '../components/Layout/MainLayout';
 import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentCompletionModal from '../components/assessments/AssessmentCompletionModal.jsx';
-import { getAllAssessment } from '../services/dashbaordService'; // Import the API function
-import { getRecentAssessmentActivity } from '../services/dashbaordService';
+// import { getAllAssessment } from '../services/dashbaordService'; // Import the API function
+import { getAllAssessment ,getRecentAssessmentActivity } from '../services/dashbaordService';
 
 const Assessments = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,8 +34,10 @@ const Assessments = () => {
         const fetchRecent = async () => {
             try {
                 const res = await getRecentAssessmentActivity();
-                const scores = res?.data?.scores || [];
-                const mapped = scores.map((s, idx) => ({
+                const scores = (res?.data?.scores || [])
+                  .slice()
+                  .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                const mapped = scores.slice(0, 2).map((s, idx) => ({
                     id: idx,
                     // map to RecentAssessmentCard props
                     title: s.assessmentName || 'Assessment',

@@ -116,6 +116,42 @@ export async function getRecentAssessmentActivity() {
   }
 }
 
+// Fetch dashboard recent activity (games/assessments with percentage)
+export async function getRecentDashboardActivity() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/dashboard/recent-activity`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching dashboard recent activity:", err);
+    throw err;
+  }
+}
+
+// Fetch game statistics (rank, totals, category breakdowns)
+export async function getGameStatistics() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/game/statistics`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching game statistics:", err);
+    throw err;
+  }
+}
+
 function getAuthHeaders() {
   const userData = localStorage.getItem("user");
   if (!userData) throw new Error("User not authenticated");

@@ -26,26 +26,28 @@ const Calender = () => {
     }
   };
 
-  // On mount → default 3-month streak API
+  // On mount → fetch for the current month so navigation is consistent
   useEffect(() => {
-    fetchStreak();
+    const start = dayjs().startOf("month").format("YYYY-MM-DD");
+    const end = dayjs().endOf("month").format("YYYY-MM-DD");
+    fetchStreak(start, end);
   }, []);
 
-  // Navigation handlers (shift range by 3 months)
+  // Navigation handlers (shift by one month based on currentDate)
   const prevMonth = () => {
-    if (!range) return;
-    const newStart = dayjs(range.start).subtract(1, "month").format("YYYY-MM-DD");
-    const newEnd = dayjs(range.end).subtract(1, "month").format("YYYY-MM-DD");
+    const newDate = currentDate.subtract(1, "month");
+    const newStart = newDate.startOf("month").format("YYYY-MM-DD");
+    const newEnd = newDate.endOf("month").format("YYYY-MM-DD");
+    setCurrentDate(newDate);
     fetchStreak(newStart, newEnd);
-    setCurrentDate(dayjs(newStart));
   };
 
   const nextMonth = () => {
-    if (!range) return;
-    const newStart = dayjs(range.start).add(1, "month").format("YYYY-MM-DD");
-    const newEnd = dayjs(range.end).add(1, "month").format("YYYY-MM-DD");
+    const newDate = currentDate.add(1, "month");
+    const newStart = newDate.startOf("month").format("YYYY-MM-DD");
+    const newEnd = newDate.endOf("month").format("YYYY-MM-DD");
+    setCurrentDate(newDate);
     fetchStreak(newStart, newEnd);
-    setCurrentDate(dayjs(newStart));
   };
 
   const startOfMonth = currentDate.startOf("month");

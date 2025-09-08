@@ -6,6 +6,7 @@ import { RecentTest, TestScore } from "../components/Statistics";
 import ProgressChart from "../components/Charts/ProgressChart";
 import NoDataModal from "../components/Statistics/NoDataModal";
 import { useNavigate } from 'react-router-dom';
+import { getGameStatistics } from "../services/dashbaordService";
 
 
 const Statistics = () => {
@@ -150,24 +151,41 @@ const Statistics = () => {
   //   return () => clearInterval(interval);
   // }, [slides.length]);
 
-  const scores = [
-    { label: 'Speed', value: 85 },
-    { label: 'Attention', value: 60 },
-    { label: 'Memory', value: 75 },
-    { label: 'Flexibility', value: 50 },
-    { label: 'Troubleshooting', value: 90 },
-  ];
-
-  const [progressValues, setProgressValues] = useState(
-    scores.map(() => 0)
-  );
+  const [rank, setRank] = useState(0);
+  const [totalPlayed, setTotalPlayed] = useState(0);
+  const [brainIndex, setBrainIndex] = useState(0);
+  const [scores, setScores] = useState([]);
+  const [progressValues, setProgressValues] = useState([]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setProgressValues(scores.map(score => score.value));
-    }, 200); // delay to trigger transition
-
-    return () => clearTimeout(timeout);
+    const loadStats = async () => {
+      try {
+        const res = await getGameStatistics();
+        const today = res?.data?.statistics?.today;
+        const overallRank = res?.data?.rank;
+        if (today) {
+          setTotalPlayed(today.totalGamePlayed || 0);
+          setBrainIndex(today.brainIndex || 0);
+          setRank(today.rank ?? overallRank ?? 0);
+          const mapped = Object.entries(today.statistics || {}).map(([label, value]) => ({ label, value }));
+          setScores(mapped);
+          setProgressValues(mapped.map(() => 0));
+          setTimeout(() => {
+            setProgressValues(mapped.map(s => s.value));
+          }, 200);
+        } else {
+          setScores([]);
+          setProgressValues([]);
+        }
+      } catch (e) {
+        setScores([]);
+        setProgressValues([]);
+        setRank(0);
+        setTotalPlayed(0);
+        setBrainIndex(0);
+      }
+    };
+    loadStats();
   }, []);
 
   const [activeCategory, setActiveCategory] = useState('IQ Test');
@@ -338,7 +356,7 @@ const Statistics = () => {
                 {/* Center Text */}
                 <div className="flex flex-col items-center justify-center leading-tight text-white">
                   <span className="text-[10px]">Your Rank</span>
-                  <span className="text-3xl font-bold">250</span>
+                  <span className="text-3xl font-bold">{rank}</span>
                 </div>
 
                 {/* Right Stars */}
@@ -354,13 +372,13 @@ const Statistics = () => {
                 {/* Total Game Played */}
                 <div className="flex justify-between items-center text-sm text-black font-medium mb-1">
                   <span>Total Game Played</span>
-                  <span className="text-orange-500 font-bold">25</span>
+                  <span className="text-orange-500 font-bold">{totalPlayed}</span>
                 </div>
 
                 <hr className="mb-2 border-gray-300" />
                 {/* hello */}
                 {/* Score Bars */}
-                {scores.map((score, index) => (
+                {(scores.slice(0, 6)).map((score, index) => (
                   <div key={index} className="flex items-center mb-2 gap-2 w-full">
                     {/* Label */}
                     <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
@@ -378,16 +396,18 @@ const Statistics = () => {
 
                     {/* Score Value */}
                     <span className="text-[11px] text-gray-800 w-[30px] text-right">
-                      {1000 + score.value}
+                      {score.value}
                     </span>
                   </div>
                 ))}
+
+                
 
                 {/* Brain Score Index */}
                 <hr className="my-2 border-gray-300" />
                 <div className="flex justify-between items-center text-xs font-semibold text-black">
                   <span>Brain Score Index</span>
-                  <span>1002</span>
+                  <span>{brainIndex}</span>
                 </div>
 
                 {/* Button */}

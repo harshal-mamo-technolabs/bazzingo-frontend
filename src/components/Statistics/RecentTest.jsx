@@ -20,8 +20,10 @@ const RecentTest = () =>{
       try {
         setLoading(true);
         const res = await getRecentAssessmentActivity();
-        const scores = res?.data?.scores || [];
-        const mapped = scores.slice(0, 5).map((s) => ({
+        const scores = (res?.data?.scores || [])
+          .slice()
+          .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        const mapped = scores.slice(0, 2).map((s) => ({
           title: s.assessmentName || "Assessment",
           score: s.totalScore ?? 0,
           icon: "/Brain_game.png",

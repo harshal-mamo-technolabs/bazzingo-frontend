@@ -11,7 +11,7 @@ import {
   ProgressBrainIcon,
   TaskCompleteIcon,
 } from '../../../public/assessment';
-import { getQuickAssessment, getFullAssessment, submitAssessment } from '../../services/dashbaordService.js';
+import { getQuickAssessment, getFullAssessment, submitAssessment, getRecentDashboardActivity } from '../../services/dashbaordService.js';
 
 const ACTIVITIES = [
   {
@@ -83,6 +83,7 @@ export default function VisualReasoningStaticAssessment() {
   const [originalQuestions, setOriginalQuestions] = useState([]);
   const [questionTimers, setQuestionTimers] = useState({}); // Track time spent on each question
   const [reviewTimers, setReviewTimers] = useState({}); // Track remaining time for review questions
+  const [recentActivityNames, setRecentActivityNames] = useState([]);
   
   // Add state for score and total questions
   const [scoreData, setScoreData] = useState({
@@ -149,6 +150,20 @@ export default function VisualReasoningStaticAssessment() {
 
     fetchAssessment();
   }, [fromQuickAssessment, dynamicAssessmentId]);
+
+  // Load recent activity names for right card (desktop), keep static icons and completed badges
+  useEffect(() => {
+    const loadRecent = async () => {
+      try {
+        const res = await getRecentDashboardActivity();
+        const acts = res?.data?.activities || [];
+        setRecentActivityNames(acts.map(a => a.name));
+      } catch (e) {
+        setRecentActivityNames([]);
+      }
+    };
+    loadRecent();
+  }, []);
 
   /** =========================
       Current Question & Progress
@@ -254,9 +269,9 @@ export default function VisualReasoningStaticAssessment() {
       const res = await submitAssessment(payload);
       console.log("✅ Submission response:", res);
       
-      // CORRECTED: Extract score data from response
+      // Extract correct totalScore path from API response
       const scoreDataFromResponse = {
-        score: res.data?.totalScore || res?.totalScore || 0,
+        score: res?.data?.score?.totalScore ?? res?.data?.totalScore ?? 0,
         totalQuestions: allQuestions.length,
       };
       
@@ -564,7 +579,7 @@ export default function VisualReasoningStaticAssessment() {
                 <div className="flex items-center bg-white rounded p-3 gap-3">
                   <img src={DailyPuzzleIcon} alt="Daily Puzzle" className="w-10 h-10 object-contain" />
                   <div className="flex flex-col flex-grow">
-                    <span className="text-[14px] font-semibold">Daily Puzzle</span>
+                    <span className="text-[14px] font-semibold">{recentActivityNames[0] || 'Daily Puzzle'}</span>
                     <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
                                   bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
                                   px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">
@@ -577,7 +592,7 @@ export default function VisualReasoningStaticAssessment() {
                 <div className="flex items-center bg-white rounded p-3 gap-3">
                   <img src={DailyAssessmentIcon} alt="Daily Assessment" className="w-10 h-10 object-contain" />
                   <div className="flex flex-col flex-grow">
-                    <span className="text-[14px] font-semibold">Daily Assessment</span>
+                    <span className="text-[14px] font-semibold">{recentActivityNames[1] || 'Daily Assessment'}</span>
                     <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
                                   bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
                                   px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">
@@ -590,7 +605,7 @@ export default function VisualReasoningStaticAssessment() {
                 <div className="flex items-center bg-white rounded p-3 gap-3">
                   <img src={MazeScapeIcon} alt="Mage Scape" className="w-10 h-10 object-contain bg-blue-200 rounded p-1" />
                   <div className="flex flex-col flex-grow">
-                    <span className="text-[14px] font-semibold">Mage Scape</span>
+                    <span className="text-[14px] font-semibold">{recentActivityNames[2] || 'Mage Scape'}</span>
                     <span
                         className="bg-[#FFEFE8] text-[#FF6700] inline-block mt-1 rounded-lg border-2
                                px-2 py-1 font-bold text-[12px] leading-none w-15 border-[#FF6700]"
