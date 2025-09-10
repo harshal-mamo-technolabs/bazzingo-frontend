@@ -277,9 +277,8 @@ export default function VisualReasoningStaticAssessment() {
       }, 0);
 
       const scoreDataFromResponse = {
-        score: res?.data?.score?.totalScore ?? res?.data?.totalScore ?? 0,
-        // Pass total possible score into the existing prop (used as denominator in UI)
-        totalQuestions: totalPossibleScore,
+        score: res?.data?.score?.totalScore ?? 0,
+        totalQuestions: res?.data?.score?.outOfScore ?? 0,
       };
       
       console.log("📊 Score data being set:", scoreDataFromResponse);

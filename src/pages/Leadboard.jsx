@@ -155,59 +155,53 @@ const Leadboard = () => {
                 </div>
 
                 <div className="relative">
-                  <button
-                    onClick={handleCountryClick}
-                    className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                      (country || isCountryOpen) ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
-                                        : "text-gray-600 bg-white"
+                  <select
+                    className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm w-[140px] ${
+                      country ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                     }`}
+                    ref={countrySelectRef}
+                    value={country || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        setScope('country');
+                        setAgeGroup('');
+                      }
+                      setCountry(val);
+                    }}
                   >
-                    Country <ChevronDown className="inline-block ml-1" size={14} />
-                  </button>
-                  {isCountryOpen && (
-                    <select
-                      className="absolute top-full left-0 mt-1 px-2 py-1 border rounded text-sm bg-white"
-                      ref={countrySelectRef}
-                      value={country}
-                      onChange={(e) => { setCountry(e.target.value); setIsCountryOpen(false); }}
-                      onBlur={() => setIsCountryOpen(false)}
-                    >
-                      <option value="">Select Country</option>
-                      {countries.map((c, i) => (
-                        <option key={i} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  )}
+                    <option value="">Country</option>
+                    {countries.map((c, i) => (
+                      <option key={i} value={c}>{c}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="relative">
-                  <button
-                    onClick={handleAgeClick}
+                  <select
                     className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                      (ageGroup || isAgeOpen) ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
-                                    : "text-gray-600 bg-white"
+                      ageGroup ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                     }`}
+                    ref={ageSelectRef}
+                    value={ageGroup || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        setScope('age');
+                        setCountry('');
+                      }
+                      setAgeGroup(val);
+                    }}
                   >
-                    By Age <ChevronDown className="inline-block ml-1" size={14} />
-                  </button>
-                  {isAgeOpen && (
-                    <select
-                      className="absolute top-full left-0 mt-1 px-2 py-1 border rounded text-sm bg-white"
-                      ref={ageSelectRef}
-                      value={ageGroup}
-                      onChange={(e) => { setAgeGroup(e.target.value); setIsAgeOpen(false); }}
-                      onBlur={() => setIsAgeOpen(false)}
-                    >
-                      <option value="">Select Age Group</option>
-                      <option value="0-12">0-12</option>
-                      <option value="13-17">13-17</option>
-                      <option value="18-25">18-25</option>
-                      <option value="25-34">25-34</option>
-                      <option value="35-44">35-44</option>
-                      <option value="45-64">45-64</option>
-                      <option value="65-200">65+</option>
-                    </select>
-                  )}
+                    <option value="">By Age</option>
+                    <option value="1-12">1-12</option>
+                    <option value="13-17">13-17</option>
+                    <option value="18-24">18-24</option>
+                    <option value="25-34">25-34</option>
+                    <option value="35-44">35-44</option>
+                    <option value="45-64">45-64</option>
+                    <option value="65-200">65-200</option>
+                  </select>
                 </div>
 
                 <button

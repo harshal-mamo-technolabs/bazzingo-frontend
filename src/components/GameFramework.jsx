@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, Trophy } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { submitGameScore } from '../services/gameService';
 
 const GameFramework = ({
   gameTitle,
@@ -21,7 +22,12 @@ const GameFramework = ({
 }) => {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const location = useLocation();
+
+  // Get gameId from navigation state
+  const gameId = location.state?.gameId;
 
   // Handle daily game difficulty from navigation state
   useEffect(() => {
@@ -32,6 +38,13 @@ const GameFramework = ({
       setDifficulty(formattedDifficulty);
     }
   }, [location.state, gameState, setDifficulty]);
+
+  // Auto-submit score when game state changes to finished
+  useEffect(() => {
+    if (gameState === 'finished' && !hasSubmitted && gameId) {
+      handleGameEnd(true); // Assume success if game reached finished state
+    }
+  }, [gameState, hasSubmitted, gameId]);
 
   // Timer management
   useEffect(() => {
@@ -46,35 +59,59 @@ const GameFramework = ({
     return () => clearInterval(interval);
   }, [gameState, timeRemaining]);
 
-  const handleGameEnd = useCallback((success) => {
+  const handleGameEnd = useCallback(async (success) => {
+    if (hasSubmitted) return; // Prevent duplicate submissions
+    
     const endTimeStamp = new Date().toISOString();
     setEndTime(endTimeStamp);
-    setGameState('finished');
+    setHasSubmitted(true);
 
     // Calculate duration
     const duration = startTime ? Math.floor((new Date(endTimeStamp) - new Date(startTime)) / 1000) : 0;
+
+    // Normalize score to 0-200 range
+    const normalizedScore = Math.max(0, Math.min(200, score));
+
+    // Submit score to API if gameId is available
+    if (gameId) {
+      try {
+        setIsSubmitting(true);
+        console.log('Submitting score:', { gameId, score: normalizedScore });
+        await submitGameScore(gameId, normalizedScore);
+        console.log('Score submitted successfully');
+      } catch (error) {
+        console.error('Failed to submit score:', error);
+        // You might want to show a user-friendly error message here
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      console.warn('No gameId found, score not submitted');
+    }
 
     // Prepare payload according to specifications
     const payload = {
       category,
       difficulty,
-      score: Math.max(0, Math.min(200, score)), // Normalize to 0-200
+      score: normalizedScore,
       duration,
       start_time: startTime,
       end_time: endTimeStamp,
       success,
+      gameId,
       ...customStats
     };
 
     if (onGameComplete) {
       onGameComplete(payload);
     }
-  }, [category, difficulty, score, startTime, customStats, onGameComplete, setGameState]);
+  }, [category, difficulty, score, startTime, customStats, onGameComplete, gameId, hasSubmitted]);
 
   const handleStart = () => {
     const startTimeStamp = new Date().toISOString();
     setStartTime(startTimeStamp);
     setGameState('playing');
+    setHasSubmitted(false); // Reset submission flag
     if (onStart) onStart();
   };
 
@@ -82,6 +119,7 @@ const GameFramework = ({
     setStartTime(null);
     setEndTime(null);
     setGameState('ready');
+    setHasSubmitted(false); // Reset submission flag
     if (onReset) onReset();
   };
 
@@ -164,7 +202,7 @@ const GameFramework = ({
                 onClick={handleReset}
                 className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                >
+              >
                 <RotateCcw className="h-4 w-4" />
                 Reset
               </button>
@@ -202,7 +240,7 @@ const GameFramework = ({
                 Status
               </div>
               <div className="text-lg font-semibold text-gray-900 capitalize" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {gameState}
+                {isSubmitting ? 'Submitting...' : gameState}
               </div>
             </div>
           </div>
@@ -242,6 +280,11 @@ const GameFramework = ({
                 <div className="text-lg text-gray-600 mb-4" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   Final Score: <span className="font-semibold text-[#FF6B3E]">{Math.round(score)}/200</span>
                 </div>
+                {isSubmitting && (
+                  <div className="text-sm text-gray-600 mb-2">
+                    Submitting score...
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-gray-600">Duration</div>
@@ -264,7 +307,7 @@ const GameFramework = ({
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 

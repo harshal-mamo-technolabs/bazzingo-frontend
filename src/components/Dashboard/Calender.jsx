@@ -89,11 +89,11 @@ const Calender = () => {
             <div className="text-sm text-gray-500 mt-1">
               {currentDate.format("MMM, YYYY")}
             </div>
-            {streakData?.stats && (
+            {/* {streakData?.stats && (
               <div className="text-xs text-gray-600 mt-1">
                 🔥 Current: {streakData.stats.currentStreak} | Longest: {streakData.stats.longestStreak}
               </div>
-            )}
+            )} */}
           </div>
           <div className="flex items-center space-x-2">
             <button onClick={prevMonth} className="p-1 bg-white rounded">
@@ -136,9 +136,9 @@ const Calender = () => {
               if (isToday) {
                 classes += "bg-orange-500 text-white font-semibold rounded-full";
               } else if (status?.isGamePlayed) {
-                classes += "bg-green-200 text-green-800 font-medium";
+                classes += "bg-orange-500 text-white font-medium";
               } else if (status?.isAssessmentCompleted) {
-                classes += "bg-blue-200 text-blue-800 font-medium";
+                classes += "bg-orange-500 text-white font-medium";
               } else {
                 classes += "text-gray-700 hover:bg-gray-100";
               }

@@ -20,6 +20,15 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
     };
   }, []);
 
+  // Auto-slide every 2 seconds
+  useEffect(() => {
+    if (!games || games.length === 0) return;
+    const slideInterval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % Math.min(games.length, 3));
+    }, 2000);
+    return () => clearInterval(slideInterval);
+  }, [games]);
+
   const current = games && games.length > 0 ? games[index % games.length] : null;
 
   const handleDotClick = (i) => setIndex(i);

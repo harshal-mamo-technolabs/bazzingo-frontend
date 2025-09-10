@@ -14,6 +14,11 @@ export const STREAK_ENDPOINT = "/streak";
 export const DAILY_GAMES_ENDPOINT = "/game/suggestions/daily";
 export const PLANS_ENDPOINT = "/plans";
 
+// Game endpoints
+export const GAMES_ENDPOINT = "/game/games";
+export const GAME_SCORE_ENDPOINT = "/game/score";
+export const DAILY_SUGGESTIONS_ENDPOINT = "/game/suggestions/daily";
+
 // Assessment page endpoints
 export const ASSESSMENT_ENDPOINT = '/assessment';
 export const QUICK_ASSESSMENT_ENDPOINT = '/assessment/quick';

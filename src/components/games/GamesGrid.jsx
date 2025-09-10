@@ -3,8 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import GameCard from './GameCard';
 
 const GamesGrid = ({ games, pillConfig, activeCategory }) => {
-
   const navigate = useNavigate();
+
+  const handleGameClick = (game) => {
+    console.log('Navigating to game:', game.title, 'with gameId:', game.gameId);
+    navigate(game.path, { 
+      state: { 
+        gameId: game.gameId || game.id,
+        gameName: game.title
+      } 
+    });
+  };
 
   return (
     <div className="mt-6 grid gap-3
@@ -22,7 +31,7 @@ const GamesGrid = ({ games, pillConfig, activeCategory }) => {
           game={game}
           pillConfig={pillConfig}
           activeCategory={activeCategory}
-          onClick={() => navigate(game.path)}
+          onClick={() => handleGameClick(game)}
         />
       ))}
     </div>

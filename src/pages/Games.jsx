@@ -1,59 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import MainLayout from '../components/Layout/MainLayout';
 import FilterBar from '../components/games/FilterBar';
 import GamesGrid from '../components/games/GamesGrid';
 import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
-
-const games = [
-  { id: 1, title: 'Code Breaking Cipher', category: 'Logic', difficulty: 'Easy', icon: './games-icon/code-breaking-ciper.png', bgColor: '#D5EBFF', path: "/games/code-breaking-cipher-game" },
-  { id: 2, title: 'Logic Grid Solver', category: 'Logic', difficulty: 'Hard', icon: './games-icon/logic-grid-solver.png', bgColor: '#D8F0E4', path: "/games/logic-grid-solver-game" },
-  {
-    id: 3,
-    title: 'Mine Sweeper',
-    category: 'Problem Solving',
-    difficulty: 'Hard',
-    featured: true,
-    trending: true,
-    description: "A fun brain workout that sharpens focus and boosts daily thinking.",
-    icon: './games-icon/mine-sweeper-game.png',
-    bgColor: '#1D1D1B',
-    path: '/games/mine-sweeper-game'
-  },
-  { id: 4, title: 'Stop Signal', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/stop-signal-game.png', bgColor: '#ffffff', path: "/games/stop-signal-game" },
-  { id: 5, title: 'Word Chain Logic', category: 'Logic', difficulty: 'Medium', icon: './games-icon/word-chain-logic.png', bgColor: '#1D1D1B', path: "/games/word-chain-logic-game" },
-  { id: 6, title: 'Mathematical Deduction', category: 'Numerical Reasoning', difficulty: 'Medium', icon: './games-icon/mathematical-deduction.png', bgColor: '#FFFFFF', path: "/games/math-deduction-game" },
-  { id: 7, title: 'Cognative Load Balancer', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/image7.png', bgColor: '#D4E8DC', path: "/games/cognitive-load-balancer-game" },
-  { id: 8, title: 'Word Match Master', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/word-search-master.png', bgColor: '#1D1D1B', path: "/games/word-search-master-game" },
-  { id: 9, title: 'Tic Tac Toe', category: 'Gameacy', difficulty: 'Hard', icon: './games-icon/TicTacToe.png', bgColor: '#D4E8DC', path: "/games/tic-tac-toe-game" },
-  { id: 10, title: '2028', category: 'Problem Solving', difficulty: 'Hard', icon: './games-icon/2048.png', bgColor: '#FFFFFF', path: "/games/2048-game" },
-  { id: 11, title: 'Anagram Solver', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/anagram-solver-game.png', bgColor: '#ffffff', path: "/games/anagram-solver-game" },
-  { id: 12, title: 'Face Name Memory', category: 'Memory', difficulty: 'Easy', icon: './games-icon/face-name-memory-game.png', bgColor: '#1D1D1B', path: "/games/face-name-memory-game" },
-  { id: 13, title: 'Number Flip', category: 'Logic', difficulty: 'Easy', icon: './games-icon/image3-main.png', bgColor: '#D0F2E8', path: "/games/number-flip-game" },
-  { id: 14, title: 'Sequance Recall', category: 'Logic', difficulty: 'Hard', icon: './games-icon/image4.png', bgColor: '#1D1D1B', path: "/games/sequence-recall-game" },
-  { id: 15, title: 'Tap Challange', category: 'Gameacy', difficulty: 'Easy', icon: './tap-challenge-game.png', bgColor: '#D5EBFF', path: "/games/tap-challenge-game" },
-  { id: 16, title: 'Sudoku Master', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/sudoku-master-game.png', bgColor: '#ffffff', path: "/games/sudoku-master-game" },
-  { id: 17, title: 'Probability Prediction', category: 'Numerical Reasoning', difficulty: 'Easy', icon: './games-icon/probability-prediction.png', bgColor: '#D5EBFF', path: "/games/probability-prediction-game" },
-  { id: 18, title: 'Card Sorting Flexibility', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/card-sorting-flexibility-game.png', bgColor: '#ffffff', path: "/games/card-sorting-fleibility-game" },
-  { id: 19, title: 'Metacognitive Strategy Navigator', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/image2.png', bgColor: '#1D1D1B', path: "/games/metacognitive-strategy-navigator-game" },
-  { id: 20, title: 'Resource Allocation Strategy', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/resource-allocation-strategy.png', bgColor: '#ffffff', path: "/games/resource-allocation-strategy-game" },
-  { id: 21, title: 'Syllogism', category: 'Logic', difficulty: 'Easy', icon: './games-icon/syllogism-game.png', bgColor: '#1D1D1B', path: "/games/syllogism-game" },
-  { id: 22, title: 'Candy Crush', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/candy-crush-game.png', bgColor: '#ffffff', path: "/games/candy-crush-game" },
-  { id: 23, title: 'Number Puzzle Game', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/number-puzzle-game.png', bgColor: '#1D1D1B', path: "/games/ken-ken-math-puzzle-game" },
-  { id: 24, title: 'One Line Draw', category: 'Logic', difficulty: 'Easy', icon: './games-icon/one-line-draw-game.png', bgColor: '#ffffff', path: "/games/one-line-draw-game" },
-  { id: 25, title: 'Matrix Reasoning', category: 'Logic', difficulty: 'Easy', icon: './games-icon/matrix-reasoning-game.png', bgColor: '#D5EBFF', path: "/games/matrix-reasoning-game" },
-  { id: 26, title: 'Nonogram Picross', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/nonogram-picross-game.png', bgColor: '#1D1D1B', path: "/games/nonogram-picross-game" },
-  { id: 27, title: 'Who Is? Guess', category: 'Critical Thinking', difficulty: 'Easy', icon: './games-icon/who-is-brain-game.png', bgColor: '#FFFFFF', path: "/games/who-is-brain-game" },
-  { id: 28, title: 'Data Stream Security', category: 'Gameacy', difficulty: 'Easy', icon: './games-icon/data-stream-security-game.png', bgColor: '#1D1D1B', path: "/games/data-stream-security-game" },
-  { id: 29, title: 'Mirror Match', category: 'Puzzle', difficulty: 'Easy', icon: './games-icon/mirror-match-game.png', bgColor: '#D5EBFF', path: "/games/mirror-match-game" },
-  { id: 30, title: 'Emotion Decoder', category: 'Problem Solving', difficulty: 'Easy', icon: './games-icon/emotion-decoder.png', bgColor: '#000000', path: "/games/emotion-decoder-game" },
-
-];
+import { getAllGames } from '../services/gameService';
 
 const categories = [
-  'All', 'Gameacy', 'Numerical Reasoning',
-  'Problem Solving', 'Critical Thinking', 'Logic', 'Memory', 'Puzzle'
+  'All', 'Gameacy',
+  'Problem Solving', 'Critical Thinking', 'Logic', 'Memory', 
 ];
-//const levels = ['Easy', 'Medium', 'Hard'];
 
 const pillConfig = {
   Easy: { bg: '#cfe0cc', border: '#1A7212', text: '#1A7212' },
@@ -62,21 +17,92 @@ const pillConfig = {
   Trending: { bg: '#FF6B3E', border: '#FF6B3E', text: '#000000' }
 };
 
+// Category-wise background colors
+const getCategoryBgColor = (category) => {
+  switch (category) {
+    case 'Logic':
+      return '#D5EBFF'; // Light blue
+    case 'Problem Solving':
+      return '#D8F0E4'; // Light green
+    case 'Critical Thinking':
+      return '#FFF2CC'; // Light yellow
+    case 'Memory':
+      return '#F0E6FF'; // Light purple
+    case 'Gameacy':
+      return '#FFE6E6'; // Light pink
+    default:
+      return '#F5F5F5'; // Light gray
+  }
+};
+
 export default function Games() {
   const [activeCategory, setActiveCategory] = useState('All');
-  //const [activeLevel, setActiveLevel] = useState('Easy');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const unread = 3;
+
+  // Fetch games from API
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllGames();
+        if (response.status === 'success') {
+          // Transform API data to match component structure
+          const transformedGames = response.data.games.map(game => ({
+            id: game._id,
+            gameId: game._id, // Keep original ID for API calls
+            title: game.name,
+            category: game.category,
+            difficulty: 'Easy', // Default difficulty, can be dynamic
+            icon: game.thumbnail,
+            bgColor: getCategoryBgColor(game.category), // Category-wise background color
+            path: game.url
+          }));
+          setGames(transformedGames);
+        }
+      } catch (err) {
+        console.error('Error fetching games:', err);
+        setError('Failed to load games');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGames();
+  }, []);
 
   const dailyGames = games.slice(0, 3);
 
   // Filter games based on active category
-const filteredGames = useMemo(() => {
-  if (activeCategory === 'All') {
-    return games;
+  const filteredGames = useMemo(() => {
+    if (activeCategory === 'All') {
+      return games;
+    }
+    return games.filter(game => game.category === activeCategory);
+  }, [activeCategory, games]);
+
+  if (loading) {
+    return (
+      <MainLayout unreadCount={unread}>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-lg">Loading games...</div>
+        </div>
+      </MainLayout>
+    );
   }
-  return games.filter(game => game.category === activeCategory);
-}, [activeCategory]);
+
+  if (error) {
+    return (
+      <MainLayout unreadCount={unread}>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-lg text-red-600">{error}</div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout unreadCount={unread}>
@@ -84,11 +110,8 @@ const filteredGames = useMemo(() => {
         <div className="mx-auto px-4 lg:px-12 py-4">
           <FilterBar
             categories={categories}
-            //levels={levels}
             activeCategory={activeCategory}
-            //activeLevel={activeLevel}
             onCategoryChange={setActiveCategory}
-          //onLevelChange={setActiveLevel}
           />
 
           <GamesGrid
