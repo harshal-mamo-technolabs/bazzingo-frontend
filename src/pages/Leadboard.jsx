@@ -152,15 +152,6 @@ const Leadboard = () => {
                   >
                     Global
                   </button>
-                  <button
-                    onClick={() => { setScope("game"); }}
-                    className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                      (scope === "game" || scope === "global") ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
-                                        : "text-gray-600 bg-white"
-                    }`}
-                  >
-                    By Game
-                  </button>
                 </div>
 
                 <div className="relative">
@@ -228,7 +219,15 @@ const Leadboard = () => {
                 >
                   By Assessment
                 </button>
-
+                <button
+                    onClick={() => { setScope("game"); }}
+                    className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                      (scope === "game" || scope === "global") ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" 
+                                        : "text-gray-600 bg-white"
+                    }`}
+                  >
+                    By Game
+                  </button>
                 
               </div>
 
@@ -292,58 +291,59 @@ const Leadboard = () => {
                   <TopRank currentUser={leaderboardData.currentUser} />
                 </div>
 
-                {/* Recent Activity - bottom on mobile */}
-                <div className="order-3 lg:order-2 bg-[#EEEEEE] rounded-lg p-2 md:p-3 shadow-sm h-[350px]">
-                  <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4">Recent Activity</h3>
-                  <div className="space-y-4 mt-4">
-                    {(
-                      (recentActivities.length
-                        ? recentActivities.map((r, i) => ({
-                            icon: activities[i % activities.length].icon,
-                            alt: activities[i % activities.length].alt,
-                            iconBg: activities[i % activities.length].iconBg,
-                            label: r.label,
-                            pct: r.pct,
-                            statusType: 'completed',
-                          }))
-                        : activities)
-                    ).map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
-                      >
-                        {/* Icon + Label */}
-                        <div className="flex items-center gap-2 min-w-[105px]">
-                          <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
-                            <img src={icon} alt={alt} className="w-10 h-10" />
-                          </div>
-                          <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
-                            {label}
-                          </span>
-                        </div>
-
-                        {/* ProgressBar */}
-                        <div className="flex-1 mx-2 max-w-[190px]">
-                          <ProgressBar percentage={pct} />
-                        </div>
-
-                        {/* Status */}
-                        <div className="flex items-center justify-end min-w-[20px]">
-                          {statusType === 'completed' ? (
-                            <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                              <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                              <span>Completed</span>
+                {/* Recent Activity - bottom on mobile (desktop too) */}
+                {recentActivities.length > 0 && (
+                  <div className="order-3 lg:order-2 bg-[#EEEEEE] rounded-lg p-2 md:p-3 shadow-sm h-[350px]">
+                    <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4">Recent Activity</h3>
+                    <div className="space-y-4 mt-4">
+                      {recentActivities.map((r, i) => {
+                        const ref = activities[i % activities.length];
+                        return {
+                          icon: ref.icon,
+                          alt: ref.alt,
+                          iconBg: ref.iconBg,
+                          label: r.label,
+                          pct: r.pct,
+                          statusType: 'completed',
+                        };
+                      }).map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
+                        >
+                          {/* Icon + Label */}
+                          <div className="flex items-center gap-2 min-w-[105px]">
+                            <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
+                              <img src={icon} alt={alt} className="w-10 h-10" />
                             </div>
-                          ) : (
-                            <button className="bg-[#edd9c6] text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                              Resume
-                            </button>
-                          )}
+                            <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
+                              {label}
+                            </span>
+                          </div>
+
+                          {/* ProgressBar */}
+                          <div className="flex-1 mx-2 max-w-[190px]">
+                            <ProgressBar percentage={pct} />
+                          </div>
+
+                          {/* Status */}
+                          <div className="flex items-center justify-end min-w-[20px]">
+                            {statusType === 'completed' ? (
+                              <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                                <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                                <span>Completed</span>
+                              </div>
+                            ) : (
+                              <button className="bg-[#edd9c6] text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
+                                Resume
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -398,50 +398,52 @@ const Leadboard = () => {
             </div>
 
             {/* Recent Activity - Last on mobile, bottom right on desktop */}
-            <div className="order-3 lg:order-2 w-full lg:w-[350px]">
-              <div className="bg-[#EEEEEE] rounded-lg p-2 md:p-6 shadow-sm h-[350px]">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                <div className="space-y-4 mt-4">
-                  {activities.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
-                    >
-                      {/* Icon + Label */}
-                      <div className="flex items-center gap-2 min-w-[140px]">
-                        <div
-                          className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}
-                        >
-                          <img src={icon} alt={alt} className="w-10 h-10" />
-                        </div>
-                        <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
-                          {label}
-                        </span>
-                      </div>
-
-                      {/* ProgressBar */}
-                      <div className="flex-1 mx-2 max-w-[190px]">
-                        <ProgressBar percentage={pct} />
-                      </div>
-
-                      {/* Status */}
-                      <div className="flex items-center justify-end min-w-[20px]">
-                        {statusType === 'completed' ? (
-                          <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                            <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                            <span>Completed</span>
+            {recentActivities.length > 0 && (
+              <div className="order-3 lg:order-2 w-full lg:w-[350px]">
+                <div className="bg-[#EEEEEE] rounded-lg p-2 md:p-6 shadow-sm h-[350px]">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                  <div className="space-y-4 mt-4">
+                    {activities.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
+                      >
+                        {/* Icon + Label */}
+                        <div className="flex items-center gap-2 min-w-[140px]">
+                          <div
+                            className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}
+                          >
+                            <img src={icon} alt={alt} className="w-10 h-10" />
                           </div>
-                        ) : (
-                          <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                            Resume
-                          </button>
-                        )}
+                          <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
+                            {label}
+                          </span>
+                        </div>
+
+                        {/* ProgressBar */}
+                        <div className="flex-1 mx-2 max-w-[190px]">
+                          <ProgressBar percentage={pct} />
+                        </div>
+
+                        {/* Status */}
+                        <div className="flex items-center justify-end min-w-[20px]">
+                          {statusType === 'completed' ? (
+                            <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                              <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                              <span>Completed</span>
+                            </div>
+                          ) : (
+                            <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
+                              Resume
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

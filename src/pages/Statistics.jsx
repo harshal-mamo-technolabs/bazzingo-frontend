@@ -6,6 +6,7 @@ import { RecentTest, TestScore } from "../components/Statistics";
 import ProgressChart from "../components/Charts/ProgressChart";
 import NoDataModal from "../components/Statistics/NoDataModal";
 import { useNavigate } from 'react-router-dom';
+import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
 
 
@@ -22,6 +23,31 @@ const Statistics = () => {
     }, 1000); // 1000ms = 1 second delay before rendering chart
 
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch weekly scores for the right chart
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const res = await getWeeklyScores();
+        const scores = res?.data?.scores || {};
+        const orderedDays = [
+          "SUNDAY",
+          "MONDAY",
+          "TUESDAY",
+          "WEDNESDAY",
+          "THURSDAY",
+          "FRIDAY",
+          "SATURDAY",
+        ];
+        const values = orderedDays.map((d) => scores[d] ?? 0);
+        setStatsData(values);
+      } catch (err) {
+        // keep defaults if API fails
+        console.error("Error loading weekly scores:", err);
+      }
+    };
+    fetchScores();
   }, []);
 
 

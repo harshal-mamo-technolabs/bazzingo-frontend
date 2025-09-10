@@ -5,6 +5,7 @@ import DailyAssessmentIcon from "../../public/daily-assessment-icon.png";
 import MageScapeIcon from "../../public/maze-escape-icon.png";
 import CheckIcon from "../../public/carbon_checkmark-filled.png";
 import AssessmentCompletionModal from "../components/assessments/AssessmentCompletionModal.jsx";
+import { getRecentDashboardActivity } from "../services/dashbaordService";
 
 export default function VisualReasoningLayout() {
   const [showAllQuestions, setShowAllQuestions] = useState(false);
@@ -96,6 +97,7 @@ const activities = [
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [timeLeft, setTimeLeft] = useState(15);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   const currentQuestion = questions[currentIndex];
   const progressPercent = ((currentIndex + 1) / questions.length) * 100;
@@ -116,6 +118,20 @@ const activities = [
 
     return () => clearInterval(timer);
   }, [currentIndex]);
+
+  // Fetch recent activity for right card; hide card if none
+  useEffect(() => {
+    const loadRecent = async () => {
+      try {
+        const res = await getRecentDashboardActivity();
+        const acts = res?.data?.activities || [];
+        setRecentActivities(acts);
+      } catch (e) {
+        setRecentActivities([]);
+      }
+    };
+    loadRecent();
+  }, []);
 
   const handleContinue = () => {
     if (currentIndex < questions.length - 1) {
@@ -284,104 +300,63 @@ const activities = [
           </div>
 
           {/* RIGHT CARD */}
+          {recentActivities.length > 0 && (
           <div className="lg:w-1/4 w-full lg:bg-[#EEEEEE] rounded p-4 flex flex-col h-full">
             <h5 className="text-lg font-semibold mb-4">Recent Activity</h5>
+            {/* Desktop */}
             <div className="hidden lg:block">
-            <div className="flex flex-col gap-3 flex-grow">
-              <div className="flex items-center bg-white rounded p-3 gap-3">
-                <img
-                  src={DailyPuzzleIcon}
-                  alt="Daily Puzzle"
-                  className="w-10 h-10 object-contain"
-                />
-                <div className="flex flex-col flex-grow">
-                  <span className="text-[14px] font-semibold">Daily Puzzle</span>
-                  <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
-                  bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
-                  px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">Completed</span>
-                </div>
-                <img
-                  src={CheckIcon}
-                  alt="Completed"
-                  className="w-5 h-5 object-contain"
-                />
-              </div>
-              <div className="flex items-center bg-white rounded p-3 gap-3">
-                <img
-                  src={DailyAssessmentIcon}
-                  alt="Daily Assessment"
-                  className="w-10 h-10 object-contain"
-                />
-                <div className="flex flex-col flex-grow">
-                  <span className="text-[14px] font-semibold">Daily Assessment</span>
-                  <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
-                  bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
-                  px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">
-                    Completed
-                  </span>
-                </div>
-                <img
-                  src={CheckIcon}
-                  alt="Completed"
-                  className="w-5 h-5 object-contain"
-                />
-              </div>
-              <div className="flex items-center bg-white rounded p-3 gap-3">
-                <img
-                  src={MageScapeIcon}
-                  alt="Mage Scape"
-                  className="w-10 h-10 object-contain bg-blue-200 rounded p-1"
-                />
-                <div className="flex flex-col flex-grow">
-                  <span className="text-[14px] font-semibold">Mage Scape</span>
-                  <span className="bg-[#FFEFE8] text-[#FF6700] inline-block mt-1 rounded-lg border-2 
-                  px-2 py-1 font-bold text-[12px] leading-none w-15 border-[#FF6700]">
-                    Resume
-                  </span>
-                </div>
+              <div className="flex flex-col gap-3 flex-grow">
+                {recentActivities.slice(0,3).map((act, idx) => {
+                  const iconRefs = [DailyPuzzleIcon, DailyAssessmentIcon, MageScapeIcon];
+                  const icon = iconRefs[idx % iconRefs.length];
+                  return (
+                    <div key={idx} className="flex items-center bg-white rounded p-3 gap-3">
+                      <img src={icon} alt={act.type} className="w-10 h-10 object-contain" />
+                      <div className="flex flex-col flex-grow">
+                        <span className="text-[14px] font-semibold">{act.name}</span>
+                        <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
+                          bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
+                          px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">Completed</span>
+                      </div>
+                      <img src={CheckIcon} alt="Completed" className="w-5 h-5 object-contain" />
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            </div>
+            {/* Mobile inside right card */}
             <div className="lg:hidden block">
               <div className="space-y-4 mt-4">
-               {activities.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
-    <div
-      key={idx}
-      className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
-    >
-      {/* Icon + Label */}
-      <div className="flex items-center gap-2 min-w-[100px]">
-        <div
-          className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}
-        >
-          <img src={icon} alt={alt} className="w-10 h-10" />
-        </div>
-        <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">{label}</span>
-      </div>
-
-      {/* ProgressBar */}
-      <div className="flex-1 mx-2 max-w-[190px]">
-        <ProgressBar percentage={pct} />
-      </div>
-
-      {/* Status */}
-      <div className="flex items-center justify-end min-w-[20px]">
-        {statusType === 'completed' ? (
-          <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-            <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-            <span>Completed</span>
-          </div>
-        ) : (
-          <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-            Resume
-          </button>
-        )}
-      </div>
-    </div>
-              ))}
-            </div>
+                {recentActivities.slice(0,3).map((act, idx) => {
+                  const iconRefs = [DailyPuzzleIcon, DailyAssessmentIcon, MageScapeIcon];
+                  const icon = iconRefs[idx % iconRefs.length];
+                  return (
+                    <div key={idx} className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-[100px]">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0`}>
+                          <img src={icon} alt={act.type} className="w-10 h-10" />
+                        </div>
+                        <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">{act.name}</span>
+                      </div>
+                      <div className="flex-1 mx-2 max-w-[190px]">
+                        <div className="relative w-full lg:max-w-[150px] h-9 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
+                          <div className="absolute inset-y-0 left-0 bg-[#fda98d] rounded-l-[5px] transition-all duration-500" style={{ width: `${act.percentage ?? 0}%` }} />
+                          <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800 z-10">{act.percentage ?? 0}%</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end min-w-[20px]">
+                        <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                          <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                          <span>Completed</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
+          )}
         </div>
       </div>
       {/* New Assessment Modal */}

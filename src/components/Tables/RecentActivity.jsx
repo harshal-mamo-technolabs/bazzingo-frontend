@@ -56,6 +56,10 @@ export default function RecentActivity() {
     load();
   }, []);
 
+  if (!loading && items.length === 0) {
+    return null;
+  }
+
   return (
       <>
         <h3 className="text-2xl font-semibold text-gray-900 mb-0">Recent Activity</h3>

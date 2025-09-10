@@ -113,7 +113,7 @@ const handleGameClick = useCallback(
 
             {/* Main Content */}
             <div className="flex flex-col lg:flex-row lg:gap-4 gap-4 mb-8 w-full">
-                <DailyGameCard onGameClick={() => setIsModalOpen(true)} />
+                <DailyGameCard onGameClick={() => setIsModalOpen(true)} games={dailyGames} />
                 <DailyAssessmentCard onAssessmentClick={openAssessment} />
                 <Calender />
 

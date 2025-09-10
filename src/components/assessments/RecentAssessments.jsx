@@ -2,6 +2,9 @@ import React from 'react';
 import RecentAssessmentCard from './RecentAssessmentCard';
 
 const RecentAssessments = ({ assessments }) => {
+  if (!assessments || assessments.length === 0) {
+    return null;
+  }
   return (
     <div className="bg-[#E8E8E8] rounded-lg p-6">
       <h2 className="text-black mb-6" style={{ fontSize: '20px', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>

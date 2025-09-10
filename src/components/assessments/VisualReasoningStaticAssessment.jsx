@@ -270,9 +270,16 @@ export default function VisualReasoningStaticAssessment() {
       console.log("✅ Submission response:", res);
       
       // Extract correct totalScore path from API response
+      // Calculate total possible score by summing points on all questions
+      const totalPossibleScore = allQuestions.reduce((sum, q) => {
+        const pts = typeof q.points === 'number' ? q.points : 0;
+        return sum + pts;
+      }, 0);
+
       const scoreDataFromResponse = {
         score: res?.data?.score?.totalScore ?? res?.data?.totalScore ?? 0,
-        totalQuestions: allQuestions.length,
+        // Pass total possible score into the existing prop (used as denominator in UI)
+        totalQuestions: totalPossibleScore,
       };
       
       console.log("📊 Score data being set:", scoreDataFromResponse);

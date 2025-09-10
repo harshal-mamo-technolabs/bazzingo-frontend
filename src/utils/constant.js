@@ -1,8 +1,8 @@
 export const USER_SLICE_NAME = "user";
 
 // Prefer environment variables (Vite) with sensible fallbacks for local dev
-export const API_CONNECTION_HOST_URL = "https://bazzingo-backend-1.onrender.com";
-// export const API_CONNECTION_HOST_URL = "http://localhost:4000";
+//export const API_CONNECTION_HOST_URL = "https://bazzingo-backend-1.onrender.com";
+export const API_CONNECTION_HOST_URL = "http://localhost:4000";
 export const VAPID_PUBLIC_KEY = "BIYXHY1jiZqnePRbhgA1Tvnny1N7vpjgFcBhXD4hqNYfGm3VHxr8wRHTNC1mhM9V2BWS5jP9CxngbL29mhwq2E4";
 
 export const SIGNUP_ENDPOINT = "/auth/signup";

@@ -2,10 +2,11 @@ import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import {OrangeHeadBrainIllustrationIcon, RoyalStarBadgeIcon} from "../../utils/dashboard-image.js";
 
-const DailyGameCard = ({ onGameClick }) => {
+const DailyGameCard = ({ onGameClick, games = [] }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const iconRef = useRef(null);
   const timerRef = useRef(null);
+  const [index, setIndex] = useState(0);
 
   const handleTooltipClick = useCallback((setTooltipFn) => {
     setTooltipFn(true);
@@ -18,6 +19,10 @@ const DailyGameCard = ({ onGameClick }) => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  const current = games && games.length > 0 ? games[index % games.length] : null;
+
+  const handleDotClick = (i) => setIndex(i);
 
   return (
       <>
@@ -49,18 +54,18 @@ const DailyGameCard = ({ onGameClick }) => {
             {/* Image + Text (responsive for mobile, stacked for web) */}
             <div className="lg:hidden bg-white rounded-xl p-2 flex items-center space-x-3 mb-4">
               <img
-                  src={OrangeHeadBrainIllustrationIcon}
-                  alt="Head silhouette"
+                  src={current?.icon || OrangeHeadBrainIllustrationIcon}
+                  alt={current?.title || "Daily Game"}
                   className="w-16 h-16 object-contain"
                   loading="lazy"
                   decoding="async"
               />
               <div>
-                <div className="text-sm font-semibold text-black">Memory Match</div>
+                <div className="text-sm font-semibold text-black">{current?.title || 'Daily Game'}</div>
                 <div className="mt-1">
-                <span className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
-                  Mini Test, 5–10 Question
-                </span>
+                <p className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
+                  <span className="text-[10px]">Daily Game Challenge</span>{current?.difficulty ? ` • ${current.difficulty}` : ''}
+                </p>
                 </div>
               </div>
             </div>
@@ -69,29 +74,34 @@ const DailyGameCard = ({ onGameClick }) => {
             <div className="hidden lg:block">
               <div className="bg-[#f5f5f5] rounded-t-lg mb-0">
                 <img
-                    src={OrangeHeadBrainIllustrationIcon}
-                    alt="Head silhouette"
+                    src={current?.icon || OrangeHeadBrainIllustrationIcon}
+                    alt={current?.title || "Daily Game"}
                     className="w-full object-contain p-2"
                     loading="lazy"
                     decoding="async"
                 />
               </div>
               <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
-                <div className="text-sm font-semibold text-black">Memory Match</div>
+                <div className="text-sm font-semibold text-black">{current?.title || 'Daily Game'}</div>
                 <div className="mt-1">
-                <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
-                  Mini Test, 5–10 Question
-                </span>
+                <p className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
+                  <span className="text-[10px] font-bold">Daily Game Challenge</span>{current?.difficulty ? ` • ${current.difficulty}` : ''}
+                </p>
                 </div>
               </div>
             </div>
 
             {/* Pagination dots */}
-            {/* Dots */}
             <div className="flex justify-center space-x-2 md:mt-3 mt-1 mb-2 md:mb-4">
-              <div className="w-2 h-2 rounded-full opacity-80 bg-[#00443e]"></div>
-              <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
-              <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
+              {(games && games.length > 0 ? games : [0,1,2]).slice(0,3).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleDotClick(i)}
+                  className={`w-2 h-2 rounded-full ${index % 3 === i ? 'opacity-80 bg-[#00443e]' : 'bg-gray-900 opacity-20'}`}
+                  aria-label={`Go to game ${i+1}`}
+                />
+              ))}
             </div>
 
             {/* Badge Row */}
