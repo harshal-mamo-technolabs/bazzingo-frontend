@@ -4,6 +4,7 @@ import MainLayout from '../components/Layout/MainLayout';
 import { IQAndGamesSummary, RecommendationGameCarousel, Calender, DailyGameCard, DailyAssessmentCard} from '../components/Dashboard';
 import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 import DailyAssessmentModal from '../components/Dashboard/DailyAssessmentModal.jsx';
+import NoticeModal from '../components/common/NoticeModal.jsx';
 import RecentActivity from '../components/Tables/RecentActivity';
 import {DAILY_GAMES} from "../utils/dashboardUtills.js";
 import {CognitiveFocusBrainIcon} from '../utils/dashboard-image.js';
@@ -11,7 +12,7 @@ import PageHeader from "../components/Dashboard/PageHeader.jsx";
 import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlightCard.jsx";
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
-import { getDashboardData, getDailyGames } from '../services/dashbaordService.js';
+import { getDashboardData, getDailyGames, getRecentAssessmentActivity } from '../services/dashbaordService.js';
 
 
 const Dashboard = () => {
@@ -20,6 +21,7 @@ const Dashboard = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [notice, setNotice] = useState({ open: false, title: '', message: '' });
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showTooltipStats, setShowTooltipStats] = useState(false);
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
@@ -80,7 +82,21 @@ const handleGameClick = useCallback(
   [navigate]
 );
 
-  const openAssessment = useCallback(() => {
+  const openAssessment = useCallback(async () => {
+    try {
+      // Check if today's quick assessment already completed using recent activity
+      const recent = await getRecentAssessmentActivity();
+      const scores = recent?.data?.scores || [];
+      const todayStr = new Date().toDateString();
+      const completedTodayQuick = scores.some(s => {
+        const d = new Date(s.submittedAt);
+        return s.type === 'quick' && d.toDateString() === todayStr;
+      });
+      if (completedTodayQuick) {
+        setNotice({ open: true, title: 'Congratulations!', message: "You've completed today’s quick assessment." });
+        return;
+      }
+    } catch {}
     setSelectedAssessment({
       title: 'Memory Match',
       description: 'Mini Test, 5–10 Question',
@@ -113,7 +129,22 @@ const handleGameClick = useCallback(
 
             {/* Main Content */}
             <div className="flex flex-col lg:flex-row lg:gap-4 gap-4 mb-8 w-full">
-                <DailyGameCard onGameClick={() => setIsModalOpen(true)} games={dailyGames} />
+                <DailyGameCard onGameClick={async () => {
+                  try {
+                    const res = await getDailyGames();
+                    const suggestion = res?.data?.suggestion;
+                    const allPlayed = Array.isArray(suggestion?.games)
+                      ? suggestion.games.every(g => g.isPlayed)
+                      : false;
+                    if (allPlayed) {
+                      setNotice({ open: true, title: 'Congratulations!', message: 'You have played all today’s games.' });
+                    } else {
+                      setIsModalOpen(true);
+                    }
+                  } catch (e) {
+                    setIsModalOpen(true);
+                  }
+                }} games={dailyGames} />
                 <DailyAssessmentCard onAssessmentClick={openAssessment} />
                 <Calender />
 
@@ -138,6 +169,12 @@ const handleGameClick = useCallback(
                   isOpen={isAssessmentModalOpen}
                   selectedAssessment={selectedAssessment}
                   onClose={closeAssessment}
+              />
+              <NoticeModal
+                isOpen={notice.open}
+                onClose={() => setNotice({ open: false, title: '', message: '' })}
+                title={notice.title}
+                message={notice.message}
               />
             </>
           </main>

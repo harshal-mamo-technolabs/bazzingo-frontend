@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Info } from "lucide-react";
 import { getGameStatistics } from "../../services/dashbaordService";
+import BazzingoLoader from "../Loading/BazzingoLoader";
 
 
 const TopRank = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const iconRef = useRef(null);
 
+  const [loading, setLoading] = useState(true);
   const [rank, setRank] = useState(0);
   const [totalPlayed, setTotalPlayed] = useState(0);
   const [brainIndex, setBrainIndex] = useState(0);
@@ -16,6 +18,7 @@ const TopRank = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
+        setLoading(true);
         const res = await getGameStatistics();
         const today = res?.data?.statistics?.today;
         const overallRank = res?.data?.rank;
@@ -40,10 +43,20 @@ const TopRank = () => {
         setRank(0);
         setTotalPlayed(0);
         setBrainIndex(0);
+      } finally {
+        setLoading(false);
       }
     };
     loadStats();
   }, []);
+  if (loading) {
+    return (
+      <div className="bg-[#EEEEEE] rounded-lg shadow-sm border border-gray-200 overflow-hidden h-[330px] flex items-center justify-center">
+        <BazzingoLoader message="Fetching today’s stats..." />
+      </div>
+    );
+  }
+
   
   const handleTooltipClick = (setTooltipFn) => {
   setTooltipFn(true);

@@ -293,3 +293,21 @@ export async function getPlansData(){
   });
   return response.data;
 }
+
+// Fetch user IQ scores
+export async function getUserIqScores() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/assessment/iq-scores`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching user IQ scores:", err);
+    throw err;
+  }
+}

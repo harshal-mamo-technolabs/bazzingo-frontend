@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../Header';
+import BazzingoLoader from "../Loading/BazzingoLoader";
 import AssessmentCompletionModal from './AssessmentCompletionModal.jsx';
 import MiniAssesmentCompletionModal from './MiniAssesmentCompletionModal.jsx';
 import {
@@ -89,8 +90,11 @@ export default function VisualReasoningStaticAssessment() {
   const [scoreData, setScoreData] = useState({
     score: 0,
     totalQuestions: 0,
-    totalScore: 0
+    totalScore: 0,
+    fullScoreData: null // Add this to store complete score data
   });
+  const [isAvailCertification, setIsAvailCertification] = useState(false);
+  const [isAvailReport, setIsAvailReport] = useState(false);
 
   /** =========================
       Fetch Assessment
@@ -110,6 +114,9 @@ export default function VisualReasoningStaticAssessment() {
           const res = await getFullAssessment(assessmentIdToUse);
           apiQuestions = res?.data?.questions || res?.questions || [];
           id = res?.data?.assessment?._id || res?.assessment?._id;
+          const a = res?.data?.assessment || res?.assessment;
+          setIsAvailCertification(Boolean(a?.isAvailCertification));
+          setIsAvailReport(Boolean(a?.isAvailReport));
         }
 
         if (!apiQuestions.length) {
@@ -269,20 +276,38 @@ export default function VisualReasoningStaticAssessment() {
       const res = await submitAssessment(payload);
       console.log("✅ Submission response:", res);
       
-      // Extract correct totalScore path from API response
-      // Calculate total possible score by summing points on all questions
+      // Extract the full score data from response
+      const scoreDataFromResponse = res?.data?.score || res?.score || res?.data || {};
+      
+      // Extract correct totalScore/outOfScore path from API response
       const totalPossibleScore = allQuestions.reduce((sum, q) => {
         const pts = typeof q.points === 'number' ? q.points : 0;
         return sum + pts;
       }, 0);
-
-      const scoreDataFromResponse = {
-        score: res?.data?.score?.totalScore ?? 0,
-        totalQuestions: res?.data?.score?.outOfScore ?? 0,
-      };
+  
+      const outOf = (
+        scoreDataFromResponse?.outOfScore ??
+        scoreDataFromResponse?.outofScore ??
+        scoreDataFromResponse?.out_of_score ??
+        scoreDataFromResponse?.outOf ??
+        scoreDataFromResponse?.outof ??
+        scoreDataFromResponse?.out ??
+        scoreDataFromResponse?.maxScore ??
+        (totalPossibleScore > 0 ? totalPossibleScore : (Array.isArray(allQuestions) ? allQuestions.length : 0))
+      );
+  
+      // Get the actual score value
+      const actualScore = scoreDataFromResponse?.totalScore ?? scoreDataFromResponse?.score ?? 0;
+  
+      // Set the complete score data including fullScoreData
+      // Also maintain backward compatibility with totalScore for the modal
+      setScoreData({
+        score: actualScore,
+        totalQuestions: outOf,
+        totalScore: actualScore, // Keep this for backward compatibility
+        fullScoreData: scoreDataFromResponse // Store the complete score data
+      });
       
-      console.log("📊 Score data being set:", scoreDataFromResponse);
-      setScoreData(scoreDataFromResponse);
       setIsModalOpen(true);
     } catch (err) {
       console.error("❌ Error submitting assessment:", err);
@@ -366,8 +391,10 @@ export default function VisualReasoningStaticAssessment() {
     return (
       <>
         <Header />
-        <div className="flex justify-center items-center h-screen text-lg font-semibold">
-          Loading assessment...
+        <div className="mx-auto px-4 lg:px-12 py-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <BazzingoLoader message="Preparing your assessment..." />
+          </div>
         </div>
       </>
     );
@@ -668,8 +695,16 @@ export default function VisualReasoningStaticAssessment() {
             totalQuestions={scoreData.totalQuestions} />
           )}
           {dynamicAssessmentId && (
-          <AssessmentCompletionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} score={scoreData.score} 
-          totalQuestions={scoreData.totalQuestions} />
+          <AssessmentCompletionModal 
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+            score={scoreData.score} 
+            totalQuestions={scoreData.totalQuestions}
+            assessmentId={assessmentId}
+            fullScoreData={scoreData.fullScoreData}
+            isAvailCertification={isAvailCertification}
+            isAvailReport={isAvailReport}
+          />
           )}
         </div>
       </div>

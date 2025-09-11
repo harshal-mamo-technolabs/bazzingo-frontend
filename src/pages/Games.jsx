@@ -4,6 +4,7 @@ import FilterBar from '../components/games/FilterBar';
 import GamesGrid from '../components/games/GamesGrid';
 import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 import { getAllGames } from '../services/gameService';
+import BazzingoLoader from "../components/Loading/BazzingoLoader";
 
 const categories = [
   'All', 'Gameacy',
@@ -87,8 +88,10 @@ export default function Games() {
   if (loading) {
     return (
       <MainLayout unreadCount={unread}>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-lg">Loading games...</div>
+        <div className="mx-auto px-4 lg:px-12 py-4">
+          <div className="p-6">
+            <BazzingoLoader message="Loading games..." />
+          </div>
         </div>
       </MainLayout>
     );

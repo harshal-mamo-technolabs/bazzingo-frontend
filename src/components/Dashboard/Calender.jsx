@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { getStreak } from "../../services/dashbaordService"; // adjust path
+import BazzingoLoader from "../Loading/BazzingoLoader";
 
 const Calender = () => {
   const [currentDate, setCurrentDate] = useState(dayjs());
   const [showTooltip, setShowTooltip] = useState(false);
   const [streakData, setStreakData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(null); // will store { start, end }
   const iconRef = useRef(null);
 
@@ -18,11 +20,14 @@ const Calender = () => {
   // Fetch streak data
   const fetchStreak = async (startDate, endDate) => {
     try {
+      setLoading(true);
       const res = await getStreak(startDate, endDate);
       setStreakData(res.data);
       setRange(res.data.range);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,6 +69,16 @@ const Calender = () => {
     );
     return found || null;
   };
+
+  if (loading) {
+    return (
+      <div className="w-full lg:w-[280px] flex-shrink-0">
+        <div className="bg-[#ffece6] rounded-lg p-3 shadow-sm border border-gray-100 h-full min-h-[320px] flex items-center justify-center">
+          <BazzingoLoader message="Loading streak..." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full lg:w-[280px] flex-shrink-0">

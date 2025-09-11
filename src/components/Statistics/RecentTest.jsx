@@ -1,11 +1,12 @@
 import React,{useState, useRef, useEffect} from "react";
 import { Info } from "lucide-react";
 import { getRecentAssessmentActivity } from "../../services/dashbaordService";
+import BazzingoLoader from "../Loading/BazzingoLoader";
 
 const RecentTest = () =>{
   const [showTooltip, setShowTooltip] = useState(false);
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const iconRef = useRef(null);
   
   const handleTooltipClick = (setTooltipFn) => {
@@ -42,6 +43,14 @@ const RecentTest = () =>{
     fetchRecent();
   }, []);
   
+  if (loading) {
+    return (
+      <div className="lg:w-[420px] min-h-[220px] bg-[#EEEEEE] rounded-xl p-4 flex items-center justify-center">
+        <BazzingoLoader message="Loading recent tests..." compact />
+      </div>
+    );
+  }
+
     return (
         <>
          {/* Middle Card - Recent Tests */}

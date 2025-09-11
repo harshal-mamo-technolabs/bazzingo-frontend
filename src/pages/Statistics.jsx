@@ -8,6 +8,7 @@ import NoDataModal from "../components/Statistics/NoDataModal";
 import { useNavigate } from 'react-router-dom';
 import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
+import BazzingoLoader from "../components/Loading/BazzingoLoader";
 
 
 const Statistics = () => {
@@ -182,10 +183,18 @@ const Statistics = () => {
   const [brainIndex, setBrainIndex] = useState(0);
   const [scores, setScores] = useState([]);
   const [progressValues, setProgressValues] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [currentIq, setCurrentIq] = useState(null);
+
+  // Callback function to receive IQ data from TestScore
+  const handleIqDataLoaded = (iqData) => {
+    setCurrentIq(iqData.currentIQ);
+  };
 
   useEffect(() => {
     const loadStats = async () => {
       try {
+        setStatsLoading(true);
         const res = await getGameStatistics();
         const today = res?.data?.statistics?.today;
         const overallRank = res?.data?.rank;
@@ -209,6 +218,8 @@ const Statistics = () => {
         setRank(0);
         setTotalPlayed(0);
         setBrainIndex(0);
+      } finally {
+        setStatsLoading(false);
       }
     };
     loadStats();
@@ -402,30 +413,35 @@ const Statistics = () => {
                 </div>
 
                 <hr className="mb-2 border-gray-300" />
-                {/* hello */}
-                {/* Score Bars */}
-                {(scores.slice(0, 6)).map((score, index) => (
-                  <div key={index} className="flex items-center mb-2 gap-2 w-full">
-                    {/* Label */}
-                    <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
-
-                    {/* Progress Bar */}
-                    <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
-                      <div
-                        className="h-2 rounded-full shadow-md transition-all duration-2000 ease-out animate-pulse"
-                        style={{
-                          width: `${progressValues[index]}%`,
-                          background: 'linear-gradient(to right, #c56b49, #f97316)',
-                        }}
-                      ></div>
-                    </div>
-
-                    {/* Score Value */}
-                    <span className="text-[11px] text-gray-800 w-[30px] text-right">
-                      {score.value}
-                    </span>
+                {/* Score Bars with loader */}
+                {statsLoading ? (
+                  <div className="flex items-center justify-center h-[160px]">
+                    <BazzingoLoader message="Loading score bars..." compact />
                   </div>
-                ))}
+                ) : (
+                  (scores.slice(0, 6)).map((score, index) => (
+                    <div key={index} className="flex items-center mb-2 gap-2 w-full">
+                      {/* Label */}
+                      <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
+
+                      {/* Progress Bar */}
+                      <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
+                        <div
+                          className="h-2 rounded-full shadow-md transition-all duration-2000 ease-out animate-pulse"
+                          style={{
+                            width: `${progressValues[index]}%`,
+                            background: 'linear-gradient(to right, #c56b49, #f97316)',
+                          }}
+                        ></div>
+                      </div>
+
+                      {/* Score Value */}
+                      <span className="text-[11px] text-gray-800 w-[30px] text-right">
+                        {score.value}
+                      </span>
+                    </div>
+                  ))
+                )}
 
                 
 
@@ -575,11 +591,12 @@ const Statistics = () => {
 
               {/* Score */}
               <div className="text-2xl font-bold text-orange-600">
-                125
+              {currentIq || 'N/A'}
+
               </div>
 
               {/* Chart */}
-              <TestScore />
+              <TestScore onIqDataLoaded={handleIqDataLoaded} />
             </div>
 
             {/* Middle Card - Recent Tests */}

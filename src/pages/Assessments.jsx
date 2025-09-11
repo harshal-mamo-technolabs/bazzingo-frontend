@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/Layout/MainLayout';
+import BazzingoLoader from "../components/Loading/BazzingoLoader";
 import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentCompletionModal from '../components/assessments/AssessmentCompletionModal.jsx';
@@ -69,8 +70,8 @@ const Assessments = () => {
             <MainLayout>
                 <div style={{fontFamily: 'Roboto, sans-serif', fontSize: '12px'}}>
                     <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
-                        <div className="flex justify-center items-center h-64">
-                            <p>Loading assessments...</p>
+                        <div className="p-6">
+                            <BazzingoLoader message="Loading assessments..." />
                         </div>
                     </div>
                 </div>
