@@ -25,6 +25,9 @@ import PlanSubscribePaymentElementDemo from './PlanSubscribePaymentElementDemo';
 import PaymentSuccess from './PaymentSuccess';
 import PaymentCancel from './PaymentCancel';
 import Payment from './Payment';
+import Report from './Report';
+import Certificate from './Certificate';
+import Download from './Download';
 
 // Working games import
 import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
@@ -143,6 +146,9 @@ export {
   PaymentSuccess,
   PaymentCancel,
   Payment,
+  Report,
+  Certificate,
+  Download,
  
   // ✅ Working game pages
   MetacognitiveStrategyNavigatorGame,
