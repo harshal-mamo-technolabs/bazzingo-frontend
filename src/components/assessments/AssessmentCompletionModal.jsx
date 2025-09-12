@@ -16,6 +16,7 @@ const AssessmentCompletionModal = ({
   totalQuestions = 0, 
   assessmentId, 
   fullScoreData,
+  scoreId, // Add scoreId prop
   isAvailCertification = false, 
   isAvailReport = false 
 }) => {
@@ -24,6 +25,7 @@ const AssessmentCompletionModal = ({
   const lastFocusedRef = useRef(null);
   const [downloading, setDownloading] = useState("");
   const [assessmentDetails, setAssessmentDetails] = useState(null);
+  const [scoreDetails, setScoreDetails] = useState(null);
   const certificateRef = useRef(null);
   const reportRef = useRef(null);
 
@@ -42,9 +44,30 @@ const AssessmentCompletionModal = ({
     }
   }, [isOpen, assessmentId]);
 
+  // Fetch score details when modal opens and scoreId is available
+  useEffect(() => {
+    if (isOpen && scoreId) {
+      const fetchScoreDetails = async () => {
+        try {
+          const res = await axios.get(`${API_CONNECTION_HOST_URL}/assessment/score/${scoreId}`);
+          setScoreDetails(res.data?.data?.score || null);
+        } catch (error) {
+          console.error("Failed to fetch score details:", error);
+        }
+      };
+      fetchScoreDetails();
+    }
+  }, [isOpen, scoreId]);
+
   // Get assessment type for dynamic content
-  const assessmentType = assessmentDetails?.type || "IQ Test";
-  const assessmentName = assessmentDetails?.name || "Cognitive Assessment";
+  const assessmentType = assessmentDetails?.mainCategory || "IQ Test";
+  const assessmentName = assessmentDetails?.title || "Cognitive Assessment";
+
+  // Use scoreDetails if available, otherwise fall back to fullScoreData
+  const scoreDataToUse = scoreDetails || fullScoreData;
+  const mainCategory = scoreDataToUse?.mainCategory || assessmentDetails?.mainCategory || "iq-test";
+  const userName = scoreDataToUse?.userName || "User";
+  const userAge = scoreDataToUse?.userAge || "";
 
   // Helper functions from Download.jsx
   const getLevel = (score) => {
@@ -63,7 +86,40 @@ const AssessmentCompletionModal = ({
     return "Developing";
   };
 
-  const generateInsightsAndTips = (domain, score) => {
+  // Domain descriptions based on main category
+  const getDomainDescription = (key, category) => {
+    if (category === "iq-test") {
+      switch(key){
+        case "logical-reasoning": return "Deductive and inductive reasoning, syllogisms, conditional logic.";
+        case "numerical-ability": return "Arithmetic, sequences, word problems, quantitative comparisons.";
+        case "spatial-reasoning": return "Mental rotation, 2D/3D relationships, pattern assembly.";
+        case "verbal-ability": return "Vocabulary, analogies, comprehension, relationships between words.";
+        case "memory": return "Short-term and working memory, recall under time constraints.";
+        default: return "";
+      }
+    } else if (category === "driving-licence") {
+      switch(key){
+        case "perception": return "Ability to perceive and interpret visual information while driving.";
+        case "eye-sight": return "Visual acuity and field of vision requirements for safe driving.";
+        case "signal-knowledge": return "Understanding of traffic signals, signs, and road markings.";
+        case "road-rules": return "Knowledge of traffic laws, right-of-way rules, and regulations.";
+        case "safe-driving": return "Practices and behaviors that contribute to safe vehicle operation.";
+        default: return "";
+      }
+    } else if (category === "logic") {
+      switch(key){
+        case "propositional-logic": return "Understanding of basic logical operators and truth tables.";
+        case "predicate-logic": return "Ability to work with quantifiers and more complex logical structures.";
+        case "modal-logic": return "Reasoning about possibility, necessity, and other modalities.";
+        case "epistemic-logic": return "Logical reasoning about knowledge and belief systems.";
+        case "proof-techniques": return "Ability to construct and evaluate logical proofs.";
+        default: return "";
+      }
+    }
+    return "";
+  };
+
+  const generateInsightsAndTips = (domain, score, category) => {
     const level = getLevel(score);
     const insights = [];
     const tips = [];
@@ -85,27 +141,37 @@ const AssessmentCompletionModal = ({
         tips.push("Start with basics modules; increase difficulty gradually.");
     }
 
-    switch(domain){
+    // Add category-specific tips
+    if (category === "iq-test") {
+      switch(domain){
         case "logical-reasoning": tips.push("Try conditional logic puzzles & truth tables."); break;
         case "numerical-ability": tips.push("Focus on fractions/ratios & sequence rules."); break;
         case "spatial-reasoning": tips.push("Practice mental rotation with tangrams/jigsaws."); break;
         case "verbal-ability": tips.push("Do synonym/analogy drills; read short editorials."); break;
         case "memory": tips.push("Use n-back and chunking exercises."); break;
         default: break;
+      }
+    } else if (category === "driving-licence") {
+      switch(domain){
+        case "perception": tips.push("Practice identifying hazards in driving simulation videos."); break;
+        case "eye-sight": tips.push("Get regular eye check-ups and practice peripheral vision exercises."); break;
+        case "signal-knowledge": tips.push("Study the official driver's handbook and take practice tests."); break;
+        case "road-rules": tips.push("Review traffic laws regularly and discuss scenarios with experienced drivers."); break;
+        case "safe-driving": tips.push("Practice defensive driving techniques and hazard anticipation."); break;
+        default: break;
+      }
+    } else if (category === "logic") {
+      switch(domain){
+        case "propositional-logic": tips.push("Practice truth tables and logical equivalence proofs."); break;
+        case "predicate-logic": tips.push("Work with quantifier exercises and natural deduction."); break;
+        case "modal-logic": tips.push("Study possible worlds semantics and practice with modal operators."); break;
+        case "epistemic-logic": tips.push("Explore knowledge puzzles and epistemic paradoxes."); break;
+        case "proof-techniques": tips.push("Practice different proof methods (direct, indirect, by cases)."); break;
+        default: break;
+      }
     }
 
     return { level, insights, tips };
-  };
-
-  const domainDescription = (key) => {
-    switch(key){
-        case "logical-reasoning": return "Deductive and inductive reasoning, syllogisms, conditional logic.";
-        case "numerical-ability": return "Arithmetic, sequences, word problems, quantitative comparisons.";
-        case "spatial-reasoning": return "Mental rotation, 2D/3D relationships, pattern assembly.";
-        case "verbal-ability": return "Vocabulary, analogies, comprehension, relationships between words.";
-        case "memory": return "Short-term and working memory, recall under time constraints.";
-        default: return "";
-    }
   };
 
   // Certificate functions
@@ -139,7 +205,7 @@ const AssessmentCompletionModal = ({
   // Report functions
   const handleDownloadReport = useReactToPrint({
     contentRef: reportRef,
-    documentTitle: `IQ-Report-${assessmentId}`,
+    documentTitle: `${assessmentName}-Report-${assessmentId}`,
     onBeforeGetContent: () => {
       setDownloading("report");
       return Promise.resolve();
@@ -148,23 +214,36 @@ const AssessmentCompletionModal = ({
   });
 
   // Calculate values for certificate and report
-  const name = "User"; // You might want to get this from user data
-  const total = fullScoreData?.totalScore || score;
-  const dateStr = fullScoreData?.date ? dayjs(fullScoreData.date).format("DD MMM, YYYY") : dayjs().format("DD MMM, YYYY");
+  const name = userName;
+  const total = scoreDataToUse?.totalScore || score;
+  const dateStr = scoreDataToUse?.date ? dayjs(scoreDataToUse.date).format("DD MMM, YYYY") : dayjs().format("DD MMM, YYYY");
   const iq = estimateIQ(total);
   const percentile = Math.max(1, Math.min(99, Math.round(normalCdf((iq - 100) / 15) * 100)));
   const ciLow = Math.max(55, iq - 7);
   const ciHigh = Math.min(145, iq + 7);
 
-  const reasoning = scaleDomain(fullScoreData?.byCategory?.["logical-reasoning"] || 0);
-  const verbal = scaleDomain(fullScoreData?.byCategory?.["verbal-ability"] || 0);
-  const memory = scaleDomain(fullScoreData?.byCategory?.["memory"] || 0);
-  const speed = scaleDomain(((fullScoreData?.byCategory?.["numerical-ability"] || 0) + (fullScoreData?.byCategory?.["spatial-reasoning"] || 0)) / 2);
+  // Get domain scores based on category
+  let domainScores = [];
+  if (scoreDataToUse?.byCategory) {
+    domainScores = Object.entries(scoreDataToUse.byCategory).map(([key, value]) => ({
+      key,
+      label: key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+      score: value
+    }));
+  }
 
-  const reportUrl = `${window.location.origin}/report/${fullScoreData?._id || assessmentId}`;
+  const reasoning = scaleDomain(scoreDataToUse?.byCategory?.["logical-reasoning"] || scoreDataToUse?.byCategory?.["propositional-logic"] || scoreDataToUse?.byCategory?.["perception"] || 0);
+  const verbal = scaleDomain(scoreDataToUse?.byCategory?.["verbal-ability"] || scoreDataToUse?.byCategory?.["epistemic-logic"] || scoreDataToUse?.byCategory?.["signal-knowledge"] || 0);
+  const memory = scaleDomain(scoreDataToUse?.byCategory?.["memory"] || scoreDataToUse?.byCategory?.["predicate-logic"] || scoreDataToUse?.byCategory?.["road-rules"] || 0);
+  const speed = scaleDomain(
+    ((scoreDataToUse?.byCategory?.["numerical-ability"] || scoreDataToUse?.byCategory?.["modal-logic"] || scoreDataToUse?.byCategory?.["eye-sight"] || 0) + 
+    (scoreDataToUse?.byCategory?.["spatial-reasoning"] || scoreDataToUse?.byCategory?.["proof-techniques"] || scoreDataToUse?.byCategory?.["safe-driving"] || 0)) / 2
+  );
 
-  // Report data
-  const DOMAINS = [
+  const reportUrl = `${window.location.origin}/report/${scoreDataToUse?._id || assessmentId}`;
+
+  // Report data - dynamically create DOMAINS based on category scores
+  const DOMAINS = domainScores.length > 0 ? domainScores : [
     { key: "logical-reasoning", label: "Logical Reasoning" },
     { key: "numerical-ability", label: "Numerical Ability" },
     { key: "spatial-reasoning", label: "Spatial Reasoning" },
@@ -174,18 +253,13 @@ const AssessmentCompletionModal = ({
 
   const radarData = DOMAINS.map(d => ({ 
     subject: d.label, 
-    value: fullScoreData?.byCategory?.[d.key] || 0 
+    value: scoreDataToUse?.byCategory?.[d.key] || 0 
   }));
 
-  const accuracy = total ? Math.round((total / 150) * 100) : 0;
-  const correctAnswers = total ? Math.round(total / 5) : 0;
+  const accuracy = totalQuestions ? Math.round((total / totalQuestions) * 100) : 0;
+  const correctAnswers = totalQuestions ? Math.round(total / 5) : 0;
 
-  const domainScores = DOMAINS.map(d => ({ 
-    key: d.key, 
-    label: d.label, 
-    score: fullScoreData?.byCategory?.[d.key] || 0 
-  }));
-  const sorted = [...domainScores].sort((a,b)=>a.score-b.score);
+  const sorted = [...DOMAINS].sort((a,b) => (scoreDataToUse?.byCategory?.[a.key] || 0) - (scoreDataToUse?.byCategory?.[b.key] || 0));
   const weakest = sorted.slice(0,2);
   const mid = sorted.slice(2,4);
 
@@ -447,20 +521,20 @@ const AssessmentCompletionModal = ({
           </div>
         </div>
 
-        {/* Report - Exact same UI as Download.jsx */}
+        {/* Report - Updated to use fetched data */}
         <div ref={reportRef} className="bg-white text-black max-w-[850px] mx-auto shadow print:shadow-none print:w-[210mm] print:min-h-[297mm]">
           <div className="flex items-center justify-between border-b p-6">
             <div>
-              <div className="text-xl font-semibold">Cognitive & IQ Assessment Report</div>
-              <div className="text-sm text-gray-600">Assessment Type: IQ Test (Full)</div>
+              <div className="text-xl font-semibold">{assessmentName} Report</div>
+              <div className="text-sm text-gray-600">Assessment Type: {mainCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</div>
             </div>
             <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-10" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-6 text-sm">
-            <div><div className="text-gray-500">Name</div><div className="font-medium">{name}</div></div>
+            <div><div className="text-gray-500">Name</div><div className="font-medium">{userName}{userAge ? `, ${userAge}` : ''}</div></div>
             <div><div className="text-gray-500">Assessment Date</div><div className="font-medium">{dateStr}</div></div>
-            <div><div className="text-gray-500">Score ID</div><div className="font-medium break-all">{fullScoreData?._id || assessmentId}</div></div>
-            <div><div className="text-gray-500">Assessment Type</div><div className="font-medium">IQ Test (Full)</div></div>
+            <div><div className="text-gray-500">Score ID</div><div className="font-medium break-all">{scoreDataToUse?._id || assessmentId}</div></div>
+            <div><div className="text-gray-500">Assessment Type</div><div className="font-medium">{mainCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</div></div>
           </div>
           <div className="p-6 pt-0">
             <div className="mb-2 font-semibold">Summary Dashboard</div>
@@ -482,7 +556,7 @@ const AssessmentCompletionModal = ({
               <div className="border rounded p-4 flex flex-col gap-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span>Total Score</span>
-                  <span className="font-semibold">{total} / 150</span>
+                  <span className="font-semibold">{total} / {scoreDataToUse?.outOfScore || totalQuestions}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Estimated Band</span>
@@ -494,13 +568,13 @@ const AssessmentCompletionModal = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Correct Answers</span>
-                  <span className="font-semibold">{correctAnswers} / 30</span>
+                  <span className="font-semibold">{correctAnswers} / {Math.round((scoreDataToUse?.outOfScore || totalQuestions) / 5)}</span>
                 </div>
               </div>
             </div>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
               {DOMAINS.map(d => {
-                const sc = fullScoreData?.byCategory?.[d.key] || 0;
+                const sc = scoreDataToUse?.byCategory?.[d.key] || 0;
                 return (
                   <div key={d.key} className="border rounded p-3">
                     <div className="font-medium">{d.label}</div>
@@ -512,36 +586,36 @@ const AssessmentCompletionModal = ({
             </div>
           </div>
           <div className="p-6 pt-0">
-            <div className="font-semibold mb-3">Cognitive Area Breakdown</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {DOMAINS.map(d => {
-                const sc = fullScoreData?.byCategory?.[d.key] || 0;
-                const { level, insights, tips } = generateInsightsAndTips(d.key, sc);
-                return (
-                  <div key={d.key} className="border rounded p-4 break-inside-avoid">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="font-medium">{d.label}</div>
-                      <div className="text-sm">{sc} / 30</div>
-                    </div>
-                    <div className="text-xs text-gray-600 mb-2">{domainDescription(d.key)}</div>
-                    <div className="text-[11px] mb-2 inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">{level}</div>
-                    <div className="text-sm font-medium mt-2">Insights</div>
-                    <ul className="list-disc list-inside text-sm text-gray-700">
-                      {insights.slice(0,2).map((t,i)=>(<li key={i}>{t}</li>))}
-                    </ul>
-                    <div className="text-sm font-medium mt-2">Recommendations</div>
-                    <ul className="list-disc list-inside text-sm text-gray-700">
-                      {tips.slice(0,3).map((t,i)=>(<li key={i}>{t}</li>))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
+  <div className="font-semibold mb-3">Cognitive Area Breakdown</div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 cognitive-breakdown-grid">
+    {DOMAINS.map(d => {
+      const sc = scoreDataToUse?.byCategory?.[d.key] || 0;
+      const { level, insights, tips } = generateInsightsAndTips(d.key, sc, mainCategory);
+      return (
+        <div key={d.key} className="border rounded p-4 break-inside-avoid cognitive-item">
+          <div className="flex items-center justify-between mb-1">
+            <div className="font-medium">{d.label}</div>
+            <div className="text-sm">{sc} / 30</div>
           </div>
+          <div className="text-xs text-gray-600 mb-2">{getDomainDescription(d.key, mainCategory)}</div>
+          <div className="text-[11px] mb-2 inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">{level}</div>
+          <div className="text-sm font-medium mt-2">Insights</div>
+          <ul className="list-disc list-inside text-sm text-gray-700">
+            {insights.slice(0,2).map((t,i)=>(<li key={i}>{t}</li>))}
+          </ul>
+          <div className="text-sm font-medium mt-2">Recommendations</div>
+          <ul className="list-disc list-inside text-sm text-gray-700">
+            {tips.slice(0,3).map((t,i)=>(<li key={i}>{t}</li>))}
+          </ul>
+        </div>
+      );
+    })}
+  </div>
+</div>
           <div className="p-6 pt-0">
             <div className="font-semibold mb-2">Final Score Summary</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="border rounded p-4"><div className="text-gray-500">Total Score</div><div className="text-lg font-semibold">{total} / 150</div></div>
+              <div className="border rounded p-4"><div className="text-gray-500">Total Score</div><div className="text-lg font-semibold">{total} / {scoreDataToUse?.outOfScore || totalQuestions}</div></div>
               <div className="border rounded p-4"><div className="text-gray-500">Estimated Band</div><div className="text-lg font-semibold">{bandFromTotal(total)}</div></div>
               <div className="border rounded p-4"><div className="text-gray-500">Accuracy</div><div className="text-lg font-semibold">{accuracy}%</div></div>
             </div>
@@ -569,6 +643,20 @@ const AssessmentCompletionModal = ({
           .print\\:hidden { display: none !important; }
           .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
         }
+           @media print {
+    .break-inside-avoid { 
+      break-inside: avoid; 
+      page-break-inside: avoid;
+      margin-bottom: 0.5rem !important;
+    }
+    .cognitive-breakdown-grid {
+      gap: 0.25rem !important;
+    }
+    .cognitive-item {
+      padding: 0.5rem !important;
+      margin-bottom: 0.25rem;
+    }
+  }
       `}</style>
     </div>
   );

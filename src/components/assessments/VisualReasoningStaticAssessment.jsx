@@ -299,13 +299,18 @@ export default function VisualReasoningStaticAssessment() {
       // Get the actual score value
       const actualScore = scoreDataFromResponse?.totalScore ?? scoreDataFromResponse?.score ?? 0;
   
+      // Get the score ID for fetching detailed results
+      const scoreId = scoreDataFromResponse?._id || 
+                     (res?.data?.score && res.data.score._id) || 
+                     (res?.score && res.score._id);
+  
       // Set the complete score data including fullScoreData
-      // Also maintain backward compatibility with totalScore for the modal
       setScoreData({
         score: actualScore,
         totalQuestions: outOf,
-        totalScore: actualScore, // Keep this for backward compatibility
-        fullScoreData: scoreDataFromResponse // Store the complete score data
+        totalScore: actualScore,
+        fullScoreData: scoreDataFromResponse,
+        scoreId: scoreId // Add scoreId to fetch detailed results
       });
       
       setIsModalOpen(true);
@@ -314,7 +319,6 @@ export default function VisualReasoningStaticAssessment() {
       alert("Submission failed. Check console for details.");
     }
   }, [answers, assessmentId, fromQuickAssessment, isReviewPhase, unansweredQuestions, originalQuestions]);
-
   /** =========================
       Timer Logic
   ========================= */
@@ -392,7 +396,7 @@ export default function VisualReasoningStaticAssessment() {
       <>
         <Header />
         <div className="mx-auto px-4 lg:px-12 py-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
+          <div className="p-6">
             <BazzingoLoader message="Preparing your assessment..." />
           </div>
         </div>
@@ -700,6 +704,7 @@ export default function VisualReasoningStaticAssessment() {
             onClose={() => setIsModalOpen(false)} 
             score={scoreData.score} 
             totalQuestions={scoreData.totalQuestions}
+            scoreId={scoreData.scoreId} 
             assessmentId={assessmentId}
             fullScoreData={scoreData.fullScoreData}
             isAvailCertification={isAvailCertification}
