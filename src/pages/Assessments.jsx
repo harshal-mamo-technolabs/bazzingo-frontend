@@ -7,11 +7,16 @@ import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentCompletionModal from '../components/assessments/AssessmentCompletionModal.jsx';
 // import { getAllAssessment } from '../services/dashbaordService'; // Import the API function
 import { getAllAssessment ,getRecentAssessmentActivity } from '../services/dashbaordService';
+import { API_CONNECTION_HOST_URL } from '../utils/constant';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const Assessments = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedAssessment, setSelectedAssessment] = useState(null);
     const [assessments, setAssessments] = useState([]);
+    const [processingAssessmentId, setProcessingAssessmentId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [recentActivity, setRecentActivity] = useState([]);
     const navigate = useNavigate();
@@ -21,8 +26,9 @@ const Assessments = () => {
             try {
                 setLoading(true);
                 const response = await getAllAssessment();
-                // Set the assessments from API response
-                setAssessments(response.data.items || []);
+                // Expecting: { data: { items: [...] } }
+                const items = response?.data?.items || [];
+                setAssessments(items);
             } catch (error) {
                 console.error("Error fetching assessments:", error);
                 // Keep the empty array if API fails
@@ -56,12 +62,105 @@ const Assessments = () => {
         fetchRecent();
     }, []);
 
-    const handleAssessmentClick = (assessment) => {
+    const startAssessmentNavigation = (assessment) => {
         setSelectedAssessment(assessment);
-        // Pass the assessmentId to the visual reasoning page
-        navigate('/assessments/visual-reasoning', { 
-            state: { assessmentId: assessment._id } 
+        navigate('/assessments/visual-reasoning', {
+            state: { assessmentId: assessment._id }
         });
+    };
+
+    const handleAssessmentClick = (assessment) => {
+        startAssessmentNavigation(assessment);
+    };
+
+    const handleDirectStart = async (assessment) => {
+        const id = assessment?._id || assessment?.id;
+        if (!id) return;
+        setProcessingAssessmentId(id);
+        try {
+            startAssessmentNavigation(assessment);
+        } finally {
+            // In case navigation is blocked, clear after a short delay
+            setTimeout(() => setProcessingAssessmentId(null), 2000);
+        }
+    };
+
+    const handleStartCertifiedTest = async (assessment) => {
+        // If already purchased, skip payment and start assessment directly
+        if (assessment?.isAssessmentPurchased) {
+            return handleDirectStart(assessment);
+        }
+
+        const id = assessment?._id || assessment?.id;
+        if (!id) return;
+        setProcessingAssessmentId(id);
+
+        // Mirror the flow from AssessmentPaymentDemo, but get token from storage and URLs from current origin
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const successUrl = `${origin}/payment/success`;
+        const cancelUrl = `${origin}/payment/cancel`;
+
+        let token = '';
+        try {
+            const raw = localStorage.getItem('user');
+            if (raw) {
+                const stored = JSON.parse(raw);
+                token = stored?.accessToken || stored?.user?.token || '';
+            }
+        } catch {}
+
+        const assessmentId = id;
+        if (!token || !assessmentId) {
+            console.error('Missing token or assessmentId for checkout');
+            setProcessingAssessmentId(null);
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/checkout/session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ assessmentId, successUrl, cancelUrl }),
+            });
+
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(payload?.message || `Request failed (${res.status})`);
+
+            const resp = payload?.data;
+
+            // A) Checkout fallback -> redirect
+            if (resp?.url) {
+                window.location.href = resp.url;
+                return;
+            }
+
+            // B) One-click succeeded / processing
+            if (resp?.orderId && (resp.status === 'succeeded' || resp.status === 'processing')) {
+                window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
+                return;
+            }
+
+            // C) One-click requires 3DS — MUST pass payment_method
+            if (resp?.requiresAction && resp?.clientSecret) {
+                const stripe = await stripePromise;
+                if (!stripe) throw new Error('Stripe not loaded');
+                if (!resp.paymentMethodId) {
+                    throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
+                }
+                const result = await stripe.confirmCardPayment(resp.clientSecret, {
+                    payment_method: resp.paymentMethodId,
+                });
+                if (result.error) throw new Error(result.error.message || 'Authentication failed. Please try again.');
+                window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
+                return;
+            }
+
+            throw new Error('Unexpected response from server.');
+        } catch (err) {
+            console.error('[Assessment Checkout] Error:', err);
+        } finally {
+            setProcessingAssessmentId(null);
+        }
     };
 
     // Show loading state if needed
@@ -88,8 +187,10 @@ const Assessments = () => {
                         {/* Left Section - Assessments */}
                         <div className="flex-1">
                             <AssessmentGrid
-                                assessments={assessments} // Use API data instead of static data
+                                assessments={assessments}
                                 onAssessmentClick={handleAssessmentClick}
+                                onStartCertifiedTest={handleStartCertifiedTest}
+                                processingAssessmentId={processingAssessmentId}
                             />
                         </div>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { BazzingoHeadImage } from "../../../public/assessment";
 
-const AssessmentCard = ({ assessment, onClick }) => {
+const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingAssessmentId }) => {
   // Format the API data to match the expected structure
   const formattedAssessment = {
     id: assessment._id,
@@ -11,11 +11,22 @@ const AssessmentCard = ({ assessment, onClick }) => {
     iconSrc: BazzingoHeadImage // Default icon
   };
 
+  const isProcessing = processingAssessmentId && (processingAssessmentId === (assessment._id || formattedAssessment.id));
+
   return (
     <div
-      className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+      className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow relative"
       onClick={() => onClick(assessment)} // Pass the original assessment object with _id
     >
+      {/* Purchased Badge */}
+      {assessment?.isAssessmentPurchased && (
+        <div className="absolute -top-2 -right-2 z-10">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg border-2 border-white">
+            ✓ Purchased
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-3 mb-4">
         <div
           className="shrink-0 aspect-square w-16 sm:w-20 lg:w-12
@@ -44,8 +55,25 @@ const AssessmentCard = ({ assessment, onClick }) => {
         {formattedAssessment.description}
       </p>
 
-      <button className="w-full bg-[#FF6B3E] text-white rounded-md py-2 px-4 font-medium hover:bg-[#e55a35] transition-colors" style={{ fontFamily: 'Roboto', fontSize: '16px' }}>
-        Start Certified Test
+      <button
+        className={`w-full rounded-md py-2 px-4 font-medium transition-colors text-white ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FF6B3E] hover:bg-[#e55a35]'}`}
+        style={{ fontFamily: 'Roboto', fontSize: '16px' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isProcessing) {
+            onStartCertifiedTest && onStartCertifiedTest(assessment);
+          }
+        }}
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <span className="inline-flex items-center justify-center">
+            <span className="inline-block w-4 h-4 mr-2 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+            Processing...
+          </span>
+        ) : (
+          'Start Certified Test'
+        )}
       </button>
     </div>
   );

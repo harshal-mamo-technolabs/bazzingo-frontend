@@ -23,5 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+<<<<<<< Updated upstream
 # /src/utils/constant.js
+=======
+/src/utils/constant.js
+>>>>>>> Stashed changes
 .env
