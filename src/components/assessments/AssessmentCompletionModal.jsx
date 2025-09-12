@@ -5,9 +5,8 @@ import axios from 'axios';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant';
 import { toPng } from "html-to-image";
 import { useReactToPrint } from "react-to-print";
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
-import { QRCodeCanvas } from "qrcode.react";
-import dayjs from "dayjs";
+import CertificateComponent from '../Certificate/CertificateComponent';
+import ReportComponent from '../Report/ReportComponent';
 
 const AssessmentCompletionModal = ({ 
   isOpen, 
@@ -69,121 +68,6 @@ const AssessmentCompletionModal = ({
   const userName = scoreDataToUse?.userName || "User";
   const userAge = scoreDataToUse?.userAge || "";
 
-  // Helper functions from Download.jsx
-  const getLevel = (score) => {
-    if(score >= 25) return "High";
-    if(score >= 21) return "Above Average";
-    if(score >= 15) return "Average";
-    if(score >= 10) return "Below Average";
-    return "Needs Improvement";
-  };
-
-  const bandFromTotal = (total) => {
-    if(total >= 135) return "Exceptional";
-    if(total >= 115) return "High";
-    if(total >= 95) return "Average";
-    if(total >= 75) return "Below Average";
-    return "Developing";
-  };
-
-  // Domain descriptions based on main category
-  const getDomainDescription = (key, category) => {
-    if (category === "iq-test") {
-      switch(key){
-        case "logical-reasoning": return "Deductive and inductive reasoning, syllogisms, conditional logic.";
-        case "numerical-ability": return "Arithmetic, sequences, word problems, quantitative comparisons.";
-        case "spatial-reasoning": return "Mental rotation, 2D/3D relationships, pattern assembly.";
-        case "verbal-ability": return "Vocabulary, analogies, comprehension, relationships between words.";
-        case "memory": return "Short-term and working memory, recall under time constraints.";
-        default: return "";
-      }
-    } else if (category === "driving-licence") {
-      switch(key){
-        case "perception": return "Ability to perceive and interpret visual information while driving.";
-        case "eye-sight": return "Visual acuity and field of vision requirements for safe driving.";
-        case "signal-knowledge": return "Understanding of traffic signals, signs, and road markings.";
-        case "road-rules": return "Knowledge of traffic laws, right-of-way rules, and regulations.";
-        case "safe-driving": return "Practices and behaviors that contribute to safe vehicle operation.";
-        default: return "";
-      }
-    } else if (category === "logic") {
-      switch(key){
-        case "propositional-logic": return "Understanding of basic logical operators and truth tables.";
-        case "predicate-logic": return "Ability to work with quantifiers and more complex logical structures.";
-        case "modal-logic": return "Reasoning about possibility, necessity, and other modalities.";
-        case "epistemic-logic": return "Logical reasoning about knowledge and belief systems.";
-        case "proof-techniques": return "Ability to construct and evaluate logical proofs.";
-        default: return "";
-      }
-    }
-    return "";
-  };
-
-  const generateInsightsAndTips = (domain, score, category) => {
-    const level = getLevel(score);
-    const insights = [];
-    const tips = [];
-
-    if(score >= 25){
-        insights.push("Consistently accurate on advanced items.");
-        tips.push("Maintain skills with weekly advanced challenges.");
-    } else if(score >= 21){
-        insights.push("Strong performance with minor slips on complex items.");
-        tips.push("Add timed practice to boost speed under pressure.");
-    } else if(score >= 15){
-        insights.push("Solid fundamentals; opportunities on multi-step questions.");
-        tips.push("Practice mixed-difficulty sets; review error patterns.");
-    } else if(score >= 10){
-        insights.push("Struggles appeared on layered logic or extended working memory.");
-        tips.push("Daily 10–15 min drills; scaffolded difficulty.");
-    } else {
-        insights.push("Foundational gaps limit consistency.");
-        tips.push("Start with basics modules; increase difficulty gradually.");
-    }
-
-    // Add category-specific tips
-    if (category === "iq-test") {
-      switch(domain){
-        case "logical-reasoning": tips.push("Try conditional logic puzzles & truth tables."); break;
-        case "numerical-ability": tips.push("Focus on fractions/ratios & sequence rules."); break;
-        case "spatial-reasoning": tips.push("Practice mental rotation with tangrams/jigsaws."); break;
-        case "verbal-ability": tips.push("Do synonym/analogy drills; read short editorials."); break;
-        case "memory": tips.push("Use n-back and chunking exercises."); break;
-        default: break;
-      }
-    } else if (category === "driving-licence") {
-      switch(domain){
-        case "perception": tips.push("Practice identifying hazards in driving simulation videos."); break;
-        case "eye-sight": tips.push("Get regular eye check-ups and practice peripheral vision exercises."); break;
-        case "signal-knowledge": tips.push("Study the official driver's handbook and take practice tests."); break;
-        case "road-rules": tips.push("Review traffic laws regularly and discuss scenarios with experienced drivers."); break;
-        case "safe-driving": tips.push("Practice defensive driving techniques and hazard anticipation."); break;
-        default: break;
-      }
-    } else if (category === "logic") {
-      switch(domain){
-        case "propositional-logic": tips.push("Practice truth tables and logical equivalence proofs."); break;
-        case "predicate-logic": tips.push("Work with quantifier exercises and natural deduction."); break;
-        case "modal-logic": tips.push("Study possible worlds semantics and practice with modal operators."); break;
-        case "epistemic-logic": tips.push("Explore knowledge puzzles and epistemic paradoxes."); break;
-        case "proof-techniques": tips.push("Practice different proof methods (direct, indirect, by cases)."); break;
-        default: break;
-      }
-    }
-
-    return { level, insights, tips };
-  };
-
-  // Certificate functions
-  const scaleDomain = (s) => Math.round(80 + (Math.max(0, Math.min(30, s)) / 30) * 50);
-  const estimateIQ = (total) => Math.round(70 + (Math.max(0, Math.min(150, total)) / 150) * 60);
-
-  const normalCdf = (x) => {
-    const t = 1 / (1 + 0.2316419 * Math.abs(x));
-    const d = 0.3989423 * Math.exp(-x * x / 2);
-    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-    return x > 0 ? 1 - p : p;
-  };
 
   const handleDownloadCertificate = async () => {
     if(!certificateRef.current) return;
@@ -213,55 +97,6 @@ const AssessmentCompletionModal = ({
     onAfterPrint: () => setDownloading("")
   });
 
-  // Calculate values for certificate and report
-  const name = userName;
-  const total = scoreDataToUse?.totalScore || score;
-  const dateStr = scoreDataToUse?.date ? dayjs(scoreDataToUse.date).format("DD MMM, YYYY") : dayjs().format("DD MMM, YYYY");
-  const iq = estimateIQ(total);
-  const percentile = Math.max(1, Math.min(99, Math.round(normalCdf((iq - 100) / 15) * 100)));
-  const ciLow = Math.max(55, iq - 7);
-  const ciHigh = Math.min(145, iq + 7);
-
-  // Get domain scores based on category
-  let domainScores = [];
-  if (scoreDataToUse?.byCategory) {
-    domainScores = Object.entries(scoreDataToUse.byCategory).map(([key, value]) => ({
-      key,
-      label: key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-      score: value
-    }));
-  }
-
-  const reasoning = scaleDomain(scoreDataToUse?.byCategory?.["logical-reasoning"] || scoreDataToUse?.byCategory?.["propositional-logic"] || scoreDataToUse?.byCategory?.["perception"] || 0);
-  const verbal = scaleDomain(scoreDataToUse?.byCategory?.["verbal-ability"] || scoreDataToUse?.byCategory?.["epistemic-logic"] || scoreDataToUse?.byCategory?.["signal-knowledge"] || 0);
-  const memory = scaleDomain(scoreDataToUse?.byCategory?.["memory"] || scoreDataToUse?.byCategory?.["predicate-logic"] || scoreDataToUse?.byCategory?.["road-rules"] || 0);
-  const speed = scaleDomain(
-    ((scoreDataToUse?.byCategory?.["numerical-ability"] || scoreDataToUse?.byCategory?.["modal-logic"] || scoreDataToUse?.byCategory?.["eye-sight"] || 0) + 
-    (scoreDataToUse?.byCategory?.["spatial-reasoning"] || scoreDataToUse?.byCategory?.["proof-techniques"] || scoreDataToUse?.byCategory?.["safe-driving"] || 0)) / 2
-  );
-
-  const reportUrl = `${window.location.origin}/report/${scoreDataToUse?._id || assessmentId}`;
-
-  // Report data - dynamically create DOMAINS based on category scores
-  const DOMAINS = domainScores.length > 0 ? domainScores : [
-    { key: "logical-reasoning", label: "Logical Reasoning" },
-    { key: "numerical-ability", label: "Numerical Ability" },
-    { key: "spatial-reasoning", label: "Spatial Reasoning" },
-    { key: "verbal-ability", label: "Verbal Ability" },
-    { key: "memory", label: "Memory" },
-  ];
-
-  const radarData = DOMAINS.map(d => ({ 
-    subject: d.label, 
-    value: scoreDataToUse?.byCategory?.[d.key] || 0 
-  }));
-
-  const accuracy = totalQuestions ? Math.round((total / totalQuestions) * 100) : 0;
-  const correctAnswers = totalQuestions ? Math.round(total / 5) : 0;
-
-  const sorted = [...DOMAINS].sort((a,b) => (scoreDataToUse?.byCategory?.[a.key] || 0) - (scoreDataToUse?.byCategory?.[b.key] || 0));
-  const weakest = sorted.slice(0,2);
-  const mid = sorted.slice(2,4);
 
   // Keyboard and focus management
   useEffect(() => {
@@ -471,169 +306,22 @@ const AssessmentCompletionModal = ({
 
       {/* Hidden certificate and report elements for download */}
       <div style={{ position: 'fixed', left: '-10000px', top: 0, width: '1000px', zIndex: -1 }}>
-        {/* Certificate - Same as Download.jsx */}
-        <div ref={certificateRef} className="relative overflow-hidden rounded-lg" style={{width:'900px', height:'1273px', background:'linear-gradient(135deg,#28457a,#f5f2ec 35%,#e15e2a)'}}>
-          <div className="absolute inset-6 bg-[#fbfaf7] rounded-md" style={{boxShadow:'inset 0 0 0 3px rgba(0,0,0,0.4), inset 0 0 0 12px rgba(0,0,0,0.05)'}} />
-          <div className="relative h-full flex flex-col">
-            <div className="px-14 pt-12 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-12" />
-                <div className="text-2xl tracking-wider font-semibold">BAZINGO</div>
-              </div>
-              <div className="text-sm text-gray-600">{dateStr}</div>
-            </div>
-            <div className="px-14 text-center mt-6">
-              <div className="text-4xl font-extrabold tracking-wider">CERTIFICATE OF IQ ACHIEVEMENT</div>
-              <div className="mt-8 text-gray-600 text-lg">This certifies that</div>
-              <div className="mt-2 text-5xl font-bold">{name}</div>
-              <div className="mt-5 text-gray-700 text-lg">has achieved a Full Scale IQ score of</div>
-              <div className="mt-3 text-8xl font-extrabold text-orange-600">{iq}</div>
-              <div className="mt-3 text-gray-700 text-base">Confidence Interval {ciLow}—{ciHigh}</div>
-              <div className="text-gray-700 text-base">Percentile Rank {percentile}</div>
-            </div>
-            <div className="mt-12 px-14 grid grid-cols-4 gap-6">
-              {[
-                {label:'Reasoning', value: reasoning},
-                {label:'Verbal', value: verbal},
-                {label:'Memory', value: memory},
-                {label:'Processing Speed', value: speed},
-              ].map((b,idx)=> (
-                <div key={idx} className="rounded-xl p-6 text-center text-white" style={{background:'linear-gradient(180deg,#f36d3a,#be4a84 70%, #2f5fb6)'}}>
-                  <div className="text-sm opacity-95">{b.label}</div>
-                  <div className="mt-3 text-5xl font-extrabold leading-none">{b.value}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-auto px-14 pb-12 pt-10 flex items-end justify-between">
-              <div className="flex items-center gap-5">
-                <QRCodeCanvas value={reportUrl} size={110} bgColor="#ffffff" fgColor="#000000" includeMargin level="M" />
-                <div className="text-sm text-gray-700">
-                  <div className="font-medium">Certificate ID BZG-{dayjs().format('YYYY')}-{assessmentId?.slice(-6) || 'XXXXXX'}</div>
-                  <div className="mt-1 text-gray-600 max-w-[360px]">This score is based on a normative sample with a mean of 100 and a standard deviation of 15.</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-signature italic">Bazzingo</div>
-                <div className="h-0.5 w-56 bg-gray-400 mb-2" />
-                <div className="text-sm">Chief Psychologist</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Report - Updated to use fetched data */}
-        <div ref={reportRef} className="bg-white text-black max-w-[850px] mx-auto shadow print:shadow-none print:w-[210mm] print:min-h-[297mm]">
-          <div className="flex items-center justify-between border-b p-6">
-            <div>
-              <div className="text-xl font-semibold">{assessmentName} Report</div>
-              <div className="text-sm text-gray-600">Assessment Type: {mainCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</div>
-            </div>
-            <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-10" />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-6 text-sm">
-            <div><div className="text-gray-500">Name</div><div className="font-medium">{userName}{userAge ? `, ${userAge}` : ''}</div></div>
-            <div><div className="text-gray-500">Assessment Date</div><div className="font-medium">{dateStr}</div></div>
-            <div><div className="text-gray-500">Score ID</div><div className="font-medium break-all">{scoreDataToUse?._id || assessmentId}</div></div>
-            <div><div className="text-gray-500">Assessment Type</div><div className="font-medium">{mainCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</div></div>
-          </div>
-          <div className="p-6 pt-0">
-            <div className="mb-2 font-semibold">Summary Dashboard</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 border rounded p-4">
-                <RadarChart width={720} height={260} data={radarData} outerRadius="80%">
-                  <defs>
-                    <linearGradient id="reportRadar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FF5727" stopOpacity={0.6} />
-                      <stop offset="100%" stopColor="#f97316" stopOpacity={0.1} />
-                    </linearGradient>
-                  </defs>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 30]} tick={{ fontSize: 10 }} />
-                  <Radar dataKey="value" stroke="#f97316" strokeWidth={2} fill="url(#reportRadar)" fillOpacity={1} />
-                </RadarChart>
-              </div>
-              <div className="border rounded p-4 flex flex-col gap-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>Total Score</span>
-                  <span className="font-semibold">{total} / {scoreDataToUse?.outOfScore || totalQuestions}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Estimated Band</span>
-                  <span className="font-semibold">{bandFromTotal(total)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Accuracy</span>
-                  <span className="font-semibold">{accuracy}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Correct Answers</span>
-                  <span className="font-semibold">{correctAnswers} / {Math.round((scoreDataToUse?.outOfScore || totalQuestions) / 5)}</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
-              {DOMAINS.map(d => {
-                const sc = scoreDataToUse?.byCategory?.[d.key] || 0;
-                return (
-                  <div key={d.key} className="border rounded p-3">
-                    <div className="font-medium">{d.label}</div>
-                    <div className="text-gray-600">{sc} / 30</div>
-                    <div className="text-[11px] mt-1 inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">{getLevel(sc)}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="p-6 pt-0">
-  <div className="font-semibold mb-3">Cognitive Area Breakdown</div>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 cognitive-breakdown-grid">
-    {DOMAINS.map(d => {
-      const sc = scoreDataToUse?.byCategory?.[d.key] || 0;
-      const { level, insights, tips } = generateInsightsAndTips(d.key, sc, mainCategory);
-      return (
-        <div key={d.key} className="border rounded p-4 break-inside-avoid cognitive-item">
-          <div className="flex items-center justify-between mb-1">
-            <div className="font-medium">{d.label}</div>
-            <div className="text-sm">{sc} / 30</div>
-          </div>
-          <div className="text-xs text-gray-600 mb-2">{getDomainDescription(d.key, mainCategory)}</div>
-          <div className="text-[11px] mb-2 inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">{level}</div>
-          <div className="text-sm font-medium mt-2">Insights</div>
-          <ul className="list-disc list-inside text-sm text-gray-700">
-            {insights.slice(0,2).map((t,i)=>(<li key={i}>{t}</li>))}
-          </ul>
-          <div className="text-sm font-medium mt-2">Recommendations</div>
-          <ul className="list-disc list-inside text-sm text-gray-700">
-            {tips.slice(0,3).map((t,i)=>(<li key={i}>{t}</li>))}
-          </ul>
-        </div>
-      );
-    })}
-  </div>
-</div>
-          <div className="p-6 pt-0">
-            <div className="font-semibold mb-2">Final Score Summary</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="border rounded p-4"><div className="text-gray-500">Total Score</div><div className="text-lg font-semibold">{total} / {scoreDataToUse?.outOfScore || totalQuestions}</div></div>
-              <div className="border rounded p-4"><div className="text-gray-500">Estimated Band</div><div className="text-lg font-semibold">{bandFromTotal(total)}</div></div>
-              <div className="border rounded p-4"><div className="text-gray-500">Accuracy</div><div className="text-lg font-semibold">{accuracy}%</div></div>
-            </div>
-          </div>
-          <div className="p-6 pt-0">
-            <div className="font-semibold mb-2">Recommended Activities</div>
-            <div className="text-sm text-gray-700">
-              <ul className="list-disc list-inside">
-                {weakest.map(w => <li key={w.key}>Strengthen {w.label.toLowerCase()} with targeted practice sessions.</li>)}
-                {mid.map(w => <li key={w.key}>Stretch {w.label.toLowerCase()} using mixed-difficulty sets and light timing.</li>)}
-              </ul>
-            </div>
-          </div>
-          <div className="p-6 text-xs text-gray-500 border-t">
-            <div>"This assessment reflects performance at the time of testing and may vary over time."</div>
-            <div className="mt-1">Generated on {dayjs().format("DD MMM, YYYY HH:mm")} • Bazzingo</div>
-          </div>
-        </div>
+        <CertificateComponent
+          ref={certificateRef}
+          scoreData={scoreDataToUse}
+          assessmentId={assessmentId}
+          userName={userName}
+        />
+        <ReportComponent
+          ref={reportRef}
+          scoreData={scoreDataToUse}
+          assessmentId={assessmentId}
+          assessmentName={assessmentName}
+          userName={userName}
+          userAge={userAge}
+          mainCategory={mainCategory}
+          totalQuestions={totalQuestions}
+        />
       </div>
 
       <style>{`
