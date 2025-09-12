@@ -10,6 +10,7 @@ import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
 import { getAssessmentStatistics } from "../services/dashbaordService";
 import BazzingoLoader from "../components/Loading/BazzingoLoader";
+import TimeRangeDropdown from "../components/Statistics/TimeRangeDropdown";
 
 
 const Statistics = () => {
@@ -354,18 +355,14 @@ const Statistics = () => {
 
               {/* Right - Dropdown */}
               <div className="w-full md:w-auto">
-                <select
-                  value={selectedTimeRange}
-                  onChange={(e) => setSelectedTimeRange(e.target.value)}
-                  className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between"
-                >
-                  {timeRanges.map((range) => (
-                    <option key={range.key} value={range.key}>
-                      {range.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <TimeRangeDropdown
+                options={timeRanges}
+                value={selectedTimeRange}
+                onChange={setSelectedTimeRange}
+                align="right"
+                width="w-48" // tweak if you want a wider menu
+              />
+            </div>
 
             </div>
           </div>
