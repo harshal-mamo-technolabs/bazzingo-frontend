@@ -34,7 +34,7 @@ const TestScore = ({ onIqDataLoaded }) => { // Add callback prop
 
   if (loading) {
     return (
-      <div className="bg-[#EEEEEE] rounded-lg shadow-sm border border-gray-200 overflow-hidden h-[330px] flex items-center justify-center">
+      <div className="rounded-lg overflow-hidden h-[330px] flex items-center justify-center">
         <BazzingoLoader message="Fetching today's stats..." />
       </div>
     );
@@ -42,7 +42,7 @@ const TestScore = ({ onIqDataLoaded }) => { // Add callback prop
 
   if (error) {
     return (
-      <div className="bg-[#EEEEEE] rounded-lg shadow-sm border border-gray-200 overflow-hidden h-[330px] flex items-center justify-center">
+      <div className="rounded-lg  overflow-hidden h-[330px] flex items-center justify-center">
         <BazzingoLoader message="Failed to load IQ scores" />
       </div>
     );

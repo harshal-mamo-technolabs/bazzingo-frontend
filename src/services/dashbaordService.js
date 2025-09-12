@@ -311,3 +311,30 @@ export async function getUserIqScores() {
     throw err;
   }
 }
+
+const ASSESSMENT_STATISTICS_ENDPOINT = '/assessment/statistics';
+
+export async function getAssessmentStatistics() {
+    const userData = localStorage.getItem("user");
+    if (!userData) throw new Error("User not authenticated");
+
+    let parsedUserData;
+    try {
+        parsedUserData = JSON.parse(userData);
+    } catch (err) {
+        throw new Error("Invalid User Data. Please log in again: ", err);
+    }
+
+    const token = parsedUserData?.accessToken;
+    if (!token) throw new Error("Authentication token not found");
+
+    const response = await axios.get(
+        `${API_CONNECTION_HOST_URL}${ASSESSMENT_STATISTICS_ENDPOINT}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+    return response.data;
+}

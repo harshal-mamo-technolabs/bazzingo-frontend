@@ -8,6 +8,7 @@ import NoDataModal from "../components/Statistics/NoDataModal";
 import { useNavigate } from 'react-router-dom';
 import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
+import { getAssessmentStatistics } from "../services/dashbaordService";
 import BazzingoLoader from "../components/Loading/BazzingoLoader";
 
 
@@ -225,19 +226,102 @@ const Statistics = () => {
     loadStats();
   }, []);
 
+  // New state for assessment statistics
+  const [assessmentStats, setAssessmentStats] = useState(null);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('last7Days');
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [activeCategory, setActiveCategory] = useState('IQ Test');
-
+  
   const categories = ['IQ Test', 'Driving License', 'Logic'];
+  const [showNoDataModal, setShowNoDataModal] = useState(false);
 
-  const [showNoDataModal, setShowNoDataModal] = useState(false)
+  // Time range options
+  const timeRanges = [
+    { key: 'today', label: 'Today' },
+    { key: 'last7Days', label: 'Last 7 Days' },
+    { key: 'last1Month', label: 'Last 1 Month' },
+    { key: 'last3Months', label: 'Last 3 Months' },
+    { key: 'last6Months', label: 'Last 6 Months' },
+    { key: 'last1Year', label: 'Last 1 Year' }
+  ];
 
+  // Fetch assessment statistics
+  useEffect(() => {
+    const fetchAssessmentStats = async () => {
+      try {
+        setIsLoadingStats(true);
+        const response = await getAssessmentStatistics();
+        setAssessmentStats(response.data);
+      } catch (error) {
+        console.error("Error fetching assessment statistics:", error);
+        // Set default empty stats structure
+        setAssessmentStats({
+          statistics: {
+            "driving-license": { isDataPresent: false },
+            "iq-test": { isDataPresent: false },
+            "logic": { isDataPresent: false }
+          }
+        });
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+    
+    fetchAssessmentStats();
+  }, []);
+
+  // Get current radar data based on selected category and time range
+  const getRadarData = () => {
+    if (!assessmentStats) return [];
+
+    const categoryKey = activeCategory.toLowerCase().replace(' ', '-');
+    const categoryData = assessmentStats.statistics[categoryKey];
+    
+    if (!categoryData || !categoryData[selectedTimeRange]) return [];
+
+    const timeRangeData = categoryData[selectedTimeRange];
+    return Object.entries(timeRangeData).map(([subject, value]) => ({
+      subject: formatSubjectName(subject),
+      value: value,
+      fullScore: 100 // Assuming max score is 100 for each subject
+    }));
+  };
+
+  // Format subject names for display
+  const formatSubjectName = (subject) => {
+    return subject.split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Check if current category has data
+  const hasDataForCurrentCategory = () => {
+    if (!assessmentStats) return false;
+    
+    const categoryKey = activeCategory.toLowerCase().replace(' ', '-');
+    const categoryData = assessmentStats.statistics[categoryKey];
+    
+    return categoryData && categoryData.isDataPresent;
+  };
+
+  // Handle category click
   const handleCategoryClick = (category) => {
-    setActiveCategory(category)
-
-    if (category === 'Driving License') {
-      setShowNoDataModal(true)
+    setActiveCategory(category);
+    
+    if (assessmentStats) {
+      const categoryKey = category.toLowerCase().replace(' ', '-');
+      const categoryData = assessmentStats.statistics[categoryKey];
+      
+      if (!categoryData || !categoryData.isDataPresent) {
+        setShowNoDataModal(true);
+      }
+    } else {
+      // If assessmentStats is not loaded yet, show modal for Driving License
+      if (category === 'Driving License') {
+        setShowNoDataModal(true);
+      }
     }
-  }
+  };
 
   const handleAssesmentClick = () => {
     navigate('/visual-reasoning');
@@ -270,12 +354,17 @@ const Statistics = () => {
 
               {/* Right - Dropdown */}
               <div className="w-full md:w-auto">
-                <button className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between">
-                  <span>Last 7 Days</span>
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                <select
+                  value={selectedTimeRange}
+                  onChange={(e) => setSelectedTimeRange(e.target.value)}
+                  className="w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium text-gray-700 md:gap-2 bg-white border border-gray-300 flex items-center justify-between"
+                >
+                  {timeRanges.map((range) => (
+                    <option key={range.key} value={range.key}>
+                      {range.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
             </div>
@@ -307,50 +396,58 @@ const Statistics = () => {
               </div>
 
               <div className="w-full">
-                <ResponsiveContainer width="100%" height={250}>
-                  <RadarChart
-                    cx="45%"
-                    cy="55%"
-                    outerRadius="90%"
-                    data={[
-                      { subject: 'Pattern Recognition', A: 100 },
-                      { subject: 'Spatial Orientation', A: 130 },
-                      { subject: 'Visual Perception', A: 106 },
-                      { subject: 'Problem Solving', A: 86 }, // replaced empty subject
-                      { subject: 'Logic', A: 120 },
-                    ]}
-                  >
-                    <defs>
-                      <linearGradient id="colorRadar" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#FF6C40" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.2} />
-                      </linearGradient>
-                    </defs>
+                {isLoadingStats ? (
+                  <div className="flex items-center justify-center h-[250px]">
+                    <BazzingoLoader message="Loading assessment data..." compact />
+                  </div>
+                ) : !hasDataForCurrentCategory() ? (
+                  <div className="flex items-center justify-center h-[250px] flex-col">
+                    <div className="text-gray-500 text-sm mb-4">No data available</div>
+                    <button 
+                      onClick={() => setShowNoDataModal(true)}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm"
+                    >
+                      Take Assessment
+                    </button>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RadarChart
+                      cx="45%"
+                      cy="55%"
+                      outerRadius="90%"
+                      data={getRadarData()}
+                    >
+                      <defs>
+                        <linearGradient id="colorRadar" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF6C40" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#FF6C40" stopOpacity={0.2} />
+                        </linearGradient>
+                      </defs>
 
-                    <PolarGrid />
-                    <PolarAngleAxis
-                      dataKey="subject"
-                      tick={{ fontSize: 11, fill: '#333', fontWeight: 'bold' }}
-                    />
-                    <PolarRadiusAxis angle={30} domain={[0, 180]} tick={false} axisLine={false} />
+                      <PolarGrid />
+                      <PolarAngleAxis
+                        dataKey="subject"
+                        tick={{ fontSize: 11, fill: '#333', fontWeight: 'bold' }}
+                      />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
 
-                    <Radar
-                      name="Score"
-                      dataKey="A"
-                      stroke="#f97316"
-                      strokeWidth={2}
-                      fill="url(#colorRadar)"
-                      fillOpacity={1}
-                      isAnimationActive={true}
-                      animationDuration={3000}
-                      animationEasing="ease-out"
-                    />
+                      <Radar
+                        name="Score"
+                        dataKey="value"
+                        stroke="#f97316"
+                        strokeWidth={2}
+                        fill="url(#colorRadar)"
+                        fillOpacity={1}
+                        isAnimationActive={true}
+                        animationDuration={3000}
+                        animationEasing="ease-out"
+                      />
 
-                    {/* 🔥 This will show values on hover */}
-                    <Tooltip content={<CustomRadarTooltip />} cursor={false} />
-                  </RadarChart>
-                </ResponsiveContainer>
-
+                      <Tooltip content={<CustomRadarTooltip />} cursor={false} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
 
             </div>
