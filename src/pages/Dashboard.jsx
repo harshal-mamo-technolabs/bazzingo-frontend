@@ -14,9 +14,7 @@ import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.j
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
 import { getDashboardData, getDailyGames, getRecentAssessmentActivity } from '../services/dashbaordService.js';
 
-
 const Dashboard = () => {
-
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,23 +23,47 @@ const Dashboard = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showTooltipStats, setShowTooltipStats] = useState(false);
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
-  const [iqScore, setIqScore] = useState(0);
+
+  // NEW: generic primary metric (either IQ or Driving Licence)
+  const [primaryType, setPrimaryType] = useState('iq');       // 'iq' | 'drivingLicense'
+  const [primaryScore, setPrimaryScore] = useState(0);
+
   const [totalGames, setTotalGames] = useState(0);
   const [dailyGames, setDailyGames] = useState([]); // initially empty
 
-  //const dailyGames = DAILY_GAMES;
-
   useEffect(()=>{
+    const extractScore = (val) => {
+      if (val == null) return undefined;
+      if (typeof val === 'number') return val;
+      if (typeof val === 'object' && typeof val.score === 'number') return val.score;
+      return undefined;
+    };
+
     const fetchDashboardData = async ()=> {
       try{
         const response = await getDashboardData();
         if(response?.status === "success"){
-          setIqScore(response.data.iq || 0);
-          setTotalGames(response.data.uniqueGamesPlayed || 0);
+          const data = response.data || {};
+          const dlScore = extractScore(data.drivingLicense);
+          const iqScore = extractScore(data.iq);
+
+          if (typeof dlScore === 'number') {
+            setPrimaryType('drivingLicense');
+            setPrimaryScore(dlScore);
+          } else {
+            setPrimaryType('iq');
+            setPrimaryScore(typeof iqScore === 'number' ? iqScore : 0);
+          }
+
+          setTotalGames(data.uniqueGamesPlayed ?? 0);
         }
       }
       catch(err){
         console.error("Failed to fetch dashboard data: ",err);
+        // sensible fallbacks
+        setPrimaryType('iq');
+        setPrimaryScore(0);
+        setTotalGames(0);
       }
     };
 
@@ -68,19 +90,19 @@ const Dashboard = () => {
   },[]);
 
   // In Dashboard.jsx - Update the handleGameClick function
-const handleGameClick = useCallback(
-  (game) => {
-    setIsModalOpen(false);
-    // Pass difficulty via navigate state instead of just navigating to path
-    navigate(game.path, { 
-      state: { 
-        fromDailyGame: true, 
-        difficulty: game.difficulty 
-      } 
-    });
-  },
-  [navigate]
-);
+  const handleGameClick = useCallback(
+    (game) => {
+      setIsModalOpen(false);
+      // Pass difficulty via navigate state instead of just navigating to path
+      navigate(game.path, {
+        state: {
+          fromDailyGame: true,
+          difficulty: game.difficulty
+        }
+      });
+    },
+    [navigate]
+  );
 
   const openAssessment = useCallback(async () => {
     try {
@@ -111,75 +133,79 @@ const handleGameClick = useCallback(
   }, []);
 
   return (
-      <MainLayout>
-        <div className="bg-gray-50 min-h-screen">
-          <main
-              className="mx-auto px-4 lg:px-12 py-4 lg:py-8"
-              style={{ fontFamily: 'Roboto, sans-serif' }}
-          >
-            {/* Page header */}
-            <PageHeader name="Alex" />
+    <MainLayout>
+      <div className="bg-gray-50 min-h-screen">
+        <main
+          className="mx-auto px-4 lg:px-12 py-4 lg:py-8"
+          style={{ fontFamily: 'Roboto, sans-serif' }}
+        >
+          {/* Page header */}
+          <PageHeader name="Alex" />
 
-            {/* Top Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-              <IQAndGamesSummary iqScore={iqScore} totalGames={totalGames}/>
-              <AssessmentHighlightCard />
-              <AssessmentUpsellCard />
+          {/* Top Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+            <IQAndGamesSummary
+              primaryType={primaryType}
+              primaryScore={primaryScore}
+              totalGames={totalGames}
+            />
+            <AssessmentHighlightCard />
+            <AssessmentUpsellCard />
+          </div>
+
+          {/* Main Content */}
+          <div className="flex flex-col lg:flex-row lg:gap-4 gap-4 mb-8 w-full">
+            <DailyGameCard onGameClick={async () => {
+              try {
+                const res = await getDailyGames();
+                const suggestion = res?.data?.suggestion;
+                const allPlayed = Array.isArray(suggestion?.games)
+                  ? suggestion.games.every(g => g.isPlayed)
+                  : false;
+                if (allPlayed) {
+                  setNotice({ open: true, title: 'Congratulations!', message: 'You have played all today’s games.' });
+                } else {
+                  setIsModalOpen(true);
+                }
+              } catch (e) {
+                setIsModalOpen(true);
+              }
+            }} games={dailyGames} />
+            <DailyAssessmentCard onAssessmentClick={openAssessment} />
+            <Calender />
+
+            <div className="flex flex-col gap-4 w-full lg:flex-1">
+              <DashboardStatistics showTooltipStats={showTooltipStats} setShowTooltipStats={setShowTooltipStats} />
+              <RecommendationGameCarousel showTooltipSuggest={showTooltipSuggest} setShowTooltipSuggest={setShowTooltipSuggest} />
             </div>
+          </div>
 
-            {/* Main Content */}
-            <div className="flex flex-col lg:flex-row lg:gap-4 gap-4 mb-8 w-full">
-                <DailyGameCard onGameClick={async () => {
-                  try {
-                    const res = await getDailyGames();
-                    const suggestion = res?.data?.suggestion;
-                    const allPlayed = Array.isArray(suggestion?.games)
-                      ? suggestion.games.every(g => g.isPlayed)
-                      : false;
-                    if (allPlayed) {
-                      setNotice({ open: true, title: 'Congratulations!', message: 'You have played all today’s games.' });
-                    } else {
-                      setIsModalOpen(true);
-                    }
-                  } catch (e) {
-                    setIsModalOpen(true);
-                  }
-                }} games={dailyGames} />
-                <DailyAssessmentCard onAssessmentClick={openAssessment} />
-                <Calender />
+          {/* Bottom Content */}
+          <RecentActivity />
 
-              <div className="flex flex-col gap-4 w-full lg:flex-1">
-                <DashboardStatistics showTooltipStats={showTooltipStats} setShowTooltipStats={setShowTooltipStats} />
-                <RecommendationGameCarousel showTooltipSuggest={showTooltipSuggest} setShowTooltipSuggest={setShowTooltipSuggest} />
-              </div>
-            </div>
-
-            {/* Bottom Content */}
-            <RecentActivity />
-
-            {/* Modals */}
-            <>
-              <DailyGameModal
-                  isOpen={isModalOpen}
-                  onClose={() => setIsModalOpen(false)}
-                  dailyGames={dailyGames}
-                  onGameClick={handleGameClick}
-              />
-              <DailyAssessmentModal
-                  isOpen={isAssessmentModalOpen}
-                  selectedAssessment={selectedAssessment}
-                  onClose={closeAssessment}
-              />
-              <NoticeModal
-                isOpen={notice.open}
-                onClose={() => setNotice({ open: false, title: '', message: '' })}
-                title={notice.title}
-                message={notice.message}
-              />
-            </>
-          </main>
-        </div>
-      </MainLayout>
+          {/* Modals */}
+          <>
+            <DailyGameModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              dailyGames={dailyGames}
+              onGameClick={handleGameClick}
+            />
+            <DailyAssessmentModal
+              isOpen={isAssessmentModalOpen}
+              selectedAssessment={selectedAssessment}
+              onClose={closeAssessment}
+            />
+            <NoticeModal
+              isOpen={notice.open}
+              onClose={() => setNotice({ open: false, title: '', message: '' })}
+              title={notice.title}
+              message={notice.message}
+            />
+          </>
+        </main>
+      </div>
+    </MainLayout>
   );
 };
 
