@@ -1,10 +1,13 @@
 import React from 'react';
 
-const SaveButton = ({ onSave }) => {
+const SaveButton = ({ onSave, loading = false }) => {
   return (
     <button
       onClick={onSave}
-      className="w-full sm:w-auto bg-[#FF6B3E] rounded-lg text-white border-none hover:bg-[#e55a35] transition-colors mb-2 duration-200 flex items-center justify-center text-sm lg:text-base"
+      disabled={loading}
+      className={`w-full sm:w-auto bg-[#FF6B3E] rounded-lg text-white border-none hover:bg-[#e55a35] transition-colors mb-2 duration-200 flex items-center justify-center text-sm lg:text-base ${
+        loading ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
       style={{
         height: '32px',
         fontFamily: 'Roboto, sans-serif',
@@ -13,7 +16,7 @@ const SaveButton = ({ onSave }) => {
         padding: '20px 20px',
       }}
     >
-      Save Preferences
+      {loading ? 'Saving...' : 'Save Preferences'}
     </button>
   );
 };

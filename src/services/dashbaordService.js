@@ -338,3 +338,32 @@ export async function getAssessmentStatistics() {
     );
     return response.data;
 }
+
+const USER_PREFERENCES_ENDPOINT = '/user/preferences';
+
+export async function updateUserPreferences(preferencesData) {
+    const userData = localStorage.getItem("user");
+    if (!userData) throw new Error("User not authenticated");
+
+    let parsedUserData;
+    try {
+        parsedUserData = JSON.parse(userData);
+    } catch (err) {
+        throw new Error("Invalid User Data. Please log in again: ", err);
+    }
+
+    const token = parsedUserData?.accessToken;
+    if (!token) throw new Error("Authentication token not found");
+
+    const response = await axios.put(
+        `${API_CONNECTION_HOST_URL}${USER_PREFERENCES_ENDPOINT}`,
+        preferencesData,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        }
+    );
+    return response.data;
+}
