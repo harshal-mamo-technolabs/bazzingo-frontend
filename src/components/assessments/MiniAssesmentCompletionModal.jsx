@@ -1,11 +1,161 @@
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useRef, memo, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBadge } from "../../../public/assessment";
+import { getDailyAssessmentRecommendation } from '../../services/dashbaordService.js';
+import { loadStripe } from '@stripe/stripe-js';
+import { API_CONNECTION_HOST_URL } from '../../utils/constant.js';
 
 const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions = 0 }) => {
   const dialogRef = useRef(null);
   const closeBtnRef = useRef(null);
   const lastFocusedRef = useRef(null);
+  
+  const [assessmentData, setAssessmentData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  // Fetch assessment recommendation when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchAssessmentRecommendation();
+    }
+  }, [isOpen]);
+
+  const fetchAssessmentRecommendation = async () => {
+    setLoading(true);
+    try {
+      const response = await getDailyAssessmentRecommendation();
+      if (response?.status === 'success') {
+        setAssessmentData(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch assessment recommendation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getActualPrice = (unitAmount, currency) => {
+    const amount = (unitAmount / 100).toFixed(2);
+    return `${currency === 'EUR' ? '€' : '$'}${amount}`;
+  };
+
+  const getDescription = (isAvailReport, isAvailCertification) => {
+    let description = "Please try this test to get detailed analysed report to know better your performance";
+    if (isAvailCertification) {
+      description += " and the certificate to share";
+    }
+    return description;
+  };
+
+  const handleStartCertifiedTest = useCallback(async () => {
+    if (!assessmentData) return;
+    
+    setProcessing(true);
+    try {
+      console.log('🚀 Starting payment flow for assessment:', assessmentData.assessmentId);
+      
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
+      }
+
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        throw new Error('User not authenticated');
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.accessToken;
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const successUrl = `${window.location.origin}/payment/success`;
+      const cancelUrl = `${window.location.origin}/payment/cancel`;
+
+      console.log('📡 Making API call to:', `${API_CONNECTION_HOST_URL}/stripe/checkout/session`);
+      console.log('📡 Request body:', {
+        assessmentId: assessmentData.assessmentId,
+        successUrl,
+        cancelUrl,
+      });
+
+      const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/checkout/session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          assessmentId: assessmentData.assessmentId,
+          successUrl,
+          cancelUrl,
+        }),
+      });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      const payload = await response.json().catch(() => ({}));
+      console.log('📡 Full response payload:', payload);
+
+      if (!response.ok) {
+        throw new Error(payload?.message || `Request failed (${response.status})`);
+      }
+
+      const resp = payload?.data;
+      console.log('🔄 Stripe response data:', resp);
+
+      // A) Checkout fallback -> redirect
+      if (resp?.url) {
+        console.log('🔄 Redirecting to Stripe Checkout:', resp.url);
+        window.location.href = resp.url;
+        return;
+      }
+
+      // B) One-click succeeded / processing
+      if (resp?.orderId && (resp.status === 'succeeded' || resp.status === 'processing')) {
+        console.log('✅ Payment succeeded/processing, redirecting to success page');
+        window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
+        return;
+      }
+
+      // C) One-click requires 3DS — MUST pass payment_method
+      if (resp?.requiresAction && resp?.clientSecret) {
+        console.log('🔐 Payment requires 3DS authentication');
+        console.log('🔐 Client secret:', resp.clientSecret);
+        console.log('🔐 Payment method ID:', resp.paymentMethodId);
+        
+        if (!resp.paymentMethodId) {
+          throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
+        }
+        
+        const result = await stripe.confirmCardPayment(resp.clientSecret, {
+          payment_method: resp.paymentMethodId,
+        });
+        
+        console.log('🔐 3DS confirmation result:', result);
+        
+        if (result.error) {
+          throw new Error(result.error.message || 'Authentication failed. Please try again.');
+        }
+        
+        console.log('✅ 3DS authentication successful, redirecting to success page');
+        window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
+        return;
+      }
+
+      throw new Error('Unexpected response from server.');
+    } catch (error) {
+      console.error('💥 Payment error:', error);
+      console.error('💥 Error stack:', error.stack);
+      alert(`Payment failed: ${error.message}. Please try again.`);
+    } finally {
+      console.log('🏁 Setting processing state to false');
+      setProcessing(false);
+    }
+  }, [assessmentData]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -111,66 +261,86 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
 
           <hr className="border-t border-gray-200 mx-5 mt-4 mb-3" />
 
-          <div className="px-5">
-            <h3 className="text-[14px] font-semibold text-gray-800 mb-3"> Unlock a full certified test of this and get a detailed report</h3>
-          </div>
+          {/* Always show purchase card */}
+          {!loading && assessmentData && (
+            <>
+              <div className="px-5">
+                <h3 className="text-[14px] font-semibold text-gray-800 mb-3"> 
+                  {getDescription(assessmentData.isAvailReport, assessmentData.isAvailCertification)}
+                </h3>
+              </div>
 
-        <div className="flex mb-5">
-  <div className="bg-white border-2 border-orange-400 rounded-xl shadow-md w-full mx-5 my-auto overflow-hidden">
-    {/* Header */}
-    <div className="bg-gradient-to-r from-orange-200 to-orange-100 px-4 py-2 
-                flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-  <div className="flex items-center gap-3">
-    <img
-      src={BrainSilhouetteIcon}
-      alt="Full Driving Assessment"
-      className="w-10 h-10 sm:w-11 sm:h-11 p-1 bg-white rounded-full shadow"
-    />
-    <div>
-      <p className="text-sm sm:text-[14px] font-bold text-gray-900">Full Driving Assessment</p>
-      <span className="text-[10px] sm:text-[11px] bg-white text-gray-700 font-medium px-2 py-[2px] rounded-md inline-block mt-1 shadow-sm">
-        Big Test, 15–20 Questions • Certified
-      </span>
-    </div>
-  </div>
-  {/* Locked Icon */}
-  <div className="text-orange-600 font-bold text-[15px] sm:text-sm flex items-center gap-1">
-    <svg className="w-6 h-6 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M17 9h-1V7a4 4 0 00-8 0v2H7a2 2 0 00-2 2v9a2 2 0 
-               002 2h10a2 2 0 002-2v-9a2 2 0 00-2-2zm-5 
-               7a2 2 0 110-4 2 2 0 010 4zm3-7H9V7a3 3 0 
-               016 0v2z"/>
-    </svg>
-    Locked
-  </div>
-</div>
+              <div className="flex mb-5">
+                <div className="bg-white border-2 border-orange-400 rounded-xl shadow-md w-full mx-5 my-auto overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-orange-200 to-orange-100 px-4 py-2 
+                              flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={BrainSilhouetteIcon}
+                        alt={assessmentData.title}
+                        className="w-10 h-10 sm:w-11 sm:h-11 p-1 bg-white rounded-full shadow"
+                      />
+                      <div>
+                        <p className="text-sm sm:text-[14px] font-bold text-gray-900">{assessmentData.title}</p>
+                        <span className="text-[10px] sm:text-[11px] bg-white text-gray-700 font-medium px-2 py-[2px] rounded-md inline-block mt-1 shadow-sm">
+                          {assessmentData.questions} Questions • Certified
+                        </span>
+                      </div>
+                    </div>
+                    {/* Locked Icon */}
+                    <div className="text-orange-600 font-bold text-[15px] sm:text-sm flex items-center gap-1">
+                      <svg className="w-6 h-6 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 9h-1V7a4 4 0 00-8 0v2H7a2 2 0 00-2 2v9a2 2 0 
+                                 002 2h10a2 2 0 002-2v-9a2 2 0 00-2-2zm-5 
+                                 7a2 2 0 110-4 2 2 0 010 4zm3-7H9V7a3 3 0 
+                                 016 0v2z"/>
+                      </svg>
+                      Locked
+                    </div>
+                  </div>
 
+                  {/* Body */}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start gap-3 text-[13px] text-gray-700">
+                      <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5 mt-0.5" />
+                      <p className="text-[12px] leading-snug">
+                        Get a <span className="font-semibold text-gray-900">detailed certified report </span>
+                        with strengths, weaknesses, and recommendations and maintain<span className="font-semibold text-gray-900"> your progress in leaderboard</span>. Share on LinkedIn or with employers.
+                      </p>
+                    </div>
+                  </div>
 
-    {/* Body */}
-    <div className="p-4 space-y-3">
-      <div className="flex items-start gap-3 text-[13px] text-gray-700">
-        <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5 mt-0.5" />
-        <p className="text-[12px] leading-snug">
-          Get a <span className="font-semibold text-gray-900">detailed certified report </span>
-          with strengths, weaknesses, and recommendations and maintain<span className="font-semibold text-gray-900"> your progress in leaderboard</span>. Share on LinkedIn or with employers.
-        </p>
-      </div>
-    </div>
+                  {/* Footer */}
+                  <div className="bg-gray-50 px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-center sm:text-left">
+                      <p className="text-xs text-gray-500">Unlock for only</p>
+                      <p className="text-lg sm:text-xl font-bold text-orange-600">
+                        {getActualPrice(assessmentData.price.unitAmount, assessmentData.price.currency)}
+                      </p>
+                    </div>
+                    <button 
+                      className="w-full sm:w-auto px-5 py-2 text-sm bg-orange-500 hover:bg-orange-600 
+                                 transition text-white rounded-lg font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleStartCertifiedTest}
+                      disabled={processing}
+                    >
+                      {processing ? 'Processing...' : 'Unlock & Start Test'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
-    {/* Footer */}
-    <div className="bg-gray-50 px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-  <div className="text-center sm:text-left">
-    <p className="text-xs text-gray-500">Unlock for only</p>
-    <p className="text-lg sm:text-xl font-bold text-orange-600">€0.99</p>
-  </div>
-  <button className="w-full sm:w-auto px-5 py-2 text-sm bg-orange-500 hover:bg-orange-600 
-                     transition text-white rounded-lg font-semibold shadow-md">
-    Unlock & Start Test
-  </button>
-</div>
-
-  </div>
-</div>
+          {/* Show loading state */}
+          {loading && (
+            <div className="px-5 mb-5">
+              <div className="bg-gray-100 rounded-lg p-4 text-center">
+                <p className="text-gray-600">Loading assessment details...</p>
+              </div>
+            </div>
+          )}
 
 
           <button

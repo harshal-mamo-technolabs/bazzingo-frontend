@@ -350,6 +350,7 @@ export async function getDailyAssessmentRecommendation() {
 
 
 const ASSESSMENT_STATISTICS_ENDPOINT = '/assessment/statistics';
+const CURRENT_MINI_ASSESSMENT_PURCHASE_STATUS_ENDPOINT = '/assessment/current-mini-assessment-purchase-status';
 
 export async function getAssessmentStatistics() {
     const userData = localStorage.getItem("user");
@@ -367,6 +368,31 @@ export async function getAssessmentStatistics() {
 
     const response = await axios.get(
         `${API_CONNECTION_HOST_URL}${ASSESSMENT_STATISTICS_ENDPOINT}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+    return response.data;
+}
+
+export async function getCurrentMiniAssessmentPurchaseStatus() {
+    const userData = localStorage.getItem("user");
+    if (!userData) throw new Error("User not authenticated");
+
+    let parsedUserData;
+    try {
+        parsedUserData = JSON.parse(userData);
+    } catch (err) {
+        throw new Error("Invalid User Data. Please log in again: ", err);
+    }
+
+    const token = parsedUserData?.accessToken;
+    if (!token) throw new Error("Authentication token not found");
+
+    const response = await axios.get(
+        `${API_CONNECTION_HOST_URL}${CURRENT_MINI_ASSESSMENT_PURCHASE_STATUS_ENDPOINT}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`,
