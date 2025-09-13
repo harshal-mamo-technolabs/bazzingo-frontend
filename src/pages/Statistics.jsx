@@ -187,6 +187,9 @@ const Statistics = () => {
   const [progressValues, setProgressValues] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
   const [currentIq, setCurrentIq] = useState(null);
+  
+  // Time range state - moved before useEffect that uses it
+  const [selectedTimeRange, setSelectedTimeRange] = useState('last7Days');
 
   // Callback function to receive IQ data from TestScore
   const handleIqDataLoaded = (iqData) => {
@@ -198,13 +201,17 @@ const Statistics = () => {
       try {
         setStatsLoading(true);
         const res = await getGameStatistics();
-        const today = res?.data?.statistics?.today;
+        const gameStats = res?.data?.statistics;
         const overallRank = res?.data?.rank;
-        if (today) {
-          setTotalPlayed(today.totalGamePlayed || 0);
-          setBrainIndex(today.brainIndex || 0);
-          setRank(today.rank ?? overallRank ?? 0);
-          const mapped = Object.entries(today.statistics || {}).map(([label, value]) => ({ label, value }));
+        
+        // Get data for the selected time range
+        const timeRangeData = gameStats?.[selectedTimeRange];
+        
+        if (timeRangeData) {
+          setTotalPlayed(timeRangeData.totalGamePlayed || 0);
+          setBrainIndex(timeRangeData.brainIndex || 0);
+          setRank(timeRangeData.rank ?? overallRank ?? 0);
+          const mapped = Object.entries(timeRangeData.statistics || {}).map(([label, value]) => ({ label, value }));
           setScores(mapped);
           setProgressValues(mapped.map(() => 0));
           setTimeout(() => {
@@ -225,11 +232,10 @@ const Statistics = () => {
       }
     };
     loadStats();
-  }, []);
+  }, [selectedTimeRange]); // Add selectedTimeRange as dependency
 
   // New state for assessment statistics
   const [assessmentStats, setAssessmentStats] = useState(null);
-  const [selectedTimeRange, setSelectedTimeRange] = useState('last7Days');
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [activeCategory, setActiveCategory] = useState('IQ Test');
   
@@ -252,6 +258,7 @@ const Statistics = () => {
       try {
         setIsLoadingStats(true);
         const response = await getAssessmentStatistics();
+        // API returns: { status: "success", data: { statistics: { ... } } }
         setAssessmentStats(response.data);
       } catch (error) {
         console.error("Error fetching assessment statistics:", error);
@@ -317,15 +324,31 @@ const Statistics = () => {
         setShowNoDataModal(true);
       }
     } else {
-      // If assessmentStats is not loaded yet, show modal for Driving License
-      if (category === 'Driving License') {
-        setShowNoDataModal(true);
+      // If assessmentStats is not loaded yet, show modal for any category without data
+      setShowNoDataModal(true);
+    }
+  };
+
+  // Handle modal close - switch to a category that has data
+  const handleModalClose = () => {
+    setShowNoDataModal(false);
+    
+    if (assessmentStats) {
+      // Find the first category that has data
+      const categoriesWithData = categories.find(category => {
+        const categoryKey = category.toLowerCase().replace(' ', '-');
+        const categoryData = assessmentStats.statistics[categoryKey];
+        return categoryData && categoryData.isDataPresent;
+      });
+      
+      if (categoriesWithData) {
+        setActiveCategory(categoriesWithData);
       }
     }
   };
 
   const handleAssesmentClick = () => {
-    navigate('/visual-reasoning');
+    navigate('/assessments');
   };
 
   return (
@@ -690,7 +713,7 @@ const Statistics = () => {
               </div>
 
               {/* Chart */}
-              <TestScore onIqDataLoaded={handleIqDataLoaded} />
+              <TestScore onIqDataLoaded={handleIqDataLoaded} activeCategory={activeCategory} />
             </div>
 
             {/* Middle Card - Recent Tests */}
@@ -738,7 +761,7 @@ const Statistics = () => {
           </div>
         </main>
       </div>
-      <NoDataModal isOpen={showNoDataModal} onClose={() => setShowNoDataModal(false)} onAssesmentClick={handleAssesmentClick} />
+      <NoDataModal isOpen={showNoDataModal} onClose={handleModalClose} onAssesmentClick={handleAssesmentClick} category={activeCategory} />
     </MainLayout>
   );
 };

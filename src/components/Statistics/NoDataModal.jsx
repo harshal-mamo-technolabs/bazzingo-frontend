@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Info } from 'lucide-react';
 
-const NoDataModal = ({ isOpen, onClose, onAssesmentClick }) => {
+const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving License" }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const iconRef = useRef(null);
 
@@ -14,10 +14,40 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick }) => {
 
   if (!isOpen) return null;
 
+  // Get category-specific content
+  const getCategoryContent = () => {
+    switch (category.toLowerCase()) {
+      case 'iq test':
+        return {
+          title: 'IQ Test Assessment Needed',
+          description: 'To unlock your cognitive performance insights, take the IQ Test assessment. It\'s comprehensive, insightful, and your gateway to understanding your mental capabilities.',
+          buttonText: 'Start IQ Test',
+          icon: '/brain_yellow.png'
+        };
+      case 'logic':
+        return {
+          title: 'Logic Assessment Needed',
+          description: 'To unlock your logical reasoning insights, take the Logic assessment. It\'s analytical, challenging, and your key to understanding your reasoning abilities.',
+          buttonText: 'Start Logic Test',
+          icon: '/brain_yellow.png'
+        };
+      case 'driving license':
+      default:
+        return {
+          title: 'Driving License Assessment Needed',
+          description: 'To unlock your daily mental fitness challenges, take the first step by completing the Driving License test. It\'s quick, empowering, and your key to progress.',
+          buttonText: 'Start Driving License Test',
+          icon: '/DL_img.png'
+        };
+    }
+  };
+
+  const content = getCategoryContent();
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+    <div className="fixed inset-0 z-40 flex items-center justify-center">
+      {/* Backdrop - Non-clickable to prevent closing */}
+      <div className="absolute inset-0 bg-black/50" />
 
       {/* Modal */}
       <div className="
@@ -40,7 +70,7 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick }) => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-              <span className="text-sm font-medium">Driving License Assessment Needed</span>
+              <span className="text-sm font-medium">{content.title}</span>
             </div>
             <div
               ref={iconRef}
@@ -50,7 +80,7 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick }) => {
               <Info className="w-4 h-4 text-black" />
               {showTooltip && (
                 <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/80 backdrop-blur-md border border-white/30 rounded shadow-md">
-                  Begin with the Driving License test to unlock your full assessment experience.
+                  Begin with the {category} test to unlock your full assessment experience.
                 </div>
               )}
             </div>
@@ -59,13 +89,13 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick }) => {
           {/* Center Image & Message */}
           <div className="flex flex-col items-center justify-center text-center mb-5">
             <img
-              src="/DL_img.png" // Replace with actual path if needed
-              alt="License Icon"
+              src={content.icon}
+              alt={`${category} Icon`}
               className="w-[80px] h-[80px] object-contain mb-3"
             />
             <h2 className="text-lg font-bold">Start Your Journey with Confidence</h2>
             <p className="text-sm text-gray-800 mt-2 px-2">
-              To unlock your daily mental fitness challenges, take the first step by completing the Driving License test. It's quick, empowering, and your key to progress.
+              {content.description}
             </p>
           </div>
 
@@ -74,7 +104,7 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick }) => {
             className="w-full bg-[#00332e] hover:bg-[#00443e] text-white text-sm font-semibold py-2.5 rounded-md"
             onClick={onAssesmentClick}
           >
-            Start Driving License Test
+            {content.buttonText}
           </button>
         </div>
       </div>

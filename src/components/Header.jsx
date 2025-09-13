@@ -138,7 +138,7 @@ export default function Header({unreadCount = 0}) {
     );
 
     return (
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="bg-white border-b border-gray-200 relative z-50">
             <div className="mx-auto px-4 lg:px-12">
                 <div className="flex justify-between items-center h-[56px]">
 

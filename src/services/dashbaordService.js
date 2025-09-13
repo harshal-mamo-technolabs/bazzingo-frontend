@@ -312,6 +312,24 @@ export async function getUserIqScores() {
   }
 }
 
+// Fetch user program scores (IQ + Driving License)
+export async function getUserProgramScores() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/assessment/program-score`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching user program scores:", err);
+    throw err;
+  }
+}
+
 const ASSESSMENT_STATISTICS_ENDPOINT = '/assessment/statistics';
 
 export async function getAssessmentStatistics() {
