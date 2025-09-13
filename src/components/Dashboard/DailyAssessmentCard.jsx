@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 
-const DailyAssessmentCard = ({ onAssessmentClick, title }) => {
+const DailyAssessmentCard = ({ onAssessmentClick, title, description }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const timerRef = useRef(null);
 

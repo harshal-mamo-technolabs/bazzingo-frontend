@@ -10,6 +10,7 @@ import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
 import { getAssessmentStatistics } from "../services/dashbaordService";
 import { getDailyAssessmentRecommendation } from "../services/dashbaordService";
+import { getAllGames } from "../services/gameService.js";
 import BazzingoLoader from "../components/Loading/BazzingoLoader";
 import TimeRangeDropdown from "../components/Statistics/TimeRangeDropdown";
 import { loadStripe } from '@stripe/stripe-js';
@@ -21,6 +22,28 @@ const Statistics = () => {
   const xLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const [showChart, setShowChart] = useState(false);
   const navigate = useNavigate();
+  const [randomGame, setRandomGame] = useState(null);
+
+  // Fetch random game for left slide
+useEffect(() => {
+  const fetchRandomGame = async () => {
+    try {
+      const response = await getAllGames();
+      if (response?.status === "success" && response.data?.games) {
+        // Filter active games and select one random game
+        const activeGames = response.data.games.filter(game => game.isActive);
+        if (activeGames.length > 0) {
+          const randomIndex = Math.floor(Math.random() * activeGames.length);
+          setRandomGame(activeGames[randomIndex]);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching games:", error);
+    }
+  };
+
+  fetchRandomGame();
+}, []);
 
   useEffect(() => {
     setShowChart(true);
@@ -272,20 +295,57 @@ const Statistics = () => {
     {
       key: "left",
       content: (
-        <div className="bg-white h-[160px] md:w-[260px] lg:w-[230px] 2xl:w-[350px] rounded-lg p-4 flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-3">
-            <img src="/beep.png" alt="suggest" className="w-10 h-10" />
-            <div>
-              <p className="text-[14px] font-semibold text-gray-800">
-                Reaction Sprint
-              </p>
-              <p className="text-[14px] text-gray-500">Logic</p>
-            </div>
-          </div>
-          <p className="text-[13px] text-gray-500">Train your reflexes</p>
-          <button className="mt-1 mb-5 w-full py-1.5 text-[12px] rounded-md bg-[#FF6B3D] text-white font-semibold">
-            Play Now
-          </button>
+        <div 
+          className="bg-white h-[160px] md:w-[260px] lg:w-[230px] 2xl:w-[350px] rounded-lg p-4 flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => {
+            if (randomGame) {
+              // Navigate to game with random difficulty
+              const difficulties = ["easy", "medium", "hard"];
+              const randomDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+              
+              navigate(randomGame.url, {
+                state: {
+                  fromRecommendation: true,
+                  difficulty: randomDifficulty
+                }
+              });
+            }
+          }}
+        >
+          {randomGame ? (
+            <>
+              <div className="flex items-center gap-3">
+                <img 
+                  src={randomGame.thumbnail} 
+                  alt={randomGame.name} 
+                  className="w-10 h-10 object-contain" 
+                />
+                <div>
+                  <p className="text-[14px] font-semibold text-gray-800">
+                    {randomGame.name}
+                  </p>
+                  <p className="text-[14px] text-gray-500">{randomGame.category}</p>
+                </div>
+              </div>
+              {/* <p className="text-[13px] text-gray-500">Improve your {randomGame.category.toLowerCase()} skills</p> */}
+              <button className="mt-1 mb-5 w-full py-1.5 text-[12px] rounded-md bg-[#FF6B3D] text-white font-semibold">
+                Play Now
+              </button>
+            </>
+          ) : (
+            // Loading skeleton
+            <>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-200 rounded animate-pulse"></div>
+                <div>
+                  <div className="w-24 h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="w-16 h-3 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="w-32 h-3 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-full h-8 bg-gray-200 rounded animate-pulse mt-1 mb-5"></div>
+            </>
+          )}
         </div>
       ),
     },
@@ -336,7 +396,6 @@ const Statistics = () => {
                 {processing ? 'Processing...' : 'Start Certified Test'}
               </button>
             </div>
-
           </div>
         </div>
       ),

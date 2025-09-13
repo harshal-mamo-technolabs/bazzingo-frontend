@@ -72,16 +72,17 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
                 </div>
               </div>
 
-              {/* Assessment Title */}
-              <h3
-                className="text-gray-800 mb-1 mt-3 text-sm lg:text-base"
-                style={{
-                  fontWeight: '600',
-                  fontFamily: 'Roboto, sans-serif'
-                }}
-              >
-                {selectedAssessment.title}
-              </h3>
+              {/* // Find this section in your existing modal: */}
+<h3
+  className="text-gray-800 mb-1 mt-3 text-sm lg:text-base"
+  style={{
+    fontWeight: '600',
+    fontFamily: 'Roboto, sans-serif'
+  }}
+>
+  {selectedAssessment.title} {/* Changed from hardcoded text */}
+</h3>
+
 
               {/* Play Button */}
               <button

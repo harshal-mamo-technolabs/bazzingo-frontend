@@ -60,7 +60,7 @@ function IQAndGamesSummary({
           </div>
 
           {/* Certificate (clickable if handler provided) */}
-          <div className="flex items-center justify-center">
+          {/* <div className="flex items-center justify-center">
             {onDownloadCertificate ? (
               <button
                 type="button"
@@ -82,7 +82,7 @@ function IQAndGamesSummary({
                 className="w-18 h-[90px] object-contain"
               />
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Right: Total Games */}
@@ -119,7 +119,7 @@ function IQAndGamesSummary({
         </div>
 
         {/* Download Certificate Button */}
-        <div className="flex justify-center">
+        {/* <div className="flex justify-center">
           <button
             type="button"
             onClick={onDownloadCertificate}
@@ -132,7 +132,7 @@ function IQAndGamesSummary({
             </svg>
             Download Certificate
           </button>
-        </div>
+        </div> */}
 
 
       </div>

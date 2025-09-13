@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { QRCodeCanvas } from "qrcode.react";
-import { calculateCertificateValues, generateCertificateId, generateReportUrl } from '../../utils/certificationUtils.jsx';
+import { Brain } from 'lucide-react';
+import { calculateCertificateValues, generateCertificateId, generateReportUrl } from '../../utils/certificationUtils';
 
 /**
  * Reusable Certificate Component
@@ -32,85 +33,116 @@ const CertificateComponent = forwardRef(({
   return (
     <div 
       ref={ref} 
-      className={`relative overflow-hidden rounded-lg ${className}`} 
+      className={`relative overflow-hidden ${className}`} 
       style={{
         width: '900px', 
         height: '1273px', 
-        background: 'linear-gradient(135deg,#28457a,#f5f2ec 35%,#e15e2a)',
+        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 30%, #8b5cf6 70%, #f97316 100%)',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
         ...style
       }}
     >
-      <div 
-        className="absolute inset-6 bg-[#fbfaf7] rounded-md" 
-        style={{
-          boxShadow: 'inset 0 0 0 3px rgba(0,0,0,0.4), inset 0 0 0 12px rgba(0,0,0,0.05)'
-        }} 
-      />
-      
-      <div className="relative h-full flex flex-col">
-        {/* Header */}
-        <div className="px-14 pt-12 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-12" />
-            <div className="text-2xl tracking-wider font-semibold">BAZINGO</div>
-          </div>
-          <div className="text-sm text-gray-600">{dateStr}</div>
-        </div>
-
-        {/* Main Certificate Content */}
-        <div className="px-14 text-center mt-6">
-          <div className="text-4xl font-extrabold tracking-wider">CERTIFICATE OF IQ ACHIEVEMENT</div>
-          <div className="mt-8 text-gray-600 text-lg">This certifies that</div>
-          <div className="mt-2 text-5xl font-bold">{userName}</div>
-          <div className="mt-5 text-gray-700 text-lg">has achieved a Full Scale IQ score of</div>
-          <div className="mt-3 text-8xl font-extrabold text-orange-600">{iq}</div>
-          <div className="mt-3 text-gray-700 text-base">Confidence Interval {ciLow}—{ciHigh}</div>
-          <div className="text-gray-700 text-base">Percentile Rank {percentile}</div>
-        </div>
-
-        {/* Domain Scores */}
-        <div className="mt-12 px-14 grid grid-cols-4 gap-6">
-          {[
-            {label:'Reasoning', value: reasoning},
-            {label:'Verbal', value: verbal},
-            {label:'Memory', value: memory},
-            {label:'Processing Speed', value: speed},
-          ].map((b,idx)=> (
-            <div 
-              key={idx} 
-              className="rounded-xl p-6 text-center text-white" 
-              style={{
-                background: 'linear-gradient(180deg,#f36d3a,#be4a84 70%, #2f5fb6)'
-              }}
-            >
-              <div className="text-sm opacity-95">{b.label}</div>
-              <div className="mt-3 text-5xl font-extrabold leading-none">{b.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto px-14 pb-12 pt-10 flex items-end justify-between">
-          <div className="flex items-center gap-5">
-            <QRCodeCanvas 
-              value={reportUrl} 
-              size={110} 
-              bgColor="#ffffff" 
-              fgColor="#000000" 
-              includeMargin 
-              level="M" 
-            />
-            <div className="text-sm text-gray-700">
-              <div className="font-medium">Certificate ID {certificateId}</div>
-              <div className="mt-1 text-gray-600 max-w-[360px]">
-                This score is based on a normative sample with a mean of 100 and a standard deviation of 15.
+      {/* Main Certificate Card - 90% height */}
+      <div className="flex items-center justify-center h-full p-8">
+        <div 
+          className="bg-white rounded-lg shadow-2xl flex flex-col"
+          style={{
+            width: '95%',
+            height: '90%',
+            padding: '60px'
+          }}
+        >
+          {/* Header with Logo */}
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-[#f97316] rounded-full flex items-center justify-center">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-4xl font-bold text-[#1e3a8a] tracking-wider">
+                BAZINGO
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-lg font-signature italic">Bazzingo</div>
-            <div className="h-0.5 w-56 bg-gray-400 mb-2" />
-            <div className="text-sm">Chief Psychologist</div>
+
+          {/* Main Title */}
+          <div className="text-center mb-16">
+            <div className="text-5xl font-bold text-[#1e3a8a] tracking-wide mb-2">
+              CERTIFICATE OF
+            </div>
+            <div className="text-5xl font-bold text-[#1e3a8a] tracking-wide">
+              IQ ACHIEVEMENT
+            </div>
+          </div>
+
+          {/* Certificate Content */}
+          <div className="text-center flex-grow flex flex-col justify-center">
+            <div className="text-xl text-gray-700 mb-6">This certifies that</div>
+            
+            <div className="text-6xl font-bold text-[#1e3a8a] mb-8">{userName}</div>
+            
+            <div className="text-xl text-gray-700 mb-6">has achieved a Full Scale IQ score of</div>
+            
+            <div className="text-9xl font-bold text-[#f97316] mb-4">{iq}</div>
+            
+            <div className="text-lg text-gray-600 mb-2">Confidence Interval {ciLow}—{ciHigh}</div>
+            <div className="text-lg text-gray-600 mb-12">Percentile Rank {percentile}</div>
+
+            {/* Domain Score Cards */}
+            <div className="grid grid-cols-4 gap-4 mb-16">
+              {[
+                {label:'Reasoning', value: reasoning, gradient: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'},
+                {label:'Verbal', value: verbal, gradient: 'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)'},
+                {label:'Memory', value: memory, gradient: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 100%)'},
+                {label:'Processing\nSpeed', value: speed, gradient: 'linear-gradient(135deg, #7c3aed 0%, #1e3a8a 100%)'},
+              ].map((domain, idx) => (
+                <div 
+                  key={idx} 
+                  className="rounded-lg shadow-lg overflow-hidden text-white"
+                  style={{
+                    background: domain.gradient,
+                    minHeight: '120px'
+                  }}
+                >
+                  <div className="p-4 h-full flex flex-col justify-between">
+                    <div className="text-lg font-semibold text-center whitespace-pre-line">
+                      {domain.label}
+                    </div>
+                    <div className="text-4xl font-bold text-center">
+                      {domain.value}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-end justify-between mt-auto pt-0">
+            <div className="flex items-end gap-6">
+              <QRCodeCanvas 
+                value={reportUrl} 
+                size={80} 
+                bgColor="#ffffff" 
+                fgColor="#000000" 
+                includeMargin 
+                level="M" 
+              />
+              <div className="text-sm text-gray-700 max-w-[300px]">
+                <div className="font-medium mb-2">Certificate ID {certificateId}</div>
+                <div className="text-gray-600 leading-relaxed text-xs">
+                  This score is based on a normative sample with a mean of 
+                  100 and a standard deviation of 15.
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-right">
+              <div className="text-2xl font-semibold text-[#1e3a8a] mb-1" style={{fontFamily: 'cursive'}}>
+                Daniel Foster
+              </div>
+              <div className="h-px w-48 bg-gray-400 mb-2"></div>
+              <div className="text-sm text-gray-600">Chief Psychologist</div>
+            </div>
           </div>
         </div>
       </div>

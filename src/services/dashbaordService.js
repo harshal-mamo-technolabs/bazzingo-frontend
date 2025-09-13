@@ -430,3 +430,36 @@ export async function updateUserPreferences(preferencesData) {
     );
     return response.data;
 }
+
+const RANKS_AND_BADGES_ENDPOINT = '/badges/ranks-and-badges';
+
+export async function getRanksAndBadges() {
+  const userData = localStorage.getItem("user");
+  if (!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try {
+    parsedUserData = JSON.parse(userData);
+  } catch (err) {
+    throw new Error("Invalid User Data. Please log in again: ", err);
+  }
+
+  const token = parsedUserData?.accessToken;
+  if (!token) throw new Error("Authentication token not found");
+
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${RANKS_AND_BADGES_ENDPOINT}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching ranks and badges:', error);
+    throw error;
+  }
+}

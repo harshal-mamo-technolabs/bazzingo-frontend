@@ -12,7 +12,7 @@ import PageHeader from "../components/Dashboard/PageHeader.jsx";
 import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlightCard.jsx";
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
-import { getDashboardData, getDailyGames, getRecentAssessmentActivity } from '../services/dashbaordService.js';
+import { getDashboardData, getDailyGames, getRecentAssessmentActivity, getUserProfile, getQuickAssessment } from '../services/dashbaordService.js';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showTooltipStats, setShowTooltipStats] = useState(false);
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
+  const [quickAssessmentTitle, setQuickAssessmentTitle] = useState('Memory Test'); // Default title
 
   // NEW: generic primary metric (either IQ or Driving Licence)
   const [primaryType, setPrimaryType] = useState('iq');       // 'iq' | 'drivingLicense'
@@ -30,6 +31,22 @@ const Dashboard = () => {
 
   const [totalGames, setTotalGames] = useState(0);
   const [dailyGames, setDailyGames] = useState([]); // initially empty
+  // Add userData state
+  const [userData, setUserData] = useState(null);
+
+  // Update the fetchUserProfile effect
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await getUserProfile();
+        setUserData(response.data.user);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   useEffect(()=>{
     const extractScore = (val) => {
@@ -85,8 +102,21 @@ const Dashboard = () => {
       }
     };
 
+    const fetchQuickAssessment = async () => {
+      try {
+        const response = await getQuickAssessment();
+        if (response?.status === "success") {
+          setQuickAssessmentTitle(response.data.assessment.title);
+        }
+      } catch (error) {
+        console.error("Failed to fetch quick assessment:", error);
+        // Keep default title if fetch fails
+      }
+    };
+
     fetchDashboardData();
     fetchDailyGames();
+    fetchQuickAssessment();
   },[]);
 
   // In Dashboard.jsx - Update the handleGameClick function
@@ -119,13 +149,35 @@ const Dashboard = () => {
         return;
       }
     } catch {}
-    setSelectedAssessment({
-      title: 'Memory Match',
-      description: 'Mini Test, 5–10 Question',
-      icon: CognitiveFocusBrainIcon,
-    });
+    
+    // Fetch the latest assessment data for the modal
+    try {
+      const response = await getQuickAssessment();
+      if (response?.status === "success") {
+        setSelectedAssessment({
+          title: response.data.assessment.title, // This will show in modal
+          description: 'Mini Test, 5–10 Question',
+          icon: CognitiveFocusBrainIcon,
+        });
+      } else {
+        // Fallback if fetch fails
+        setSelectedAssessment({
+          title: quickAssessmentTitle,
+          description: 'Mini Test, 5–10 Question',
+          icon: CognitiveFocusBrainIcon,
+        });
+      }
+    } catch (error) {
+      // Fallback if fetch fails
+      setSelectedAssessment({
+        title: quickAssessmentTitle,
+        description: 'Mini Test, 5–10 Question',
+        icon: CognitiveFocusBrainIcon,
+      });
+    }
+    
     setIsAssessmentModalOpen(true);
-  }, []);
+  }, [quickAssessmentTitle]);
 
   const openHighlightAssessment = useCallback(async (assessmentData) => {
     try {
@@ -163,7 +215,7 @@ const Dashboard = () => {
           style={{ fontFamily: 'Roboto, sans-serif' }}
         >
           {/* Page header */}
-          <PageHeader name="Alex" />
+          <PageHeader userData={userData} />
 
           {/* Top Row */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
@@ -186,7 +238,7 @@ const Dashboard = () => {
                   ? suggestion.games.every(g => g.isPlayed)
                   : false;
                 if (allPlayed) {
-                  setNotice({ open: true, title: 'Congratulations!', message: 'You have played all today’s games.' });
+                  setNotice({ open: true, title: 'Congratulations!', message: 'You have played all today\'s games.' });
                 } else {
                   setIsModalOpen(true);
                 }
@@ -194,7 +246,7 @@ const Dashboard = () => {
                 setIsModalOpen(true);
               }
             }} games={dailyGames} />
-            <DailyAssessmentCard onAssessmentClick={openAssessment} />
+            <DailyAssessmentCard title={quickAssessmentTitle} onAssessmentClick={openAssessment} />
             <Calender />
 
             <div className="flex flex-col gap-4 w-full lg:flex-1">
