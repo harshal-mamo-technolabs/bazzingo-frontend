@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 
-const DailyAssessmentCard = ({ onAssessmentClick }) => {
+const DailyAssessmentCard = ({ onAssessmentClick, title }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const timerRef = useRef(null);
 
@@ -57,7 +57,7 @@ const DailyAssessmentCard = ({ onAssessmentClick }) => {
                   decoding="async"
               />
               <div>
-                <div className="text-sm font-semibold text-black">Memory Match</div>
+                <div className="text-sm font-semibold text-black">{title}</div>
                 <div className="mt-1">
                   {/* keeping `border-1` as-is to avoid visual changes */}
                   <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
@@ -82,7 +82,7 @@ const DailyAssessmentCard = ({ onAssessmentClick }) => {
 
               {/* Title & subtitle */}
               <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
-                <div className="text-sm font-semibold text-black">Memory Match</div>
+                <div className="text-sm font-semibold text-black">{title}</div>
                 <div className="mt-1">
                 <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
                   Mini Test, 5–10 Question
@@ -91,12 +91,7 @@ const DailyAssessmentCard = ({ onAssessmentClick }) => {
               </div>
             </div>
 
-            {/* Dots */}
-            <div className="flex justify-center space-x-2 md:mt-3 mt-1 mb-2 md:mb-4">
-              <div className="w-2 h-2 rounded-full opacity-80 bg-[#00443e]"></div>
-              <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
-              <div className="w-2 h-2 bg-gray-900 rounded-full opacity-20"></div>
-            </div>
+    
 
             {/* Badge Row */}
             <div className="flex items-center space-x-0 md:mb-4 mb-2 px-0">

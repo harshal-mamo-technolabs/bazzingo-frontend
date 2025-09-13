@@ -115,7 +115,7 @@ const Dashboard = () => {
         return s.type === 'quick' && d.toDateString() === todayStr;
       });
       if (completedTodayQuick) {
-        setNotice({ open: true, title: 'Congratulations!', message: "You've completed today’s quick assessment." });
+        setNotice({ open: true, title: 'Congratulations!', message: "You've completed today's quick assessment." });
         return;
       }
     } catch {}
@@ -123,6 +123,29 @@ const Dashboard = () => {
       title: 'Memory Match',
       description: 'Mini Test, 5–10 Question',
       icon: CognitiveFocusBrainIcon,
+    });
+    setIsAssessmentModalOpen(true);
+  }, []);
+
+  const openHighlightAssessment = useCallback(async (assessmentData) => {
+    try {
+      // Check if assessment is already completed
+      if (assessmentData.isCompleted) {
+        setNotice({ 
+          open: true, 
+          title: 'Assessment Completed!', 
+          message: `You've already completed today's ${assessmentData.title || 'assessment'}. Great job!` 
+        });
+        return;
+      }
+    } catch {}
+    
+    // Open modal with assessment data
+    setSelectedAssessment({
+      title: assessmentData.title || 'Certified Cognitive Assessment',
+      description: 'Mini Test, 5–10 Question',
+      icon: CognitiveFocusBrainIcon,
+      assessmentId: assessmentData.assessmentId,
     });
     setIsAssessmentModalOpen(true);
   }, []);
@@ -149,7 +172,7 @@ const Dashboard = () => {
               primaryScore={primaryScore}
               totalGames={totalGames}
             />
-            <AssessmentHighlightCard />
+            <AssessmentHighlightCard onAssessmentClick={openHighlightAssessment} />
             <AssessmentUpsellCard />
           </div>
 

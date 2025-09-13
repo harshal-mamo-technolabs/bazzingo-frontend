@@ -330,6 +330,25 @@ export async function getUserProgramScores() {
   }
 }
 
+// Fetch daily assessment purchase recommendation
+export async function getDailyAssessmentRecommendation() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/assessment/daily-assessment-purchase-recommendation`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching daily assessment recommendation:", err);
+    throw err;
+  }
+}
+
+
 const ASSESSMENT_STATISTICS_ENDPOINT = '/assessment/statistics';
 
 export async function getAssessmentStatistics() {
