@@ -300,7 +300,7 @@ export async function getUserIqScores() {
     const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
     if (!token) throw new Error("No token found");
 
-    const url = `${API_CONNECTION_HOST_URL}/assessment/iq-scores`;
+    const url = `${API_CONNECTION_HOST_URL}/assessment/program-score`;
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -351,6 +351,35 @@ export async function getAssessmentStatistics() {
         {
             headers: {
                 Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+    return response.data;
+}
+
+const USER_PREFERENCES_ENDPOINT = '/user/preferences';
+
+export async function updateUserPreferences(preferencesData) {
+    const userData = localStorage.getItem("user");
+    if (!userData) throw new Error("User not authenticated");
+
+    let parsedUserData;
+    try {
+        parsedUserData = JSON.parse(userData);
+    } catch (err) {
+        throw new Error("Invalid User Data. Please log in again: ", err);
+    }
+
+    const token = parsedUserData?.accessToken;
+    if (!token) throw new Error("Authentication token not found");
+
+    const response = await axios.put(
+        `${API_CONNECTION_HOST_URL}${USER_PREFERENCES_ENDPOINT}`,
+        preferencesData,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
             },
         }
     );

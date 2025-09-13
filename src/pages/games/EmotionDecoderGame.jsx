@@ -53,7 +53,7 @@ const EmotionDecoderGame = () => {
   //const timelineRef = useRef(null);
   // Update score whenever relevant values change
   useEffect(() => {
-    const newScore = calculateScore(solvedScenarios, difficulty);
+    const newScore = calculateScore(difficulty, solvedScenarios);
     setScore(newScore);
   }, [solvedScenarios, difficulty]);
 
