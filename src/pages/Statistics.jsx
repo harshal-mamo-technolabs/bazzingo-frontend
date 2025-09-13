@@ -9,8 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
 import { getAssessmentStatistics } from "../services/dashbaordService";
+import { getDailyAssessmentRecommendation } from "../services/dashbaordService";
 import BazzingoLoader from "../components/Loading/BazzingoLoader";
 import TimeRangeDropdown from "../components/Statistics/TimeRangeDropdown";
+import { loadStripe } from '@stripe/stripe-js';
+import { API_CONNECTION_HOST_URL } from '../utils/constant.js';
 
 
 const Statistics = () => {
@@ -102,6 +105,169 @@ const Statistics = () => {
     value,
   }));
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentIndex((prev) => (prev + 1) % slides.length);
+  //   }, 100);
+  //   return () => clearInterval(interval);
+  // }, [slides.length]);
+
+  const [rank, setRank] = useState(0);
+  const [totalPlayed, setTotalPlayed] = useState(0);
+  const [brainIndex, setBrainIndex] = useState(0);
+  const [scores, setScores] = useState([]);
+  const [progressValues, setProgressValues] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [currentIq, setCurrentIq] = useState(null);
+  
+  // Time range state - moved before useEffect that uses it
+  const [selectedTimeRange, setSelectedTimeRange] = useState('last7Days');
+  
+  // Assessment recommendation state
+  const [assessmentData, setAssessmentData] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  // Callback function to receive IQ data from TestScore
+  const handleIqDataLoaded = (iqData) => {
+    setCurrentIq(iqData.currentIQ);
+  };
+
+  // Fetch assessment recommendation
+  const fetchAssessmentRecommendation = async () => {
+    try {
+      const response = await getDailyAssessmentRecommendation();
+      if (response?.status === 'success') {
+        setAssessmentData(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch assessment recommendation:', error);
+    }
+  };
+
+  const getActualPrice = (unitAmount, currency) => {
+    const amount = (unitAmount / 100).toFixed(2);
+    return `${currency === 'EUR' ? '€' : '$'}${amount}`;
+  };
+
+  const getDescription = (isAvailReport, isAvailCertification) => {
+    let description = "Try test to get detailed report to know better your performance";
+    if (isAvailCertification) {
+      description += " and the certificate to share";
+    }
+    return description;
+  };
+
+  const handleStartCertifiedTest = async () => {
+    if (!assessmentData) return;
+    
+    setProcessing(true);
+    try {
+      console.log('🚀 Starting payment flow for assessment:', assessmentData.assessmentId);
+      
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize');
+      }
+
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        throw new Error('User not authenticated');
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.accessToken;
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const successUrl = `${window.location.origin}/payment/success`;
+      const cancelUrl = `${window.location.origin}/payment/cancel`;
+
+      console.log('📡 Making API call to:', `${API_CONNECTION_HOST_URL}/stripe/checkout/session`);
+      console.log('📡 Request body:', {
+        assessmentId: assessmentData.assessmentId,
+        successUrl,
+        cancelUrl,
+      });
+
+      const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/checkout/session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          assessmentId: assessmentData.assessmentId,
+          successUrl,
+          cancelUrl,
+        }),
+      });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      const payload = await response.json().catch(() => ({}));
+      console.log('📡 Full response payload:', payload);
+
+      if (!response.ok) {
+        throw new Error(payload?.message || `Request failed (${response.status})`);
+      }
+
+      const resp = payload?.data;
+      console.log('🔄 Stripe response data:', resp);
+
+      // A) Checkout fallback -> redirect
+      if (resp?.url) {
+        console.log('🔄 Redirecting to Stripe Checkout:', resp.url);
+        window.location.href = resp.url;
+        return;
+      }
+
+      // B) One-click succeeded / processing
+      if (resp?.orderId && (resp.status === 'succeeded' || resp.status === 'processing')) {
+        console.log('✅ Payment succeeded/processing, redirecting to success page');
+        window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
+        return;
+      }
+
+      // C) One-click requires 3DS — MUST pass payment_method
+      if (resp?.requiresAction && resp?.clientSecret) {
+        console.log('🔐 Payment requires 3DS authentication');
+        console.log('🔐 Client secret:', resp.clientSecret);
+        console.log('🔐 Payment method ID:', resp.paymentMethodId);
+        
+        if (!resp.paymentMethodId) {
+          throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
+        }
+        
+        const result = await stripe.confirmCardPayment(resp.clientSecret, {
+          payment_method: resp.paymentMethodId,
+        });
+        
+        console.log('🔐 3DS confirmation result:', result);
+        
+        if (result.error) {
+          throw new Error(result.error.message || 'Authentication failed. Please try again.');
+        }
+        
+        console.log('✅ 3DS authentication successful, redirecting to success page');
+        window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
+        return;
+      }
+
+      throw new Error('Unexpected response from server.');
+    } catch (error) {
+      console.error('💥 Payment error:', error);
+      console.error('💥 Error stack:', error.stack);
+      alert(`Payment failed: ${error.message}. Please try again.`);
+    } finally {
+      console.log('🏁 Setting processing state to false');
+      setProcessing(false);
+    }
+  };
+
   const slides = [
     {
       key: "left",
@@ -131,15 +297,15 @@ const Statistics = () => {
             <div className="flex items-center gap-3">
               <img
                 src="/brain_yellow.png"
-                alt="gct"
+                alt={assessmentData?.title || "Assessment"}
                 className="w-10 h-10 rounded p-0"
               />
               <div>
                 <p className="text-md lg:text-sm font-semibold text-gray-800">
-                  General Cognitive test
+                  {assessmentData?.title || "General Cognitive test"}
                 </p>
                 <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
-                  Mini Test, 5-10 Question
+                  {assessmentData?.questions ? `${assessmentData.questions} Questions` : "Mini Test, 5-10 Question"} • Certified
                 </span>
               </div>
             </div>
@@ -152,16 +318,22 @@ const Statistics = () => {
                 className="w-5 h-5"
               />
               <p className="text-[12px] 2xl:text-[14px]">
-                Get a certified result you can share on LinkedIn or with employers.
+                {assessmentData ? getDescription(assessmentData.isAvailReport, assessmentData.isAvailCertification) : "Get a certified result you can share on LinkedIn or with employers."}
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-between mt-1 p-1 gap-2">
               <div className="text-xs text-gray-700 leading-4">
                 <p className="text-[12px]">Only</p>
-                <p className="text-[18px] font-bold text-black">€0.99</p>
+                <p className="text-[18px] font-bold text-black">
+                  {assessmentData ? getActualPrice(assessmentData.price.unitAmount, assessmentData.price.currency) : "€0.99"}
+                </p>
               </div>
-              <button className="px-4 py-1.5 text-[13px] bg-[#FF6B3D] min-w-[150px] text-white rounded-md font-semibold">
-                Start Certified Test
+              <button 
+                className="px-4 py-1.5 text-[13px] bg-[#FF6B3D] min-w-[150px] text-white rounded-md font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleStartCertifiedTest}
+                disabled={processing || !assessmentData}
+              >
+                {processing ? 'Processing...' : 'Start Certified Test'}
               </button>
             </div>
 
@@ -170,31 +342,6 @@ const Statistics = () => {
       ),
     },
   ];
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentIndex((prev) => (prev + 1) % slides.length);
-  //   }, 100);
-  //   return () => clearInterval(interval);
-  // }, [slides.length]);
-
-  const [rank, setRank] = useState(0);
-  const [totalPlayed, setTotalPlayed] = useState(0);
-  const [brainIndex, setBrainIndex] = useState(0);
-  const [scores, setScores] = useState([]);
-  const [progressValues, setProgressValues] = useState([]);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [currentIq, setCurrentIq] = useState(null);
-  
-  // Time range state - moved before useEffect that uses it
-  const [selectedTimeRange, setSelectedTimeRange] = useState('last7Days');
-
-  // Callback function to receive IQ data from TestScore
-  const handleIqDataLoaded = (iqData) => {
-    setCurrentIq(iqData.currentIQ);
-  };
 
   useEffect(() => {
     const loadStats = async () => {
@@ -232,6 +379,7 @@ const Statistics = () => {
       }
     };
     loadStats();
+    fetchAssessmentRecommendation();
   }, [selectedTimeRange]); // Add selectedTimeRange as dependency
 
   // New state for assessment statistics
