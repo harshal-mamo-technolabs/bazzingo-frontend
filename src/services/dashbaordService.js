@@ -300,7 +300,7 @@ export async function getUserIqScores() {
     const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
     if (!token) throw new Error("No token found");
 
-    const url = `${API_CONNECTION_HOST_URL}/assessment/iq-scores`;
+    const url = `${API_CONNECTION_HOST_URL}/assessment/program-score`;
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
