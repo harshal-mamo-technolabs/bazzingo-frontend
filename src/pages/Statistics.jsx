@@ -5,6 +5,7 @@ import MainLayout from "../components/Layout/MainLayout";
 import { RecentTest, TestScore } from "../components/Statistics";
 import ProgressChart from "../components/Charts/ProgressChart";
 import NoDataModal from "../components/Statistics/NoDataModal";
+import SubscriptionBlocker from "../components/Subscription/SubscriptionBlocker";
 import { useNavigate } from 'react-router-dom';
 import { getWeeklyScores } from "../services/dashbaordService";
 import { getGameStatistics } from "../services/dashbaordService";
@@ -15,6 +16,8 @@ import BazzingoLoader from "../components/Loading/BazzingoLoader";
 import TimeRangeDropdown from "../components/Statistics/TimeRangeDropdown";
 import { loadStripe } from '@stripe/stripe-js';
 import { API_CONNECTION_HOST_URL } from '../utils/constant.js';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading } from '../app/subscriptionSlice';
 
 
 const Statistics = () => {
@@ -23,6 +26,17 @@ const Statistics = () => {
   const [showChart, setShowChart] = useState(false);
   const navigate = useNavigate();
   const [randomGame, setRandomGame] = useState(null);
+  
+  // Redux subscription state
+  const dispatch = useDispatch();
+  const hasActiveSubscription = useSelector(selectHasActiveSubscription);
+  const subscriptionInitialized = useSelector(selectSubscriptionInitialized);
+  const subscriptionLoading = useSelector(selectSubscriptionLoading);
+
+  // Fetch subscription status when component mounts
+  useEffect(() => {
+    dispatch(fetchSubscriptionStatus());
+  }, [dispatch]);
 
   // Fetch random game for left slide
 useEffect(() => {
@@ -485,6 +499,22 @@ useEffect(() => {
     fetchAssessmentStats();
   }, []);
 
+  // Check if default category has data when assessment stats are loaded
+  useEffect(() => {
+    if (assessmentStats && !isLoadingStats && subscriptionInitialized) {
+      // Only check for data modal if user has active subscription
+      if (hasActiveSubscription) {
+        const categoryKey = activeCategory.toLowerCase().replace(' ', '-');
+        const categoryData = assessmentStats.statistics[categoryKey];
+        
+        // If the current active category (default: IQ Test) has no data, show modal
+        if (!categoryData || !categoryData.isDataPresent) {
+          setShowNoDataModal(true);
+        }
+      }
+    }
+  }, [assessmentStats, isLoadingStats, activeCategory, hasActiveSubscription, subscriptionInitialized]);
+
   // Get current radar data based on selected category and time range
   const getRadarData = () => {
     if (!assessmentStats) return [];
@@ -523,14 +553,15 @@ useEffect(() => {
   const handleCategoryClick = (category) => {
     setActiveCategory(category);
     
-    if (assessmentStats) {
+    // Only check for data modal if user has active subscription
+    if (hasActiveSubscription && assessmentStats) {
       const categoryKey = category.toLowerCase().replace(' ', '-');
       const categoryData = assessmentStats.statistics[categoryKey];
       
       if (!categoryData || !categoryData.isDataPresent) {
         setShowNoDataModal(true);
       }
-    } else {
+    } else if (hasActiveSubscription && !assessmentStats) {
       // If assessmentStats is not loaded yet, show modal for any category without data
       setShowNoDataModal(true);
     }
@@ -560,8 +591,14 @@ useEffect(() => {
 
   return (
     <MainLayout unreadCount={3}>
-      <div className="bg-gray-50 min-h-screen">
-        <main className="mx-auto px-4 lg:px-12 py-4 lg:py-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
+      <SubscriptionBlocker 
+        showBlocker={subscriptionInitialized && !hasActiveSubscription}
+        title="Premium Statistics"
+        message="Please subscribe to Bazzingo plan to access detailed statistics and analytics"
+        buttonText="Subscribe Now"
+      >
+        <div className="bg-gray-50 min-h-screen">
+          <main className="mx-auto px-4 lg:px-12 py-4 lg:py-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
           {/* Filter Buttons */}
           <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 px-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
@@ -631,7 +668,7 @@ useEffect(() => {
                   <div className="flex items-center justify-center h-[250px] flex-col">
                     <div className="text-gray-500 text-sm mb-4">No data available</div>
                     <button 
-                      onClick={() => setShowNoDataModal(true)}
+                      onClick={() => navigate("/assessments")}
                       className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm"
                     >
                       Take Assessment
@@ -966,9 +1003,10 @@ useEffect(() => {
             </div>
 
           </div>
-        </main>
-      </div>
-      <NoDataModal isOpen={showNoDataModal} onClose={handleModalClose} onAssesmentClick={handleAssesmentClick} category={activeCategory} />
+          </main>
+        </div>
+        <NoDataModal isOpen={showNoDataModal} onClose={handleModalClose} onAssesmentClick={handleAssesmentClick} category={activeCategory} />
+      </SubscriptionBlocker>
     </MainLayout>
   );
 };

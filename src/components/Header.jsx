@@ -16,6 +16,7 @@ const NAV = [
     {path: '/assessments', label: 'Assessments', matchChildren: true},
     {path: '/statistics', label: 'Statistics', matchChildren: false},
     {path: '/leadboard', label: 'Leaderboard', matchChildren: false},
+    {path: '/pricing', label: 'Pricing', matchChildren: false},
 ];
 
 const TEXT_BASE = {fontFamily: 'Roboto, sans-serif'};
@@ -513,6 +514,19 @@ const MobileMenu = memo(function MobileMenu({
                     style={TEXT_BASE}
                 >
                     🏆 Leaderboard
+                </button>
+
+                <button
+                    onClick={() => {
+                        onNavigate('/pricing');
+                        onClose();
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
+                        isActive('/pricing') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                    }`}
+                    style={TEXT_BASE}
+                >
+                    💎 Pricing
                 </button>
             </div>
 

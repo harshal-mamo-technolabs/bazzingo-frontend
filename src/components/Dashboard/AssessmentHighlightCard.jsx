@@ -58,7 +58,7 @@ export default function AssessmentHighlightCard({ onAssessmentClick }) {
                 </div>
                 <div className="flex flex-col justify-center">
                     <div className="text-[16px] font-semibold text-gray-800 leading-snug">
-                        {assessmentData.assessment.title || "Certified Cognitive Assessment"}
+                        {assessmentData?.assessment?.title || "Certified Cognitive Assessment"}
                     </div>
                     <div className="bg-[#e5cec8] text-black rounded-md px-2 py-[2px] text-[9px] border border-gray-400 font-medium inline-block mt-1 w-fit">
                         Mini Test, 5-10 Question
@@ -71,14 +71,14 @@ export default function AssessmentHighlightCard({ onAssessmentClick }) {
     return (
         <div 
             className={`col-span-1 md:col-span-2 lg:col-span-1 rounded-lg p-2 h-[140px] flex items-center cursor-pointer transition-all duration-200 hover:shadow-md ${
-                assessmentData.isCompleted 
+                assessmentData?.isCompleted 
                     ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300' 
                     : 'bg-[#ffece6] hover:bg-[#ffe0d6]'
             }`}
             onClick={handleCardClick}
         >
             <div className={`w-[110px] h-[110px] rounded-lg flex items-center justify-center mr-4 flex-shrink-0 ${
-                assessmentData.isCompleted ? 'bg-green-500' : 'bg-[#ff5722]'
+                assessmentData?.isCompleted ? 'bg-green-500' : 'bg-[#ff5722]'
             }`}>
                 <img
                     src={BrainSilhouetteOrangeIcon}
@@ -88,16 +88,16 @@ export default function AssessmentHighlightCard({ onAssessmentClick }) {
             </div>
             <div className="flex flex-col justify-center">
                 <div className="text-[16px] font-semibold text-gray-800 leading-snug">
-                    {assessmentData.assessment.title || "Certified Cognitive Assessment"}
+                    {assessmentData?.assessment?.title || "Certified Cognitive Assessment"}
                 </div>
                 <div className={`rounded-md px-2 py-[2px] text-[9px] border font-medium inline-block mt-1 w-fit ${
-                    assessmentData.isCompleted 
+                    assessmentData?.isCompleted 
                         ? 'bg-green-200 text-green-800 border-green-400' 
                         : 'bg-[#e5cec8] text-black border-gray-400'
                 }`}>
-                    {assessmentData.isCompleted ? "✓ Completed Today" : "Mini Test, 5–10 Question"}
+                    {assessmentData?.isCompleted ? "✓ Completed Today" : "Mini Test, 5–10 Question"}
                 </div>
-                {assessmentData.isCompleted && (
+                {assessmentData?.isCompleted && (
                     <div className="text-[10px] text-green-700 font-medium mt-1">
                         Great job! Your daily mini test is completed
                     </div>

@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import LeaderboardTable from "../components/Tables/LeadboardTable";
 import MainLayout from "../components/Layout/MainLayout";
 import TopRank from "../components/Charts/TopRank";
+import SubscriptionBlocker from "../components/Subscription/SubscriptionBlocker";
 import { getLeaderboard, getRecentDashboardActivity } from "../services/dashbaordService";
 import { countries } from "../utils/constant";
 import SelectMenu from "../components/Leaderboard/SelectMenu.jsx";
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading } from '../app/subscriptionSlice';
 
 const ProgressBar = ({ percentage }) => (
   <div className="relative w-full lg:max-w-[150px] h-7 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
@@ -33,10 +36,21 @@ const Leadboard = () => {
   const [leaderboardData, setLeaderboardData] = useState({});
   const [loading, setLoading] = useState(false);
   const [recentActivities, setRecentActivities] = useState([]);
+  
+  // Redux subscription state
+  const dispatch = useDispatch();
+  const hasActiveSubscription = useSelector(selectHasActiveSubscription);
+  const subscriptionInitialized = useSelector(selectSubscriptionInitialized);
+  const subscriptionLoading = useSelector(selectSubscriptionLoading);
 
   // Build dropdown options
   const countryOptions = countries.map(c => ({ key: c, label: c }));
   const ageOptions = ["1-12","13-17","18-24","25-34","35-44","45-64","65-200"].map(a => ({ key: a, label: a }));
+
+  // Fetch subscription status when component mounts
+  useEffect(() => {
+    dispatch(fetchSubscriptionStatus());
+  }, [dispatch]);
 
   useEffect(() => {
     async function fetchData() {
@@ -73,7 +87,13 @@ const Leadboard = () => {
 
   return (
     <MainLayout unreadCount={unreadCount}>
-      <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
+      <SubscriptionBlocker 
+        showBlocker={subscriptionInitialized && !hasActiveSubscription}
+        title="Premium Leaderboard"
+        message="Please subscribe to Bazzingo plan to access leaderboard rankings and compete with other users"
+        buttonText="Subscribe Now"
+      >
+        <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
         <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7">
           {/* Filters */}
           <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4">
@@ -359,7 +379,8 @@ const Leadboard = () => {
             )}
           </div>
         </div>
-      </div>
+        </div>
+      </SubscriptionBlocker>
     </MainLayout>
   );
 };
