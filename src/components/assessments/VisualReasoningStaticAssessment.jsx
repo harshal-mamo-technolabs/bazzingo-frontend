@@ -95,6 +95,10 @@ export default function VisualReasoningStaticAssessment() {
   });
   const [isAvailCertification, setIsAvailCertification] = useState(false);
   const [isAvailReport, setIsAvailReport] = useState(false);
+  const [assessmentMetadata, setAssessmentMetadata] = useState({
+    title: 'Visual Reasoning Questions', // default fallback
+    description: 'Test your memory by finding all the matching pairs of cards.' // default fallback
+  });
 
   /** =========================
       Fetch Assessment
@@ -109,6 +113,10 @@ export default function VisualReasoningStaticAssessment() {
           const res = await getQuickAssessment();
           apiQuestions = res?.data?.questions || [];
           id = res?.data?.assessment?._id;
+          setAssessmentMetadata({
+            title: res?.data?.assessment?.title || 'Quick Assessment',
+            description: res?.data?.assessment?.description || 'Complete the quick assessment questions.'
+          });
         } else {
           const assessmentIdToUse = dynamicAssessmentId || "68b08626058babd20eb52022";
           const res = await getFullAssessment(assessmentIdToUse);
@@ -117,6 +125,10 @@ export default function VisualReasoningStaticAssessment() {
           const a = res?.data?.assessment || res?.assessment;
           setIsAvailCertification(Boolean(a?.isAvailCertification));
           setIsAvailReport(Boolean(a?.isAvailReport));
+          setAssessmentMetadata({
+            title: a?.title || 'Visual Reasoning Assessment',
+            description: a?.description || 'Test your cognitive abilities with this assessment.'
+          });
         }
 
         if (!apiQuestions.length) {
@@ -124,6 +136,7 @@ export default function VisualReasoningStaticAssessment() {
         }
 
         setAssessmentId(id);
+        
 
         const mapped = apiQuestions.map((q, idx) => ({
           id: q._id,
@@ -158,19 +171,34 @@ export default function VisualReasoningStaticAssessment() {
     fetchAssessment();
   }, [fromQuickAssessment, dynamicAssessmentId]);
 
-  // Load recent activity names for right card (desktop), keep static icons and completed badges
-  useEffect(() => {
-    const loadRecent = async () => {
-      try {
-        const res = await getRecentDashboardActivity();
-        const acts = res?.data?.activities || [];
-        setRecentActivityNames(acts.map(a => a.name));
-      } catch (e) {
-        setRecentActivityNames([]);
-      }
-    };
-    loadRecent();
-  }, []);
+  const [recentActivities, setRecentActivities] = useState([]);
+const [isLoadingActivities, setIsLoadingActivities] = useState(true);
+ // Load recent activities for right card
+useEffect(() => {
+  const loadRecent = async () => {
+    try {
+      setIsLoadingActivities(true);
+      const res = await getRecentDashboardActivity();
+      const acts = res?.data?.activities || [];
+      
+      // Map API data to our expected format with fallbacks
+      const mappedActivities = acts.map(activity => ({
+        name: activity.name || 'Unknown Activity',
+        type: activity.type || 'puzzle',
+        status: activity.status || 'in-progress',
+        progress: activity.progress || (activity.status === 'completed' ? 100 : 30)
+      }));
+      
+      setRecentActivities(mappedActivities);
+    } catch (e) {
+      console.error("Failed to load recent activities:", e);
+      setRecentActivities([]);
+    } finally {
+      setIsLoadingActivities(false);
+    }
+  };
+  loadRecent();
+}, []);
 
   /** =========================
       Current Question & Progress
@@ -415,19 +443,19 @@ export default function VisualReasoningStaticAssessment() {
           {/* LEFT CARD - UPDATED for review phase */}
           <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">
-                {isReviewPhase ? 'Review Questions' : 'Visual Reasoning Questions'}
-              </h2>
+            <h2 className="text-2xl font-semibold">
+      {isReviewPhase ? 'Review Questions' : assessmentMetadata.title}
+    </h2>
               <span className="bg-black text-white text-sm px-3 py-1 rounded">
                 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}s
               </span>
             </div>
 
             <p className="text-[13px] mb-4">
-              {isReviewPhase 
-                ? 'Review your unanswered questions.' 
-                : 'Test your memory by finding all the matching pairs of cards.'}
-            </p>
+    {isReviewPhase 
+      ? 'Review your unanswered questions.' 
+      : assessmentMetadata.description}
+  </p>
 
             <div className="flex-grow flex flex-col">
               {/* Mobile/Tablet view - UPDATED for review phase */}
@@ -607,92 +635,127 @@ export default function VisualReasoningStaticAssessment() {
           </div>
 
           {/* RIGHT CARD */}
-          <div className="lg:w-1/4 w-full lg:bg-[#EEEEEE] rounded p-4 flex flex-col h-full">
-            <h5 className="text-lg font-semibold mb-4">Recent Activity</h5>
+{/* RIGHT CARD - Updated with dynamic data handling */}
+<div className="lg:w-1/4 w-full lg:bg-[#EEEEEE] rounded p-4 flex flex-col h-full">
+  <h5 className="text-lg font-semibold mb-4">Recent Activity</h5>
 
-            {/* Desktop */}
-            <div className="hidden lg:block">
-              <div className="flex flex-col gap-3 flex-grow">
-                <div className="flex items-center bg-white rounded p-3 gap-3">
-                  <img src={DailyPuzzleIcon} alt="Daily Puzzle" className="w-10 h-10 object-contain" />
-                  <div className="flex flex-col flex-grow">
-                    <span className="text-[14px] font-semibold">{recentActivityNames[0] || 'Daily Puzzle'}</span>
-                    <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
-                                  bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
-                                  px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">
-                    Completed
-                  </span>
-                  </div>
-                  <img src={CheckIcon} alt="Completed" className="w-5 h-5 object-contain" />
-                </div>
+  {/* Desktop */}
+  <div className="hidden lg:block">
+    {isLoadingActivities ? (
+      <div className="flex justify-center items-center h-40">
+        <BazzingoLoader message="Loading activities..." size="small" />
+      </div>
+    ) : recentActivities.length > 0 ? (
+      <div className="flex flex-col gap-3 flex-grow">
+        {recentActivities.slice(0, 3).map((activity, index) => (
+          <div key={index} className="flex items-center bg-white rounded p-3 gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              activity.type === 'puzzle' ? 'bg-gray-100' : 
+              activity.type === 'assessment' ? 'bg-blue-50' : 'bg-purple-50'
+            }`}>
+              <img 
+                src={
+                  activity.type === 'puzzle' ? DailyPuzzleIcon :
+                  activity.type === 'assessment' ? DailyAssessmentIcon : MazeScapeIcon
+                } 
+                alt={activity.name} 
+                className="w-8 h-8 object-contain" 
+              />
+            </div>
+            <div className="flex flex-col flex-grow">
+              <span className="text-[14px] font-semibold">{activity.name}</span>
+              <span className={`inline-block mt-1 rounded-lg border-2 px-2 py-1 font-bold text-[12px] leading-none w-20 ${
+                activity.status === 'completed' ? 
+                'border-[#118C24] bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5] text-[#118C24]' :
+                // 'border-[#FF6700] bg-[#FFEFE8] text-[#FF6700]'
+                'border-[#118C24] bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5] text-[#118C24]' 
+                
+              }`}>
+                {activity.status === 'completed' ? 'Completed' : 'Completed'}
+              </span>
+            </div>
+            {activity.status === 'completed' && (
+              <img src={CheckIcon} alt="Completed" className="w-5 h-5 object-contain" />
+            )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-center h-40 text-gray-500">
+        <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="text-center">No recent activities found.</p>
+        <p className="text-sm mt-1">Complete an activity to see it here.</p>
+      </div>
+    )}
+  </div>
 
-                <div className="flex items-center bg-white rounded p-3 gap-3">
-                  <img src={DailyAssessmentIcon} alt="Daily Assessment" className="w-10 h-10 object-contain" />
-                  <div className="flex flex-col flex-grow">
-                    <span className="text-[14px] font-semibold">{recentActivityNames[1] || 'Daily Assessment'}</span>
-                    <span className="inline-block mt-1 rounded-lg border-2 border-[#118C24]
-                                  bg-gradient-to-b from-[#E2F8E0] via-[#CDEDC8] to-[#DAF3D5]
-                                  px-2 py-1 text-[#118C24] font-bold text-[12px] leading-none w-20">
-                    Completed
-                  </span>
-                  </div>
-                  <img src={CheckIcon} alt="Completed" className="w-5 h-5 object-contain" />
-                </div>
-
-                <div className="flex items-center bg-white rounded p-3 gap-3">
-                  <img src={MazeScapeIcon} alt="Mage Scape" className="w-10 h-10 object-contain bg-blue-200 rounded p-1" />
-                  <div className="flex flex-col flex-grow">
-                    <span className="text-[14px] font-semibold">{recentActivityNames[2] || 'Mage Scape'}</span>
-                    <span
-                        className="bg-[#FFEFE8] text-[#FF6700] inline-block mt-1 rounded-lg border-2
-                               px-2 py-1 font-bold text-[12px] leading-none w-15 border-[#FF6700]"
-                    >
-                    Resume
-                  </span>
-                  </div>
-                </div>
+  {/* Mobile */}
+  <div className="lg:hidden block">
+    {isLoadingActivities ? (
+      <div className="flex justify-center items-center h-40">
+        <BazzingoLoader message="Loading activities..." size="small" />
+      </div>
+    ) : recentActivities.length > 0 ? (
+      <div className="space-y-4 mt-4">
+        {recentActivities.slice(0, 3).map((activity, idx) => (
+          <div
+            key={idx}
+            className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
+          >
+            {/* Icon + Label */}
+            <div className="flex items-center gap-2 min-w-[100px]">
+              <div className={`w-10 h-10 ${
+                activity.type === 'puzzle' ? 'bg-gray-100' : 
+                activity.type === 'assessment' ? 'bg-blue-50' : 'bg-purple-50'
+              } rounded-lg flex items-center justify-center shrink-0`}>
+                <img 
+                  src={
+                    activity.type === 'puzzle' ? DailyPuzzleIcon :
+                    activity.type === 'assessment' ? DailyAssessmentIcon : MazeScapeIcon
+                  } 
+                  alt={activity.name} 
+                  className="w-8 h-8" 
+                />
               </div>
+              <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
+                {activity.name}
+              </span>
             </div>
 
-            {/* Mobile */}
-            <div className="lg:hidden block">
-              <div className="space-y-4 mt-4">
-                {ACTIVITIES.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
-                    <div
-                        key={`${label}-${idx}`}
-                        className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
-                    >
-                      {/* Icon + Label */}
-                      <div className="flex items-center gap-2 min-w-[100px]">
-                        <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
-                          <img src={icon} alt={alt} className="w-10 h-10" />
-                        </div>
-                        <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">{label}</span>
-                      </div>
+            {/* Progress */}
+            <div className="flex-1 mx-2 max-w-[190px]">
+              <ProgressBar percentage={activity.progress} />
+            </div>
 
-                      {/* Progress */}
-                      <div className="flex-1 mx-2 max-w-[190px]">
-                        <ProgressBar percentage={pct} />
-                      </div>
-
-                      {/* Status */}
-                      <div className="flex items-center justify-end min-w-[20px]">
-                        {statusType === 'completed' ? (
-                            <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                              <img src={TaskCompleteIcon} alt="Completed" className="w-4 h-4" />
-                              <span>Completed</span>
-                            </div>
-                        ) : (
-                            <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                              Resume
-                            </button>
-                        )}
-                      </div>
-                    </div>
-                ))}
-              </div>
+            {/* Status */}
+            <div className="flex items-center justify-end min-w-[20px]">
+              {activity.status === 'completed' ? (
+                <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                  <img src={TaskCompleteIcon} alt="Completed" className="w-4 h-4" />
+                  <span>Completed</span>
+                </div>
+              ) : (
+                <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
+                  Resume
+                </button>
+              )}
             </div>
           </div>
+        ))}
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-center h-40 text-gray-500 p-4 text-center">
+        <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p>No recent activities found.</p>
+        <p className="text-sm mt-1">Complete an activity to see it here.</p>
+      </div>
+    )}
+  </div>
+</div>
           {/* END RIGHT CARD */}
           {fromQuickAssessment && (
             <MiniAssesmentCompletionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} score={scoreData.score} 

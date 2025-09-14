@@ -203,7 +203,7 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
 
   return (
       <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           aria-labelledby="acm-title"
           role="dialog"
           aria-modal="true"
@@ -219,14 +219,13 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
             ref={dialogRef}
             className="
           relative bg-white rounded-lg shadow-xl
-          w-[90vw] md:w-[70vw] lg:w-[28vw]
-          md:max-h-[55vh] lg:max-h-[80vh]
-          h-auto overflow-y-auto
+          w-full max-w-md
           transform transition-all duration-200 ease-out
           scale-100 opacity-100
+          flex flex-col
         "
         >
-          <div className="relative w-full h-28 md:h-32 lg:h-32">
+          <div className="relative w-full h-32">
             <div
                 className="absolute inset-0 rounded-t-lg bg-cover bg-center"
                 style={{ backgroundImage: `url(${SunnyEffectImage})` }}
@@ -235,13 +234,13 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
               <img
                   src={ConquerBadge}
                   alt="Conquer badge"
-                  className="object-contain w-16 h-16 md:w-20 md:h-20 lg:w-16 lg:h-16"
+                  className="object-contain w-16 h-16"
               />
             </div>
           </div>
 
-          <div className="w-full text-center lg:mt-0 md:mt-5">
-          <span className="inline-block bg-[#FF6947] text-white text-sm font-medium px-8 py-2 lg:py-1 rounded-full">
+          <div className="w-full text-center mt-2">
+          <span className="inline-block bg-[#FF6947] text-white text-sm font-medium px-8 py-1 rounded-full">
             Assessment Complete
           </span>
           </div>
@@ -265,13 +264,13 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
           {!loading && assessmentData && (
             <>
               <div className="px-5">
-                <h3 className="text-[14px] font-semibold text-gray-800 mb-3"> 
+                <h3 className="text-lg font-semibold text-gray-800 mb-4"> 
                   {getDescription(assessmentData.isAvailReport, assessmentData.isAvailCertification)}
                 </h3>
               </div>
 
-              <div className="flex mb-5">
-                <div className="bg-white border-2 border-orange-400 rounded-xl shadow-md w-full mx-5 my-auto overflow-hidden">
+              <div className="px-5 pb-5">
+                <div className="bg-white border border-orange-300 rounded-lg overflow-hidden shadow-sm w-full">
                   {/* Header */}
                   <div className="bg-gradient-to-r from-orange-200 to-orange-100 px-4 py-2 
                               flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -335,13 +334,12 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
 
           {/* Show loading state */}
           {loading && (
-            <div className="px-5 mb-5">
+            <div className="px-5 pb-5">
               <div className="bg-gray-100 rounded-lg p-4 text-center">
                 <p className="text-gray-600">Loading assessment details...</p>
               </div>
             </div>
           )}
-
 
           <button
               ref={closeBtnRef}
