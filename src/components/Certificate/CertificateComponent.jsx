@@ -84,8 +84,8 @@ const CertificateComponent = forwardRef(({
             
             <div className="text-9xl font-bold text-[#f97316] mb-4">{iq}</div>
             
-            <div className="text-lg text-gray-600 mb-2">Confidence Interval {ciLow}—{ciHigh}</div>
-            <div className="text-lg text-gray-600 mb-12">Percentile Rank {percentile}</div>
+            {/* <div className="text-lg text-gray-600 mb-2">Confidence Interval {ciLow}—{ciHigh}</div>
+            <div className="text-lg text-gray-600 mb-12">Percentile Rank {percentile}</div> */}
 
             {/* Domain Score Cards */}
             <div className="grid grid-cols-4 gap-4 mb-16">
