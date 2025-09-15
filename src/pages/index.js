@@ -25,6 +25,7 @@ import PlanSubscribePaymentElementDemo from './PlanSubscribePaymentElementDemo';
 import PaymentSuccess from './PaymentSuccess';
 import PaymentCancel from './PaymentCancel';
 import Plan from './Plan';
+import Subscription from './Subscription';
 import Report from './Report';
 import Certificate from './Certificate';
 import Download from './Download';
@@ -146,6 +147,7 @@ export {
   PaymentSuccess,
   PaymentCancel,
   Plan,
+  Subscription,
   Report,
   Certificate,
   Download,

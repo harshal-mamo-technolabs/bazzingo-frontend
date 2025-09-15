@@ -17,6 +17,7 @@ const NAV = [
     {path: '/statistics', label: 'Statistics', matchChildren: false},
     {path: '/leadboard', label: 'Leaderboard', matchChildren: false},
     {path: '/pricing', label: 'Pricing', matchChildren: false},
+    {path: '/subscription', label: 'Subscription', matchChildren: false},
 ];
 
 const TEXT_BASE = {fontFamily: 'Roboto, sans-serif'};
@@ -527,6 +528,19 @@ const MobileMenu = memo(function MobileMenu({
                     style={TEXT_BASE}
                 >
                     💎 Pricing
+                </button>
+
+                <button
+                    onClick={() => {
+                        onNavigate('/subscription');
+                        onClose();
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
+                        isActive('/subscription') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                    }`}
+                    style={TEXT_BASE}
+                >
+                    📋 Subscription
                 </button>
             </div>
 

@@ -17,6 +17,9 @@ export const fetchSubscriptionStatus = createAsyncThunk(
           status: null,
           planDuration: null,
           planId: null,
+          priceCatalogId: null,
+          cancelAtPeriodEnd: false,
+          cancelAt: null,
           subscription: null
         };
       }
@@ -45,6 +48,9 @@ export const fetchSubscriptionStatus = createAsyncThunk(
           status: data.data.subscription?.status || null,
           planDuration: data.data.subscription?.planDuration || null,
           planId: data.data.subscription?.planId || null,
+          priceCatalogId: data.data.subscription?.priceCatalogId || null,
+          cancelAtPeriodEnd: data.data.subscription?.cancelAtPeriodEnd || false,
+          cancelAt: data.data.subscription?.cancelAt || null,
           subscription: data.data.subscription
         };
 
@@ -67,6 +73,9 @@ const initialState = {
     status: null,
     planDuration: null,
     planId: null,
+    priceCatalogId: null,
+    cancelAtPeriodEnd: false,
+    cancelAt: null,
     subscription: null
   },
   isLoading: false,
@@ -88,6 +97,9 @@ const subscriptionSlice = createSlice({
         status: null,
         planDuration: null,
         planId: null,
+        priceCatalogId: null,
+        cancelAtPeriodEnd: false,
+        cancelAt: null,
         subscription: null
       };
       state.isInitialized = false;
@@ -117,6 +129,9 @@ const subscriptionSlice = createSlice({
           status: null,
           planDuration: null,
           planId: null,
+          priceCatalogId: null,
+          cancelAtPeriodEnd: false,
+          cancelAt: null,
           subscription: null
         };
       });
