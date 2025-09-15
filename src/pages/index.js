@@ -26,6 +26,7 @@ import PaymentSuccess from './PaymentSuccess';
 import PaymentCancel from './PaymentCancel';
 import Plan from './Plan';
 import Subscription from './Subscription';
+import Notifications from './Notifications';
 import Report from './Report';
 import Certificate from './Certificate';
 import Download from './Download';
@@ -148,6 +149,7 @@ export {
   PaymentCancel,
   Plan,
   Subscription,
+  Notifications,
   Report,
   Certificate,
   Download,

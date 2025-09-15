@@ -6,6 +6,8 @@ import brainIcon from '../../public/header/bxs_brain.png';
 import bellIcon from '../../public/header/bell.png';
 import hamburgerIcon from '../../public/header/hamburger.png';
 import { getUserProfile } from '../services/dashbaordService';
+import NotificationDropdown from './NotificationDropdown';
+import notificationService from '../services/notificationService';
 
 /** ---------------------------
  *  Config & shared styles
@@ -30,7 +32,8 @@ export default function Header({unreadCount = 0}) {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [notificationCount] = useState(5);
+    const [notificationCount, setNotificationCount] = useState(0);
+    const [notifications, setNotifications] = useState([]);
     const [userData, setUserData] = useState(null);
 
     const notificationRef = useRef(null);
@@ -40,6 +43,25 @@ export default function Header({unreadCount = 0}) {
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
+
+    // Fetch notifications on component mount
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const response = await notificationService.getUserNotifications();
+            if (response.status === 'success') {
+                const notificationList = response.data.items || [];
+                const unreadCount = response.data.unreadCount || 0;
+                setNotifications(notificationList);
+                setNotificationCount(unreadCount);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
 
     // Matches /games and /games/*
     const isActiveNavItem = useCallback(
@@ -111,33 +133,7 @@ export default function Header({unreadCount = 0}) {
         navigate('/login');
     };
 
-    // Same notifications list as before (memoized)
-    const notifications = useMemo(
-        () => [
-            {
-                id: 1,
-                title: 'New Assessment Available',
-                message: 'Try the new Cognitive Speed Test',
-                time: '2 hours ago',
-                unread: true
-            },
-            {
-                id: 2,
-                title: 'Daily Challenge Complete',
-                message: "You completed today's brain training",
-                time: '1 day ago',
-                unread: true
-            },
-            {
-                id: 3,
-                title: 'Weekly Report Ready',
-                message: 'Your progress report is available',
-                time: '3 days ago',
-                unread: false
-            },
-        ],
-        []
-    );
+    // Notifications are now managed by state and fetched from API
 
     return (
         <nav className="bg-white border-b border-gray-200 relative z-50">
@@ -203,12 +199,11 @@ export default function Header({unreadCount = 0}) {
                                 )}
                             </button>
 
-                            {isNotificationOpen && (
-                                <NotificationsDropdown
-                                    onViewAll={() => navigate('/notifications')}
-                                    notifications={notifications}
-                                />
-                            )}
+                            <NotificationDropdown 
+                                isOpen={isNotificationOpen}
+                                onClose={() => setIsNotificationOpen(false)}
+                                onRefresh={fetchNotifications}
+                            />
                         </div>
 
                         {/* Profile (desktop) */}

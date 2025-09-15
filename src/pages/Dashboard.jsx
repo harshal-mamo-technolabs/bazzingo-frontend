@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import MainLayout from '../components/Layout/MainLayout';
 import { IQAndGamesSummary, RecommendationGameCarousel, Calender, DailyGameCard, DailyAssessmentCard} from '../components/Dashboard';
 import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 import DailyAssessmentModal from '../components/Dashboard/DailyAssessmentModal.jsx';
-import NoticeModal from '../components/common/NoticeModal.jsx';
 import RecentActivity from '../components/Tables/RecentActivity';
 import {DAILY_GAMES} from "../utils/dashboardUtills.js";
 import {CognitiveFocusBrainIcon} from '../utils/dashboard-image.js';
@@ -19,7 +19,6 @@ const Dashboard = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
-  const [notice, setNotice] = useState({ open: false, title: '', message: '' });
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showTooltipStats, setShowTooltipStats] = useState(false);
   const [showTooltipSuggest, setShowTooltipSuggest] = useState(false);
@@ -145,7 +144,7 @@ const Dashboard = () => {
         return s.type === 'quick' && d.toDateString() === todayStr;
       });
       if (completedTodayQuick) {
-        setNotice({ open: true, title: 'Congratulations!', message: "You've completed today's quick assessment." });
+        toast.success("You've completed today's quick assessment!");
         return;
       }
     } catch {}
@@ -183,11 +182,7 @@ const Dashboard = () => {
     try {
       // Check if assessment is already completed
       if (assessmentData.isCompleted) {
-        setNotice({ 
-          open: true, 
-          title: 'Assessment Completed!', 
-          message: `You've already completed today's ${assessmentData.title || 'assessment'}. Great job!` 
-        });
+        toast.success(`You've already completed today's ${assessmentData.title || 'assessment'}. Great job!`);
         return;
       }
     } catch {}
@@ -238,7 +233,7 @@ const Dashboard = () => {
                   ? suggestion.games.every(g => g.isPlayed)
                   : false;
                 if (allPlayed) {
-                  setNotice({ open: true, title: 'Congratulations!', message: 'You have played all today\'s games.' });
+                  toast.success('You have played all today\'s games!');
                 } else {
                   setIsModalOpen(true);
                 }
@@ -270,12 +265,6 @@ const Dashboard = () => {
               isOpen={isAssessmentModalOpen}
               selectedAssessment={selectedAssessment}
               onClose={closeAssessment}
-            />
-            <NoticeModal
-              isOpen={notice.open}
-              onClose={() => setNotice({ open: false, title: '', message: '' })}
-              title={notice.title}
-              message={notice.message}
             />
           </>
         </main>

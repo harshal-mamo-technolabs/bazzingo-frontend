@@ -1,173 +1,94 @@
-self.addEventListener('install', (event) => {
-    event.waitUntil(self.skipWaiting());
-  });
+// Service Worker for Push Notifications
+self.addEventListener('push', function(event) {
+  console.log('Push event received:', event);
   
-  self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
-  });
-  
-  
-  function parsePushData(event) {
-    try {
-      if (!event.data) return {};
-      const text = event.data.text();
-  
-      try {
-        return JSON.parse(text);
-      } catch {
-        return { title: 'Notification', body: text };
-      }
-    } catch {
-      return {};
-    }
-  }
-  
-  self.addEventListener('push', (event) => {
-    const data = parsePushData(event);
-  
-    const title = data.title || 'New Notification';
-    const body = data.body || data.message || '';
-    const icon = data.icon || '/bazzingo-logo.png';
-    const badge = data.badge || '/bell.png';
-    const url = data.url || data.click_action || '/';
-    const actions = data.actions || [
-      { action: 'open', title: 'Open' },
-      { action: 'dismiss', title: 'Dismiss' },
-    ];
-  
+  if (event.data) {
+    const data = event.data.json();
+    console.log('Push data:', data);
+    
+    // Use local icon instead of external image to avoid blocking issues
     const options = {
-      body,
-      icon,
-      badge,
-      requireInteraction: true,
-      actions,
+      body: data.body,
+      icon: '/icon-192x192.svg', // Always use local icon
+      badge: '/badge-72x72.svg',
+      tag: data.notificationId || 'default',
       data: {
-        url,
-        meta: data.meta || null,
+        url: data.websiteUrl,
+        notificationId: data.notificationId
       },
+      actions: [
+        {
+          action: 'open',
+          title: 'Open App'
+        },
+        {
+          action: 'close',
+          title: 'Close'
+        }
+      ]
     };
-  
-    const messagePromise = (async () => {
-      const clientsList = await self.clients.matchAll({
-        type: 'window',
-        includeUncontrolled: true,
-      });
-  
-      for (const client of clientsList) {
-        client.postMessage({
-          type: 'PUSH_RECEIVED',
-          payload: {
-            title,
-            body,
-            url,
-            permission: Notification.permission,
-          },
-        });
-      }
-    })();
-  
-    const notifyPromise = (async () => {
-      try {
-        await self.registration.showNotification(title, {
-          ...options,
-          silent: false,
-        });
-  
-        const openClients = await self.clients.matchAll({
-          type: 'window',
-          includeUncontrolled: true,
-        });
-  
-        for (const client of openClients) {
-          client.postMessage({ type: 'PUSH_SHOWN', payload: {} });
-        }
-  
-        const displayed = await self.registration.getNotifications();
-        const allClients = await self.clients.matchAll({
-          type: 'window',
-          includeUncontrolled: true,
-        });
-  
-        for (const client of allClients) {
-          client.postMessage({
-            type: 'PUSH_SHOWN_COUNT',
-            payload: { count: displayed?.length || 0 },
-          });
-        }
-  
-        setTimeout(async () => {
-          const later = await self.registration.getNotifications();
-          const clientsLater = await self.clients.matchAll({
-            type: 'window',
-            includeUncontrolled: true,
-          });
-  
-          for (const client of clientsLater) {
-            client.postMessage({
-              type: 'PUSH_SHOWN_COUNT',
-              payload: {
-                count: later?.length || 0,
-                delayed: true,
-              },
-            });
-          }
-        }, 300);
-      } catch (err) {
-        const clientsList = await self.clients.matchAll({
-          type: 'window',
-          includeUncontrolled: true,
-        });
-  
-        for (const client of clientsList) {
-          client.postMessage({
-            type: 'PUSH_ERROR',
-            payload: {
-              message: String(err?.message || err),
-              code: err?.name,
-            },
-          });
-        }
-      }
-    })();
-  
-    event.waitUntil(Promise.all([messagePromise, notifyPromise]));
-  });
-  
-  self.addEventListener('notificationclick', (event) => {
-    const { notification, action } = event;
-    const targetUrl = notification?.data?.url || '/';
-  
+    
+    console.log('Notification options:', options);
+    console.log('About to show notification with title:', data.title);
+    
+    // Check if we have permission to show notifications
+    // Note: Service workers can't directly check permission, but we can try to show the notification
+    console.log('Attempting to show notification...');
+    
     event.waitUntil(
-      (async () => {
-        notification.close();
+      self.registration.showNotification(data.title, options)
+        .then(() => {
+          console.log('Notification displayed successfully');
+        })
+        .catch((error) => {
+          console.error('Failed to display notification:', error);
+          console.error('Error details:', error.message, error.stack);
+        })
+    );
+  }
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', function(event) {
+  console.log('Notification clicked:', event);
+  console.log('Notification data:', event.notification.data);
   
-        if (action === 'dismiss') return;
+  event.notification.close();
   
-        const allClients = await self.clients.matchAll({
-          type: 'window',
-          includeUncontrolled: true,
-        });
-  
-        for (const client of allClients) {
-          try {
-            const clientUrl = new URL(client.url);
-            const target = new URL(targetUrl, clientUrl.origin);
-  
-            if (clientUrl.origin === target.origin) {
-              await client.focus();
-              await client.navigate(targetUrl);
-              return;
-            }
-          } catch {
-            // Ignore URL parsing errors
+  if (event.action === 'open' || !event.action) {
+    // Get the websiteUrl from notification data
+    let urlToOpen = event.notification.data.url || '/';
+    
+    // If it's a relative path (starts with /), make it absolute with current domain
+    if (urlToOpen.startsWith('/')) {
+      urlToOpen = self.location.origin + urlToOpen;
+    }
+    
+    console.log('Redirecting to:', urlToOpen);
+    
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then(function(clientList) {
+        // Check if app is already open
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.focus();
+            // Navigate to the full URL
+            client.navigate(urlToOpen);
+            return;
           }
         }
-  
-        await self.clients.openWindow(targetUrl);
-      })(),
+        
+        // Open new window if app is not open
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
     );
-  });
-  
-  self.addEventListener('notificationclose', () => {
-  });
-  
+  }
+});
+
+// Handle notification close
+self.addEventListener('notificationclose', function(event) {
+  console.log('Notification closed:', event);
+});
