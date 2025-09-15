@@ -18,22 +18,48 @@ const pillConfig = {
   Trending: { bg: '#FF6B3E', border: '#FF6B3E', text: '#000000' }
 };
 
-// Category-wise background colors
-const getCategoryBgColor = (category) => {
-  switch (category) {
-    case 'Logic':
-      return '#D5EBFF'; // Light blue
-    case 'Problem Solving':
-      return '#D8F0E4'; // Light green
-    case 'Critical Thinking':
-      return '#FFF2CC'; // Light yellow
-    case 'Memory':
-      return '#F0E6FF'; // Light purple
-    case 'Gameacy':
-      return '#FFE6E6'; // Light pink
-    default:
-      return '#F5F5F5'; // Light gray
+// Random background colors including all current colors plus black and white
+const backgroundColors = [
+  '#D5EBFF', // Light blue
+  '#D8F0E4', // Light green
+  '#FFF2CC', // Light yellow
+  '#F0E6FF', // Light purple
+  '#FFE6E6', // Light pink
+  '#F5F5F5', // Light gray
+  '#000000', // Black
+  '#FFFFFF', // White
+  '#FF6B3E', // Orange
+  '#E8E8E8', // Gray
+  '#FFD700', // Gold
+  '#FF69B4', // Hot pink
+  '#00CED1', // Dark turquoise
+  '#32CD32', // Lime green
+  '#FFA500', // Orange
+  '#9370DB', // Medium purple
+];
+
+// Function to get random background color ensuring no repetition
+const getRandomBgColor = (gameId, usedColors = new Set()) => {
+  // Create a deterministic "random" selection based on game ID
+  const hash = gameId.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  
+  // Get available colors (not used yet)
+  const availableColors = backgroundColors.filter(color => !usedColors.has(color));
+  
+  // If all colors are used, reset and start over
+  if (availableColors.length === 0) {
+    usedColors.clear();
+    return backgroundColors[Math.abs(hash) % backgroundColors.length];
   }
+  
+  // Select color based on hash
+  const selectedColor = availableColors[Math.abs(hash) % availableColors.length];
+  usedColors.add(selectedColor);
+  
+  return selectedColor;
 };
 
 export default function Games() {
@@ -51,6 +77,9 @@ export default function Games() {
         setLoading(true);
         const response = await getAllGames();
         if (response.status === 'success') {
+          // Track used colors to avoid repetition
+          const usedColors = new Set();
+          
           // Transform API data to match component structure
           const transformedGames = response.data.games.map(game => ({
             id: game._id,
@@ -59,7 +88,7 @@ export default function Games() {
             category: game.category,
             difficulty: 'Easy', // Default difficulty, can be dynamic
             icon: game.thumbnail,
-            bgColor: getCategoryBgColor(game.category), // Category-wise background color
+            bgColor: getRandomBgColor(game._id, usedColors), // Random background color
             path: game.url
           }));
           setGames(transformedGames);
