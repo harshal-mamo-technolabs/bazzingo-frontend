@@ -55,7 +55,7 @@ const CardSortingGame = () => {
             feedbackDelay: 1500,
             description: 'Rule changes every 6 correct sorts'
         },
-        Medium: {
+        Moderate: {
             ruleChangeInterval: 4,
             hints: 2,
             feedbackDelay: 1200,
