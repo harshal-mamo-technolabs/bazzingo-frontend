@@ -2,6 +2,8 @@ import React, { forwardRef } from 'react';
 import { QRCodeCanvas } from "qrcode.react";
 import { Brain } from 'lucide-react';
 import { calculateCertificateValues, generateCertificateId, generateReportUrl } from '../../utils/certificationUtils';
+import { generateDomainScores } from '../../utils/reportUtils';
+
 
 /**
  * Reusable Certificate Component
@@ -10,6 +12,7 @@ import { calculateCertificateValues, generateCertificateId, generateReportUrl } 
 const CertificateComponent = forwardRef(({ 
   scoreData, 
   assessmentId, 
+  totalScoreofAssessment ="0",
   userName = "User",
   className = "",
   style = {}
@@ -29,6 +32,15 @@ const CertificateComponent = forwardRef(({
 
   const certificateId = generateCertificateId(assessmentId);
   const reportUrl = generateReportUrl(scoreData?._id, assessmentId);
+  const domainScores = generateDomainScores(scoreData);
+  const domainGradients = [
+    'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+    'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)',
+    'linear-gradient(135deg, #dc2626 0%, #7c3aed 100%)',
+    'linear-gradient(135deg, #7c3aed 0%, #1e3a8a 100%)',
+    'linear-gradient(135deg, #7c3aed 0%, #1e3a8a 100%)',
+  ];
+
 
   return (
     <div 
@@ -82,33 +94,28 @@ const CertificateComponent = forwardRef(({
             
             <div className="text-xl text-gray-700 mb-6">has achieved a Full Scale IQ score of</div>
             
-            <div className="text-9xl font-bold text-[#f97316] mb-4">{iq}</div>
+            <div className="text-9xl font-bold text-[#f97316] mb-4">{totalScoreofAssessment}</div>
             
             {/* <div className="text-lg text-gray-600 mb-2">Confidence Interval {ciLow}—{ciHigh}</div>
             <div className="text-lg text-gray-600 mb-12">Percentile Rank {percentile}</div> */}
 
             {/* Domain Score Cards */}
-            <div className="grid grid-cols-4 gap-4 mb-16">
-              {[
-                {label:'Reasoning', value: reasoning, gradient: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'},
-                {label:'Verbal', value: verbal, gradient: 'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)'},
-                {label:'Memory', value: memory, gradient: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 100%)'},
-                {label:'Processing\nSpeed', value: speed, gradient: 'linear-gradient(135deg, #7c3aed 0%, #1e3a8a 100%)'},
-              ].map((domain, idx) => (
+            <div className="grid grid-cols-5 gap-4 mb-16">
+            {domainScores.map((d, index) => (
                 <div 
-                  key={idx} 
+                  key={d.key}
                   className="rounded-lg shadow-lg overflow-hidden text-white"
                   style={{
-                    background: domain.gradient,
+                    backgroundImage: domainGradients[index],
                     minHeight: '120px'
                   }}
                 >
                   <div className="p-4 h-full flex flex-col justify-between">
-                    <div className="text-lg font-semibold text-center whitespace-pre-line">
-                      {domain.label}
+                    <div className="text-[16px] font-semibold text-center whitespace-pre-line">
+                      {d.label}
                     </div>
                     <div className="text-4xl font-bold text-center">
-                      {domain.value}
+                      {d.score}
                     </div>
                   </div>
                 </div>
