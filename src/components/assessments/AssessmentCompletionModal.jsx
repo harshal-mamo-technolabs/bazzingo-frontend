@@ -67,6 +67,7 @@ const AssessmentCompletionModal = ({
   const mainCategory = scoreDataToUse?.mainCategory || assessmentDetails?.mainCategory || "iq-test";
   const userName = scoreDataToUse?.userName || "User";
   const userAge = scoreDataToUse?.userAge || "";
+  const totalScoreofAssessment = scoreDataToUse?.totalScore || "0";
 
 
   const handleDownloadCertificate = async () => {
@@ -311,6 +312,7 @@ const AssessmentCompletionModal = ({
           scoreData={scoreDataToUse}
           assessmentId={assessmentId}
           userName={userName}
+          totalScoreofAssessment={totalScoreofAssessment}
         />
         <ReportComponent
           ref={reportRef}
