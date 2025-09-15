@@ -286,10 +286,8 @@ useEffect(() => {
     try {
       if (!assessmentId) return alert("No assessment ID – cannot submit!");
   
-      // Combine answers from both regular and review phases
-      const allQuestions = isReviewPhase ? 
-        unansweredQuestions.map(item => item.question) : 
-        originalQuestions;
+      // Always use all original questions for submission
+      const allQuestions = originalQuestions;
       
       const payload = {
         type: fromQuickAssessment ? "quick" : "full",
@@ -300,9 +298,7 @@ useEffect(() => {
         })),
       };
   
-      console.log("📤 Submitting assessment payload:", JSON.stringify(payload, null, 2));
       const res = await submitAssessment(payload);
-      console.log("✅ Submission response:", res);
       
       // Extract the full score data from response
       const scoreDataFromResponse = res?.data?.score || res?.score || res?.data || {};
@@ -312,7 +308,7 @@ useEffect(() => {
         const pts = typeof q.points === 'number' ? q.points : 0;
         return sum + pts;
       }, 0);
-  
+
       const outOf = (
         scoreDataFromResponse?.outOfScore ??
         scoreDataFromResponse?.outofScore ??
@@ -323,9 +319,28 @@ useEffect(() => {
         scoreDataFromResponse?.maxScore ??
         (totalPossibleScore > 0 ? totalPossibleScore : (Array.isArray(allQuestions) ? allQuestions.length : 0))
       );
-  
-      // Get the actual score value
-      const actualScore = scoreDataFromResponse?.totalScore ?? scoreDataFromResponse?.score ?? 0;
+
+      // Get the actual score value - handle nested response structure
+      let actualScore = 0;
+      
+      // Check if score is nested under assessment type (e.g., "logic", "memory", etc.)
+      if (res?.data && typeof res.data === 'object') {
+        // Look for assessment type keys that contain score data
+        const assessmentTypes = ['logic', 'memory', 'iq', 'visual', 'verbal', 'quantitative'];
+        for (const type of assessmentTypes) {
+          if (res.data[type] && typeof res.data[type] === 'object') {
+            actualScore = res.data[type].totalScore ?? res.data[type].score ?? 0;
+            if (actualScore > 0) {
+              break;
+            }
+          }
+        }
+      }
+      
+      // Fallback to direct score extraction
+      if (actualScore === 0) {
+        actualScore = scoreDataFromResponse?.totalScore ?? scoreDataFromResponse?.score ?? 0;
+      }
   
       // Get the score ID for fetching detailed results
       const scoreId = scoreDataFromResponse?._id || 
@@ -333,14 +348,15 @@ useEffect(() => {
                      (res?.score && res.score._id);
   
       // Set the complete score data including fullScoreData
-      setScoreData({
+      const finalScoreData = {
         score: actualScore,
         totalQuestions: outOf,
         totalScore: actualScore,
         fullScoreData: scoreDataFromResponse,
         scoreId: scoreId // Add scoreId to fetch detailed results
-      });
+      };
       
+      setScoreData(finalScoreData);
       setIsModalOpen(true);
     } catch (err) {
       console.error("❌ Error submitting assessment:", err);
