@@ -370,7 +370,7 @@ const FishermansCatchGame = () => {
             </div>
           </div>
         }
-        category="Quick Reflexes"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

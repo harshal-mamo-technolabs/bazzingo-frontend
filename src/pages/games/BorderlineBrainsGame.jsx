@@ -330,7 +330,7 @@ const BorderlineBrainsGame = () => {
             </div>
           </div>
         }
-        category="Geography Puzzle"
+        category="Critical Thinking"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

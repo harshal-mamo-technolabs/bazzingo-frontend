@@ -328,7 +328,7 @@ const MemoryTownBuilderGame = () => {
             </div>
           </div>
         }
-        category="Memory + Strategy + Planning"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

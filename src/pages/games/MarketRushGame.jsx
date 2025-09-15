@@ -336,7 +336,7 @@ const MarketRushGame = () => {
             </div>
           </div>
         }
-        category="Memory • Strategy"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

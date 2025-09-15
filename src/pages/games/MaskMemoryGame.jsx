@@ -393,7 +393,7 @@ const MaskMemoryGame = () => {
             </div>
           </div>
         }
-        category="Memory Challenge"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

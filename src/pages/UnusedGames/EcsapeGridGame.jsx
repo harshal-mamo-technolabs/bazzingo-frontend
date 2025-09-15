@@ -862,7 +862,7 @@ const EscapeGridGame = () => {
             </div>
           </div>
         }
-        category="Logic & Memory"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

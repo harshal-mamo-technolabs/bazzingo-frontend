@@ -247,7 +247,7 @@ const RiverCrossingGame = () => {
             </div>
           </div>
         }
-        category="Logic + Strategy"
+        category="Gameacy"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

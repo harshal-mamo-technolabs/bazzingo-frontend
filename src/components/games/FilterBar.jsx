@@ -31,7 +31,7 @@ const FilterBar = ({
         ))}
       </div>
 
-      <span className="hidden sm:inline-block h-5 w-px bg-gray-300" />
+      {/* <span className="hidden sm:inline-block h-5 w-px bg-gray-300" />
       <div className="flex gap-2 overflow-x-auto whitespace-nowrap items-center pr-1 sm:flex-wrap" style={{ scrollbarWidth: 'none' }}>
         <div className="relative shrink-0">
           <select
@@ -56,8 +56,8 @@ const FilterBar = ({
               transform -translate-y-1/2
             "
           />
-        </div>
-      </div>
+        </div> 
+      </div>*/}
     </div>
   );
 };

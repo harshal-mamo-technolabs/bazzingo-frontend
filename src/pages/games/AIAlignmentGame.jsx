@@ -254,7 +254,7 @@ const AIAlignmentLabGame = () => {
             </div>
           </div>
         }
-        category="Strategy & Ethics"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

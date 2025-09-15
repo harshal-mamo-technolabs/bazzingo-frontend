@@ -345,7 +345,7 @@ const CastleDefenderGame = () => {
             </div>
           </div>
         }
-        category="Strategic Defense"
+        category="Problem Solving"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

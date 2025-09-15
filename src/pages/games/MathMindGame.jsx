@@ -319,7 +319,7 @@ const MathMindGame = () => {
             </div>
           </div>
         }
-        category="Mathematics + Strategy + Logic"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={score}
