@@ -17,6 +17,9 @@ export const fetchSubscriptionStatus = createAsyncThunk(
           status: null,
           planDuration: null,
           planId: null,
+          priceCatalogId: null,
+          cancelAtPeriodEnd: false,
+          cancelAt: null,
           subscription: null
         };
       }
@@ -45,6 +48,9 @@ export const fetchSubscriptionStatus = createAsyncThunk(
           status: data.data.subscription?.status || null,
           planDuration: data.data.subscription?.planDuration || null,
           planId: data.data.subscription?.planId || null,
+          priceCatalogId: data.data.subscription?.priceCatalogId || null,
+          cancelAtPeriodEnd: data.data.subscription?.cancelAtPeriodEnd || false,
+          cancelAt: data.data.subscription?.cancelAt || null,
           subscription: data.data.subscription
         };
 
@@ -67,6 +73,9 @@ const initialState = {
     status: null,
     planDuration: null,
     planId: null,
+    priceCatalogId: null,
+    cancelAtPeriodEnd: false,
+    cancelAt: null,
     subscription: null
   },
   isLoading: false,
@@ -88,6 +97,9 @@ const subscriptionSlice = createSlice({
         status: null,
         planDuration: null,
         planId: null,
+        priceCatalogId: null,
+        cancelAtPeriodEnd: false,
+        cancelAt: null,
         subscription: null
       };
       state.isInitialized = false;
@@ -117,6 +129,9 @@ const subscriptionSlice = createSlice({
           status: null,
           planDuration: null,
           planId: null,
+          priceCatalogId: null,
+          cancelAtPeriodEnd: false,
+          cancelAt: null,
           subscription: null
         };
       });
@@ -129,8 +144,26 @@ export const selectSubscriptionLoading = (state) => state.subscription.isLoading
 export const selectSubscriptionInitialized = (state) => state.subscription.isInitialized;
 export const selectSubscriptionError = (state) => state.subscription.error;
 export const selectHasActiveSubscription = (state) => {
-  const { subscriptionStatus, status } = state.subscription.subscriptionData;
-  return subscriptionStatus === 'active' && status === 'active';
+  const { subscriptionStatus, status, cancelAtPeriodEnd, cancelAt } = state.subscription.subscriptionData;
+  
+  // User has no subscription at all
+  if (subscriptionStatus === 'none' || !status) {
+    return false;
+  }
+  
+  // Active or trialing subscriptions
+  if (status === 'active' || status === 'trialing') {
+    return true;
+  }
+  
+  // Cancelled subscriptions that still have access until period end
+  if (cancelAtPeriodEnd && cancelAt) {
+    const cancelDate = new Date(cancelAt);
+    const now = new Date();
+    return now < cancelDate; // Still has access if current time is before cancellation date
+  }
+  
+  return false;
 };
 
 export const { clearSubscriptionError, resetSubscription } = subscriptionSlice.actions;
