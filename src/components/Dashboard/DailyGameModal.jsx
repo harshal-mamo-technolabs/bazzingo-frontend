@@ -55,7 +55,7 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
               {dailyGames.map(game => (
                 <DailyGameCard
                   key={game.id}
-                  game={game}
+                  game={game}           // contains .isPlayed
                   isMobile={true}
                   onGameClick={onGameClick}
                 />
@@ -67,7 +67,7 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
               {dailyGames.map(game => (
                 <DailyGameCard
                   key={game.id}
-                  game={game}
+                  game={game}           // contains .isPlayed
                   isMobile={false}
                   onGameClick={onGameClick}
                 />

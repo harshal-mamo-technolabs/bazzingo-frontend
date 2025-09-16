@@ -3,7 +3,7 @@ import LeaderboardTable from "../components/Tables/LeadboardTable";
 import MainLayout from "../components/Layout/MainLayout";
 import TopRank from "../components/Charts/TopRank";
 import SubscriptionBlocker from "../components/Subscription/SubscriptionBlocker";
-import { getLeaderboard, getRecentDashboardActivity } from "../services/dashbaordService";
+import { getLeaderboard, getDailyStreakStatus } from "../services/dashbaordService";
 import { countries } from "../utils/constant";
 import SelectMenu from "../components/Leaderboard/SelectMenu.jsx";
 import { useSelector, useDispatch } from 'react-redux';
@@ -21,11 +21,18 @@ const ProgressBar = ({ percentage }) => (
   </div>
 );
 
-const activities = [
-  { icon: '/daily-puzzle-icon.png', alt: 'Daily Puzzle', label: 'Daily Puzzle', complete: '36/36', pct: 80, statusType: 'completed', iconBg: 'bg-gray-100' },
-  { icon: '/daily-assessment-icon.png', alt: 'Daily Assessment', label: 'Daily Assessment', complete: '20/20', pct: 30, statusType: 'completed', iconBg: 'bg-gray-100' },
-  { icon: '/maze-escape-activity-icon.png', alt: 'Mage Scape', label: 'Mage Scape', complete: '4/36', pct: 10, statusType: 'resume', iconBg: 'bg-blue-50' },
-];
+const staticIconMap = {
+  game: {
+    icon: '/daily-puzzle-icon.png',
+    alt: 'Daily Games',
+    iconBg: 'bg-gray-100',
+  },
+  assessment: {
+    icon: '/daily-assessment-icon.png',
+    alt: 'Daily Assessments',
+    iconBg: 'bg-gray-100',
+  },
+};
 
 const Leadboard = () => {
   const unreadCount = 3;
@@ -35,7 +42,8 @@ const Leadboard = () => {
   const [ageGroup, setAgeGroup] = useState("");
   const [leaderboardData, setLeaderboardData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [recentActivities, setRecentActivities] = useState([]);
+  const [dailyStreakData, setDailyStreakData] = useState(null);
+  const [streakLoading, setStreakLoading] = useState(false);
   
   // Redux subscription state
   const dispatch = useDispatch();
@@ -68,22 +76,72 @@ const Leadboard = () => {
   }, [scope, country, ageGroup]);
 
   useEffect(() => {
-    const loadRecent = async () => {
+    const loadDailyStreak = async () => {
       try {
-        const res = await getRecentDashboardActivity();
-        const acts = res?.data?.activities || [];
-        const mapped = acts.map((a) => ({
-          label: a.name,
-          pct: a.percentage ?? 0,
-          statusType: a.percentage === 100 ? 'completed' : 'resume',
-        }));
-        setRecentActivities(mapped);
+        setStreakLoading(true);
+        const res = await getDailyStreakStatus();
+        
+        // Check if both are null, don't set data
+        if (!res.data.dailySuggestedGame && !res.data.dailySuggestedAssessment) {
+          setDailyStreakData(null);
+          return;
+        }
+
+        setDailyStreakData(res.data);
       } catch {
-        setRecentActivities([]);
+        setDailyStreakData(null);
+      } finally {
+        setStreakLoading(false);
       }
     };
-    loadRecent();
+    loadDailyStreak();
   }, []);
+
+  // Process daily streak data for display
+  const getProcessedActivities = () => {
+    if (!dailyStreakData) return [];
+
+    const activities = [];
+
+    // Process games if available
+    if (dailyStreakData.dailySuggestedGame) {
+      const game = dailyStreakData.dailySuggestedGame;
+      const completionPercentage = game.totalSuggestedGames > 0 
+        ? Math.round((game.totalSubmitedGames / game.totalSuggestedGames) * 100)
+        : 0;
+
+      activities.push({
+        type: 'game',
+        label: 'Daily Games',
+        pct: completionPercentage,
+        totalSuggested: game.totalSuggestedGames,
+        totalSubmitted: game.totalSubmitedGames,
+        statusType: completionPercentage === 100 ? 'completed' : 'resume'
+      });
+    }
+
+    // Process assessments if available
+    if (dailyStreakData.dailySuggestedAssessment) {
+      const assessment = dailyStreakData.dailySuggestedAssessment;
+      const completionPercentage = assessment.totalSuggestedAssessments > 0 
+        ? Math.round((assessment.totalSubmitedAssessments / assessment.totalSuggestedAssessments) * 100)
+        : 0;
+
+      activities.push({
+        type: 'assessment',
+        label: 'Daily Assessments',
+        pct: completionPercentage,
+        totalSuggested: assessment.totalSuggestedAssessments,
+        totalSubmitted: assessment.totalSubmitedAssessments,
+        statusType: completionPercentage === 100 ? 'completed' : 'resume'
+      });
+    }
+
+    return activities;
+  };
+
+  const processedActivities = getProcessedActivities();
+  const hasActivities = processedActivities.length > 0;
 
   return (
     <MainLayout unreadCount={unreadCount}>
@@ -241,49 +299,42 @@ const Leadboard = () => {
                   <TopRank currentUser={leaderboardData.currentUser} />
                 </div>
 
-                {recentActivities.length > 0 && (
+                {hasActivities && (
                   <div className="order-3 lg:order-2 bg-[#EEEEEE] rounded-lg p-2 md:p-3 shadow-sm h-[350px]">
                     <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4">Recent Activity</h3>
                     <div className="space-y-4 mt-4">
-                      {recentActivities.map((r, i) => {
-                        const ref = activities[i % activities.length];
-                        return {
-                          icon: ref.icon,
-                          alt: ref.alt,
-                          iconBg: ref.iconBg,
-                          label: r.label,
-                          pct: r.pct,
-                          statusType: 'completed',
-                        };
-                      }).map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
-                        <div key={idx} className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 min-w-[105px]">
-                            <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
-                              <img src={icon} alt={alt} className="w-10 h-10" />
-                            </div>
-                            <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
-                              {label}
-                            </span>
-                          </div>
-
-                          <div className="flex-1 mx-2 max-w-[190px]">
-                            <ProgressBar percentage={pct} />
-                          </div>
-
-                          <div className="flex items-center justify-end min-w-[20px]">
-                            {statusType === 'completed' ? (
-                              <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                                <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                                <span>Completed</span>
+                      {processedActivities.map((activity, idx) => {
+                        const { icon, alt, iconBg } = staticIconMap[activity.type] || staticIconMap.game;
+                        return (
+                          <div key={idx} className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 min-w-[105px]">
+                              <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
+                                <img src={icon} alt={alt} className="w-10 h-10" />
                               </div>
-                            ) : (
-                              <button className="bg-[#edd9c6] text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                                Resume
-                              </button>
-                            )}
+                              <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
+                                {activity.label}
+                              </span>
+                            </div>
+
+                            <div className="flex-1 mx-2 max-w-[190px]">
+                              <ProgressBar percentage={activity.pct} />
+                            </div>
+
+                            <div className="flex items-center justify-end min-w-[20px]">
+                              {activity.statusType === 'completed' ? (
+                                <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                                  <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                                  <span>Completed</span>
+                                </div>
+                              ) : (
+                                <button className="bg-[#edd9c6] text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
+                                  Resume
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -339,40 +390,43 @@ const Leadboard = () => {
               })()}
             </div>
 
-            {recentActivities.length > 0 && (
+            {hasActivities && (
               <div className="order-3 lg:order-2 w-full lg:w-[350px]">
                 <div className="bg-[#EEEEEE] rounded-lg p-2 md:p-6 shadow-sm h-[350px]">
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
                   <div className="space-y-4 mt-4">
-                    {activities.map(({ icon, alt, label, pct, statusType, iconBg }, idx) => (
-                      <div key={idx} className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 min-w-[140px]">
-                          <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
-                            <img src={icon} alt={alt} className="w-10 h-10" />
-                          </div>
-                          <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
-                            {label}
-                          </span>
-                        </div>
-
-                        <div className="flex-1 mx-2 max-w-[190px]">
-                          <ProgressBar percentage={pct} />
-                        </div>
-
-                        <div className="flex items-center justify-end min-w-[20px]">
-                          {statusType === 'completed' ? (
-                            <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                              <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                              <span>Completed</span>
+                    {processedActivities.map((activity, idx) => {
+                      const { icon, alt, iconBg } = staticIconMap[activity.type] || staticIconMap.game;
+                      return (
+                        <div key={idx} className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-[140px]">
+                            <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
+                              <img src={icon} alt={alt} className="w-10 h-10" />
                             </div>
-                          ) : (
-                            <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                              Resume
-                            </button>
-                          )}
+                            <span className="text-[12px] font-medium text-gray-900 leading-tight max-w-[30px]">
+                              {activity.label}
+                            </span>
+                          </div>
+
+                          <div className="flex-1 mx-2 max-w-[190px]">
+                            <ProgressBar percentage={activity.pct} />
+                          </div>
+
+                          <div className="flex items-center justify-end min-w-[20px]">
+                            {activity.statusType === 'completed' ? (
+                              <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
+                                <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                                <span>Completed</span>
+                              </div>
+                            ) : (
+                              <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
+                                Resume
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

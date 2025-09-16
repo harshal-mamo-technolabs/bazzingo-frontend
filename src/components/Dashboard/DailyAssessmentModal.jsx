@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
+const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted = false }) => {
   const navigate = useNavigate();
   if (!isOpen || !selectedAssessment) return null;
 
@@ -57,13 +57,19 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
 
           {/* Content */}
           <div className="p-6">
-            {/* Assessment Card */}
-            <div className="bg-gray-100 rounded-2xl p-3 mb-4">
+            {/* Assessment Card with relative positioning for the ribbon */}
+            <div className="relative bg-gray-100 rounded-2xl p-3 mb-4 overflow-hidden">
+              
+              {/* ✅ Fixed ribbon - now properly positioned within the card */}
+              {isCompleted && (
+                <div className="absolute right-[-26px] top-[23px] rotate-45 bg-gradient-to-r from-green-500 to-green-300 text-white font-semibold text-[10px] py-1 px-8 shadow-md z-10">
+                  COMPLETED
+                </div>
+              )}
+
               {/* Icon with circular background */}
               <div className="flex justify-center rounded-lg bg-white h-30">
-                <div
-                  className="rounded-lg flex items-center justify-center"
-                >
+                <div className="rounded-lg flex items-center justify-center">
                   <img
                     src="/brain.png"
                     alt="Assessment icon"
@@ -72,33 +78,38 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose }) => {
                 </div>
               </div>
 
-              {/* // Find this section in your existing modal: */}
-<h3
-  className="text-gray-800 mb-1 mt-3 text-sm lg:text-base"
-  style={{
-    fontWeight: '600',
-    fontFamily: 'Roboto, sans-serif'
-  }}
->
-  {selectedAssessment.title} {/* Changed from hardcoded text */}
-</h3>
-
+              <h3
+                className="text-gray-800 mb-1 mt-3 text-sm lg:text-base"
+                style={{
+                  fontWeight: '600',
+                  fontFamily: 'Roboto, sans-serif'
+                }}
+              >
+                {selectedAssessment.title}
+              </h3>
 
               {/* Play Button */}
               <button
-                className="w-full bg-[#FF6B3E] text-white rounded-lg py-1 hover:bg-[#E55A35] transition-colors text-sm lg:text-base"
+                className={`w-full rounded-lg py-1 transition-colors text-sm lg:text-base ${
+                  isCompleted 
+                    ? 'bg-gray-400 text-white cursor-not-allowed' 
+                    : 'bg-[#FF6B3E] hover:bg-[#E55A35] text-white'
+                }`}
                 style={{
                   fontWeight: '500',
                   fontFamily: 'Roboto, sans-serif'
                 }}
                 onClick={() => {
-                  onClose();
-                  navigate(`/assessments/visual-reasoning`, {
-                  state: { fromQuickAssessment: true }   // ✅ pass flag
-                  });
+                  if (!isCompleted) {
+                    onClose();
+                    navigate(`/assessments/visual-reasoning`, {
+                      state: { fromQuickAssessment: true }
+                    });
+                  }
                 }}
+                disabled={isCompleted}
               >
-                Play
+                {isCompleted ? 'Completed' : 'Play'}
               </button>
             </div>
           </div>

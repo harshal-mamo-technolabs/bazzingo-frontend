@@ -134,6 +134,24 @@ export async function getRecentDashboardActivity() {
   }
 }
 
+// services/dashbaordService.js (update this file)
+export async function getDailyStreakStatus() {
+  try {
+    const token = JSON.parse(localStorage.getItem("user"))?.accessToken;
+    if (!token) throw new Error("No token found");
+
+    const url = `${API_CONNECTION_HOST_URL}/dashboard/daily-streak-status`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching daily streak status:", err);
+    throw err;
+  }
+}
+
 // Fetch game statistics (rank, totals, category breakdowns)
 export async function getGameStatistics() {
   try {

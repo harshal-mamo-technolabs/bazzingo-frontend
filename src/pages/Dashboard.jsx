@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [dailyGames, setDailyGames] = useState([]); // initially empty
   // Add userData state
   const [userData, setUserData] = useState(null);
+  const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
 
   // Update the fetchUserProfile effect
   useEffect(() => {
@@ -93,6 +94,7 @@ const Dashboard = () => {
             icon: g.gameId.thumbnail,
             path: g.gameId.url,
             difficulty: g.difficulty,
+            isPlayed:g.isPlayed,
           }));
           setDailyGames(mappedGames);
         }
@@ -133,6 +135,13 @@ const Dashboard = () => {
     [navigate]
   );
 
+  // 👇 open modal automatically once dailyGames is populated
+useEffect(() => {
+  if (dailyGames.length > 0) {
+    setIsModalOpen(true);
+  }
+}, [dailyGames]);
+
   const openAssessment = useCallback(async () => {
     try {
       // Check if today's quick assessment already completed using recent activity
@@ -143,10 +152,11 @@ const Dashboard = () => {
         const d = new Date(s.submittedAt);
         return s.type === 'quick' && d.toDateString() === todayStr;
       });
-      if (completedTodayQuick) {
-        toast.success("You've completed today's quick assessment!");
-        return;
-      }
+      setIsAssessmentCompleted(completedTodayQuick);
+      // if (completedTodayQuick) {
+      //   toast.success("You've completed today's quick assessment!");
+      //   return;
+      // }
     } catch {}
     
     // Fetch the latest assessment data for the modal
@@ -265,6 +275,7 @@ const Dashboard = () => {
               isOpen={isAssessmentModalOpen}
               selectedAssessment={selectedAssessment}
               onClose={closeAssessment}
+              isCompleted={isAssessmentCompleted}
             />
           </>
         </main>
