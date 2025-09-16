@@ -317,7 +317,7 @@ const MathDeductionGame = () => {
           </div>
 
         }
-        category="Numerical Reasoning"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

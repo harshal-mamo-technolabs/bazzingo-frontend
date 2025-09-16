@@ -278,7 +278,7 @@ const WhoIsBrainGame = () => {
             </div>
           </div>
         }
-        category="Deductive Reasoning"
+        category="Critical Thinking"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

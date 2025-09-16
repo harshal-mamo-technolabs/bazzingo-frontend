@@ -552,7 +552,7 @@ const CandyCrushGame = () => {
             </div>
           </div>
         }
-        category="Puzzle"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

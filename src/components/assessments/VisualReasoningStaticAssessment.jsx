@@ -595,7 +595,7 @@ useEffect(() => {
               ) : (
                 <>
                   <h5 className="text-base mb-2 font-semibold">{currentQuestion.title}</h5>
-                  <p className="text-[15px] mb-4">{currentQuestion.text}</p>
+                  {/* <p className="text-[15px] mb-4">{currentQuestion.text}</p> */}
                 </>
               )}
 

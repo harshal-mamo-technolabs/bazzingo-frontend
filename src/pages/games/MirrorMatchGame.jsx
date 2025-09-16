@@ -856,7 +856,7 @@ const MirrorMatchGame = () => {
             </div>
           </div>
         }
-        category="Spatial Awareness"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

@@ -252,7 +252,7 @@ const NumberFlipGame = () => {
   </div>
 </div>
         }
-        category="Memory"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

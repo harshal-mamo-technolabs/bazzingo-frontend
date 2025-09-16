@@ -415,7 +415,7 @@ const DataStreamSecurityGame = () => {
                         </div>
                     </div>
                 }
-                category="Logic + Puzzle + Memory"
+                category="Gameacy"
                 gameState={gameState}
                 setGameState={setGameState}
                 score={calculateScore()} //gameState === 'finished' ? finalScore : score}

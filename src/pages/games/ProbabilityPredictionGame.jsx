@@ -630,7 +630,7 @@ const handleSubmit = useCallback(() => {
           </div>
 
         }
-        category="Numerical Reasoning"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={gameState === 'finished' ? finalScore : score}

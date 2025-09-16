@@ -518,7 +518,7 @@ const KenKenMathPuzzleGame = () => {
             </div>
           </div>
         }
-        category="Arithmetic + Logic"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={gameState === 'finished' ? finalScore : score}

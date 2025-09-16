@@ -702,7 +702,7 @@ const SudokuGame = () => {
                         </div>
                     </div>
                 }
-                category="Numerical Reasoning"
+                category="Problem Solving"
                 gameState={gameState}
                 setGameState={setGameState}
                 score={gameState === 'finished' ? finalScore : score}

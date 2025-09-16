@@ -417,7 +417,7 @@ const MetacognitiveStrategyNavigatorGame = () => {
       <GameFramework
         gameTitle="Metacognitive Strategy Navigator"
         gameDescription="Master the art of thinking about thinking! Choose optimal strategies, monitor your performance, and develop metacognitive awareness."
-        category="Metacognition"
+        category="Gameacy"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

@@ -572,7 +572,7 @@ const TapChallengeGame = () => {
             </div>
           </div>
         }
-        category="Critical Thinking"
+        category="Gameacy"
         gameState={gameState}
         setGameState={setGameState}
         score={gameState === 'finished' ? finalScore : score}

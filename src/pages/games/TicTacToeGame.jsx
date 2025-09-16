@@ -489,7 +489,7 @@ const TicTacToeGame = () => {
             </div>
           </div>
         }
-        category="Logic"
+        category="Gameacy"
         gameState={gameState}
         setGameState={setGameState}
         score={gameState === 'finished' ? finalScore : score}

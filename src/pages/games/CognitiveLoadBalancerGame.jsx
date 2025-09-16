@@ -367,7 +367,7 @@ const CognitiveLoadBalancerGame = () => {
   </div>
 </div>
         }
-        category="Critical Thinking"
+        category="Gameacy"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

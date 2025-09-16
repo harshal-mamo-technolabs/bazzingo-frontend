@@ -509,7 +509,7 @@ const WordChainLogicGame = () => {
           </div>
 
         }
-        category="Critical Thinking"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

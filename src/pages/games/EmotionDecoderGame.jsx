@@ -406,7 +406,7 @@ const EmotionDecoderGame = () => {
             </div>
           </div>
         }
-        category="Emotional Intelligence"
+        category="Problem Solving"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

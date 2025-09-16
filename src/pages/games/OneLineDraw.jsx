@@ -372,7 +372,7 @@ const OneLineDrawGame = () => {
             </div>
           </div>
         }
-        category="Logic + Spatial"
+        category="Logic"
         gameState={gameState}
         setGameState={setGameState}
         score={gameState === 'finished' ? finalScore : score}
