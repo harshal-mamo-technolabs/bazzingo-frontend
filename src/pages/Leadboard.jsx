@@ -328,7 +328,7 @@ const Leadboard = () => {
                                 </div>
                               ) : (
                                 <button className="bg-[#edd9c6] text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                                  Resume
+                                  Pending
                                 </button>
                               )}
                             </div>
@@ -420,7 +420,7 @@ const Leadboard = () => {
                               </div>
                             ) : (
                               <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                                Resume
+                                Pending
                               </button>
                             )}
                           </div>
