@@ -1,7 +1,7 @@
 // Difficulty settings - Fixed according to requirements
 export const difficultySettings = {
   Easy: { 
-    timeLimit: 300, 
+    timeLimit: 150, 
     lives: 5, 
     hints: 3, 
     turnCount: 8, 
@@ -10,7 +10,7 @@ export const difficultySettings = {
     guardsPerTurn: 3 
   },
   Moderate: { 
-    timeLimit: 240, 
+    timeLimit: 120, 
     lives: 4, 
     hints: 2, 
     turnCount: 5, 
@@ -19,7 +19,7 @@ export const difficultySettings = {
     guardsPerTurn: 2 
   },
   Hard: { 
-    timeLimit: 180, 
+    timeLimit: 90, 
     lives: 3, 
     hints: 1, 
     turnCount: 4, 

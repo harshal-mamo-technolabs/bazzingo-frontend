@@ -2,24 +2,24 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { 
-  difficultySettings, 
-  buildingTypes, 
-  generatePredefinedLayout, 
-  calculateScore, 
+import {
+  difficultySettings,
+  buildingTypes,
+  generatePredefinedLayout,
+  calculateScore,
   checkGridAccuracy,
   checkObjectives,
   getHint,
   calculateAccuracy
 } from '../../utils/games/MemoryTownBuilder';
-import { 
-  Eye, 
-  Lightbulb, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  ChevronUp, 
-  ChevronDown, 
+import {
+  Eye,
+  Lightbulb,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ChevronUp,
+  ChevronDown,
   Building2,
   Timer,
   Target,
@@ -60,7 +60,7 @@ const MemoryTownBuilderGame = () => {
     const checkScreenSize = () => {
       setIsCompactView(window.innerWidth < 1024);
     };
-    
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
@@ -68,21 +68,22 @@ const MemoryTownBuilderGame = () => {
 
   // Update game state when dependencies change
   useEffect(() => {
-    if (gameState === 'ready') {
+    // Don't calculate score until game is playing and player made moves
+    if (gameState === 'ready' || !levelData || !playerGrid) {
       setScore(0);
       setCompletedObjectives([]);
       return;
     }
-    
-    if (levelData && playerGrid) {
+
+    if (gameState === 'playing') {
       const newCompleted = checkObjectives(playerGrid, levelData.targetGrid, difficulty, levelData.negativeZones || [], currentRound);
       setCompletedObjectives(newCompleted);
       
       const { correct } = checkGridAccuracy(playerGrid, levelData.targetGrid);
-      const newScore = calculateScore(difficulty, correct, placedBuildings, currentRound, newCompleted.length);
+      const newScore = calculateScore(difficulty, correct);
       setScore(newScore);
     }
-  }, [playerGrid, levelData, difficulty, placedBuildings, currentRound, gameState]);
+  }, [playerGrid, levelData, difficulty, gameState, currentRound]);
 
   // Timer countdown
   useEffect(() => {
@@ -121,9 +122,9 @@ const MemoryTownBuilderGame = () => {
 
   // Check for round progression and game completion
   useEffect(() => {
-    if (gameState === 'playing') {
+    if (gameState === 'playing' && levelData) {
       const settings = difficultySettings[difficulty];
-      
+
       // Check if out of turns
       if (currentTurn >= maxTurns) {
         setGameState('finished');
@@ -131,32 +132,36 @@ const MemoryTownBuilderGame = () => {
         return;
       }
       
-      // Check round progression for Easy mode
-      if (difficulty === 'Easy') {
-        const round1Objectives = settings.objectives.round1.length;
-        const totalObjectives = round1Objectives + settings.objectives.round2.length;
+      // Check round progression based on difficulty
+      if (difficulty === 'Easy' || difficulty === 'Moderate') {
+        const round1Length = settings.objectives.round1.length;
+        const totalObjectives = round1Length + settings.objectives.round2.length;
         
-        if (currentRound === 1 && completedObjectives.length >= round1Objectives) {
+        // Check if all round 1 objectives are complete
+        const round1Indices = Array.from({length: round1Length}, (_, i) => i);
+        const round1Complete = round1Indices.every(index => completedObjectives.includes(index));
+        
+        if (currentRound === 1 && round1Complete) {
           setCurrentRound(2);
         } else if (currentRound === 2 && completedObjectives.length >= totalObjectives) {
           setGameState('finished');
           setShowCompletionModal(true);
         }
-      } else {
-        // For Moderate and Hard, check if all objectives complete
-        const totalObjectives = settings.objectives.round1.length + settings.objectives.round2.length;
+      } else if (difficulty === 'Hard') {
+        // Hard mode: all objectives in round 1
+        const totalObjectives = settings.objectives.round1.length;
         if (completedObjectives.length >= totalObjectives) {
           setGameState('finished');
           setShowCompletionModal(true);
         }
       }
     }
-  }, [currentTurn, maxTurns, completedObjectives.length, gameState, difficulty, currentRound]);
+  }, [currentTurn, maxTurns, completedObjectives, gameState, difficulty, currentRound, levelData]);
 
   // Initialize game
   const initializeGame = useCallback(() => {
     const settings = difficultySettings[difficulty];
-    
+
     setTimeRemaining(settings.timeLimit);
     setCurrentTurn(0);
     setMaxTurns(settings.maxTurns);
@@ -166,14 +171,14 @@ const MemoryTownBuilderGame = () => {
     setShowHint(false);
     setSelectedBuilding(null);
     setCurrentRound(1);
-    
+
     // Generate predefined layout
     const layout = generatePredefinedLayout(difficulty);
     setLevelData(layout);
-    
+
     const gridSize = settings.gridSize;
     setPlayerGrid(Array(gridSize).fill(null).map(() => Array(gridSize).fill('empty')));
-    
+
     setGamePhase('study');
     setStudyTimeRemaining(settings.studyTime);
   }, [difficulty]);
@@ -204,7 +209,7 @@ const MemoryTownBuilderGame = () => {
     const newGrid = playerGrid.map(r => [...r]);
     newGrid[row][col] = selectedBuilding;
     setPlayerGrid(newGrid);
-    
+
     setCurrentTurn(prev => prev + 1);
     if (selectedBuilding !== 'empty') {
       setPlacedBuildings(prev => prev + 1);
@@ -225,7 +230,7 @@ const MemoryTownBuilderGame = () => {
     const hint = getHint(playerGrid, levelData?.targetGrid, difficulty, completedObjectives, currentRound);
     setHintMessage(hint);
     setShowHint(true);
-    
+
     setTimeout(() => {
       setShowHint(false);
     }, 5000);
@@ -242,10 +247,10 @@ const MemoryTownBuilderGame = () => {
   };
 
   const settings = difficultySettings[difficulty];
-  
+
   // Get current objectives based on round
-  const currentObjectives = currentRound === 1 ? 
-    settings.objectives.round1 : 
+  const currentObjectives = currentRound === 1 ?
+    settings.objectives.round1 :
     settings.objectives.round2;
 
   return (
@@ -307,7 +312,7 @@ const MemoryTownBuilderGame = () => {
                       <li>• Focus during study time</li>
                       <li>• Use visual landmarks</li>
                       <li>• Complete objectives in order</li>
-                      <li>• Avoid negative zones</li>
+                      <li>• Remember building positions</li>
                     </ul>
                   </div>
 
@@ -317,10 +322,10 @@ const MemoryTownBuilderGame = () => {
                       📊 Scoring
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: Round-based (100→200)</li>
-                      <li>• Moderate: 25pts per placement</li>
-                      <li>• Hard: 50pts per placement</li>
-                      <li>• Bonus for accuracy & efficiency</li>
+                      <li>• Easy: 25pts × 8 placements</li>
+                      <li>• Moderate: 40pts × 5 placements</li>
+                      <li>• Hard: 50pts × 4 placements</li>
+                      <li>• Maximum score: 200 points</li>
                     </ul>
                   </div>
                 </div>
@@ -352,20 +357,23 @@ const MemoryTownBuilderGame = () => {
                   Building Types
                 </h3>
                 <div className="grid grid-cols-3 md:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
-                  {Object.entries(buildingTypes).map(([key, building]) => (
-                    <button
-                      key={key}
-                      onClick={() => handleBuildingSelect(key)}
-                      className={`p-2 md:p-3 rounded-lg border-2 transition-all ${
-                        selectedBuilding === key
-                          ? 'border-blue-500 bg-blue-100 shadow-lg'
-                          : `${building.color} hover:border-gray-400`
-                      }`}
-                    >
-                      <div className="text-lg md:text-2xl mb-1">{building.icon}</div>
-                      <div className="text-xs font-medium">{building.name}</div>
-                    </button>
-                  ))}
+                  {Object.entries(buildingTypes).map(([key, building]) => {
+                    if (key === 'trash' || key === 'factory') return null; // Hide negative buildings from selector
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => handleBuildingSelect(key)}
+                        className={`p-2 md:p-3 rounded-lg border-2 transition-all ${
+                          selectedBuilding === key
+                            ? 'border-blue-500 bg-blue-100 shadow-lg'
+                            : `${building.color} hover:border-gray-400`
+                        }`}
+                      >
+                        <div className="text-lg md:text-2xl mb-1">{building.icon}</div>
+                        <div className="text-xs font-medium">{building.name}</div>
+                      </button>
+                    );
+                  })}
                 </div>
                 
                 {selectedBuilding && (
@@ -435,7 +443,7 @@ const MemoryTownBuilderGame = () => {
               </div>
               
               {/* Round Progress Indicator */}
-              {currentRound === 1 && completedObjectives.length >= settings.objectives.round1.length && (
+              {currentRound === 1 && settings.objectives.round1.every((_, index) => completedObjectives.includes(index)) && (
                 <div className="mt-4 p-2 bg-blue-100 rounded-lg text-center">
                   <p className="text-blue-800 font-semibold text-sm">
                     🎉 Round 1 Complete! Moving to Round 2...

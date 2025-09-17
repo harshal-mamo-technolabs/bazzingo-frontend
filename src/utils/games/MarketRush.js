@@ -1,8 +1,8 @@
 // Difficulty settings for Market Rush
 export const difficultySettings = {
-  Easy: { timeLimit: 300, lives: 5, hints: 3, customerCount: 4, pointsPerCustomer: 50, orderDisplayTime: 6 },
-  Moderate: { timeLimit: 240, lives: 4, hints: 2, customerCount: 8, pointsPerCustomer: 25, orderDisplayTime: 5 },
-  Hard: { timeLimit: 180, lives: 3, hints: 1, customerCount: 10, pointsPerCustomer: 20, orderDisplayTime: 4 }
+  Easy: { timeLimit: 150, lives: 5, hints: 3, customerCount: 8, pointsPerCustomer: 25, orderDisplayTime: 6 },
+  Moderate: { timeLimit: 120, lives: 4, hints: 2, customerCount: 5, pointsPerCustomer: 40, orderDisplayTime: 5 },
+  Hard: { timeLimit: 90, lives: 3, hints: 1, customerCount: 4, pointsPerCustomer: 50, orderDisplayTime: 4 }
 };
 
 // Market stall types with Croatian products
@@ -77,16 +77,16 @@ export const stallTypes = {
 export const generateCustomerOrder = (stallType, difficulty, round) => {
   const products = stallTypes[stallType].products;
   const orderSize = difficulty === 'Easy' ? 2 : difficulty === 'Moderate' ? 3 : Math.random() > 0.5 ? 3 : 4;
-  
+
   const order = [];
   const usedProducts = new Set();
-  
+
   for (let i = 0; i < orderSize; i++) {
     let product;
     do {
       product = products[Math.floor(Math.random() * products.length)];
     } while (usedProducts.has(product.id));
-    
+
     usedProducts.add(product.id);
     order.push({
       ...product,
@@ -94,7 +94,7 @@ export const generateCustomerOrder = (stallType, difficulty, round) => {
       position: i
     });
   }
-  
+
   return order;
 };
 
@@ -102,21 +102,21 @@ export const generateCustomerOrder = (stallType, difficulty, round) => {
 export const generateCustomers = (stallType, difficulty, round) => {
   const settings = difficultySettings[difficulty];
   const customers = [];
-  
+
   const customerNames = [
-    'Ana', 'Marko', 'Petra', 'Ivan', 'Maja', 'Luka', 'Sara', 'Tomislav', 
+    'Ana', 'Marko', 'Petra', 'Ivan', 'Maja', 'Luka', 'Sara', 'Tomislav',
     'Iva', 'Ante', 'Katarina', 'Josip', 'Nina', 'Matej', 'Lucija'
   ];
-  
+
   const customerEmojis = [
-    '👵', '👴', '👩', '👨', '🧓', '👩‍🦳', '👨‍🦳', '👩‍🦱', 
+    '👵', '👴', '👩', '👨', '🧓', '👩‍🦳', '👨‍🦳', '👩‍🦱',
     '👨‍🦱', '👩‍💼', '👨‍💼', '👩‍🌾', '👨‍🌾', '👩‍🍳', '👨‍🍳'
   ];
-  
+
   for (let i = 0; i < settings.customerCount; i++) {
     const order = generateCustomerOrder(stallType, difficulty, round);
     const isFakeCustomer = difficulty === 'Hard' && Math.random() < 0.2; // 20% fake customers in hard mode
-    
+
     customers.push({
       id: i + 1,
       name: customerNames[i % customerNames.length],
@@ -125,89 +125,51 @@ export const generateCustomers = (stallType, difficulty, round) => {
       isFake: isFakeCustomer,
       served: false,
       basket: [],
+      difficulty: difficulty,
       arrivalTime: i * 2000 + Math.random() * 1000, // Staggered arrivals
       patience: difficulty === 'Easy' ? 45 : difficulty === 'Moderate' ? 35 : 25
     });
   }
-  
+
   return customers;
 };
 
-// Scoring logic
-export const calculateCustomerScore = (customer, playerOrder, hintUsed = false) => {
+// Scoring logic - New simplified version
+export const calculateCustomerScore = (customer, playerOrder) => {
+  // Fake customer handling
   if (customer.isFake && playerOrder.length === 0) {
-    return { points: 10, type: 'fake_customer_ignored' };
+    return { points: 0, type: 'fake_customer_ignored' };
   }
-  
   if (customer.isFake && playerOrder.length > 0) {
-    return { points: -15, type: 'fake_customer_served' };
+    return { points: 0, type: 'fake_customer_served' };
   }
-  
+
+  // No service
   if (playerOrder.length === 0) {
-    return { points: -10, type: 'no_service' };
+    return { points: 0, type: 'no_service' };
   }
-  
+
+  // Check if orders match exactly
   const expectedOrder = customer.order.map(item => ({ id: item.id, quantity: item.quantity }));
   const playerOrderNormalized = playerOrder.map(item => ({ id: item.id, quantity: item.quantity }));
-  
-  // Check if orders match exactly
   const exactMatch = JSON.stringify(expectedOrder) === JSON.stringify(playerOrderNormalized);
-  
+
   if (exactMatch) {
-    const basePoints = 20;
-    const hintPenalty = hintUsed ? -5 : 0;
-    return { points: basePoints + hintPenalty, type: 'perfect_order' };
+    // Get points per customer from difficulty settings
+    const settings = difficultySettings[customer.difficulty];
+    return { points: settings.pointsPerCustomer, type: 'correct_order' };
   }
-  
-  // Check if items are correct but order is wrong
-  const expectedIds = expectedOrder.map(item => `${item.id}-${item.quantity}`).sort();
-  const playerIds = playerOrderNormalized.map(item => `${item.id}-${item.quantity}`).sort();
-  
-  if (JSON.stringify(expectedIds) === JSON.stringify(playerIds)) {
-    const basePoints = 10;
-    const hintPenalty = hintUsed ? -5 : 0;
-    return { points: basePoints + hintPenalty, type: 'correct_items_wrong_order' };
-  }
-  
-  // Partial credit for some correct items
-  const correctItems = playerOrderNormalized.filter(playerItem => 
-    expectedOrder.some(expectedItem => 
-      expectedItem.id === playerItem.id && expectedItem.quantity === playerItem.quantity
-    )
-  ).length;
-  
-  if (correctItems > 0) {
-    const basePoints = correctItems * 3;
-    const hintPenalty = hintUsed ? -3 : 0;
-    return { points: basePoints + hintPenalty, type: 'partial_correct' };
-  }
-  
-  return { points: -10, type: 'wrong_order' };
+
+  // Wrong order - no points, but no negative points either
+  return { points: 0, type: 'wrong_order' };
 };
 
-// Calculate bonus points
-export const calculateBonusPoints = (streak, noHintsUsed, perfectCustomers) => {
-  let bonusPoints = 0;
-  
-  // Streak bonus
-  if (streak >= 3) {
-    bonusPoints += Math.floor(streak / 3) * 5;
-  }
-  
-  // No hints bonus
-  if (noHintsUsed) {
-    bonusPoints += 10;
-  }
-  
-  // Perfect round bonus
-  if (perfectCustomers >= 5) {
-    bonusPoints += 15;
-  }
-  
-  return bonusPoints;
+// Calculate bonus points - simplified to always return 0
+export const calculateBonusPoints = () => {
+  return 0;
 };
 
-// Get total score
-export const calculateTotalScore = (customersServed, bonusPoints) => {
-  return Math.max(0, Math.min(200, customersServed + bonusPoints));
+// Get total score - simplified
+export const calculateTotalScore = (customerPoints, bonusPoints) => {
+  return Math.max(0, Math.min(200, customerPoints + bonusPoints));
 };

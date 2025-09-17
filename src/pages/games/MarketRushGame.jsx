@@ -2,20 +2,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { 
-  difficultySettings, 
-  stallTypes, 
-  generateCustomers, 
+import {
+  difficultySettings,
+  stallTypes,
+  generateCustomers,
   calculateCustomerScore,
   calculateBonusPoints,
-  calculateTotalScore 
+  calculateTotalScore
 } from '../../utils/games/MarketRush';
-import { 
-  ShoppingCart, 
-  Clock, 
-  Lightbulb, 
-  CheckCircle, 
-  XCircle, 
+import {
+  ShoppingCart,
+  Clock,
+  Lightbulb,
+  CheckCircle,
+  XCircle,
   Star,
   Users,
   Package,
@@ -35,15 +35,15 @@ const MarketRushGame = () => {
   const [lives, setLives] = useState(5);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [maxHints, setMaxHints] = useState(3);
-  
+
   // Game progress
   const [customers, setCustomers] = useState([]);
   const [currentCustomer, setCurrentCustomer] = useState(0);
   const [servedCustomers, setServedCustomers] = useState(0);
-  const [perfectStreak, setPerfectStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
+  const [perfectStreak, setPerfectStreak] = useState(0); // Keep for UI but always 0
+  const [maxStreak, setMaxStreak] = useState(0); // Keep for UI but always 0
   const [totalCustomerScore, setTotalCustomerScore] = useState(0);
-  
+
   // Current customer state
   const [orderVisible, setOrderVisible] = useState(true);
   const [orderTimer, setOrderTimer] = useState(0);
@@ -52,19 +52,18 @@ const MarketRushGame = () => {
   const [feedbackData, setFeedbackData] = useState({});
   const [showHint, setShowHint] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
-  
+
   // UI state
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
-  const [draggedItem, setDraggedItem] = useState(null);
 
   // Initialize game
   const initializeGame = useCallback(() => {
     const settings = difficultySettings[difficulty];
     const newCustomers = generateCustomers(selectedStall, difficulty, 1);
-    
+
+    // Reset everything to prevent random scores
     setCustomers(newCustomers);
-    setScore(0);
     setTimeRemaining(settings.timeLimit);
     setLives(settings.lives);
     setMaxHints(settings.hints);
@@ -74,6 +73,7 @@ const MarketRushGame = () => {
     setPerfectStreak(0);
     setMaxStreak(0);
     setTotalCustomerScore(0);
+    setScore(0); // Explicitly reset score to 0
     setPlayerOrder([]);
     setOrderVisible(true);
     setOrderTimer(settings.orderDisplayTime);
@@ -120,9 +120,9 @@ const MarketRushGame = () => {
   // Handle product selection
   const handleProductSelect = (product) => {
     if (showFeedback || !customers[currentCustomer]) return;
-    
+
     const existingItemIndex = playerOrder.findIndex(item => item.id === product.id);
-    
+
     if (existingItemIndex >= 0) {
       // Increase quantity
       const newOrder = [...playerOrder];
@@ -160,27 +160,20 @@ const MarketRushGame = () => {
   // Serve customer
   const serveCustomer = () => {
     if (showFeedback || !customers[currentCustomer]) return;
-    
+
     const customer = customers[currentCustomer];
-    const scoreResult = calculateCustomerScore(customer, playerOrder, hintUsed);
-    
+    const scoreResult = calculateCustomerScore(customer, playerOrder);
+
     setShowFeedback(true);
     setFeedbackData(scoreResult);
     setTotalCustomerScore(prev => prev + scoreResult.points);
-    
-    // Update streak
-    if (scoreResult.type === 'perfect_order') {
-      setPerfectStreak(prev => {
-        const newStreak = prev + 1;
-        setMaxStreak(current => Math.max(current, newStreak));
-        return newStreak;
-      });
-    } else {
-      setPerfectStreak(0);
-    }
-    
-    // Update lives for wrong orders
-    if (scoreResult.points < 0) {
+
+    // Keep streaks at 0 for new scoring system
+    setPerfectStreak(0);
+    setMaxStreak(0);
+
+    // Update lives for wrong orders - lives are separate from points now
+    if (scoreResult.type === 'wrong_order' || scoreResult.type === 'fake_customer_served' || scoreResult.type === 'no_service') {
       setLives(prev => {
         const newLives = prev - 1;
         if (newLives <= 0) {
@@ -192,11 +185,11 @@ const MarketRushGame = () => {
         return Math.max(0, newLives);
       });
     }
-    
+
     setTimeout(() => {
       if (currentCustomer + 1 >= customers.length) {
         // Game completed
-        const bonusPoints = calculateBonusPoints(maxStreak, hintsUsed === 0, servedCustomers);
+        const bonusPoints = calculateBonusPoints(); // Always returns 0 now
         const finalScore = calculateTotalScore(totalCustomerScore + scoreResult.points, bonusPoints);
         setScore(finalScore);
         setGameState('finished');
@@ -217,24 +210,24 @@ const MarketRushGame = () => {
   // Use hint
   const useHint = () => {
     if (hintsUsed >= maxHints || orderVisible) return;
-    
+
     setHintsUsed(prev => prev + 1);
     setHintUsed(true);
     setOrderVisible(true);
     setShowHint(true);
-    
+
     setTimeout(() => {
       setOrderVisible(false);
       setShowHint(false);
     }, 3000);
   };
 
-  // Update score
+  // Update score when totalCustomerScore changes
   useEffect(() => {
-    const bonusPoints = calculateBonusPoints(maxStreak, hintsUsed === 0, servedCustomers);
+    const bonusPoints = calculateBonusPoints(); // Always returns 0 now
     const currentScore = calculateTotalScore(totalCustomerScore, bonusPoints);
     setScore(currentScore);
-  }, [totalCustomerScore, maxStreak, hintsUsed, servedCustomers]);
+  }, [totalCustomerScore]);
 
   const handleStart = () => {
     initializeGame();
@@ -253,7 +246,7 @@ const MarketRushGame = () => {
   const customStats = {
     currentCustomer: currentCustomer + 1,
     totalCustomers: customers.length,
-    streak: maxStreak,
+    streak: maxStreak, // Always 0 now but keeping for UI
     lives,
     hintsUsed,
     servedCustomers,
@@ -265,7 +258,7 @@ const MarketRushGame = () => {
   return (
     <div>
       <Header unreadCount={3} />
-      
+
       <GameFramework
         gameTitle="Market Rush: Village Bazaar"
         gameDescription={
@@ -311,13 +304,13 @@ const MarketRushGame = () => {
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring System
+                      📊 New Scoring System
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Perfect order: +20 points</li>
-                      <li>• Right items, wrong order: +10 points</li>
-                      <li>• Wrong items: -10 points</li>
-                      <li>• Streak bonus: +5 per 3 perfect orders</li>
+                      <li>• Easy: 25 pts per correct order</li>
+                      <li>• Moderate: 40 pts per correct order</li>
+                      <li>• Hard: 50 pts per correct order</li>
+                      <li>• Wrong orders lose 1 life only</li>
                     </ul>
                   </div>
 
@@ -326,9 +319,9 @@ const MarketRushGame = () => {
                       🎯 Difficulty Levels
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 4 customers, 6s display time</li>
-                      <li>• Moderate: 8 customers, 5s display time</li>
-                      <li>• Hard: 10 customers, fake customers, 4s display time</li>
+                      <li>• Easy: 8 customers, 6s display time</li>
+                      <li>• Moderate: 5 customers, 5s display time</li>
+                      <li>• Hard: 4 customers, fake customers, 4s display time</li>
                     </ul>
                   </div>
                 </div>
@@ -396,7 +389,7 @@ const MarketRushGame = () => {
 
           {/* Game Stats */}
           {gameState === 'playing' && (
-            <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
               <div className="text-center bg-gray-50 rounded-lg p-3">
                 <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   Customer
@@ -511,7 +504,7 @@ const MarketRushGame = () => {
               <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Available Products - {stallTypes[selectedStall].name}
               </h4>
-              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {stallTypes[selectedStall].products.map(product => (
                   <button
                     key={product.id}
@@ -583,36 +576,28 @@ const MarketRushGame = () => {
           {/* Feedback */}
           {showFeedback && currentCustomerData && (
             <div className={`w-full max-w-2xl text-center p-6 rounded-lg ${
-              feedbackData.points > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              feedbackData.type === 'correct_order' || feedbackData.type === 'fake_customer_ignored' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             }`}>
               <div className="flex items-center justify-center gap-2 mb-2">
-                {feedbackData.points > 0 ? (
+                {feedbackData.type === 'correct_order' || feedbackData.type === 'fake_customer_ignored' ? (
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 ) : (
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackData.points > 0 ? 'Great Service!' : 'Try Again!'}
+                  {feedbackData.type === 'correct_order' || feedbackData.type === 'fake_customer_ignored' ? 'Great Service!' : 'Wrong Order!'}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {feedbackData.type === 'perfect_order' && 'Perfect order! Everything correct and in the right sequence.'}
-                {feedbackData.type === 'correct_items_wrong_order' && 'Right items but wrong order. Close one!'}
-                {feedbackData.type === 'partial_correct' && 'Some items were correct. Keep practicing!'}
-                {feedbackData.type === 'wrong_order' && 'Wrong items served. Remember the customer\'s order!'}
+                {feedbackData.type === 'correct_order' && 'Perfect! You served the exact order the customer wanted.'}
+                {feedbackData.type === 'wrong_order' && 'Wrong items or quantities. You lost a life but can try again!'}
                 {feedbackData.type === 'fake_customer_ignored' && 'Good job! You correctly ignored the suspicious customer.'}
-                {feedbackData.type === 'fake_customer_served' && 'Oops! That was a fake customer - you shouldn\'t have served them.'}
-                {feedbackData.type === 'no_service' && 'You didn\'t serve anything to the customer!'}
+                {feedbackData.type === 'fake_customer_served' && 'Oops! That was a fake customer - you lost a life.'}
+                {feedbackData.type === 'no_service' && 'You didn\'t serve anything - you lost a life.'}
               </div>
               <div className={`font-medium mb-2 ${feedbackData.points > 0 ? 'text-green-700' : 'text-red-700'}`}>
-                {feedbackData.points > 0 ? '+' : ''}{feedbackData.points} points
+                {feedbackData.points > 0 ? `+${feedbackData.points} points` : 'No points earned'}
               </div>
-              {feedbackData.points > 0 && perfectStreak > 0 && (
-                <div className="text-green-700 font-medium mb-2">
-                  <Sparkles className="inline h-4 w-4 mr-1" />
-                  Perfect streak: {perfectStreak}
-                </div>
-              )}
               {currentCustomer + 1 < customers.length ? (
                 <p className="text-gray-700 font-medium">
                   Next customer coming up...
@@ -629,8 +614,8 @@ const MarketRushGame = () => {
           {gameState === 'playing' && (
             <div className="text-center max-w-2xl mt-6">
               <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Remember customer orders before they disappear! Tap products to add them to the basket.
-                Serve fake customers nothing, and watch the order sequence for perfect scores.
+                Remember customer orders before they disappear! Serve exactly what they want to earn points.
+                Wrong orders cost a life but no points are deducted.
               </p>
               <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {difficulty} Mode: {difficultySettings[difficulty].customerCount} customers | 
