@@ -1,7 +1,7 @@
 // Professional Memory Town Builder - Fixed scoring system with correct point values and round progression
 export const difficultySettings = {
   Easy: {
-    timeLimit: 300, // 5 minutes
+    timeLimit: 150, // 5 minutes
     maxTurns: 10,
     pointsPerPlacement: 25, // 25 points per correct placement
     pointsPerObjective: 0,
@@ -26,7 +26,7 @@ export const difficultySettings = {
     }
   },
   Moderate: {
-    timeLimit: 240, // 4 minutes
+    timeLimit: 120, // 4 minutes
     maxTurns: 7,
     pointsPerPlacement: 40, // 40 points per correct placement
     pointsPerObjective: 0,
@@ -48,7 +48,7 @@ export const difficultySettings = {
     }
   },
   Hard: {
-    timeLimit: 180, // 3 minutes
+    timeLimit: 90, // 3 minutes
     maxTurns: 6,
     pointsPerPlacement: 50, // 50 points per correct placement
     pointsPerObjective: 0,
