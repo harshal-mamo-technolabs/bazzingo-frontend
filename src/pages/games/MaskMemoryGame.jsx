@@ -8,7 +8,7 @@ import {
   checkMatch,
   calculateScore,
   getHint,
-  shuffleArray
+  shuffleArray // (kept in case used elsewhere; safe to remove if truly unused)
 } from '../../utils/games/MaskMemory';
 import { 
   Eye, 
@@ -17,7 +17,7 @@ import {
   XCircle, 
   ChevronUp, 
   ChevronDown, 
-  Shuffle,
+  // Shuffle,  // ❌ removed
   Clock,
   Target,
   Star
@@ -39,7 +39,7 @@ const MaskMemoryGame = () => {
   const [masks, setMasks] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedPairs, setMatchedPairs] = useState([]);
-  const [gamePhase, setGamePhase] = useState('preview'); // preview, shuffle, recall, complete
+  const [gamePhase, setGamePhase] = useState('preview'); // preview, recall, complete
   const [previewTimeLeft, setPreviewTimeLeft] = useState(5000);
   const [selectedCards, setSelectedCards] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -77,14 +77,17 @@ const MaskMemoryGame = () => {
     return () => clearInterval(interval);
   }, [gameState, timeRemaining]);
 
-  // Preview timer
+  // Preview timer -> directly go to recall (no shuffle, no reordering)
   useEffect(() => {
     let interval;
     if (gamePhase === 'preview' && previewTimeLeft > 0) {
       interval = setInterval(() => {
         setPreviewTimeLeft(prev => {
           if (prev <= 100) {
-            setGamePhase('shuffle');
+            // End preview: flip all cards face down (positions unchanged), then recall
+            setMasks(prevMasks => prevMasks.map(mask => ({ ...mask, isFlipped: false })));
+            setGamePhase('recall');
+            setTurnStartTime(Date.now());
             return 0;
           }
           return prev - 100;
@@ -94,23 +97,6 @@ const MaskMemoryGame = () => {
     return () => clearInterval(interval);
   }, [gamePhase, previewTimeLeft]);
 
-  // Handle shuffle phase
-  useEffect(() => {
-    if (gamePhase === 'shuffle') {
-      setTimeout(() => {
-        if (difficulty === 'Hard') {
-          // In hard mode, flip all cards face down
-          setMasks(prev => prev.map(mask => ({ ...mask, isFlipped: false })));
-        } else {
-          // In easy/moderate mode, shuffle and flip cards
-          setMasks(prev => shuffleArray(prev.map(mask => ({ ...mask, isFlipped: false }))));
-        }
-        setGamePhase('recall');
-        setTurnStartTime(Date.now());
-      }, 1500);
-    }
-  }, [gamePhase, difficulty]);
-
   // Handle card selection
   const handleCardClick = useCallback((cardIndex) => {
     if (gamePhase !== 'recall' || showFeedback) return;
@@ -119,7 +105,7 @@ const MaskMemoryGame = () => {
     if (!card || card.isMatched || flippedCards.includes(card.id)) return;
 
     if (difficulty === 'Hard') {
-      // Special mask recall mode
+      // Special mask recall mode (positions unchanged, no shuffle)
       if (card.isSpecial && !specialMasksFound.includes(card.id)) {
         setSpecialMasksFound(prev => [...prev, card.id]);
         setCorrectMatches(prev => prev + 1);
@@ -157,13 +143,13 @@ const MaskMemoryGame = () => {
       
       setTimeout(() => setShowFeedback(false), 2000);
     } else {
-      // Regular pair matching mode
+      // Regular pair matching mode (no shuffle; positions unchanged)
       const newFlippedCards = [...flippedCards, card.id];
       setFlippedCards(newFlippedCards);
       
-      // Update mask to show it's flipped
-      setMasks(prev => prev.map(mask => 
-        mask.id === card.id ? { ...mask, isFlipped: true } : mask
+      // Flip the selected card face up
+      setMasks(prev => prev.map(m => 
+        m.id === card.id ? { ...m, isFlipped: true } : m
       ));
 
       if (newFlippedCards.length === 2) {
@@ -178,8 +164,8 @@ const MaskMemoryGame = () => {
           setFeedbackMessage(`Perfect match! You found the ${card1.name} pair!`);
           
           // Mark cards as matched
-          setMasks(prev => prev.map(mask => 
-            mask.pairIndex === card1.pairIndex ? { ...mask, isMatched: true } : mask
+          setMasks(prev => prev.map(m => 
+            m.pairIndex === card1.pairIndex ? { ...m, isMatched: true } : m
           ));
           
           // Check if all pairs are matched
@@ -207,8 +193,8 @@ const MaskMemoryGame = () => {
           
           // Flip cards back after delay
           setTimeout(() => {
-            setMasks(prev => prev.map(mask => 
-              newFlippedCards.includes(mask.id) ? { ...mask, isFlipped: false } : mask
+            setMasks(prev => prev.map(m => 
+              newFlippedCards.includes(m.id) ? { ...m, isFlipped: false } : m
             ));
           }, 1500);
         }
@@ -225,12 +211,10 @@ const MaskMemoryGame = () => {
   // Use hint
   const useHint = () => {
     if (hintsUsed >= maxHints || gamePhase !== 'recall') return;
-    
     setHintsUsed(prev => prev + 1);
     const hint = getHint(masks, flippedCards, difficulty);
     setHintMessage(hint);
     setShowHint(true);
-    
     setTimeout(() => setShowHint(false), 4000);
   };
 
@@ -240,7 +224,8 @@ const MaskMemoryGame = () => {
     const scenario = getGameScenario(difficulty);
     
     setGameScenario(scenario);
-    setMasks(scenario.masks.map(mask => ({ ...mask, isFlipped: true }))); // Start with all cards visible
+    // Start with all cards visible (preview)
+    setMasks(scenario.masks.map(mask => ({ ...mask, isFlipped: true })));
     setScore(0);
     setTimeRemaining(settings.timeLimit);
     setCorrectMatches(0);
@@ -257,6 +242,7 @@ const MaskMemoryGame = () => {
     setShowFeedback(false);
     setShowHint(false);
     setTotalResponseTime(0);
+    setGameState('playing');
   }, [difficulty]);
 
   const handleStart = () => {
@@ -290,13 +276,11 @@ const MaskMemoryGame = () => {
 
   const getCardContent = (mask, index) => {
     if (!mask) return '';
-    
     if (gamePhase === 'preview' || mask.isFlipped || mask.isMatched) {
       return mask.emoji;
     }
-    
     return '🎭';
-  };
+    };
 
   const getCardClass = (mask, index) => {
     if (!mask) return 'w-16 h-16 bg-gray-200 rounded-lg border-2 border-gray-300';
@@ -352,7 +336,7 @@ const MaskMemoryGame = () => {
                       🎭 Objective
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Memorize carnival masks during preview, then find matching pairs or recall special masks after they're hidden.
+                      Memorize carnival masks during preview, then find matching pairs or recall special masks after they're hidden (no shuffle).
                     </p>
                   </div>
 
@@ -362,8 +346,7 @@ const MaskMemoryGame = () => {
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                       <li>• Preview: Memorize mask positions</li>
-                      <li>• Shuffle: Masks flip or move</li>
-                      <li>• Recall: Find pairs or special masks</li>
+                      <li>• Recall: Cards flip face down but stay in the same place</li>
                     </ul>
                   </div>
 
@@ -495,21 +478,7 @@ const MaskMemoryGame = () => {
             </div>
           )}
 
-          {gamePhase === 'shuffle' && (
-            <div className="w-full max-w-4xl mb-6">
-              <div className="bg-purple-100 border border-purple-300 rounded-lg p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Shuffle className="h-5 w-5 text-purple-800" />
-                  <span className="font-semibold text-purple-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Shuffle Phase - Masks are Moving!
-                  </span>
-                </div>
-                <p className="text-purple-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  The masks are being shuffled and flipped. Get ready to recall what you memorized!
-                </p>
-              </div>
-            </div>
-          )}
+          {/* (Shuffle phase removed) */}
 
           {gamePhase === 'recall' && (
             <div className="w-full max-w-4xl mb-6">

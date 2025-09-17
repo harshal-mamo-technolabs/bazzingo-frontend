@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
@@ -29,6 +29,12 @@ const MathDeductionGame = () => {
   const [showHint, setShowHint] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showMathDeductionInstructions, setShowMathDeductionInstructions] = useState(true);
+
+  // Visual effects
+  const [equationAnimKey, setEquationAnimKey] = useState(0);
+  const [shakeIncorrect, setShakeIncorrect] = useState(false);
+  const [flashCorrect, setFlashCorrect] = useState(false);
+  const [confettiBurst, setConfettiBurst] = useState(0);
 
   // Difficulty settings
   const difficultySettings = {
@@ -66,6 +72,7 @@ const MathDeductionGame = () => {
     setShowFeedback(false);
     setShowHint(false);
     setQuestionStartTime(Date.now());
+    setEquationAnimKey((k) => k + 1); // trigger pop-in
   }, [difficulty]);
 
   useEffect(() => {
@@ -113,6 +120,9 @@ const MathDeductionGame = () => {
     if (isCorrect) {
       setFeedbackType('correct');
       setCorrectAnswers(prev => prev + 1);
+      setFlashCorrect(true);
+      setConfettiBurst((b) => b + 1);
+      setTimeout(() => setFlashCorrect(false), 600);
       setStreak(prev => {
         const newStreak = prev + 1;
         setMaxStreak(current => Math.max(current, newStreak));
@@ -141,6 +151,8 @@ const MathDeductionGame = () => {
       }, 1500);
     } else {
       setFeedbackType('incorrect');
+      setShakeIncorrect(true);
+      setTimeout(() => setShakeIncorrect(false), 600);
       setStreak(0);
       setLives(prev => {
         const newLives = prev - 1;
@@ -285,6 +297,20 @@ const handleSkip = useCallback(() => {
     averageResponseTime: totalQuestions > 0 ? Math.round(totalResponseTime / totalQuestions / 1000) : 0
   };
 
+  // Confetti pieces for short celebration on correct
+  const confettiPieces = useMemo(() => {
+    const count = 36;
+    const colors = ['#FF6B3E', '#22C55E', '#3B82F6', '#F59E0B', '#A855F7'];
+    return Array.from({ length: count }).map((_, i) => ({
+      id: `${confettiBurst}-${i}`,
+      left: Math.random() * 100,
+      size: 6 + Math.random() * 6,
+      color: colors[i % colors.length],
+      duration: 900 + Math.random() * 700,
+      delay: Math.random() * 150
+    }));
+  }, [confettiBurst]);
+
   return (
     <div>
       <Header unreadCount={3} />
@@ -405,15 +431,34 @@ const handleSkip = useCallback(() => {
 
           {/* Equation Display */}
           {currentEquation && (
-            <div className="text-center mb-8">
+            <div className="text-center mb-8 relative">
               <h3 className="text-lg font-semibold text-gray-900 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Solve the equation:
               </h3>
-              <div className="bg-gray-100 rounded-lg p-8 inline-block">
-                <div className="text-3xl font-mono text-gray-900 mb-4">
+              <div className={`bg-gray-100 rounded-lg p-8 inline-block transition-all duration-500 ${flashCorrect ? 'flash-correct' : ''} ${shakeIncorrect ? 'shake' : ''}`} key={equationAnimKey}>
+                <div className="text-3xl font-mono text-gray-900 mb-4 pop-in">
                   {currentEquation.equation}
                 </div>
               </div>
+              {/* Confetti */}
+              {flashCorrect && (
+                <div className="pointer-events-none absolute inset-0 overflow-visible">
+                  {confettiPieces.map((p) => (
+                    <span
+                      key={p.id}
+                      className="confetti-piece"
+                      style={{
+                        left: `${p.left}%`,
+                        width: `${p.size}px`,
+                        height: `${p.size}px`,
+                        backgroundColor: p.color,
+                        animationDuration: `${p.duration}ms`,
+                        animationDelay: `${p.delay}ms`
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -520,6 +565,16 @@ const handleSkip = useCallback(() => {
           </div>
         </div>
       </GameFramework>
+      {/* Lightweight local styles for animations */}
+      <style>{`
+        .pop-in { animation: popIn 300ms ease-out; }
+        .shake { animation: shakeX 400ms ease-in-out; }
+        .flash-correct { box-shadow: 0 0 0 4px rgba(34,197,94,0.25); }
+        .confetti-piece { position: absolute; top: 0; border-radius: 2px; display: inline-block; animation-name: confettiFall; animation-timing-function: ease-out; animation-fill-mode: forwards; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes shakeX { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px);} 30%, 50%, 70% { transform: translateX(-6px);} 40%, 60% { transform: translateX(6px);} }
+        @keyframes confettiFall { from { transform: translateY(-10px) rotate(0deg); opacity: 1; } to { transform: translateY(120px) rotate(240deg); opacity: 0; } }
+      `}</style>
       <GameCompletionModal
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
