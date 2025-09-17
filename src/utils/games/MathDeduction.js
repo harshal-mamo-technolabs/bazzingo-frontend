@@ -28,19 +28,24 @@ export const generateArithmetic = (difficulty) => {
       const ops = ['+', '-', '*', '/'];
       const operation = ops[Math.floor(Math.random() * ops.length)];
       if (operation === '+') {
-        answer = num1 + num2;
-        equation = `${num1} + ? = ${answer}`;
-        hint = `What number plus ${num1} equals ${answer}?`;
+        // Missing addend: num1 + ? = sum
+        const sum = num1 + num2;
+        answer = num2;
+        equation = `${num1} + ? = ${sum}`;
+        hint = `What number plus ${num1} equals ${sum}?`;
       } else if (operation === '-') {
+        // Missing subtrahend: num1 - ? = result
         answer = num2;
         equation = `${num1} - ? = ${num1 - num2}`;
         hint = `What number subtracted from ${num1} equals ${num1 - num2}?`;
       } else if (operation === '*') {
+        // Missing multiplier: num1 × ? = product
         answer = num2;
         equation = `${num1} × ? = ${num1 * num2}`;
         hint = `What number multiplied by ${num1} equals ${num1 * num2}?`;
       } else {
-        answer = num1 / num2;
+        // Missing divisor: (num1 * num2) ÷ ? = num1  → ? = num2
+        answer = num2;
         equation = `${num1 * num2} ÷ ? = ${num1}`;
         hint = `What number divides ${num1 * num2} to get ${num1}?`;
       }

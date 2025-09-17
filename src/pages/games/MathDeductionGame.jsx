@@ -37,6 +37,9 @@ const MathDeductionGame = () => {
     Hard: { timeLimit: 80, lives: 3, hints: 1, types: ['arithmetic', 'algebraic', 'pattern'] }
   };
 
+  // ⏱️ Skip penalty per difficulty
+  const skipPenaltyByDifficulty = { Easy: 5, Moderate: 7, Hard: 10 };
+
   // Generate new equation
   const generateNewEquation = useCallback(() => {
     const settings = difficultySettings[difficulty];
@@ -65,9 +68,20 @@ const MathDeductionGame = () => {
     setQuestionStartTime(Date.now());
   }, [difficulty]);
 
-
   useEffect(() => {
-  const newScore = calculateScore({
+    const newScore = calculateScore({
+      correctAnswers,
+      totalQuestions,
+      totalResponseTime,
+      currentLevel,
+      lives,
+      hintsUsed,
+      maxStreak,
+      timeRemaining,
+      difficulty
+    });
+    setScore(newScore);
+  }, [
     correctAnswers,
     totalQuestions,
     totalResponseTime,
@@ -77,99 +91,127 @@ const MathDeductionGame = () => {
     maxStreak,
     timeRemaining,
     difficulty
-  });
-  setScore(newScore);
-}, [
-  correctAnswers,
-  totalQuestions,
-  totalResponseTime,
-  currentLevel,
-  lives,
-  hintsUsed,
-  maxStreak,
-  timeRemaining,
-  difficulty
-]);
-
+  ]);
 
   // Handle answer submission
   const handleSubmit = useCallback(() => {
-  if (gameState !== 'playing' || showFeedback || !currentEquation) return;
+    if (gameState !== 'playing' || showFeedback || !currentEquation) return;
+    if (!userInput.trim()) return;
 
-  if (!userInput.trim()) {
-    return;
-  }
+    const userAnswerRaw = Number(userInput);
+    if (isNaN(userAnswerRaw)) return;
 
-  const userAnswerRaw = parseFloat(userInput);
-  if (isNaN(userAnswerRaw)) {
-    return;
-  }
+    const responseTime = Date.now() - questionStartTime;
+    const correctAnswer = currentEquation.answer;
 
-  const responseTime = Date.now() - questionStartTime;
-  const correctAnswer = currentEquation.answer;
+    setShowFeedback(true);
+    setTotalQuestions(prev => prev + 1);
+    setTotalResponseTime(prev => prev + responseTime);
 
-  setShowFeedback(true);
+    const isCorrect = Math.abs(userAnswerRaw - Number(correctAnswer)) < 1e-6;
+
+    if (isCorrect) {
+      setFeedbackType('correct');
+      setCorrectAnswers(prev => prev + 1);
+      setStreak(prev => {
+        const newStreak = prev + 1;
+        setMaxStreak(current => Math.max(current, newStreak));
+        return newStreak;
+      });
+
+      setCurrentLevel(prev => {
+        const newLevel = prev + 1;
+        const maxLevels =
+          difficulty === 'Easy' ? 8 :
+          difficulty === 'Moderate' ? 5 : 4;
+
+        if (newLevel > maxLevels) {
+          setGameState('finished');
+          setShowCompletionModal(true);
+          return prev; // don’t increment past max
+        }
+
+        return newLevel;
+      });
+
+      setTimeout(() => {
+        if (gameState === 'playing') {
+          generateNewEquation();
+        }
+      }, 1500);
+    } else {
+      setFeedbackType('incorrect');
+      setStreak(0);
+      setLives(prev => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          setGameState('finished');
+          setShowCompletionModal(true);
+        }
+        return Math.max(0, newLives);
+      });
+
+      setTimeout(() => {
+        setShowFeedback(false);
+      }, 2000);
+    }
+  }, [gameState, showFeedback, currentEquation, userInput, questionStartTime, generateNewEquation, difficulty]);
+
+  // ➡️ Skip question (deduct time)
+  // ➡️ Skip question (deduct time AND a life)
+const handleSkip = useCallback(() => {
+  if (gameState !== 'playing' || !currentEquation) return;
+
+  const penalty = skipPenaltyByDifficulty[difficulty] ?? 5;
+
+  // Count as attempted; break streak
   setTotalQuestions(prev => prev + 1);
-  setTotalResponseTime(prev => prev + responseTime);
+  setStreak(0);
 
-  const isCorrect = Math.abs(userAnswerRaw - correctAnswer) < 0.001;
+  // Track if game should end after life/time deductions
+  let willEnd = false;
 
-  if (isCorrect) {
-  setFeedbackType('correct');
-  setCorrectAnswers(prev => prev + 1);
-  setStreak(prev => {
-    const newStreak = prev + 1;
-    setMaxStreak(current => Math.max(current, newStreak));
-    return newStreak;
-  });
-
-  setCurrentLevel(prev => {
-    const newLevel = prev + 1;
-    const maxLevels =
-      difficulty === 'Easy' ? 8 :
-      difficulty === 'Moderate' ? 5 : 4;
-
-    if (newLevel > maxLevels) {
+  // 1) Deduct a life
+  setLives(prev => {
+    const newLives = prev - 1;
+    if (newLives <= 0) {
+      willEnd = true;
       setGameState('finished');
       setShowCompletionModal(true);
-      return prev; // don’t increment past max
     }
-
-    return newLevel;
+    return Math.max(0, newLives);
   });
 
-  setTimeout(() => {
-    if (gameState === 'playing') {
-      generateNewEquation();
+  // 2) Deduct time; may also end game
+  setTimeRemaining(prev => {
+    const next = Math.max(0, prev - penalty);
+    if (next === 0) {
+      willEnd = true;
+      setGameState('finished');
+      setShowCompletionModal(true);
     }
-  }, 1500);
- }
- else {
-    setFeedbackType('incorrect');
-    setStreak(0);
-    setLives(prev => {
-      const newLives = prev - 1;
-      if (newLives <= 0) {
-        setGameState('finished');
-        setShowCompletionModal(true);
-      }
-      return Math.max(0, newLives);
-    });
+    return next;
+  });
 
-    setTimeout(() => {
-      setShowFeedback(false);
-    }, 2000);
-  }
-}, [gameState, showFeedback, currentEquation, userInput, questionStartTime, generateNewEquation]);
+  // If the game ended due to life/time, stop here
+  if (willEnd) return;
+
+  // Brief "skipped" feedback
+  setFeedbackType('skipped');
+  setShowFeedback(true);
+  setTimeout(() => setShowFeedback(false), 1000);
+
+  // Load next question
+  setUserInput('');
+  generateNewEquation();
+}, [gameState, currentEquation, generateNewEquation, difficulty]);
 
 
   // Use hint
   const useHint = () => {
     if (hintsUsed >= maxHints || gameState !== 'playing') return;
-    
     setHintsUsed(prev => prev + 1);
     setShowHint(true);
-    
     setTimeout(() => {
       setShowHint(false);
     }, 4000);
@@ -251,71 +293,70 @@ const MathDeductionGame = () => {
         gameTitle="Mathematical Deduction"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
-  <div className="bg-[#E8E8E8] rounded-lg p-6">
-    {/* Header with toggle */}
-    <div
-      className="flex items-center justify-between mb-4 cursor-pointer"
-      onClick={() => setShowMathDeductionInstructions(!showMathDeductionInstructions)}
-    >
-      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-        How to Play Mathematical Deduction
-      </h3>
-      <span className="text-blue-900 text-xl">
-        {showMathDeductionInstructions
-  ? <ChevronUp className="h-5 w-5 text-blue-900" />
-  : <ChevronDown className="h-5 w-5 text-blue-900" />}
-      </span>
-    </div>
+            <div className="bg-[#E8E8E8] rounded-lg p-6">
+              {/* Header with toggle */}
+              <div
+                className="flex items-center justify-between mb-4 cursor-pointer"
+                onClick={() => setShowMathDeductionInstructions(!showMathDeductionInstructions)}
+              >
+                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  How to Play Mathematical Deduction
+                </h3>
+                <span className="text-blue-900 text-xl">
+                  {showMathDeductionInstructions
+                    ? <ChevronUp className="h-5 w-5 text-blue-900" />
+                    : <ChevronDown className="h-5 w-5 text-blue-900" />}
+                </span>
+              </div>
 
-    {/* Conditional Content */}
-    {showMathDeductionInstructions && (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className='bg-white p-3 rounded-lg'>
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            🎯 Objective
-          </h4>
-          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            Solve mathematical equations, find missing numbers, and identify patterns through logical reasoning.
-          </p>
-        </div>
+              {/* Conditional Content */}
+              {showMathDeductionInstructions && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className='bg-white p-3 rounded-lg'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      🎯 Objective
+                    </h4>
+                    <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      Solve mathematical equations, find missing numbers, and identify patterns through logical reasoning.
+                    </p>
+                  </div>
 
-        <div className='bg-white p-3 rounded-lg'>
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            🔢 Equation Types
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            <li>• <strong>Arithmetic:</strong> Basic operations</li>
-            <li>• <strong>Algebraic:</strong> Variable equations</li>
-            <li>• <strong>Patterns:</strong> Number sequences</li>
-          </ul>
-        </div>
+                  <div className='bg-white p-3 rounded-lg'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      🔢 Equation Types
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      <li>• <strong>Arithmetic:</strong> Basic operations</li>
+                      <li>• <strong>Algebraic:</strong> Variable equations</li>
+                      <li>• <strong>Patterns:</strong> Number sequences</li>
+                    </ul>
+                  </div>
 
-        <div className='bg-white p-3 rounded-lg'>
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            📊 Scoring
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            <li>• Accuracy and speed matter</li>
-            <li>• Streak bonuses for consistency</li>
-            <li>• Level progression rewards</li>
-          </ul>
-        </div>
+                  <div className='bg-white p-3 rounded-lg'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      📊 Scoring
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      <li>• Accuracy and speed matter</li>
+                      <li>• Streak bonuses for consistency</li>
+                      <li>• Level progression rewards</li>
+                    </ul>
+                  </div>
 
-        <div className='bg-white p-3 rounded-lg'>
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            💡 Strategy
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            <li>• Use hints sparingly</li>
-            <li>• Think step-by-step</li>
-            <li>• Maintain solving streaks</li>
-          </ul>
-        </div>
-      </div>
-    )}
-  </div>
+                  <div className='bg-white p-3 rounded-lg'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      💡 Strategy
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      <li>• Use hints sparingly</li>
+                      <li>• Think step-by-step</li>
+                      <li>• Maintain solving streaks</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-
         }
         category="Logic"
         gameState={gameState}
@@ -350,38 +391,14 @@ const MathDeductionGame = () => {
             )}
           </div>
 
-          {/* Game Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Level
-              </div>
-              <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {currentLevel}
-              </div>
-            </div>
+          {/* Game Stats - Lives only */}
+          <div className="grid grid-cols-1 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Lives
               </div>
               <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {'❤️'.repeat(lives)}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Streak
-              </div>
-              <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {streak}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Accuracy
-              </div>
-              <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
               </div>
             </div>
           </div>
@@ -417,57 +434,75 @@ const MathDeductionGame = () => {
             </div>
           )}
 
-          {/* Input Section */}
+          {/* Input + Buttons (Submit & Skip) */}
           {currentEquation && !showFeedback && (
             <div className="w-full max-w-md mb-6">
-              <div className="flex gap-2">
+              <div className="flex flex-col items-center gap-3 w-full">
                 <input
                   type="number"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Enter your answer"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-lg text-center focus:outline-none focus:ring-2 focus:ring-[#FF6B3E] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg text-center focus:outline-none focus:ring-2 focus:ring-[#FF6B3E] focus:border-transparent"
                   style={{ fontFamily: 'Roboto, sans-serif' }}
                 />
-                <button
-                  onClick={handleSubmit}
-                  disabled={!userInput.trim()}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                    userInput.trim()
-                      ? 'bg-[#FF6B3E] text-white hover:bg-[#e55a35]'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                  style={{ fontFamily: 'Roboto, sans-serif' }}
-                >
-                  <Calculator className="h-5 w-5" />
-                </button>
+                <div className="flex gap-2 justify-center w-full">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!userInput.trim()}
+                    className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                      userInput.trim()
+                        ? 'bg-[#FF6B3E] text-white hover:bg-[#e55a35]'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                    style={{ fontFamily: 'Roboto, sans-serif' }}
+                  >
+                    <Calculator className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    onClick={handleSkip}
+                    className="px-6 py-3 rounded-lg font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                    style={{ fontFamily: 'Roboto, sans-serif' }}
+                  >
+                    Skip
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Feedback */}
-          {showFeedback && currentEquation && (
+          {showFeedback && (
             <div className={`w-full max-w-2xl text-center p-6 rounded-lg ${
-              feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              feedbackType === 'correct'
+                ? 'bg-green-100 text-green-800'
+                : feedbackType === 'incorrect'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-yellow-100 text-yellow-800'
             }`}>
               <div className="flex items-center justify-center gap-2 mb-2">
-                {feedbackType === 'correct' ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <XCircle className="h-6 w-6 text-red-600" />
-                )}
+                {feedbackType === 'correct' && <CheckCircle className="h-6 w-6 text-green-600" />}
+                {feedbackType === 'incorrect' && <XCircle className="h-6 w-6 text-red-600" />}
+                {feedbackType === 'skipped' && <span className="text-lg font-semibold">Skipped</span>}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Correct!' : 'Incorrect!'}
+                  {feedbackType === 'correct' ? 'Correct!' : feedbackType === 'incorrect' ? 'Incorrect!' : 'Question Skipped'}
                 </div>
               </div>
-              <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {feedbackType === 'correct'
-                  ? `Excellent! The answer is ${currentEquation.answer}.`
-                  : `Answer is incorrect. You answered ${userInput}.`
-                  //: `The correct answer is ${currentEquation.answer}. You answered ${userInput}.`
-                }
-              </div>
+              {currentEquation && feedbackType !== 'skipped' && (
+                <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                  {feedbackType === 'correct'
+                    ? `Excellent! The answer is ${currentEquation.answer}.`
+                    : `Incorrect. You answered ${userInput}. The correct answer is ${currentEquation.answer}.`
+                  }
+                </div>
+              )}
+              {feedbackType === 'skipped' && (
+                <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                  {`Time penalty applied: ${skipPenaltyByDifficulty[difficulty] ?? 5}s`}
+                </div>
+              )}
             </div>
           )}
 
@@ -489,7 +524,7 @@ const MathDeductionGame = () => {
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
         score={score}
-        />
+      />
     </div>
   );
 };
