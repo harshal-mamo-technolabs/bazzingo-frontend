@@ -1,8 +1,8 @@
 // Difficulty settings
 export const difficultySettings = {
-  Easy: { timeLimit: 300, lives: 5, hints: 3, questionCount: 8, pointsPerQuestion: 25, penalty: 10 },
-  Moderate: { timeLimit: 240, lives: 4, hints: 2, questionCount: 5, pointsPerQuestion: 40, penalty: 20 },
-  Hard: { timeLimit: 180, lives: 3, hints: 1, questionCount: 4, pointsPerQuestion: 50, penalty: 25 }
+  Easy: { timeLimit: 120, lives: 5, hints: 3, questionCount: 8, pointsPerQuestion: 25, penalty: 10 },
+  Moderate: { timeLimit: 120, lives: 4, hints: 2, questionCount: 5, pointsPerQuestion: 40, penalty: 20 },
+  Hard: { timeLimit: 120, lives: 3, hints: 1, questionCount: 4, pointsPerQuestion: 50, penalty: 25 }
 };
 
 // All traveler scenarios data
