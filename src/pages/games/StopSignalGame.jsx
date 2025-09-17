@@ -41,6 +41,8 @@ const StopSignalGame = () => {
 
     const stopTimeoutRef = useRef(null);
     const missTimeoutRef = useRef(null);
+    const timerIntervalRef = useRef(null);
+    const gameEndTimeRef = useRef(null);
     const particleRef = useRef(null);
 
     const difficultySettings = {
@@ -261,27 +263,60 @@ const StopSignalGame = () => {
         }
     }, [calculateScore, gameState]);
 
+    // High-precision timer derived from absolute end time (prevents freezes/drift)
     useEffect(() => {
-        let interval;
-        if (gameState === 'playing' && timeRemaining > 0) {
-            interval = setInterval(() => {
-                setTimeRemaining(prev => {
-                    if (prev <= 1) {
-                        const endTime = Date.now();
-                        const duration = Math.floor((endTime - gameStartTime) / 1000);
-                        setGameDuration(duration);
-                        setFinalScore(calculateScore());
-                        setGameState('finished');
-                        setShowCompletionModal(true);
-                        createParticles('success', 30);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
+        // Cleanup any previous interval
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
         }
-        return () => clearInterval(interval);
-    }, [gameState, timeRemaining, gameStartTime, calculateScore]);
+
+        if (gameState === 'playing' && gameStartTime) {
+            const settings = difficultySettings[difficulty];
+            // On fresh start, if end time isn't set, set it
+            if (!gameEndTimeRef.current) {
+                gameEndTimeRef.current = gameStartTime + settings.timeLimit * 1000;
+            }
+
+            const tick = () => {
+                const now = Date.now();
+                const msLeft = Math.max(0, gameEndTimeRef.current - now);
+                const secondsLeft = Math.ceil(msLeft / 1000);
+                setTimeRemaining(secondsLeft);
+
+                if (msLeft <= 0) {
+                    // End game
+                    const duration = Math.floor((now - gameStartTime) / 1000);
+                    setGameDuration(duration);
+                    setFinalScore(calculateScore());
+                    setGameState('finished');
+                    setShowCompletionModal(true);
+                    createParticles('success', 30);
+
+                    // Clear any pending trial timers
+                    if (nextTrialTimeout) {
+                        clearTimeout(nextTrialTimeout);
+                    }
+                    clearTimeout(stopTimeoutRef.current);
+                    clearTimeout(missTimeoutRef.current);
+
+                    clearInterval(timerIntervalRef.current);
+                    timerIntervalRef.current = null;
+                }
+            };
+
+            // Set initial value immediately for responsive UI
+            tick();
+            timerIntervalRef.current = setInterval(tick, 250);
+        }
+
+        return () => {
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+                timerIntervalRef.current = null;
+            }
+        };
+    }, [gameState, gameStartTime, difficulty, calculateScore, nextTrialTimeout]);
 
     const initializeGame = useCallback(() => {
         const settings = difficultySettings[difficulty];
@@ -311,7 +346,10 @@ const StopSignalGame = () => {
 
     const handleStart = () => {
         initializeGame();
-        setGameStartTime(Date.now());
+        const now = Date.now();
+        setGameStartTime(now);
+        const settings = difficultySettings[difficulty];
+        gameEndTimeRef.current = now + settings.timeLimit * 1000;
     };
 
     useEffect(() => {
@@ -331,6 +369,13 @@ const StopSignalGame = () => {
             clearTimeout(nextTrialTimeout);
             setNextTrialTimeout(null);
         }
+        clearTimeout(stopTimeoutRef.current);
+        clearTimeout(missTimeoutRef.current);
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+        }
+        gameEndTimeRef.current = null;
     };
 
     const handleGameComplete = (payload) => {
