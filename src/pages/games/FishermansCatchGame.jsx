@@ -31,6 +31,8 @@ const FishermansCatchGame = () => {
   const [currentScenario, setCurrentScenario] = useState(0);
   const [correctCatches, setCorrectCatches] = useState(0);
   const [wrongCatches, setWrongCatches] = useState(0);
+  const [totalCorrect, setTotalCorrect] = useState(0); // cumulative across scenarios
+  const [totalWrong, setTotalWrong] = useState(0);     // cumulative across scenarios
   const [lives, setLives] = useState(3);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [maxHints, setMaxHints] = useState(2);
@@ -55,32 +57,50 @@ const FishermansCatchGame = () => {
 
   // Update score whenever catches change
   useEffect(() => {
-    const newScore = calculateScore(difficulty, correctCatches, wrongCatches);
+    const newScore = calculateScore(difficulty, totalCorrect, totalWrong);
     setScore(newScore);
-  }, [difficulty, correctCatches, wrongCatches]);
+  }, [difficulty, totalCorrect, totalWrong]);
+
+  // End game immediately when score reaches 200
+  useEffect(() => {
+    if (gameState === 'playing' && score >= 200) {
+      setGameState('finished');
+      setShowCompletionModal(true);
+    }
+  }, [score, gameState]);
 
   // Animation loop for fish movement
   const animate = useCallback(() => {
     if (gameState !== 'playing') return;
-    
     const currentTime = Date.now();
     
+    // Move fish with clamping to container width
     setFish(prevFish => {
+      const containerWidth = gameAreaRef.current?.clientWidth || 800;
       return prevFish
         .map(f => ({
           ...f,
-          x: f.x + f.speed
+          x: f.x - f.speed
         }))
-        .filter(f => f.x < 800 && !f.caught); // Remove fish that swam off screen or were caught
+        .filter(f => f.x > -40 && !f.caught);
     });
     
-    // Spawn new fish periodically
-    if (currentTime - lastFishSpawnRef.current > 2000 + Math.random() * 3000) {
+    // Spawn new fish more frequently if none visible
+    const sinceLast = currentTime - lastFishSpawnRef.current;
+    const spawnInterval = 1200 + Math.random() * 2000; // faster spawn
+    const needSpawn = sinceLast > spawnInterval;
+    
+    if (needSpawn) {
       lastFishSpawnRef.current = currentTime;
       const currentScenarioData = currentScenarios[currentScenario];
       if (currentScenarioData) {
         const newFish = generateFish(currentScenarioData, currentTime, difficulty);
-        setFish(prevFish => [...prevFish, ...newFish.slice(0, 2)]); // Add 1-2 fish at a time
+        setFish(prevFish => {
+          // Ensure at least one fish appears; spawn at right edge
+          const containerWidth = gameAreaRef.current?.clientWidth || 800;
+          const batch = newFish.slice(0, 3).map(f => ({ ...f, x: containerWidth + 40 }));
+          return [...prevFish, ...batch];
+        });
       }
     }
     
@@ -127,6 +147,7 @@ const FishermansCatchGame = () => {
       
       if (validation.valid) {
         setCorrectCatches(prev => prev + 1);
+        setTotalCorrect(prev => prev + 1);
         setCatchSequence(prev => [...prev, clickedFish]);
         setFeedbackType('success');
         setFeedbackMessage(validation.reason);
@@ -145,6 +166,7 @@ const FishermansCatchGame = () => {
         }
       } else {
         setWrongCatches(prev => prev + 1);
+        setTotalWrong(prev => prev + 1);
         setFeedbackType('error');
         setFeedbackMessage(validation.reason);
         
@@ -214,6 +236,7 @@ const FishermansCatchGame = () => {
     setCurrentScenario(prev => prev + 1);
     setFish([]);
     setCatchSequence([]);
+    // Do NOT reset cumulative totals; only reset per-scenario counters for UI
     setCorrectCatches(0);
     setWrongCatches(0);
     
@@ -250,7 +273,8 @@ const FishermansCatchGame = () => {
 
   // Initialize game
   const initializeGame = useCallback(() => {
-    const settings = difficultySettings[difficulty];
+    // Force 60 seconds total game time regardless of difficulty
+    const settings = { ...difficultySettings[difficulty], timeLimit: 60 };
     const scenarios = getScenariosByDifficulty(difficulty);
     
     setCurrentScenarios(scenarios);
@@ -259,6 +283,9 @@ const FishermansCatchGame = () => {
     setCurrentScenario(0);
     setCorrectCatches(0);
     setWrongCatches(0);
+    // Keep cumulative totals intact on new game only
+    setTotalCorrect(0);
+    setTotalWrong(0);
     setLives(settings.lives);
     setMaxHints(settings.hints);
     setHintsUsed(0);
@@ -370,7 +397,7 @@ const FishermansCatchGame = () => {
             </div>
           </div>
         }
-        category="Memory"
+        category="Quick Reflexes"
         gameState={gameState}
         setGameState={setGameState}
         score={score}
@@ -472,8 +499,8 @@ const FishermansCatchGame = () => {
           {/* Fishing Area */}
           <div className="relative w-full max-w-5xl h-96 bg-gradient-to-b from-blue-200 to-blue-400 rounded-lg overflow-hidden border-4 border-blue-300 mb-6">
             {/* Water waves background */}
-            <div className="absolute inset-0 opacity-20">
-              <Waves className="h-full w-full text-blue-600" />
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
+              <Waves className="h-full w-full text-blue-700" />
             </div>
             
             {/* Boat */}
@@ -491,7 +518,7 @@ const FishermansCatchGame = () => {
               {fish.map((fishItem) => (
                 <div
                   key={fishItem.id}
-                  className={`absolute transition-all duration-300 cursor-pointer hover:scale-110 ${
+                  className={`absolute transition-transform duration-300 cursor-pointer hover:scale-110 ${
                     fishItem.caught ? 'opacity-0' : ''
                   }`}
                   style={{
@@ -503,7 +530,7 @@ const FishermansCatchGame = () => {
                   onClick={() => handleFishClick(fishItem)}
                 >
                   <div className="relative">
-                    <span className="text-2xl">{fishItem.emoji}</span>
+                    <span className="text-3xl drop-shadow-sm">{fishItem.emoji}</span>
                     {fishItem.isBad && (
                       <div className="absolute -top-1 -right-1 text-red-500 text-xs">⚠️</div>
                     )}
@@ -564,8 +591,7 @@ const FishermansCatchGame = () => {
             </div>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
               {difficulty} Mode: {difficultySettings[difficulty].catchesNeeded} catches needed | 
-              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
+              1:00 time limit |
               {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
               +{difficultySettings[difficulty].pointsPerCorrect}/{difficultySettings[difficulty].pointsPerWrong} points
             </div>

@@ -11,7 +11,8 @@ export const fishTypes = {
   redFish: { emoji: '🐠', color: 'red', size: 'small', type: 'fish', name: 'Red Fish' },
   blueFish: { emoji: '🐟', color: 'blue', size: 'medium', type: 'fish', name: 'Blue Fish' },
   yellowFish: { emoji: '🐡', color: 'yellow', size: 'large', type: 'fish', name: 'Yellow Fish' },
-  greenFish: { emoji: '🦈', color: 'green', size: 'medium', type: 'fish', name: 'Green Fish' },
+  // Use a fish emoji (not shark) for green fish so it isn't mistaken as danger
+  greenFish: { emoji: '🐟', color: 'green', size: 'medium', type: 'fish', name: 'Green Fish' },
   orangeFish: { emoji: '🐠', color: 'orange', size: 'small', type: 'fish', name: 'Orange Fish' },
   purpleFish: { emoji: '🐟', color: 'purple', size: 'large', type: 'fish', name: 'Purple Fish' },
   
@@ -187,8 +188,32 @@ export const gameScenarios = {
 };
 
 // Get scenarios based on difficulty
+// Build scenarios limited to BLUE and YELLOW fish only
+const buildAllowedScenarios = (difficulty) => {
+  if (difficulty === 'Easy') {
+    return [
+      { id: 101, instruction: 'Catch only BLUE fish!', description: 'Blue fish are your target - ignore all others.', target: { color: 'blue' }, duration: 24, fishCount: 12, targetRatio: 0.45 },
+      { id: 102, instruction: 'Catch only YELLOW fish!', description: 'Bright yellow fish are swimming by!', target: { color: 'yellow' }, duration: 24, fishCount: 12, targetRatio: 0.45 },
+      { id: 103, instruction: 'Catch BLUE or YELLOW fish only!', description: 'Either blue or yellow fish count.', target: { color: ['blue', 'yellow'] }, duration: 26, fishCount: 14, targetRatio: 0.4 },
+    ];
+  }
+  if (difficulty === 'Moderate') {
+    return [
+      { id: 201, instruction: 'Catch only LARGE BLUE fish!', description: 'Must be both large AND blue to count.', target: { color: 'blue', size: 'large' }, duration: 32, fishCount: 18, targetRatio: 0.35 },
+      { id: 202, instruction: 'Catch only SMALL YELLOW fish!', description: 'Small yellow fish only.', target: { color: 'yellow', size: 'small' }, duration: 32, fishCount: 18, targetRatio: 0.35 },
+      { id: 203, instruction: 'Catch BLUE or YELLOW fish only!', description: 'Either blue or yellow fish are acceptable.', target: { color: ['blue', 'yellow'] }, duration: 34, fishCount: 20, targetRatio: 0.4 },
+    ];
+  }
+  // Hard
+  return [
+    { id: 301, instruction: 'Catch SMALL BLUE or LARGE YELLOW fish!', description: 'Two specific combinations allowed.', target: { combinations: [{ size: 'small', color: 'blue' }, { size: 'large', color: 'yellow' }] }, duration: 40, fishCount: 22, targetRatio: 0.3 },
+    { id: 302, instruction: 'Catch exactly 2 BLUE fish, then 2 YELLOW fish!', description: 'Specific sequence: blue first, then yellow.', target: { sequence: [{ color: 'blue', count: 2 }, { color: 'yellow', count: 2 }] }, duration: 44, fishCount: 24, targetRatio: 0.28 },
+    { id: 303, instruction: 'Catch BLUE or YELLOW fish only!', description: 'Stick to the two target colors.', target: { color: ['blue', 'yellow'] }, duration: 42, fishCount: 24, targetRatio: 0.35 },
+  ];
+};
+
 export const getScenariosByDifficulty = (difficulty) => {
-  return gameScenarios[difficulty] || gameScenarios.Easy;
+  return buildAllowedScenarios(difficulty) || buildAllowedScenarios('Easy');
 };
 
 // Calculate score
@@ -294,15 +319,17 @@ export const isTargetFish = (fish, target) => {
 
 // Create a fish instance with position and movement
 const createFishInstance = (fishType, currentTime, difficulty, isTarget, isBad = false) => {
-  const speedMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.3;
-  const baseSpeed = fishType.size === 'small' ? 2 : fishType.size === 'medium' ? 1.5 : 1.2;
+  // Make speed clearly different across levels
+  // Easy: slow; Moderate: medium; Hard: fast
+  const speedMultiplier = difficulty === 'Easy' ? 0.7 : difficulty === 'Moderate' ? 1.0 : 1.5;
+  const baseSpeed = fishType.size === 'small' ? 2.2 : fishType.size === 'medium' ? 1.8 : 1.3;
   
   return {
     id: Math.random().toString(36).substr(2, 9),
     ...fishType,
-    x: -100, // Start off-screen left
+    x: -40, // default, will be overridden to right edge by caller
     y: Math.random() * 300 + 50, // Random height
-    speed: baseSpeed * speedMultiplier * (0.8 + Math.random() * 0.4), // Some variation
+    speed: baseSpeed * speedMultiplier * (0.9 + Math.random() * 0.2), // Mild variation preserves difficulty gap
     isTarget,
     isBad,
     spawTime: currentTime,
