@@ -49,34 +49,37 @@ const DataStreamSecurityGame = () => {
     const streamColors = ['#00ff41', '#0066ff', '#ff0066', '#ffff00', '#ff6600', '#9900ff'];
     const streamSymbols = ['◆', '●', '▲', '■', '◇', '☀'];
 
-    // Difficulty settings
+    // Difficulty settings - Updated as requested
     const difficultySettings = {
         Easy: {
+            patternLength: 9,
+            learningTime: 15,
+            timeLimit: 120,
+            lives: 3,
+            lockCount: 8,
+            streamSpeed: 2000,
+            pointsPerCorrect: 25,
+            description: '9-step patterns, 15s study time, 8 locks, 25 points each'
+        },
+        Moderate: {
             patternLength: 6,
             learningTime: 12,
             timeLimit: 120,
             lives: 3,
-            lockCount: 4,
-            streamSpeed: 2000,
-            description: '6-step patterns, 12s study time, 4 locks'
-        },
-        Moderate: {
-            patternLength: 8,
-            learningTime: 15,
-            timeLimit: 120,
-            lives: 3,
-            lockCount: 6,
+            lockCount: 5,
             streamSpeed: 1500,
-            description: '8-step patterns, 15s study time, 6 locks'
+            pointsPerCorrect: 40,
+            description: '6-step patterns, 12s study time, 5 locks, 40 points each'
         },
         Hard: {
-            patternLength: 10,
-            learningTime: 18,
+            patternLength: 5,
+            learningTime: 10,
             timeLimit: 120,
             lives: 3,
-            lockCount: 8,
+            lockCount: 4,
             streamSpeed: 1200,
-            description: '10-step patterns, 18s study time, 8 locks'
+            pointsPerCorrect: 50,
+            description: '5-step patterns, 10s study time, 4 locks, 50 points each'
         }
     };
 
@@ -197,16 +200,10 @@ const DataStreamSecurityGame = () => {
         setStreamAnimation(false);
     };
 
-    // Calculate score
+    // Calculate score - Updated as requested
     const calculateScore = useCallback(() => {
-    const pointsPerCorrectAnswer = {
-        Easy: 50,
-        Moderate: 32,
-        Hard: 25
-    };
-    
-    return correctUnlocks * pointsPerCorrectAnswer[difficulty];
-}, [correctUnlocks, difficulty]);
+        return correctUnlocks * difficultySettings[difficulty].pointsPerCorrect;
+    }, [correctUnlocks, difficulty]);
 
     // Update score during gameplay
     useEffect(() => {
@@ -374,41 +371,39 @@ const DataStreamSecurityGame = () => {
                             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showInstructions ? '' : 'hidden'}`}>
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-cyan-500'>
                                     <h4 className="text-sm font-medium text-cyan-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🌊 Learning Phase
+                                        🎯 Game Objective
                                     </h4>
                                     <p className="text-sm text-cyan-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Study the flowing data stream pattern carefully. Memorize the sequence of colored symbols.
+                                        Memorize a sequence of colored symbols and predict the next elements to unlock security systems.
                                     </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-purple-500'>
                                     <h4 className="text-sm font-medium text-purple-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🔒 Security Locks
+                                        🌊 Learning Phase
                                     </h4>
                                     <p className="text-sm text-purple-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Unlock security systems by predicting the next element in the memorized pattern sequence.
+                                        Carefully study the flowing data stream pattern. You'll have limited time to memorize the sequence.
                                     </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-green-500'>
                                     <h4 className="text-sm font-medium text-green-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        ⚡ Scoring System
+                                        🔒 Unlocking Phase
                                     </h4>
-                                    <ul className="text-sm text-green-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Pattern memory accuracy</li>
-                                        <li>• Security unlock speed</li>
-                                        <li>• Consecutive unlock streaks</li>
-                                    </ul>
+                                    <p className="text-sm text-green-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                                        Predict the next symbol in the sequence to bypass security locks. Each correct answer earns points based on difficulty.
+                                    </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-orange-500'>
                                     <h4 className="text-sm font-medium text-orange-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🎯 Difficulty Levels
+                                        🏆 Scoring System
                                     </h4>
                                     <ul className="text-sm text-orange-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong>Easy:</strong> 6 steps, 4 locks</li>
-                                        <li>• <strong>Medium:</strong> 8 steps, 6 locks</li>
-                                        <li>• <strong>Hard:</strong> 10 steps, 8 locks</li>
+                                        <li>• <strong>Easy:</strong> 25 points per correct answer</li>
+                                        <li>• <strong>Moderate:</strong> 40 points per correct answer</li>
+                                        <li>• <strong>Hard:</strong> 50 points per correct answer</li>
                                     </ul>
                                 </div>
                             </div>
@@ -429,7 +424,7 @@ const DataStreamSecurityGame = () => {
             >
                 <div className="flex flex-col items-center">
                     {/* Game Stats */}
-                    <div className="grid grid-cols-4 gap-3 mb-6 w-full max-w-3xl">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
                         <div className="text-center bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-3 border border-red-200">
                             <div className="text-sm text-red-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 Security Lives

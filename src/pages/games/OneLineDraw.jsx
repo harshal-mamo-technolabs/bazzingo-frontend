@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
 import Header from '../../components/Header';
-import { difficultySettings, puzzleLibrary, blobStyles } from '../../utils/games/OneLineDraw';
+import { difficultySettings, puzzleLibrary, blobStyles, shuffleArray } from '../../utils/games/OneLineDraw';
 import { Pen, RotateCcw, Lightbulb, ChevronUp, ChevronDown, Target, Timer, Zap, Award } from 'lucide-react';
 
 const OneLineDrawGame = () => {
@@ -19,8 +19,10 @@ const OneLineDrawGame = () => {
   // Game-specific state
   const [currentPuzzle, setCurrentPuzzle] = useState(null);
   const [puzzleIndex, setPuzzleIndex] = useState(0);
+  const [shuffledPuzzles, setShuffledPuzzles] = useState([]);
   const [totalPuzzles, setTotalPuzzles] = useState(6);
   const [completedPuzzles, setCompletedPuzzles] = useState(0);
+  const [skippedPuzzles, setSkippedPuzzles] = useState(0);
   const [currentPath, setCurrentPath] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [visitedDots, setVisitedDots] = useState(new Set());
@@ -33,7 +35,7 @@ const OneLineDrawGame = () => {
   const [lastScoreGain, setLastScoreGain] = useState(0);
   const [scoreAnimation, setScoreAnimation] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
-
+  const [isSkipping, setIsSkipping] = useState(false);
 
   // Particle system for visual feedback
   const createParticles = (type, count = 15) => {
@@ -57,21 +59,20 @@ const OneLineDrawGame = () => {
     setTimeout(() => setParticles([]), 2000);
   };
 
-  /* const animateScore = (gain) => {
-    setLastScoreGain(gain);
-    setScoreAnimation(1);
-    setTimeout(() => setScoreAnimation(0), 1000);
-  }; */
-
-  // Initialize game
+  // Initialize game with shuffled puzzles
   const initializeGame = useCallback(() => {
     const settings = difficultySettings[difficulty];
     const puzzles = puzzleLibrary[difficulty] || puzzleLibrary.Easy;
     
+    // Shuffle puzzles to prevent repetition
+    const shuffled = shuffleArray(puzzles);
+    setShuffledPuzzles(shuffled);
+    
     setTotalPuzzles(settings.puzzlesCount);
     setCompletedPuzzles(0);
+    setSkippedPuzzles(0);
     setPuzzleIndex(0);
-    setCurrentPuzzle(puzzles[0]);
+    setCurrentPuzzle(shuffled[0]);
     setCurrentPath([]);
     setIsDrawing(false);
     setVisitedDots(new Set());
@@ -86,19 +87,53 @@ const OneLineDrawGame = () => {
     setParticles([]);
     setGameDuration(0);
     setGameStarted(false);
+    setIsSkipping(false);
   }, [difficulty]);
 
   // Load next puzzle
   const loadNextPuzzle = useCallback(() => {
-    const puzzles = puzzleLibrary[difficulty] || puzzleLibrary.Easy;
-    const nextIndex = (puzzleIndex + 1) % puzzles.length;
-    setPuzzleIndex(nextIndex);
-    setCurrentPuzzle(puzzles[nextIndex]);
+    const nextIndex = puzzleIndex + 1;
+    
+    if (nextIndex >= shuffledPuzzles.length) {
+      // If we've used all puzzles, reshuffle them
+      const puzzles = puzzleLibrary[difficulty] || puzzleLibrary.Easy;
+      const newShuffled = shuffleArray(puzzles);
+      setShuffledPuzzles(newShuffled);
+      setPuzzleIndex(0);
+      setCurrentPuzzle(newShuffled[0]);
+    } else {
+      setPuzzleIndex(nextIndex);
+      setCurrentPuzzle(shuffledPuzzles[nextIndex]);
+    }
+    
     setCurrentPath([]);
     setIsDrawing(false);
     setVisitedDots(new Set());
     setDrawnLines(new Set());
-  }, [difficulty, puzzleIndex]);
+    setIsSkipping(false);
+  }, [difficulty, puzzleIndex, shuffledPuzzles]);
+
+  // Skip current puzzle due to wrong attempt
+  const skipCurrentPuzzle = useCallback(() => {
+    setIsSkipping(true);
+    setSkippedPuzzles(prev => prev + 1);
+    
+    setTimeout(() => {
+      const totalProcessed = completedPuzzles + skippedPuzzles + 1;
+      
+      if (totalProcessed >= totalPuzzles) {
+        // Game completed
+        const endTime = Date.now();
+        const duration = Math.floor((endTime - gameStartTime) / 1000);
+        setGameDuration(duration);
+        setFinalScore(calculateScore(completedPuzzles));
+        setGameState('finished');
+        setShowCompletionModal(true);
+      } else {
+        loadNextPuzzle();
+      }
+    }, 1500);
+  }, [completedPuzzles, skippedPuzzles, totalPuzzles, gameStartTime, loadNextPuzzle]);
 
   // Check if two dots are connected
   const areDotsConnected = (dot1Id, dot2Id) => {
@@ -110,7 +145,7 @@ const OneLineDrawGame = () => {
 
   // Handle dot click/touch
   const handleDotClick = (dotId) => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isSkipping) return;
 
     if (!isDrawing) {
       // Start drawing from this dot
@@ -131,10 +166,11 @@ const OneLineDrawGame = () => {
         const lineKey = `${Math.min(lastDot, dotId)}-${Math.max(lastDot, dotId)}`;
         
         if (drawnLines.has(lineKey)) {
-          // Line already drawn - invalid move
+          // Line already drawn - invalid move, skip puzzle
           setWrongAttempts(prev => prev + 1);
           setConsecutiveCorrect(0);
           createParticles('error', 8);
+          skipCurrentPuzzle();
           return;
         }
 
@@ -150,8 +186,9 @@ const OneLineDrawGame = () => {
         // Check if puzzle is solved
         if (newVisitedDots.size === currentPuzzle.dots.length && 
             newDrawnLines.size === currentPuzzle.connections.length) {
-          // Puzzle completed!
-          setCompletedPuzzles(prev => prev + 1);
+          // Puzzle completed successfully!
+          const newCompletedCount = completedPuzzles + 1;
+          setCompletedPuzzles(newCompletedCount);
           setConsecutiveCorrect(prev => {
             const newStreak = prev + 1;
             setBestStreak(current => Math.max(current, newStreak));
@@ -162,12 +199,14 @@ const OneLineDrawGame = () => {
 
           // Load next puzzle or finish game
           setTimeout(() => {
-            if (completedPuzzles + 1 >= totalPuzzles) {
+            const totalProcessed = newCompletedCount + skippedPuzzles;
+            
+            if (totalProcessed >= totalPuzzles) {
               // Game completed
               const endTime = Date.now();
               const duration = Math.floor((endTime - gameStartTime) / 1000);
               setGameDuration(duration);
-              setFinalScore(calculateScore(completedPuzzles + 1));
+              setFinalScore(calculateScore(newCompletedCount));
               setGameState('finished');
               setShowCompletionModal(true);
             } else {
@@ -176,10 +215,11 @@ const OneLineDrawGame = () => {
           }, 1000);
         }
       } else {
-        // Invalid connection
+        // Invalid connection - skip puzzle
         setWrongAttempts(prev => prev + 1);
         setConsecutiveCorrect(0);
         createParticles('error', 8);
+        skipCurrentPuzzle();
       }
     }
   };
@@ -191,27 +231,6 @@ const OneLineDrawGame = () => {
     setVisitedDots(new Set());
     setDrawnLines(new Set());
   };
-
-  /* Get hint - show next move in solution
-  const getHint = () => {
-    if (hintsUsed >= difficultySettings[difficulty].maxHints || !currentPuzzle) return;
-
-    const solution = currentPuzzle.solution;
-    const nextMoveIndex = currentPath.length;
-    
-    if (nextMoveIndex < solution.length) {
-      const nextDot = solution[nextMoveIndex];
-      
-      // Highlight the next dot temporarily
-      const dotElement = document.querySelector(`[data-dot-id="${nextDot}"]`);
-      if (dotElement) {
-        dotElement.style.animation = 'pulse 1s ease-in-out 3';
-      }
-
-      setHintsUsed(prev => prev + 1);
-      createParticles('warning', 10);
-    }
-  }; */
 
   // Simple scoring calculation - just multiply completed puzzles by points per puzzle
   const calculateScore = useCallback((puzzlesCompleted = completedPuzzles) => {
@@ -276,6 +295,7 @@ const OneLineDrawGame = () => {
   const customStats = {
     completedPuzzles,
     totalPuzzles,
+    skippedPuzzles,
     hintsUsed,
     maxHints: difficultySettings[difficulty].maxHints,
     wrongAttempts,
@@ -347,14 +367,14 @@ const OneLineDrawGame = () => {
                   <ul className="text-xs sm:text-sm text-blue-700 space-y-0.5 sm:space-y-1">
                     <li>• Click a dot to start drawing</li>
                     <li>• Click connected dots to continue</li>
-                    <li>• Visit all dots without retracing</li>
+                    <li>• Wrong pattern skips puzzle</li>
                   </ul>
                 </div>
 
                 <div className='bg-white p-2 sm:p-3 rounded-lg shadow-sm'>
                   <h4 className="text-xs sm:text-sm font-medium text-blue-800 mb-1 sm:mb-2">📊 Scoring</h4>
                   <ul className="text-xs sm:text-sm text-blue-700 space-y-0.5 sm:space-y-1">
-                    <li>• <strong>Easy:</strong> 32 points per puzzle</li>
+                    <li>• <strong>Easy:</strong> 25 points per puzzle</li>
                     <li>• <strong>Moderate:</strong> 40 points per puzzle</li>
                     <li>• <strong>Hard:</strong> 50 points per puzzle</li>
                   </ul>
@@ -363,7 +383,7 @@ const OneLineDrawGame = () => {
                 <div className='bg-white p-2 sm:p-3 rounded-lg shadow-sm'>
                   <h4 className="text-xs sm:text-sm font-medium text-blue-800 mb-1 sm:mb-2">🎚️ Difficulty</h4>
                   <ul className="text-xs sm:text-sm text-blue-700 space-y-0.5 sm:space-y-1">
-                    <li>• <strong>Easy:</strong> 6 puzzles (192 max)</li>
+                    <li>• <strong>Easy:</strong> 8 puzzles (200 max)</li>
                     <li>• <strong>Moderate:</strong> 5 puzzles (200 max)</li>
                     <li>• <strong>Hard:</strong> 4 puzzles (200 max)</li>
                   </ul>
@@ -412,7 +432,7 @@ const OneLineDrawGame = () => {
                 </div>
                 
                 <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-                  <span className="text-2xl sm:text-4xl font-extrabold tracking-tight">{completedPuzzles}</span>
+                  <span className="text-2xl sm:text-4xl font-extrabold tracking-tight">{completedPuzzles + skippedPuzzles}</span>
                   <span className="text-lg sm:text-xl font-medium opacity-75">/</span>
                   <span className="text-xl sm:text-2xl font-bold opacity-90">{totalPuzzles}</span>
                 </div>
@@ -421,16 +441,17 @@ const OneLineDrawGame = () => {
                 <div className="w-full bg-white/20 rounded-full h-2 sm:h-3 mb-2 sm:mb-3 overflow-hidden">
                   <div 
                     className="bg-gradient-to-r from-yellow-300 to-yellow-400 h-full rounded-full transition-all duration-500 ease-out shadow-lg"
-                    style={{ width: `${(completedPuzzles / totalPuzzles) * 100}%` }}
+                    style={{ width: `${((completedPuzzles + skippedPuzzles) / totalPuzzles) * 100}%` }}
                   ></div>
                 </div>
                 
                 <div className="text-xs sm:text-sm opacity-90 font-medium">
-                  {!isDrawing && completedPuzzles === 0 ? 
+                  {isSkipping ? '⏭️ Skipping puzzle...' :
+                   !isDrawing && completedPuzzles === 0 && skippedPuzzles === 0 ? 
                     '🎯 Click a dot to start drawing' : 
                     isDrawing ? 
                       `✏️ Drawing... (${currentPath.length} dots connected)` : 
-                      `🎉 Puzzle ${completedPuzzles} completed!`
+                      `✅ Completed: ${completedPuzzles}, Skipped: ${skippedPuzzles}`
                   }
                 </div>
               </div>
@@ -441,15 +462,25 @@ const OneLineDrawGame = () => {
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 w-full max-w-md">
             <button
               onClick={resetPuzzle}
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 flex items-center gap-1 sm:gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base flex-1 sm:flex-none justify-center"
+              disabled={isSkipping}
+              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 flex items-center gap-1 sm:gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base flex-1 sm:flex-none justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
               Reset Puzzle
             </button>
           </div>
+          
           {/* Drawing Canvas */}
           {currentPuzzle && (
             <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl sm:rounded-3xl p-2 sm:p-4 lg:p-8 shadow-2xl border border-slate-200/50 backdrop-blur-sm w-full max-w-sm sm:max-w-md lg:max-w-lg">
+              {isSkipping && (
+                <div className="absolute inset-0 bg-yellow-200/80 rounded-2xl sm:rounded-3xl flex items-center justify-center z-10">
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">⏭️</div>
+                    <div className="text-lg font-semibold text-gray-800">Skipping Puzzle...</div>
+                  </div>
+                </div>
+              )}
               <svg 
                 width="100%" 
                 height="100%" 

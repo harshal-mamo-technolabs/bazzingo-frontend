@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Carrot as Mirror, Lightbulb, CheckCircle, XCircle, RotateCw, ChevronUp, ChevronDown, Target } from 'lucide-react';
+import { Carrot as Mirror, Lightbulb, CheckCircle, XCircle, RotateCw, ChevronUp, ChevronDown, Target, Heart, Zap } from 'lucide-react';
 
 const MirrorMatchGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -30,6 +30,8 @@ const MirrorMatchGame = () => {
   const [hintMessage, setHintMessage] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [animatingCells, setAnimatingCells] = useState(new Set());
+  const [pulseEffect, setPulseEffect] = useState(false);
 
   // Comprehensive pattern library with more variety
   const patterns = {
@@ -117,6 +119,34 @@ const MirrorMatchGame = () => {
           [0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0]
         ]
+      },
+      {
+        id: 'corner_block',
+        name: 'Corner Block',
+        icon: '⌞',
+        color: '#BE185D',
+        gradient: 'from-pink-600 via-rose-700 to-red-800',
+        grid: [
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 1, 1, 0, 0]
+        ]
+      },
+      {
+        id: 'small_t',
+        name: 'Small T',
+        icon: '⊤',
+        color: '#059669',
+        gradient: 'from-teal-600 via-emerald-700 to-green-800',
+        grid: [
+          [1, 1, 1, 0, 0],
+          [0, 1, 0, 0, 0],
+          [0, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0]
+        ]
       }
     ],
     moderate: [
@@ -189,62 +219,6 @@ const MirrorMatchGame = () => {
           [1, 0, 1, 0, 1],
           [1, 0, 1, 0, 1]
         ]
-      },
-      {
-        id: 'triangle_pattern',
-        name: 'Triangle Pattern',
-        icon: '△',
-        color: '#DC2626',
-        gradient: 'from-red-600 via-red-700 to-red-800',
-        grid: [
-          [0, 0, 1, 0, 0],
-          [0, 1, 1, 1, 0],
-          [1, 1, 1, 1, 1],
-          [0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0]
-        ]
-      },
-      {
-        id: 'chevron_pattern',
-        name: 'Chevron Pattern',
-        icon: '⌄',
-        color: '#BE185D',
-        gradient: 'from-pink-600 via-rose-700 to-red-800',
-        grid: [
-          [1, 0, 0, 0, 1],
-          [0, 1, 0, 1, 0],
-          [0, 0, 1, 0, 0],
-          [0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0]
-        ]
-      },
-      {
-        id: 'bridge_pattern',
-        name: 'Bridge Pattern',
-        icon: '⌒',
-        color: '#1E40AF',
-        gradient: 'from-indigo-600 via-blue-700 to-cyan-800',
-        grid: [
-          [1, 0, 0, 0, 1],
-          [1, 1, 0, 1, 1],
-          [0, 1, 1, 1, 0],
-          [0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0]
-        ]
-      },
-      {
-        id: 'tower_pattern',
-        name: 'Tower Pattern',
-        icon: '🗼',
-        color: '#7C3AED',
-        gradient: 'from-violet-600 via-purple-700 to-indigo-800',
-        grid: [
-          [0, 0, 1, 0, 0],
-          [0, 1, 1, 1, 0],
-          [0, 0, 1, 0, 0],
-          [0, 0, 1, 0, 0],
-          [1, 1, 1, 1, 1]
-        ]
       }
     ],
     hard: [
@@ -303,127 +277,36 @@ const MirrorMatchGame = () => {
           [1, 0, 0, 0, 1],
           [1, 1, 0, 1, 1]
         ]
-      },
-      {
-        id: 'lightning_pattern',
-        name: 'Lightning Pattern',
-        icon: '⚡',
-        color: '#FBBF24',
-        gradient: 'from-yellow-600 via-amber-700 to-orange-800',
-        grid: [
-          [0, 1, 0, 0, 0],
-          [1, 1, 0, 0, 0],
-          [0, 1, 1, 1, 0],
-          [0, 0, 0, 1, 1],
-          [0, 0, 0, 1, 0]
-        ]
-      },
-      {
-        id: 'castle_pattern',
-        name: 'Castle Pattern',
-        icon: '♜',
-        color: '#6B7280',
-        gradient: 'from-gray-600 via-slate-700 to-gray-800',
-        grid: [
-          [1, 0, 1, 0, 1],
-          [1, 1, 1, 1, 1],
-          [0, 1, 1, 1, 0],
-          [0, 1, 0, 1, 0],
-          [1, 1, 0, 1, 1]
-        ]
-      },
-      {
-        id: 'butterfly_pattern',
-        name: 'Butterfly Pattern',
-        icon: '🦋',
-        color: '#EC4899',
-        gradient: 'from-pink-600 via-rose-700 to-purple-800',
-        grid: [
-          [1, 0, 1, 0, 1],
-          [1, 1, 0, 1, 1],
-          [0, 1, 1, 1, 0],
-          [1, 1, 0, 1, 1],
-          [1, 0, 1, 0, 1]
-        ]
-      },
-      {
-        id: 'complex_cross',
-        name: 'Complex Cross',
-        icon: '✠',
-        color: '#DC2626',
-        gradient: 'from-red-600 via-red-700 to-rose-800',
-        grid: [
-          [0, 1, 1, 1, 0],
-          [1, 1, 1, 1, 1],
-          [1, 1, 0, 1, 1],
-          [1, 1, 1, 1, 1],
-          [0, 1, 1, 1, 0]
-        ]
-      },
-      {
-        id: 'star_pattern',
-        name: 'Star Pattern',
-        icon: '⭐',
-        color: '#F59E0B',
-        gradient: 'from-amber-600 via-yellow-700 to-orange-800',
-        grid: [
-          [0, 0, 1, 0, 0],
-          [0, 1, 1, 1, 0],
-          [1, 1, 1, 1, 1],
-          [0, 1, 0, 1, 0],
-          [1, 0, 0, 0, 1]
-        ]
-      },
-      {
-        id: 'wave_pattern',
-        name: 'Wave Pattern',
-        icon: '〜',
-        color: '#0891B2',
-        gradient: 'from-cyan-600 via-blue-700 to-teal-800',
-        grid: [
-          [1, 0, 0, 1, 0],
-          [0, 1, 0, 0, 1],
-          [0, 0, 1, 0, 0],
-          [0, 1, 0, 0, 1],
-          [1, 0, 0, 1, 0]
-        ]
-      },
-      {
-        id: 'hexagon_pattern',
-        name: 'Hexagon Pattern',
-        icon: '⬡',
-        color: '#059669',
-        gradient: 'from-emerald-600 via-green-700 to-teal-800',
-        grid: [
-          [0, 1, 1, 1, 0],
-          [1, 1, 0, 1, 1],
-          [1, 0, 0, 0, 1],
-          [1, 1, 0, 1, 1],
-          [0, 1, 1, 1, 0]
-        ]
-      },
-      {
-        id: 'complex_spiral',
-        name: 'Complex Spiral',
-        icon: '🌀',
-        color: '#7C3AED',
-        gradient: 'from-violet-600 via-purple-700 to-indigo-800',
-        grid: [
-          [1, 1, 1, 1, 1],
-          [0, 0, 0, 0, 1],
-          [1, 1, 1, 0, 1],
-          [1, 0, 0, 0, 1],
-          [1, 1, 1, 1, 1]
-        ]
       }
     ]
   };
 
-  // Difficulty settings
+  // Fixed difficulty settings with proper scoring
   const difficultySettings = {
-    Easy: { timeLimit: 120, lives: 5, hints: 3, optionsCount: 3, totalPatterns: 6, pointsPerPattern: 33 },
-    Moderate: { timeLimit: 100, lives: 4, hints: 2, optionsCount: 4, totalPatterns: 9, pointsPerPattern: 22 },
-    Hard: { timeLimit: 80, lives: 3, hints: 1, optionsCount: 4, totalPatterns: 12, pointsPerPattern: 16 }
+    Easy: { 
+      timeLimit: 120, 
+      lives: 5, 
+      hints: 3, 
+      optionsCount: 3, 
+      totalPatterns: 8, 
+      pointsPerPattern: 25 
+    },
+    Moderate: { 
+      timeLimit: 100, 
+      lives: 4, 
+      hints: 2, 
+      optionsCount: 4, 
+      totalPatterns: 5, 
+      pointsPerPattern: 40 
+    },
+    Hard: { 
+      timeLimit: 80, 
+      lives: 3, 
+      hints: 1, 
+      optionsCount: 4, 
+      totalPatterns: 4, 
+      pointsPerPattern: 50 
+    }
   };
 
   // Mirror pattern horizontally
@@ -477,6 +360,28 @@ const MirrorMatchGame = () => {
     }
 
     return true;
+  };
+
+  // Animate cells with staggered effect
+  const animatePatternReveal = (grid) => {
+    const cells = [];
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[i].length; j++) {
+        if (grid[i][j] === 1) {
+          cells.push(`${i}-${j}`);
+        }
+      }
+    }
+
+    cells.forEach((cellId, index) => {
+      setTimeout(() => {
+        setAnimatingCells(prev => new Set([...prev, cellId]));
+      }, index * 100);
+    });
+
+    setTimeout(() => {
+      setAnimatingCells(new Set());
+    }, cells.length * 100 + 1000);
   };
 
   // Generate new pattern based on difficulty and level
@@ -585,30 +490,24 @@ const MirrorMatchGame = () => {
     setSelectedOption(null);
     setShowFeedback(false);
     setPatternStartTime(Date.now());
+
+    // Animate pattern reveal
+    animatePatternReveal(randomPattern.grid);
   }, [difficulty]);
 
-  // Calculate score using new simplified system
-  const calculateScore = useCallback(() => {
-    const settings = difficultySettings[difficulty];
-    return solvedPatterns * settings.pointsPerPattern;
-  }, [difficulty, solvedPatterns]);
-
-  // Update score whenever relevant values change
-  useEffect(() => {
-    const newScore = calculateScore();
-    setScore(newScore);
-  }, [calculateScore]);
-
-  // Handle option selection
   const handleOptionSelect = useCallback((option) => {
     if (gameState !== 'playing' || showFeedback) return;
-
+  
     const responseTime = Date.now() - patternStartTime;
     setSelectedOption(option);
     setShowFeedback(true);
     setTotalAttempts(prev => prev + 1);
     setTotalResponseTime(prev => prev + responseTime);
-
+  
+    // Trigger pulse effect
+    setPulseEffect(true);
+    setTimeout(() => setPulseEffect(false), 600);
+  
     if (option.isCorrect) {
       setFeedbackType('correct');
       setSolvedPatterns(prev => prev + 1);
@@ -618,8 +517,10 @@ const MirrorMatchGame = () => {
         return newStreak;
       });
       setCurrentLevel(prev => prev + 1);
-
-      // Check if game is complete
+  
+      // Add points immediately
+      setScore(prev => prev + difficultySettings[difficulty].pointsPerPattern);
+  
       const settings = difficultySettings[difficulty];
       if (solvedPatterns + 1 >= settings.totalPatterns) {
         setTimeout(() => {
@@ -637,18 +538,36 @@ const MirrorMatchGame = () => {
       setLives(prev => {
         const newLives = prev - 1;
         if (newLives <= 0) {
-          setGameState('finished');
-          setShowCompletionModal(true);
+          setTimeout(() => {
+            setGameState('finished');
+            setShowCompletionModal(true);
+          }, 2000);
         }
         return Math.max(0, newLives);
       });
-
-      setTimeout(() => {
-        setShowFeedback(false);
-      }, 2000);
+  
+      // 👇 NEW: increase level + progress even when wrong
+      setCurrentLevel(prev => prev + 1);
+      setSolvedPatterns(prev => prev + 1);
+  
+      // Automatically load next question if game not over
+      const settings = difficultySettings[difficulty];
+      if (solvedPatterns + 1 >= settings.totalPatterns) {
+        setTimeout(() => {
+          setGameState('finished');
+          setShowCompletionModal(true);
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          if (lives > 1) {   // only continue if we still have lives left
+            setShowFeedback(false);
+            generateNewPattern();
+          }
+        }, 2000);
+      }
     }
-  }, [gameState, showFeedback, patternStartTime, generateNewPattern, difficulty, solvedPatterns]);
-
+  }, [gameState, showFeedback, patternStartTime, generateNewPattern, difficulty, solvedPatterns, lives]);
+  
   // Use hint
   const useHint = () => {
     if (hintsUsed >= maxHints || gameState !== 'playing' || !originalPattern) return;
@@ -703,15 +622,19 @@ const MirrorMatchGame = () => {
     setSolvedPatterns(0);
     setTotalAttempts(0);
     setTotalResponseTime(0);
+    setAnimatingCells(new Set());
+    setPulseEffect(false);
   }, [difficulty]);
 
   const handleStart = () => {
     initializeGame();
+    setGameState('playing');
     generateNewPattern();
   };
 
   const handleReset = () => {
     initializeGame();
+    setGameState('ready');
     setOriginalPattern(null);
     setOptions([]);
     setSelectedOption(null);
@@ -734,7 +657,7 @@ const MirrorMatchGame = () => {
     patternType: originalPattern?.name || 'Unknown'
   };
 
-  // Render grid pattern with responsive design
+  // Render grid pattern with responsive design and animations
   const renderGrid = (grid, pattern, size = 'normal', isSelected = false, isCorrect = null) => {
     const getCellSize = () => {
       if (size === 'large') return 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12';
@@ -753,11 +676,15 @@ const MirrorMatchGame = () => {
 
     let containerStyle = `${containerClass} rounded-xl sm:rounded-2xl border-2 sm:border-4 transition-all duration-500 transform-gpu`;
 
+    if (pulseEffect && isSelected) {
+      containerStyle += ' animate-pulse';
+    }
+
     if (isSelected && isCorrect !== null) {
       if (isCorrect) {
-        containerStyle += ' border-green-400 bg-gradient-to-br from-green-50 to-emerald-100 shadow-xl sm:shadow-2xl shadow-green-500/50 scale-105 ring-2 sm:ring-4 ring-green-300 ring-opacity-75';
+        containerStyle += ' border-green-400 bg-gradient-to-br from-green-50 to-emerald-100 shadow-xl sm:shadow-2xl shadow-green-500/50 scale-105 ring-2 sm:ring-4 ring-green-300 ring-opacity-75 animate-bounce';
       } else {
-        containerStyle += ' border-red-400 bg-gradient-to-br from-red-50 to-rose-100 shadow-xl sm:shadow-2xl shadow-red-500/50 scale-95 ring-2 sm:ring-4 ring-red-300 ring-opacity-75';
+        containerStyle += ' border-red-400 bg-gradient-to-br from-red-50 to-rose-100 shadow-xl sm:shadow-2xl shadow-red-500/50 scale-95 ring-2 sm:ring-4 ring-red-300 ring-opacity-75 animate-shake';
       }
     } else {
       containerStyle += ' border-gray-300 bg-gradient-to-br from-white to-gray-50 hover:border-gray-400 hover:shadow-lg sm:hover:shadow-xl hover:scale-105';
@@ -767,16 +694,26 @@ const MirrorMatchGame = () => {
       <div className={containerStyle}>
         <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
           {grid.map((row, i) =>
-            row.map((cell, j) => (
-              <div
-                key={`${i}-${j}`}
-                className={`${cellSize} rounded-sm sm:rounded-lg border transition-all duration-300 ${
-                  cell
-                    ? `bg-gradient-to-br ${pattern?.gradient || 'from-blue-400 to-blue-600'} border-white shadow-sm sm:shadow-lg`
-                    : 'bg-gray-100 border-gray-200'
-                }`}
-              />
-            ))
+            row.map((cell, j) => {
+              const cellId = `${i}-${j}`;
+              const isAnimating = animatingCells.has(cellId);
+              
+              return (
+                <div
+                  key={cellId}
+                  className={`${cellSize} rounded-sm sm:rounded-lg border transition-all duration-300 ${
+                    cell
+                      ? `bg-gradient-to-br ${pattern?.gradient || 'from-blue-400 to-blue-600'} border-white shadow-sm sm:shadow-lg ${
+                          isAnimating ? 'animate-ping' : ''
+                        }`
+                      : 'bg-gray-100 border-gray-200'
+                  }`}
+                  style={{
+                    animationDelay: isAnimating ? `${(i * 5 + j) * 50}ms` : '0ms'
+                  }}
+                />
+              );
+            })
           )}
         </div>
       </div>
@@ -784,14 +721,14 @@ const MirrorMatchGame = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Header unreadCount={3} />
 
       <GameFramework
-        gameTitle="Mirror Match"
+        gameTitle="🪞✨ Mirror Match"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0">
-            <div className="bg-[#E8E8E8] rounded-lg p-4 sm:p-6">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 sm:p-6">
               {/* Header with toggle */}
               <div
                 className="flex items-center justify-between mb-4 cursor-pointer"
@@ -810,8 +747,9 @@ const MirrorMatchGame = () => {
               {/* Toggle Content */}
               {showInstructions && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  <div className='bg-white p-3 rounded-lg border border-blue-200'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      <Target className="h-4 w-4" />
                       🎯 Objective
                     </h4>
                     <p className="text-xs sm:text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
@@ -819,8 +757,9 @@ const MirrorMatchGame = () => {
                     </p>
                   </div>
 
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  <div className='bg-white p-3 rounded-lg border border-blue-200'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      <Mirror className="h-4 w-4" />
                       🪞 Mirror Logic
                     </h4>
                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
@@ -830,25 +769,29 @@ const MirrorMatchGame = () => {
                     </ul>
                   </div>
 
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  <div className='bg-white p-3 rounded-lg border border-blue-200'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      <Zap className="h-4 w-4" />
                       📊 Scoring
                     </h4>
                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 33 points per pattern</li>
-                      <li>• Moderate: 22 points per pattern</li>
-                      <li>• Hard: 16 points per pattern</li>
+                      <li>• Easy: 25 points × 8 patterns</li>
+                      <li>• Moderate: 40 points × 5 patterns</li>
+                      <li>• Hard: 50 points × 4 patterns</li>
+                      <li>• Wrong answer = -1 life</li>
                     </ul>
                   </div>
 
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  <div className='bg-white p-3 rounded-lg border border-blue-200'>
+                    <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      <Lightbulb className="h-4 w-4" />
                       💡 Strategy
                     </h4>
                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                       <li>• Visualize folding vertically</li>
                       <li>• Check edge patterns first</li>
                       <li>• Use hints for complex patterns</li>
+                      <li>• Focus on accuracy over speed</li>
                     </ul>
                   </div>
                 </div>
@@ -876,10 +819,10 @@ const MirrorMatchGame = () => {
               <button
                 onClick={useHint}
                 disabled={hintsUsed >= maxHints}
-                className={`px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base ${
+                className={`px-3 sm:px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 text-sm sm:text-base transform hover:scale-105 ${
                   hintsUsed >= maxHints
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                    : 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg hover:shadow-xl'
                 }`}
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
@@ -891,35 +834,38 @@ const MirrorMatchGame = () => {
 
           {/* Game Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6 w-full max-w-2xl">
-            <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
-              <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <div className="text-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-3 border border-blue-200">
+              <div className="text-xs sm:text-sm text-blue-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Level
               </div>
-              <div className="text-base sm:text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              <div className="text-base sm:text-lg font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {currentLevel}
               </div>
             </div>
-            <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
-              <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <div className="text-center bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-2 sm:p-3 border border-red-200">
+              <div className="text-xs sm:text-sm text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Lives
               </div>
-              <div className="text-base sm:text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {'❤️'.repeat(lives)}
+              <div className="text-base sm:text-lg font-semibold text-red-800 flex justify-center items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {Array.from({ length: lives }, (_, i) => (
+                  <Heart key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-current text-red-500" />
+                ))}
+                {lives === 0 && <span>0</span>}
               </div>
             </div>
-            <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
-              <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <div className="text-center bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-2 sm:p-3 border border-green-200">
+              <div className="text-xs sm:text-sm text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Progress
               </div>
-              <div className="text-base sm:text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              <div className="text-base sm:text-lg font-semibold text-green-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {solvedPatterns}/{difficultySettings[difficulty].totalPatterns}
               </div>
             </div>
-            <div className="text-center bg-gray-50 rounded-lg p-2 sm:p-3">
-              <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+            <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-2 sm:p-3 border border-purple-200">
+              <div className="text-xs sm:text-sm text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Success Rate
               </div>
-              <div className="text-base sm:text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              <div className="text-base sm:text-lg font-semibold text-purple-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {totalAttempts > 0 ? Math.round((solvedPatterns / totalAttempts) * 100) : 0}%
               </div>
             </div>
@@ -928,7 +874,7 @@ const MirrorMatchGame = () => {
           {/* Pattern Type Info */}
           {originalPattern && (
             <div className="w-full max-w-4xl mb-4 sm:mb-6">
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 sm:p-4 text-center">
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-300 rounded-lg p-3 sm:p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Mirror className="h-4 w-4 sm:h-5 sm:w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800 text-sm sm:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -960,11 +906,11 @@ const MirrorMatchGame = () => {
               <div className="flex items-center justify-center gap-4 sm:gap-8 mb-4">
                 <div className="text-slate-700 font-bold text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>SOURCE</div>
                 <div className="flex flex-col items-center">
-                  <div className="w-12 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full shadow-lg"></div>
-                  <div className="text-slate-800 font-bold text-xs sm:text-sm mt-1 px-2 sm:px-3 py-1 bg-slate-200 rounded-full" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  <div className="w-12 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full shadow-lg animate-pulse"></div>
+                  <div className="text-slate-800 font-bold text-xs sm:text-sm mt-1 px-2 sm:px-3 py-1 bg-slate-200 rounded-full animate-bounce" style={{ fontFamily: 'Roboto, sans-serif' }}>
                     ⟷ MIRROR AXIS
                   </div>
-                  <div className="w-12 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full shadow-lg mt-1"></div>
+                  <div className="w-12 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full shadow-lg mt-1 animate-pulse"></div>
                 </div>
                 <div className="text-slate-700 font-bold text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>REFLECTION</div>
               </div>
@@ -974,9 +920,9 @@ const MirrorMatchGame = () => {
           {/* Hint Display */}
           {showHint && (
             <div className="w-full max-w-2xl mb-4 sm:mb-6">
-              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 sm:p-4">
+              <div className="bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-300 rounded-lg p-3 sm:p-4 animate-fadeIn">
                 <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+                  <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 animate-pulse" />
                   <span className="font-semibold text-yellow-800 text-sm sm:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
                     Hint:
                   </span>
@@ -1000,7 +946,7 @@ const MirrorMatchGame = () => {
                   key={index}
                   onClick={() => handleOptionSelect(option)}
                   disabled={showFeedback}
-                  className="transform transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed"
+                  className="transform transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed group"
                 >
                   <div className="text-center">
                     <div className="mb-2 sm:mb-3">
@@ -1012,7 +958,7 @@ const MirrorMatchGame = () => {
                         selectedOption?.id === option.id ? option.isCorrect : null
                       )}
                     </div>
-                    <div className="bg-white rounded-xl p-2 sm:p-3 shadow-lg border-2 border-gray-200">
+                    <div className="bg-white rounded-xl p-2 sm:p-3 shadow-lg border-2 border-gray-200 group-hover:border-blue-300 transition-all duration-300">
                       <div className="font-bold text-gray-800 text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
                         Option {index + 1}
                       </div>
@@ -1025,14 +971,16 @@ const MirrorMatchGame = () => {
 
           {/* Feedback */}
           {showFeedback && selectedOption && (
-            <div className={`w-full max-w-2xl text-center p-4 sm:p-6 rounded-lg mb-4 sm:mb-6 ${
-              feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            <div className={`w-full max-w-2xl text-center p-4 sm:p-6 rounded-lg mb-4 sm:mb-6 transition-all duration-500 ${
+              feedbackType === 'correct' 
+                ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-300' 
+                : 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-300'
             }`}>
               <div className="flex items-center justify-center gap-2 mb-2">
                 {feedbackType === 'correct' ? (
-                  <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                  <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 animate-bounce" />
                 ) : (
-                  <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
+                  <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 animate-pulse" />
                 )}
                 <div className="text-lg sm:text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {feedbackType === 'correct' ? 'Perfect Match!' : 'Incorrect!'}
@@ -1041,7 +989,7 @@ const MirrorMatchGame = () => {
               <div className="text-xs sm:text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                 {feedbackType === 'correct'
                   ? `Excellent! You earned ${difficultySettings[difficulty].pointsPerPattern} points! (${solvedPatterns}/${difficultySettings[difficulty].totalPatterns} patterns completed)`
-                  : `That was a ${selectedOption.type}. Look for the horizontal mirror reflection.`
+                  : `That was a ${selectedOption.type}. Look for the horizontal mirror reflection. Lives remaining: ${lives}`
                 }
               </div>
             </div>
@@ -1067,9 +1015,35 @@ const MirrorMatchGame = () => {
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
         score={score}
+        customStats={customStats}
+        gameTitle="Mirror Match"
       />
+       <style jsx>{`
+       
+       /* Custom animations for Mirror Match Game */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-shake {
+  animation: shake 0.6s ease-in-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+       `}</style>
     </div>
   );
 };
+
 
 export default MirrorMatchGame;
