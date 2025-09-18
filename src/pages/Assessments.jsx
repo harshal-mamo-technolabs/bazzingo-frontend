@@ -5,6 +5,8 @@ import BazzingoLoader from "../components/Loading/BazzingoLoader";
 import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentCompletionModal from '../components/assessments/AssessmentCompletionModal.jsx';
+import AssessmentPurchaseModal from '../components/assessments/AssessmentPurchaseModal.jsx';
+import AssessmentStartConfirmationModal from '../components/assessments/AssessmentStartConfirmationModal.jsx';
 // import { getAllAssessment } from '../services/dashbaordService'; // Import the API function
 import { getAllAssessment ,getRecentAssessmentActivity } from '../services/dashbaordService';
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
@@ -19,6 +21,10 @@ const Assessments = () => {
     const [processingAssessmentId, setProcessingAssessmentId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [recentActivity, setRecentActivity] = useState([]);
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+    const [selectedAssessmentForPurchase, setSelectedAssessmentForPurchase] = useState(null);
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+    const [selectedAssessmentForConfirmation, setSelectedAssessmentForConfirmation] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -86,10 +92,21 @@ const Assessments = () => {
     };
 
     const handleStartCertifiedTest = async (assessment) => {
-        // If already purchased, skip payment and start assessment directly
+        // If already purchased, show confirmation modal
         if (assessment?.isAssessmentPurchased) {
-            return handleDirectStart(assessment);
+            setSelectedAssessmentForConfirmation(assessment);
+            setIsConfirmationModalOpen(true);
+            return;
         }
+
+        // If not purchased, show purchase modal
+        setSelectedAssessmentForPurchase(assessment);
+        setIsPurchaseModalOpen(true);
+    };
+
+    const handlePurchaseAssessment = async () => {
+        const assessment = selectedAssessmentForPurchase;
+        if (!assessment) return;
 
         const id = assessment?._id || assessment?.id;
         if (!id) return;
@@ -163,6 +180,25 @@ const Assessments = () => {
         }
     };
 
+    const handleClosePurchaseModal = () => {
+        setIsPurchaseModalOpen(false);
+        setSelectedAssessmentForPurchase(null);
+    };
+
+    const handleConfirmStartAssessment = () => {
+        const assessment = selectedAssessmentForConfirmation;
+        if (assessment) {
+            handleDirectStart(assessment);
+        }
+        setIsConfirmationModalOpen(false);
+        setSelectedAssessmentForConfirmation(null);
+    };
+
+    const handleCloseConfirmationModal = () => {
+        setIsConfirmationModalOpen(false);
+        setSelectedAssessmentForConfirmation(null);
+    };
+
     // Show loading state if needed
     if (loading) {
         return (
@@ -205,6 +241,22 @@ const Assessments = () => {
                     isOpen={isModalOpen}
                     selectedAssessment={selectedAssessment}
                     onClose={() => setIsModalOpen(false)}
+                />
+
+                <AssessmentPurchaseModal
+                    isOpen={isPurchaseModalOpen}
+                    assessment={selectedAssessmentForPurchase}
+                    onClose={handleClosePurchaseModal}
+                    onBuy={handlePurchaseAssessment}
+                    isProcessing={processingAssessmentId === (selectedAssessmentForPurchase?._id || selectedAssessmentForPurchase?.id)}
+                />
+
+                <AssessmentStartConfirmationModal
+                    isOpen={isConfirmationModalOpen}
+                    assessment={selectedAssessmentForConfirmation}
+                    onClose={handleCloseConfirmationModal}
+                    onConfirm={handleConfirmStartAssessment}
+                    isProcessing={processingAssessmentId === (selectedAssessmentForConfirmation?._id || selectedAssessmentForConfirmation?.id)}
                 />
             </div>
         </MainLayout>
