@@ -48,24 +48,25 @@ export const difficultySettings = {
     }
   },
   Hard: {
-    timeLimit: 90, // 3 minutes
-    maxTurns: 6,
-    pointsPerPlacement: 50, // 50 points per correct placement
+    // Match Moderate rules but reduce study time and overall time
+    timeLimit: 100, // a bit tighter than Moderate
+    maxTurns: 7,
+    pointsPerPlacement: 40,
     pointsPerObjective: 0,
     hints: 2,
-    gridSize: 6,
-    studyTime: 15,
-    targetCount: 4, // 4 total buildings for 200 max (50 x 4 = 200)
+    gridSize: 5,
+    studyTime: 8, // less time to memorize than Moderate
+    targetCount: 5,
     targetFrequency: 1,
     objectives: {
       round1: [
         { type: 'placeBuilding', value: 'library', text: "Place the Library correctly" },
-        { type: 'placeBuilding', value: 'hospital', text: "Place the Hospital correctly" },
-        { type: 'placeBuilding', value: 'school', text: "Place the School correctly" },
-        { type: 'placeBuilding', value: 'park', text: "Place the Park correctly" }
+        { type: 'placeBuilding', value: 'park', text: "Place the Park correctly" },
+        { type: 'placeBuilding', value: 'school', text: "Place the School correctly" }
       ],
       round2: [
-        // Hard mode has all buildings in round 1, round 2 is just for completion
+        { type: 'placeBuilding', value: 'hospital', text: "Place the Hospital correctly" },
+        { type: 'placeBuilding', value: 'store', text: "Place the Store correctly" }
       ]
     }
   }

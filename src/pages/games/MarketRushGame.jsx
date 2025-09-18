@@ -31,7 +31,7 @@ const MarketRushGame = () => {
   const [difficulty, setDifficulty] = useState('Easy');
   const [selectedStall, setSelectedStall] = useState('fruits');
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [timeRemaining, setTimeRemaining] = useState(100);
   const [lives, setLives] = useState(5);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [maxHints, setMaxHints] = useState(3);

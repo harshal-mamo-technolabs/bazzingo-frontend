@@ -34,7 +34,7 @@ const MemoryTownBuilderGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [timeRemaining, setTimeRemaining] = useState(150);
   const [currentTurn, setCurrentTurn] = useState(0);
   const [maxTurns, setMaxTurns] = useState(12);
   const [hintsUsed, setHintsUsed] = useState(0);

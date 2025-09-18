@@ -10,7 +10,7 @@ const OneLineDrawGame = () => {
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [timeRemaining, setTimeRemaining] = useState(120);
   const [gameStartTime, setGameStartTime] = useState(0);
   const [gameDuration, setGameDuration] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -358,7 +358,7 @@ const OneLineDrawGame = () => {
                 <div className='bg-white p-2 sm:p-3 rounded-lg shadow-sm'>
                   <h4 className="text-xs sm:text-sm font-medium text-blue-800 mb-1 sm:mb-2">🎯 Objective</h4>
                   <p className="text-xs sm:text-sm text-blue-700 leading-relaxed">
-                    Connect all dots using a single continuous line without lifting your finger or retracing paths.
+                    Connect all dots using a single continuous line without retracing paths.
                   </p>
                 </div>
 

@@ -2,38 +2,40 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import GameFramework from '../../components/GameFramework.jsx';
 import Header from '../../components/Header.jsx';
 import GameCompletionModal from '../../components/games/GameCompletionModal.jsx';
-import { 
-  difficultySettings, 
-  generateCastleMap, 
-  getScenariosByDifficulty, 
+import {
+  difficultySettings,
+  generateCastleMap,
+  getScenariosByDifficulty,
   calculateTurnResults,
   calculateScore,
   guardTypes,
   isValidGuardPlacement,
   generateHint,
   getEnemyPreviewPaths,
-  moveEnemyStep
+  moveEnemyStep,
 } from '../../utils/games/CastleDefender.js';
-import { 
-  Shield, 
-  Swords, 
-  ChevronUp, 
-  ChevronDown, 
-  Target,
-  Users,
-  Crown,
-  AlertTriangle,
+import {
+  Shield,
+  Swords,
+  ChevronUp,
+  ChevronDown,
+  Lightbulb,
+  Eye,
   CheckCircle,
   XCircle,
-  Lightbulb,
-  Eye
 } from 'lucide-react';
+
+/**
+ * NOTE: This updated component:
+ * - Visually distinguishes gates with labels: 🚪N, 🚪S, 🚪E, 🚪W
+ * - Adds accessible/clear titles on gate cells: "North Gate", etc.
+ */
 
 const CastleDefenderGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [timeRemaining, setTimeRemaining] = useState(120);
   const [currentTurn, setCurrentTurn] = useState(0);
   const [successfulDefenses, setSuccessfulDefenses] = useState(0);
   const [totalBreaches, setTotalBreaches] = useState(0);
@@ -42,7 +44,7 @@ const CastleDefenderGame = () => {
   const [maxHints, setMaxHints] = useState(3);
   const [guardsBudget, setGuardsBudget] = useState(3);
   const [currentScenarios, setCurrentScenarios] = useState([]);
-  
+
   // Game state
   const [castleMap, setCastleMap] = useState([]);
   const [guardPositions, setGuardPositions] = useState([]);
@@ -56,8 +58,8 @@ const CastleDefenderGame = () => {
   const [totalResponseTime, setTotalResponseTime] = useState(0);
   const [hintPosition, setHintPosition] = useState(null);
   const [isExecutingTurn, setIsExecutingTurn] = useState(false);
-  
-  // NEW: Enhanced UI states
+
+  // Enhanced UI states
   const [hoveredCell, setHoveredCell] = useState(null);
   const [showPathPreviews, setShowPathPreviews] = useState(false);
   const [enemyPreviewPaths, setEnemyPreviewPaths] = useState([]);
@@ -72,17 +74,14 @@ const CastleDefenderGame = () => {
 
   // Cleanup function
   const cleanup = useCallback(() => {
-    // Clear all timeouts
     timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
     timeoutRefs.current = [];
-    
-    // Clear interval
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    
-    // Clear animation frame
+
     if (animationRef.current) {
       clearTimeout(animationRef.current);
       animationRef.current = null;
@@ -127,8 +126,8 @@ const CastleDefenderGame = () => {
   useEffect(() => {
     if (showPathPreviews && currentScenarios[currentTurn]) {
       const paths = getEnemyPreviewPaths(
-        currentScenarios[currentTurn].enemies, 
-        guardPositions, 
+        currentScenarios[currentTurn].enemies,
+        guardPositions,
         castleMap
       );
       setEnemyPreviewPaths(paths);
@@ -140,92 +139,104 @@ const CastleDefenderGame = () => {
     return cleanup;
   }, [cleanup]);
 
-  // NEW: Animate enemy movement
+  // Animate enemy movement
   const animateEnemyMovement = useCallback((enemies, onComplete) => {
     let currentEnemies = [...enemies];
     let animationStep = 0;
-    const maxSteps = Math.max(...enemies.map(e => e.path.length));
-    
+    const maxSteps = Math.max(...enemies.map(e => e.path.length || 0), 0);
+
     setIsAnimating(true);
     setAnimatingEnemies([...currentEnemies]);
-    
+
     const stepAnimation = () => {
       if (animationStep >= maxSteps) {
         setIsAnimating(false);
         if (onComplete) onComplete(currentEnemies);
         return;
       }
-      
+
       currentEnemies = currentEnemies.map(enemy => {
         if (enemy.blocked || enemy.pathIndex >= enemy.path.length) {
           return enemy;
         }
         return moveEnemyStep(enemy);
       });
-      
+
       setAnimatingEnemies([...currentEnemies]);
       animationStep++;
-      
-      animationRef.current = setTimeout(stepAnimation, 250); // 250ms per step
+
+      animationRef.current = setTimeout(stepAnimation, 250);
     };
-    
+
     stepAnimation();
   }, []);
 
-  // Handle guard placement - FIXED validation and budget management
-  const handleCellClick = useCallback((row, col) => {
-    if (gameState !== 'playing' || showTurnResult || isExecutingTurn || placementLocked || isAnimating) return;
-    
-    if (!isValidGuardPlacement(row, col, castleMap, guardPositions)) return;
-    
-    // Check if there's already a guard here
-    const existingGuard = guardPositions.find(guard => guard.row === row && guard.col === col);
-    if (existingGuard) {
-      // Remove guard
-      setGuardPositions(prev => prev.filter(guard => !(guard.row === row && guard.col === col)));
-      const guardType = guardTypes.find(type => type.id === existingGuard.type);
-      setGuardsBudget(prev => prev + guardType.cost);
-      return;
-    }
-    
-    // Check if we have enough budget
-    const guardType = guardTypes.find(type => type.id === selectedGuardType);
-    if (guardsBudget < guardType.cost) return;
-    
-    // Place guard
-    setGuardPositions(prev => [...prev, {
-      row,
-      col,
-      type: selectedGuardType,
-      id: `guard_${row}_${col}_${Date.now()}`
-    }]);
-    setGuardsBudget(prev => prev - guardType.cost);
-    
-    // Clear hint if guard is placed on hint position
-    if (hintPosition && hintPosition.row === row && hintPosition.col === col) {
-      setHintPosition(null);
-    }
-  }, [gameState, showTurnResult, isExecutingTurn, placementLocked, isAnimating, castleMap, guardPositions, selectedGuardType, guardsBudget, hintPosition]);
+  // Handle guard placement
+  const handleCellClick = useCallback(
+    (row, col) => {
+      if (gameState !== 'playing' || showTurnResult || isExecutingTurn || placementLocked || isAnimating) return;
 
-  // Execute turn - FIXED logic and added animation
+      if (!isValidGuardPlacement(row, col, castleMap, guardPositions)) return;
+
+      const existingGuard = guardPositions.find(guard => guard.row === row && guard.col === col);
+      if (existingGuard) {
+        setGuardPositions(prev => prev.filter(guard => !(guard.row === row && guard.col === col)));
+        const guardType = guardTypes.find(type => type.id === existingGuard.type);
+        setGuardsBudget(prev => prev + guardType.cost);
+        return;
+      }
+
+      const guardType = guardTypes.find(type => type.id === selectedGuardType);
+      if (guardsBudget < guardType.cost) return;
+
+      setGuardPositions(prev => [
+        ...prev,
+        {
+          row,
+          col,
+          type: selectedGuardType,
+          id: `guard_${row}_${col}_${Date.now()}`
+        }
+      ]);
+      setGuardsBudget(prev => prev - guardType.cost);
+
+      if (hintPosition && hintPosition.row === row && hintPosition.col === col) {
+        setHintPosition(null);
+      }
+    },
+    [
+      gameState,
+      showTurnResult,
+      isExecutingTurn,
+      placementLocked,
+      isAnimating,
+      castleMap,
+      guardPositions,
+      selectedGuardType,
+      guardsBudget,
+      hintPosition
+    ]
+  );
+
+  // Execute turn
   const executeTurn = useCallback(() => {
     if (guardPositions.length === 0 || isExecutingTurn || isAnimating) return;
-    
+
     setIsExecutingTurn(true);
     setPlacementLocked(true);
     const responseTime = Date.now() - turnStartTime;
     setTotalResponseTime(prev => prev + responseTime);
-    
+
     const currentScenarioData = currentScenarios[currentTurn];
     const result = calculateTurnResults(currentScenarioData.enemies, guardPositions, castleMap);
-    
+
     // Start enemy movement animation
     animateEnemyMovement(result.enemies, (finalEnemies) => {
       setTurnResult({ ...result, enemies: finalEnemies });
       setShowTurnResult(true);
       setCurrentEnemies(finalEnemies);
       setHintPosition(null);
-      
+
       if (result.success) {
         setSuccessfulDefenses(prev => prev + 1);
       } else {
@@ -242,14 +253,12 @@ const CastleDefenderGame = () => {
           return Math.max(0, newLives);
         });
       }
-      
-      // Set timeout for next turn or game completion
+
       const timeout = setTimeout(() => {
         if (currentTurn + 1 >= currentScenarios.length) {
           setGameState('finished');
           setShowCompletionModal(true);
         } else {
-          // Next turn
           setCurrentTurn(prev => prev + 1);
           setGuardPositions([]);
           setGuardsBudget(difficultySettings[difficulty].guardsPerTurn);
@@ -262,30 +271,39 @@ const CastleDefenderGame = () => {
           setPlacementLocked(false);
         }
       }, 3000);
-      
+
       timeoutRefs.current.push(timeout);
     });
-  }, [guardPositions, isExecutingTurn, isAnimating, turnStartTime, currentTurn, currentScenarios, castleMap, difficulty, animateEnemyMovement]);
+  }, [
+    guardPositions,
+    isExecutingTurn,
+    isAnimating,
+    turnStartTime,
+    currentTurn,
+    currentScenarios,
+    castleMap,
+    difficulty,
+    animateEnemyMovement
+  ]);
 
-  // Use hint - Enhanced implementation
+  // Use hint
   const useHint = useCallback(() => {
     if (hintsUsed >= maxHints || gameState !== 'playing' || showTurnResult || placementLocked) return;
-    
+
     setHintsUsed(prev => prev + 1);
-    
+
     const currentScenarioData = currentScenarios[currentTurn];
     if (!currentScenarioData) return;
-    
+
     const hintSuggestion = generateHint(currentScenarioData.enemies, guardPositions, castleMap);
-    
+
     if (hintSuggestion) {
       setHintPosition(hintSuggestion);
-      
-      // Clear hint after 5 seconds
+
       const timeout = setTimeout(() => {
         setHintPosition(null);
       }, 5000);
-      
+
       timeoutRefs.current.push(timeout);
     }
   }, [hintsUsed, maxHints, gameState, showTurnResult, placementLocked, currentScenarios, currentTurn, guardPositions, castleMap]);
@@ -293,11 +311,11 @@ const CastleDefenderGame = () => {
   // Initialize game
   const initializeGame = useCallback(() => {
     cleanup();
-    
+
     const settings = difficultySettings[difficulty];
     const scenarios = getScenariosByDifficulty(difficulty);
     const map = generateCastleMap();
-    
+
     setCurrentScenarios(scenarios);
     setCastleMap(map);
     setScore(0);
@@ -352,91 +370,115 @@ const CastleDefenderGame = () => {
 
   const currentScenarioData = currentScenarios[currentTurn] || currentScenarios[0];
 
+  // NEW: Clear, labeled gate content
+  const getGateLabel = (cell) => {
+    switch (cell) {
+      case 'gate_north': return '🚪N';
+      case 'gate_south': return '🚪S';
+      case 'gate_east':  return '🚪E';
+      case 'gate_west':  return '🚪W';
+      default: return '🚪';
+    }
+  };
+
   const getCellContent = (row, col) => {
-    const cell = castleMap[row][col];
-    
-    // Show animated enemies if animation is active
+    const cell = castleMap[row]?.[col];
+
     if (isAnimating) {
       const animatedEnemy = animatingEnemies.find(e => e.currentRow === row && e.currentCol === col);
-      if (animatedEnemy) {
-        return animatedEnemy.emoji;
-      }
+      if (animatedEnemy) return animatedEnemy.emoji;
     } else {
-      // Show final enemy positions
       const enemy = currentEnemies.find(e => e.currentRow === row && e.currentCol === col);
-      if (enemy) {
-        return enemy.emoji;
-      }
+      if (enemy) return enemy.emoji;
     }
-    
+
     const guard = guardPositions.find(g => g.row === row && g.col === col);
     if (guard) {
       const guardType = guardTypes.find(type => type.id === guard.type);
       return guardType.emoji;
     }
-    
+
     switch (cell) {
       case 'wall': return '🧱';
-      case 'gate_north': return '🚪';
-      case 'gate_south': return '🚪';
-      case 'gate_east': return '🚪';
-      case 'gate_west': return '🚪';
+      case 'gate_north':
+      case 'gate_south':
+      case 'gate_east':
+      case 'gate_west':
+        return getGateLabel(cell); // Labeled gates
       case 'keep': return '🏰';
       case 'path': return '・';
       default: return '';
     }
   };
 
+  // NEW: Titles that name the gates clearly
+  const getCellTitle = (row, col) => {
+    const cell = castleMap[row]?.[col];
+    if (cell === 'gate_north') return 'North Gate';
+    if (cell === 'gate_south') return 'South Gate';
+    if (cell === 'gate_east')  return 'East Gate';
+    if (cell === 'gate_west')  return 'West Gate';
+    if (cell === 'keep') return 'Keep';
+    if (cell === 'wall') return 'Wall';
+    return `Row ${row + 1}, Col ${col + 1}`;
+  };
+
   const getCellClass = (row, col) => {
-    const cell = castleMap[row][col];
+    const cell = castleMap[row]?.[col];
     const guard = guardPositions.find(g => g.row === row && g.col === col);
     const enemy = currentEnemies.find(e => e.currentRow === row && e.currentCol === col);
     const animatedEnemy = isAnimating ? animatingEnemies.find(e => e.currentRow === row && e.currentCol === col) : null;
     const isHintPosition = hintPosition && hintPosition.row === row && hintPosition.col === col;
     const isHovered = hoveredCell && hoveredCell.row === row && hoveredCell.col === col;
-    
-    let baseClass = 'w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border border-gray-300 flex items-center justify-center text-sm md:text-base lg:text-lg cursor-pointer transition-all duration-300 ';
-    
+
+    let baseClass =
+      'relative w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border border-gray-300 flex items-center justify-center text-sm md:text-base lg:text-lg cursor-pointer transition-all duration-300 select-none ';
+
     // Base cell types
-    if (cell === 'wall') baseClass += 'bg-stone-600 cursor-not-allowed ';
+    if (cell === 'wall') baseClass += 'bg-stone-600 text-white cursor-not-allowed ';
     else if (cell === 'keep') baseClass += 'bg-yellow-400 cursor-not-allowed ';
-    else if (cell.startsWith('gate_')) {
+    else if (cell && cell.startsWith('gate_')) {
       // Color-coded gates
-      if (cell === 'gate_north') baseClass += 'bg-blue-200 border-blue-300 cursor-not-allowed ';
-      else if (cell === 'gate_south') baseClass += 'bg-red-200 border-red-300 cursor-not-allowed ';
-      else if (cell === 'gate_east') baseClass += 'bg-green-200 border-green-300 cursor-not-allowed ';
-      else if (cell === 'gate_west') baseClass += 'bg-purple-200 border-purple-300 cursor-not-allowed ';
-    }
-    else if (cell === 'path') baseClass += 'bg-green-50 hover:bg-green-100 border-green-200 ';
+      if (cell === 'gate_north') baseClass += 'bg-blue-200 border-blue-300 text-blue-900 cursor-not-allowed ';
+      else if (cell === 'gate_south') baseClass += 'bg-red-200 border-red-300 text-red-900 cursor-not-allowed ';
+      else if (cell === 'gate_east') baseClass += 'bg-green-200 border-green-300 text-green-900 cursor-not-allowed ';
+      else if (cell === 'gate_west') baseClass += 'bg-purple-200 border-purple-300 text-purple-900 cursor-not-allowed ';
+    } else if (cell === 'path') baseClass += 'bg-green-50 hover:bg-green-100 border-green-200 ';
     else baseClass += 'bg-green-100 hover:bg-green-200 border-green-300 ';
-    
+
     // Guard and enemy states
     if (guard) baseClass += 'bg-blue-300 border-blue-400 ';
     if (enemy && enemy.blocked) baseClass += 'bg-red-200 border-red-300 ';
     if (enemy && enemy.reachedKeep) baseClass += 'bg-red-500 border-red-600 ';
     if (animatedEnemy) baseClass += 'bg-orange-200 border-orange-400 animate-pulse ';
-    
+
     // Special states
     if (isHintPosition) baseClass += 'bg-yellow-300 animate-pulse border-2 border-yellow-500 shadow-lg ';
-    
+
     // Ghost guard preview on hover
-    if (isHovered && !guard && !enemy && !animatedEnemy && isValidGuardPlacement(row, col, castleMap, guardPositions)) {
+    if (
+      isHovered &&
+      !guard &&
+      !enemy &&
+      !animatedEnemy &&
+      isValidGuardPlacement(row, col, castleMap, guardPositions)
+    ) {
       const guardType = guardTypes.find(type => type.id === selectedGuardType);
       if (guardsBudget >= guardType.cost && !placementLocked && !isAnimating) {
         baseClass += 'bg-blue-100 border-2 border-blue-300 shadow-inner ';
       }
     }
-    
+
     // Path preview highlights
     if (showPathPreviews && enemyPreviewPaths.length > 0) {
-      const isOnPath = enemyPreviewPaths.some(pathData => 
+      const isOnPath = enemyPreviewPaths.some(pathData =>
         pathData.path.some(pathCell => pathCell.row === row && pathCell.col === col)
       );
       if (isOnPath && !guard) {
         baseClass += 'bg-red-100 border-red-200 ';
       }
     }
-    
+
     return baseClass;
   };
 
@@ -446,14 +488,12 @@ const CastleDefenderGame = () => {
     }
   };
 
-  const handleCellLeave = () => {
-    setHoveredCell(null);
-  };
+  const handleCellLeave = () => setHoveredCell(null);
 
   return (
     <div>
       <Header unreadCount={3} />
-      
+
       <GameFramework
         gameTitle="🏰 Castle Defender: Logic Siege"
         gameDescription={
@@ -467,15 +507,13 @@ const CastleDefenderGame = () => {
                   How to Play Castle Defender
                 </h3>
                 <span className="text-blue-900 text-xl">
-                  {showInstructions
-                    ? <ChevronUp className="h-5 w-5 text-blue-900" />
-                    : <ChevronDown className="h-5 w-5 text-blue-900" />}
+                  {showInstructions ? <ChevronUp className="h-5 w-5 text-blue-900" /> : <ChevronDown className="h-5 w-5 text-blue-900" />}
                 </span>
               </div>
 
               {showInstructions && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className='bg-white p-3 rounded-lg'>
+                  <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       🏰 Objective
                     </h4>
@@ -484,7 +522,7 @@ const CastleDefenderGame = () => {
                     </p>
                   </div>
 
-                  <div className='bg-white p-3 rounded-lg'>
+                  <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       ⚔️ Gameplay
                     </h4>
@@ -496,7 +534,7 @@ const CastleDefenderGame = () => {
                     </ul>
                   </div>
 
-                  <div className='bg-white p-3 rounded-lg'>
+                  <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       📊 Scoring
                     </h4>
@@ -507,7 +545,7 @@ const CastleDefenderGame = () => {
                     </ul>
                   </div>
 
-                  <div className='bg-white p-3 rounded-lg'>
+                  <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       🛡️ Turns
                     </h4>
@@ -610,24 +648,21 @@ const CastleDefenderGame = () => {
 
           {/* Turn Results */}
           {showTurnResult && turnResult && (
-            <div className={`w-full max-w-2xl text-center p-6 rounded-lg mb-6 ${
-              turnResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
+            <div
+              className={`w-full max-w-2xl text-center p-6 rounded-lg mb-6 ${
+                turnResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}
+            >
               <div className="flex items-center justify-center gap-2 mb-2">
-                {turnResult.success ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <XCircle className="h-6 w-6 text-red-600" />
-                )}
+                {turnResult.success ? <CheckCircle className="h-6 w-6 text-green-600" /> : <XCircle className="h-6 w-6 text-red-600" />}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {turnResult.success ? 'Victory!' : 'Breach!'}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {turnResult.success 
+                {turnResult.success
                   ? `All ${turnResult.blockedCount} enemies blocked successfully!`
-                  : `${turnResult.breachedCount} enemies reached the keep! ${turnResult.blockedCount} blocked.`
-                }
+                  : `${turnResult.breachedCount} enemies reached the keep! ${turnResult.blockedCount} blocked.`}
               </div>
               {turnResult.success && (
                 <div className="text-green-700 font-medium mb-2">
@@ -655,8 +690,8 @@ const CastleDefenderGame = () => {
                       selectedGuardType === guardType.id
                         ? 'bg-blue-500 text-white'
                         : guardsBudget < guardType.cost || placementLocked
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
                     }`}
                     style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                   >
@@ -664,7 +699,7 @@ const CastleDefenderGame = () => {
                     {guardType.name} (Cost: {guardType.cost})
                   </button>
                 ))}
-                
+
                 {/* Hint Button */}
                 <button
                   onClick={useHint}
@@ -688,8 +723,8 @@ const CastleDefenderGame = () => {
                     showPathPreviews
                       ? 'bg-purple-500 text-white'
                       : placementLocked || isAnimating
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
                   }`}
                   style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                 >
@@ -702,7 +737,7 @@ const CastleDefenderGame = () => {
 
           {/* Castle Map */}
           <div className="bg-amber-50 p-4 rounded-lg border-2 border-amber-300 mb-6">
-            <div className="grid grid-cols-8 gap-1">
+            <div className="grid grid-cols-7 gap-1">
               {castleMap.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <div
@@ -711,21 +746,25 @@ const CastleDefenderGame = () => {
                     onClick={() => handleCellClick(rowIndex, colIndex)}
                     onMouseEnter={() => handleCellHover(rowIndex, colIndex)}
                     onMouseLeave={handleCellLeave}
-                    title={`${rowIndex}, ${colIndex}`}
+                    title={getCellTitle(rowIndex, colIndex)}
                   >
-                    {getCellContent(rowIndex, colIndex)}
+                    <span className="leading-none">{getCellContent(rowIndex, colIndex)}</span>
+
                     {/* Ghost guard preview */}
-                    {hoveredCell && hoveredCell.row === rowIndex && hoveredCell.col === colIndex && 
-                     !guardPositions.find(g => g.row === rowIndex && g.col === colIndex) &&
-                     !currentEnemies.find(e => e.currentRow === rowIndex && e.currentCol === colIndex) &&
-                     !animatingEnemies.find(e => e.currentRow === rowIndex && e.currentCol === colIndex) &&
-                     isValidGuardPlacement(rowIndex, colIndex, castleMap, guardPositions) &&
-                     !placementLocked && !isAnimating && (
-                       <div className="absolute inset-0 flex items-center justify-center opacity-60 text-blue-500">
-                         {guardsBudget >= guardTypes.find(type => type.id === selectedGuardType).cost && 
-                          guardTypes.find(type => type.id === selectedGuardType).emoji}
-                       </div>
-                     )}
+                    {hoveredCell &&
+                      hoveredCell.row === rowIndex &&
+                      hoveredCell.col === colIndex &&
+                      !guardPositions.find(g => g.row === rowIndex && g.col === colIndex) &&
+                      !currentEnemies.find(e => e.currentRow === rowIndex && e.currentCol === colIndex) &&
+                      !animatingEnemies.find(e => e.currentRow === rowIndex && e.currentCol === colIndex) &&
+                      isValidGuardPlacement(rowIndex, colIndex, castleMap, guardPositions) &&
+                      !placementLocked &&
+                      !isAnimating && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-60 text-blue-500">
+                          {guardsBudget >= guardTypes.find(type => type.id === selectedGuardType).cost &&
+                            guardTypes.find(type => type.id === selectedGuardType).emoji}
+                        </div>
+                      )}
                   </div>
                 ))
               )}
@@ -778,41 +817,11 @@ const CastleDefenderGame = () => {
             </div>
           )}
 
-          {/* Enhanced Instructions */}
-          <div className="text-center max-w-2xl mt-6">
-            <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              🏰 = Keep (protect at all costs) | 
-              <span className="text-blue-600">🚪</span> = North Gate | 
-              <span className="text-red-600">🚪</span> = South Gate | 
-              <span className="text-green-600">🚪</span> = East Gate | 
-              <span className="text-purple-600">🚪</span> = West Gate | 
-              🧱 = Walls (impassable)
-              <br />
-              Click on empty spaces to place guards. Click on guards to remove them.
-              Hover over cells to see guard preview. Use "Preview Paths" to see enemy routes!
-            </p>
-            <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].turnCount} turns | 
-              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | 
-              {difficultySettings[difficulty].guardsPerTurn} guards per turn
-            </div>
-            {hintPosition && (
-              <div className="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800">
-                💡 Hint: Try placing a guard at row {hintPosition.row + 1}, column {hintPosition.col + 1}!
-                {hintPosition.enemy && ` This will block the ${hintPosition.enemy}.`}
-              </div>
-            )}
-          </div>
+          
         </div>
       </GameFramework>
-      
-      <GameCompletionModal
-        isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
-        score={score}
-      />
+
+      <GameCompletionModal isOpen={showCompletionModal} onClose={() => setShowCompletionModal(false)} score={score} />
     </div>
   );
 };

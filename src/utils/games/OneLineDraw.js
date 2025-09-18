@@ -1,6 +1,6 @@
 export const difficultySettings = {
   Easy: {
-    timeLimit: 90, // 5 minutes
+    timeLimit: 120, // 5 minutes
     maxHints: 5,
     puzzlesCount: 8,
     pointsPerPuzzle: 25,
@@ -18,7 +18,7 @@ export const difficultySettings = {
     bgColor: 'bg-gradient-to-br from-yellow-50 to-orange-100'
   },
   Hard: {
-    timeLimit: 150, // 3 minutes
+    timeLimit: 120, // 3 minutes
     maxHints: 2,
     puzzlesCount: 4,
     pointsPerPuzzle: 50,

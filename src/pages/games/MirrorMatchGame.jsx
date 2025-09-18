@@ -666,9 +666,17 @@ const MirrorMatchGame = () => {
     };
 
     const getContainerPadding = () => {
-      if (size === 'large') return 'p-3 sm:p-4 md:p-6';
-      if (size === 'small') return 'p-1 sm:p-2';
-      return 'p-2 sm:p-3 md:p-4';
+      // Reduce container padding so the internal grid appears tighter
+      if (size === 'large') return 'p-2 sm:p-3 md:p-4';
+      if (size === 'small') return 'p-1 sm:p-1.5';
+      return 'p-1.5 sm:p-2 md:p-3';
+    };
+
+    const getGapClass = () => {
+      // Match question grid look closely
+      if (size === 'large') return 'gap-[2px]';
+      if (size === 'small') return 'gap-px';
+      return 'gap-[2px]';
     };
 
     const cellSize = getCellSize();
@@ -692,7 +700,7 @@ const MirrorMatchGame = () => {
 
     return (
       <div className={containerStyle}>
-        <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
+        <div className={`grid grid-cols-5 ${getGapClass()}`}>
           {grid.map((row, i) =>
             row.map((cell, j) => {
               const cellId = `${i}-${j}`;
@@ -701,9 +709,9 @@ const MirrorMatchGame = () => {
               return (
                 <div
                   key={cellId}
-                  className={`${cellSize} rounded-sm sm:rounded-lg border transition-all duration-300 ${
+                  className={`${cellSize} rounded-[3px] sm:rounded-md border transition-all duration-300 ${
                     cell
-                      ? `bg-gradient-to-br ${pattern?.gradient || 'from-blue-400 to-blue-600'} border-white shadow-sm sm:shadow-lg ${
+                      ? `bg-gradient-to-br ${pattern?.gradient || 'from-blue-500 to-blue-700'} border-white/70 shadow-sm ${
                           isAnimating ? 'animate-ping' : ''
                         }`
                       : 'bg-gray-100 border-gray-200'
@@ -949,11 +957,11 @@ const MirrorMatchGame = () => {
                   className="transform transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed group"
                 >
                   <div className="text-center">
-                    <div className="mb-2 sm:mb-3">
+                    <div className="mb-2 sm:mb-3 inline-block" style={{ transform: 'scale(0.8)', transformOrigin: 'center' }}>
                       {renderGrid(
                         option.grid,
                         originalPattern,
-                        'normal',
+                        'large',
                         selectedOption?.id === option.id,
                         selectedOption?.id === option.id ? option.isCorrect : null
                       )}

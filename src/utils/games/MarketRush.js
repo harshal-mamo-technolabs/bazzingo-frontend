@@ -1,8 +1,9 @@
 // Difficulty settings for Market Rush
 export const difficultySettings = {
-  Easy: { timeLimit: 150, lives: 5, hints: 3, customerCount: 8, pointsPerCustomer: 25, orderDisplayTime: 6 },
-  Moderate: { timeLimit: 120, lives: 4, hints: 2, customerCount: 5, pointsPerCustomer: 40, orderDisplayTime: 5 },
-  Hard: { timeLimit: 90, lives: 3, hints: 1, customerCount: 4, pointsPerCustomer: 50, orderDisplayTime: 4 }
+  // Shorter memorize time per customer, adjust total round time accordingly
+  Easy: { timeLimit: 100, lives: 3, hints: 3, customerCount: 8, pointsPerCustomer: 25, orderDisplayTime: 3 },
+  Moderate: { timeLimit: 100, lives: 2, hints: 2, customerCount: 8, pointsPerCustomer: 25, orderDisplayTime: 3 },
+  Hard: { timeLimit: 100, lives: 1, hints: 1, customerCount: 8, pointsPerCustomer: 25, orderDisplayTime: 3 }
 };
 
 // Market stall types with Croatian products
@@ -126,8 +127,8 @@ export const generateCustomers = (stallType, difficulty, round) => {
       served: false,
       basket: [],
       difficulty: difficulty,
-      arrivalTime: i * 2000 + Math.random() * 1000, // Staggered arrivals
-      patience: difficulty === 'Easy' ? 45 : difficulty === 'Moderate' ? 35 : 25
+      arrivalTime: i * 1500 + Math.random() * 600, // Faster stagger to fit reduced round time
+      patience: difficulty === 'Easy' ? 35 : difficulty === 'Moderate' ? 28 : 22
     });
   }
 

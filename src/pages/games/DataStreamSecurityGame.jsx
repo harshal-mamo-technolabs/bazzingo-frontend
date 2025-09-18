@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
@@ -44,6 +44,20 @@ const DataStreamSecurityGame = () => {
     const [lockStartTime, setLockStartTime] = useState(0);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const [streamAnimation, setStreamAnimation] = useState(true);
+    const streamRef = useRef(null);
+    const [streamWidth, setStreamWidth] = useState(800);
+
+    // Track container width so animation distance matches the black surface only
+    useEffect(() => {
+        const updateWidth = () => {
+            if (streamRef.current) {
+                setStreamWidth(streamRef.current.clientWidth);
+            }
+        };
+        updateWidth();
+        window.addEventListener('resize', updateWidth);
+        return () => window.removeEventListener('resize', updateWidth);
+    }, []);
 
     // Data stream colors and symbols
     const streamColors = ['#00ff41', '#0066ff', '#ff0066', '#ffff00', '#ff6600', '#9900ff'];
@@ -52,24 +66,24 @@ const DataStreamSecurityGame = () => {
     // Difficulty settings - Updated as requested
     const difficultySettings = {
         Easy: {
-            patternLength: 9,
+            patternLength: 5,
             learningTime: 15,
             timeLimit: 120,
             lives: 3,
             lockCount: 8,
-            streamSpeed: 2000,
+            streamSpeed: 2200,
             pointsPerCorrect: 25,
-            description: '9-step patterns, 15s study time, 8 locks, 25 points each'
+            description: '5-step patterns, 15s study time, 8 locks, 25 points each'
         },
         Moderate: {
-            patternLength: 6,
+            patternLength: 5,
             learningTime: 12,
             timeLimit: 120,
             lives: 3,
             lockCount: 5,
-            streamSpeed: 1500,
+            streamSpeed: 1700,
             pointsPerCorrect: 40,
-            description: '6-step patterns, 12s study time, 5 locks, 40 points each'
+            description: '5-step patterns, 12s study time, 5 locks, 40 points each'
         },
         Hard: {
             patternLength: 5,
@@ -77,7 +91,7 @@ const DataStreamSecurityGame = () => {
             timeLimit: 120,
             lives: 3,
             lockCount: 4,
-            streamSpeed: 1200,
+            streamSpeed: 1400,
             pointsPerCorrect: 50,
             description: '5-step patterns, 10s study time, 4 locks, 50 points each'
         }
@@ -224,7 +238,7 @@ const DataStreamSecurityGame = () => {
                         const firstLock = generateLock(patternSequence, 0);
                         setCurrentLock(firstLock);
                         setLockStartTime(Date.now());
-                        setTotalLocks(difficultySettings[difficulty].lockCount);
+                        setTotalLocks(Math.min(difficultySettings[difficulty].lockCount, patternSequence.length - 1));
                         setStreamAnimation(false);
                         return 0;
                     }
@@ -503,30 +517,36 @@ const DataStreamSecurityGame = () => {
                                     
                                     {/* Flowing Data Stream */}
                                     {streamAnimation && (
-                                        <div className="relative h-32 overflow-hidden">
-                                            {patternSequence.map((item, index) => (
-                                                <motion.div
-                                                    key={item.id}
-                                                    initial={{ x: -100, opacity: 0 }}
-                                                    animate={{ x: window.innerWidth + 100, opacity: [0, 1, 1, 0] }}
-                                                    transition={{
-                                                        duration: 3,
-                                                        delay: index * 0.5,
-                                                        repeat: Infinity,
-                                                        repeatDelay: patternSequence.length * 0.5
-                                                    }}
-                                                    className="absolute top-1/2 transform -translate-y-1/2 data-stream-item"
-                                                    style={{ 
-                                                        color: item.color,
-                                                        fontSize: '2rem',
-                                                        fontWeight: 'bold',
-                                                        textShadow: `0 0 10px ${item.color}`,
-                                                        top: `${20 + (index % 3) * 30}px`
-                                                    }}
-                                                >
-                                                    {item.symbol}
-                                                </motion.div>
-                                            ))}
+                                        <div ref={streamRef} className="relative h-32 overflow-hidden">
+                                            {patternSequence.map((item, index) => {
+                                                // Slow down a bit more and ensure each symbol passes at least twice (repeat: 1)
+                                                const durationSec = difficulty === 'Easy' ? 9 : difficulty === 'Moderate' ? 8 : 7;
+                                                const stepDelay = difficulty === 'Easy' ? 1.0 : difficulty === 'Moderate' ? 0.85 : 0.7;
+                                                const repeatDelay = 0; // no extra gap between loops
+                                                return (
+                                                    <motion.div
+                                                        key={item.id}
+                                                        initial={{ x: -120, opacity: 0 }}
+                                                        animate={{ x: streamWidth + 120, opacity: [0, 1, 1, 0] }}
+                                                        transition={{
+                                                            duration: durationSec,
+                                                            delay: index * stepDelay,
+                                                            repeat: 1,
+                                                            repeatDelay
+                                                        }}
+                                                        className="absolute top-1/2 -translate-y-1/2"
+                                                        style={{ 
+                                                            color: item.color,
+                                                            fontSize: '2rem',
+                                                            fontWeight: 'bold',
+                                                            textShadow: `0 0 10px ${item.color}`,
+                                                            top: `${20 + (index % 3) * 30}px`
+                                                        }}
+                                                    >
+                                                        {item.symbol}
+                                                    </motion.div>
+                                                );
+                                            })}
                                         </div>
                                     )}
 
