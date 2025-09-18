@@ -24,6 +24,7 @@ const GameFramework = ({
   const [endTime, setEndTime] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [eventDispatched, setEventDispatched] = useState(false);
   const location = useLocation();
 
   // Get gameId from navigation state
@@ -73,20 +74,46 @@ const GameFramework = ({
     const normalizedScore = Math.max(0, Math.min(200, score));
 
     // Submit score to API if gameId is available
+    let scoreSubmitted = false;
     if (gameId) {
       try {
         setIsSubmitting(true);
         console.log('Submitting score:', { gameId, score: normalizedScore });
         await submitGameScore(gameId, normalizedScore);
         console.log('Score submitted successfully');
+        scoreSubmitted = true;
+        
+        // Dispatch custom event to notify GameCompletionModal (only once)
+        if (!eventDispatched) {
+          setEventDispatched(true);
+          window.dispatchEvent(new CustomEvent('gameScoreSubmitted', {
+            detail: { gameId, score: normalizedScore, success: true }
+          }));
+        }
       } catch (error) {
         console.error('Failed to submit score:', error);
         // You might want to show a user-friendly error message here
+        
+        // Dispatch event even on failure so modal can proceed (only once)
+        if (!eventDispatched) {
+          setEventDispatched(true);
+          window.dispatchEvent(new CustomEvent('gameScoreSubmitted', {
+            detail: { gameId, score: normalizedScore, success: false, error: error.message }
+          }));
+        }
       } finally {
         setIsSubmitting(false);
       }
     } else {
       console.warn('No gameId found, score not submitted');
+      
+      // Dispatch event even when no gameId so modal can proceed (only once)
+      if (!eventDispatched) {
+        setEventDispatched(true);
+        window.dispatchEvent(new CustomEvent('gameScoreSubmitted', {
+          detail: { gameId: null, score: normalizedScore, success: false, error: 'No gameId found' }
+        }));
+      }
     }
 
     // Prepare payload according to specifications
@@ -99,6 +126,7 @@ const GameFramework = ({
       end_time: endTimeStamp,
       success,
       gameId,
+      scoreSubmitted, // Include score submission status
       ...customStats
     };
 
@@ -112,6 +140,7 @@ const GameFramework = ({
     setStartTime(startTimeStamp);
     setGameState('playing');
     setHasSubmitted(false); // Reset submission flag
+    setEventDispatched(false); // Reset event dispatch flag
     if (onStart) onStart();
   };
 
@@ -120,6 +149,7 @@ const GameFramework = ({
     setEndTime(null);
     setGameState('ready');
     setHasSubmitted(false); // Reset submission flag
+    setEventDispatched(false); // Reset event dispatch flag
     if (onReset) onReset();
   };
 

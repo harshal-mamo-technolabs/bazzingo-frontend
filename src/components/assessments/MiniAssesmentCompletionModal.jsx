@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, memo, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBadge } from "../../../public/assessment";
 import { getDailyAssessmentRecommendation } from '../../services/dashbaordService.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant.js';
 
 const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions = 0 }) => {
+  const navigate = useNavigate();
   const dialogRef = useRef(null);
   const closeBtnRef = useRef(null);
   const lastFocusedRef = useRef(null);
@@ -157,6 +159,11 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
     }
   }, [assessmentData]);
 
+  const handleClose = () => {
+    onClose();
+    navigate('/dashboard');
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -166,7 +173,7 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose?.();
+        handleClose();
         return;
       }
 
@@ -210,9 +217,9 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
       >
         <button
             type="button"
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0"
             aria-label="Close"
-            onClick={onClose}
+            onClick={handleClose}
         />
 
         <div
@@ -343,7 +350,7 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
 
           <button
               ref={closeBtnRef}
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close modal"
           >

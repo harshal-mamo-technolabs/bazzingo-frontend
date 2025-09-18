@@ -46,9 +46,11 @@ const RecommendationGameCarousel = ({showTooltipSuggest, setShowTooltipSuggest})
     const handleGameClick = useCallback((game) => {
         const difficulty = getDifficultyBadge().label.toLowerCase();
         
-        // Navigate to game with difficulty parameter
+        // Navigate to game with difficulty parameter and gameId
         navigate(game.url, {
             state: {
+                gameId: game._id, // Add gameId for score submission
+                gameName: game.name,
                 fromRecommendation: true,
                 difficulty: difficulty
             }

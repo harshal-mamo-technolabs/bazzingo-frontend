@@ -1,27 +1,76 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getDailySuggestions } from '../../services/gameService'
+import BazzingoLoader from '../Loading/BazzingoLoader'
 
 const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
   const navigate = useNavigate()
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
+  const [scoreSubmitted, setScoreSubmitted] = useState(false)
+  const [allGamesPlayed, setAllGamesPlayed] = useState(false)
+  const hasFetchedRef = useRef(false)
 
   useEffect(() => {
     if (isOpen) {
-      fetchDailySuggestions()
+      // Reset states when modal opens
+      setScoreSubmitted(false);
+      setAllGamesPlayed(false);
+      hasFetchedRef.current = false;
+      
+      // Listen for score submission completion event
+      const handleScoreSubmitted = (event) => {
+        console.log('Score submission completed, fetching daily suggestions', event.detail);
+        setScoreSubmitted(true);
+        if (!hasFetchedRef.current) {
+          hasFetchedRef.current = true;
+          fetchDailySuggestions();
+        }
+      };
+      
+      // Listen for the custom event
+      window.addEventListener('gameScoreSubmitted', handleScoreSubmitted);
+      
+      // Fallback: if no event is received within 3 seconds, fetch anyway
+      const fallbackTimer = setTimeout(() => {
+        console.log('Fallback: fetching daily suggestions after timeout');
+        setScoreSubmitted(true);
+        if (!hasFetchedRef.current) {
+          hasFetchedRef.current = true;
+          fetchDailySuggestions();
+        }
+      }, 3000);
+      
+      return () => {
+        window.removeEventListener('gameScoreSubmitted', handleScoreSubmitted);
+        clearTimeout(fallbackTimer);
+      };
     }
-  }, [isOpen])
+  }, [isOpen]) // Removed scoreSubmitted from dependencies to prevent loops
 
   const fetchDailySuggestions = async () => {
     try {
+      console.log('Fetching daily suggestions...');
       setLoading(true)
       const response = await getDailySuggestions()
+      console.log('Daily suggestions response:', response);
       if (response.status === 'success' && response.data.suggestion) {
+        const allGames = response.data.suggestion.games;
         // Filter only unplayed games
-        const unplayedGames = response.data.suggestion.games.filter(game => !game.isPlayed)
-        setSuggestions(unplayedGames)
+        const unplayedGames = allGames.filter(game => !game.isPlayed)
+        console.log('Total games:', allGames.length, 'Unplayed games:', unplayedGames.length);
+        
+        if (unplayedGames.length === 0 && allGames.length > 0) {
+          // All games have been played
+          console.log('All daily games completed! Showing completion message.');
+          setAllGamesPlayed(true);
+          setSuggestions([]);
+        } else {
+          console.log('Found unplayed games, showing suggestions.');
+          setAllGamesPlayed(false);
+          setSuggestions(unplayedGames)
+        }
       }
     } catch (error) {
       console.error('Error fetching daily suggestions:', error)
@@ -44,12 +93,17 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
     })
   }
 
+  const handleClose = () => {
+    onClose()
+    navigate('/dashboard')
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
+        className="absolute inset-0"
+        onClick={handleClose}
       />
 
       {/* Modal - Fixed sizing to maintain original UI */}
@@ -127,8 +181,17 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
         {/* Game Cards - Limited height with scroll */}
         <div className="px-5 space-y-3 mb-6 max-h-60 overflow-y-auto">
           {loading ? (
-            <div className="text-center py-4">
-              <span className="text-gray-600">Loading suggestions...</span>
+            <div className="py-8">
+              <BazzingoLoader message="Loading daily suggestions..." compact={true} />
+            </div>
+          ) : allGamesPlayed ? (
+            <div className="py-8 text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-3xl">🎉</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Daily Streak Complete!</h3>
+              </div>
             </div>
           ) : suggestions.length > 0 ? (
             suggestions.map((suggestion) => (
@@ -158,15 +221,15 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
               </div>
             ))
           ) : (
-            <div className="text-center py-4">
-              <span className="text-gray-600">No more games available for today!</span>
+            <div className="py-8">
+              <BazzingoLoader message="Loading daily suggestions..." compact={true} />
             </div>
           )}
         </div>
 
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <X className="w-6 h-6" />

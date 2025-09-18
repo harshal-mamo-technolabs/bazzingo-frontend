@@ -124,9 +124,11 @@ const Dashboard = () => {
   const handleGameClick = useCallback(
     (game) => {
       setIsModalOpen(false);
-      // Pass difficulty via navigate state instead of just navigating to path
+      // Pass difficulty and gameId via navigate state
       navigate(game.path, {
         state: {
+          gameId: game.id, // Add gameId for score submission
+          gameName: game.title,
           fromDailyGame: true,
           difficulty: game.difficulty
         }

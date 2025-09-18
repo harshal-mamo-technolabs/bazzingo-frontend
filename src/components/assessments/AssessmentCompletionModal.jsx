@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBadge } from "../../../public/assessment";
 import axios from 'axios';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant';
@@ -19,6 +20,7 @@ const AssessmentCompletionModal = ({
   isAvailCertification = false, 
   isAvailReport = false 
 }) => {
+  const navigate = useNavigate();
   const dialogRef = useRef(null);
   const closeBtnRef = useRef(null);
   const lastFocusedRef = useRef(null);
@@ -109,7 +111,7 @@ const AssessmentCompletionModal = ({
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose?.();
+        handleClose();
         return;
       }
 
@@ -142,6 +144,11 @@ const AssessmentCompletionModal = ({
     };
   }, [isOpen, onClose]);
 
+  const handleClose = () => {
+    onClose();
+    navigate('/assessments');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -153,9 +160,9 @@ const AssessmentCompletionModal = ({
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0"
         aria-label="Close"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       <div
@@ -297,7 +304,7 @@ const AssessmentCompletionModal = ({
 
         <button
           ref={closeBtnRef}
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-600 transition-colors"
           aria-label="Close modal"
         >
