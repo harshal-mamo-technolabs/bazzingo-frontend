@@ -82,9 +82,17 @@ export default function VisualReasoningStaticAssessment() {
   const [unansweredQuestions, setUnansweredQuestions] = useState([]);
   const [isReviewPhase, setIsReviewPhase] = useState(false);
   const [originalQuestions, setOriginalQuestions] = useState([]);
+  const unansweredQuestionsRef = useRef([]);
   const [questionTimers, setQuestionTimers] = useState({}); // Track time spent on each question
   const [reviewTimers, setReviewTimers] = useState({}); // Track remaining time for review questions
   const [recentActivityNames, setRecentActivityNames] = useState([]);
+  const [autoSubmit, setAutoSubmit] = useState(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    unansweredQuestionsRef.current = unansweredQuestions;
+  }, [unansweredQuestions]);
+
   
   // Add state for score and total questions
   const [scoreData, setScoreData] = useState({
@@ -205,14 +213,19 @@ useEffect(() => {
   ========================= */
   const currentQuestion = useMemo(() => {
     if (isReviewPhase && unansweredQuestions.length > 0) {
-      return unansweredQuestions[currentIndex]?.question || questions[currentIndex];
+      // Ensure currentIndex is within bounds
+      const safeIndex = Math.min(currentIndex, unansweredQuestions.length - 1);
+      return unansweredQuestions[safeIndex]?.question || questions[currentIndex];
     }
     return questions[currentIndex];
   }, [questions, currentIndex, isReviewPhase, unansweredQuestions]);
 
   const progressPercent = useMemo(() => {
     if (isReviewPhase) {
-      return unansweredQuestions.length ? Math.min(100, Math.round(((currentIndex + 1) / unansweredQuestions.length) * 100)) : 0;
+      const unansweredCount = unansweredQuestionsRef.current.length;
+      if (unansweredCount === 0) return 100; // All questions answered
+      const safeIndex = Math.min(currentIndex, unansweredCount - 1);
+      return Math.min(100, Math.round(((safeIndex + 1) / unansweredCount) * 100));
     }
     return questions.length ? Math.min(100, Math.round(((currentIndex + 1) / questions.length) * 100)) : 0;
   }, [currentIndex, questions.length, unansweredQuestions.length, isReviewPhase]);
@@ -222,6 +235,11 @@ useEffect(() => {
     return isReviewPhase ? unansweredQuestions.map(item => item.question) : questions;
   }, [isReviewPhase, unansweredQuestions, questions]);
 
+  // Index used for left-panel windowing over questionsToDisplay (must be relative to that array)
+  const listWindowIndex = useMemo(() => {
+    return currentIndex; // In review and normal phase, questionsToDisplay uses relative indexing
+  }, [currentIndex]);
+
   // Get current index for display
   const displayIndex = useMemo(() => {
     return isReviewPhase ? 
@@ -229,73 +247,150 @@ useEffect(() => {
       currentIndex;
   }, [isReviewPhase, currentIndex, unansweredQuestions]);
 
+  // Handle when a question is answered in review phase - adjust current index if needed
+  useEffect(() => {
+    if (isReviewPhase && unansweredQuestions.length > 0 && currentQuestion?.id) {
+      // If current question is no longer in unanswered list, we need to adjust the index
+      const currentQuestionInUnanswered = unansweredQuestions.find(item => item.question.id === currentQuestion.id);
+      if (!currentQuestionInUnanswered && currentIndex >= unansweredQuestions.length) {
+        // Current question was answered and removed, and we're past the end
+        // Go back to the last unanswered question
+        const newIndex = Math.max(0, unansweredQuestions.length - 1);
+        setCurrentIndex(newIndex);
+        console.log(`Question answered and removed from review. Adjusting index to ${newIndex}`);
+      }
+    }
+  }, [unansweredQuestions, isReviewPhase, currentQuestion?.id, currentIndex]);
+
   /** =========================
       Option Selection
   ========================= */
   const handleOptionSelect = (option, idx) => {
+    if (!currentQuestion?.id) return; // Safety check
+    
     setSelectedOption(option);
     setAnswers((prev) => ({
       ...prev,
       [currentQuestion.id]: idx,
     }));
+
+    // If we're in review phase and this question was unanswered, remove it from unanswered list
+    if (isReviewPhase && answers[currentQuestion.id] === undefined) {
+      const updatedUnanswered = unansweredQuestions.filter(item => item.question.id !== currentQuestion.id);
+      setUnansweredQuestions(updatedUnanswered);
+      unansweredQuestionsRef.current = updatedUnanswered;
+      console.log(`Question ${currentQuestion.id} answered in review - removed from unanswered. Remaining: ${updatedUnanswered.length}`);
+    }
   };
 
   /** =========================
       Continue / Submit
   ========================= */
   const handleContinue = useCallback(() => {
-    if (hasAdvancedRef.current) return;
+    if (hasAdvancedRef.current || !currentQuestion?.id) return; // Safety check
     hasAdvancedRef.current = true;
 
-    // If user clicks Continue without selecting an option, save the question for review
+    let willAddToUnanswered = false;
+    let updatedUnansweredQuestions = unansweredQuestions;
+
+    // If user clicks Continue without selecting an option
     if (answers[currentQuestion.id] === undefined) {
-      setUnansweredQuestions(prevUnanswered => [
-        ...prevUnanswered,
-        {
-          question: currentQuestion,
-          index: currentIndex,
-          remainingTime: timeLeft, // Save the remaining time
-          originalIndex: currentQuestion.originalIndex // Store original index
+      if (isReviewPhase) {
+        // In review phase, treat another skip as FINAL: remove from list and move on
+        const pruned = unansweredQuestions.filter(item => item.question.id !== currentQuestion.id);
+        setUnansweredQuestions(pruned);
+        unansweredQuestionsRef.current = pruned;
+
+        // If nothing left, auto-submit
+        if (pruned.length === 0) {
+          setAutoSubmit(true);
+          return;
         }
-      ]);
-      
-      // Save the remaining time for this question for the review phase
-      setReviewTimers(prev => ({
-        ...prev,
-        [currentQuestion.id]: timeLeft
-      }));
+
+        // Stay at same index (which now points to the next item) and update selection
+        const nextIndex = Math.min(currentIndex, pruned.length - 1);
+        setCurrentIndex(nextIndex);
+        setSelectedOption(answers[pruned[nextIndex]?.question.id] ?? null);
+        return;
+      } else {
+        // First pass: add to unanswered only if not already queued
+        const alreadyQueued = unansweredQuestions.some(u => u.question.id === currentQuestion.id);
+        if (!alreadyQueued) {
+          willAddToUnanswered = true;
+          updatedUnansweredQuestions = [
+            ...unansweredQuestions,
+            {
+              question: currentQuestion,
+              index: currentIndex,
+              remainingTime: timeLeft, // Save the remaining time
+              originalIndex: currentQuestion.originalIndex // Store original index
+            }
+          ];
+
+          console.log(`Question ${currentQuestion.id} skipped - added to review. Total unanswered: ${updatedUnansweredQuestions.length}`);
+
+          setUnansweredQuestions(updatedUnansweredQuestions);
+          unansweredQuestionsRef.current = updatedUnansweredQuestions;
+
+          // Save the remaining time for this question for the review phase
+          setReviewTimers(prev => ({
+            ...prev,
+            [currentQuestion.id]: timeLeft
+          }));
+        }
+      }
     }
 
     // Check if we've reached the end of regular questions
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((i) => i + 1);
       setSelectedOption(answers[questions[currentIndex + 1]?.id] ?? null);
-    } else if (unansweredQuestions.length > 0 && !isReviewPhase) {
+    } else if (updatedUnansweredQuestions.length > 0 && !isReviewPhase) {
       // Start review phase with unanswered questions
+      console.log(`Starting review phase with ${updatedUnansweredQuestions.length} unanswered questions`);
+      // De-duplicate by question id to avoid loops
+      const seen = new Set();
+      const dedup = [];
+      for (const item of updatedUnansweredQuestions) {
+        if (!seen.has(item.question.id)) {
+          seen.add(item.question.id);
+          dedup.push(item);
+        }
+      }
+      setUnansweredQuestions(dedup);
+      unansweredQuestionsRef.current = dedup;
       setIsReviewPhase(true);
       setCurrentIndex(0);
-      setSelectedOption(answers[unansweredQuestions[0]?.question.id] ?? null);
-    } else if (isReviewPhase && currentIndex < unansweredQuestions.length - 1) {
+      setSelectedOption(answers[dedup[0]?.question.id] ?? null);
+    } else if (isReviewPhase && currentIndex < updatedUnansweredQuestions.length - 1) {
       // Continue in review phase
       setCurrentIndex((i) => i + 1);
-      setSelectedOption(answers[unansweredQuestions[currentIndex + 1]?.question.id] ?? null);
+      setSelectedOption(answers[updatedUnansweredQuestions[currentIndex + 1]?.question.id] ?? null);
+    } else if (isReviewPhase && currentIndex >= updatedUnansweredQuestions.length - 1) {
+      // End of review phase - no more questions to review
+      // The submit button will be shown instead of continue
+      console.log('Review phase completed - ready for submission');
+      // Auto submit when the user skips on the last review question
+      setAutoSubmit(true);
+      return;
     }
   }, [currentIndex, questions, answers, timeLeft, unansweredQuestions, isReviewPhase, currentQuestion]);
+
+  // (moved below handleAssessmentClick)
 
   const handleAssessmentClick = useCallback(async () => {
     try {
       if (!assessmentId) return alert("No assessment ID – cannot submit!");
   
-      // Always use all original questions for submission
-      const allQuestions = originalQuestions;
-      
+      // Build payload with ONLY answered questions (omit -1)
+      const answeredPairs = Object.entries(answers)
+        .filter(([, idx]) => typeof idx === 'number' && idx > -1)
+        .map(([qid, idx]) => ({ questionId: qid, chosenIndex: idx }));
+
       const payload = {
         type: fromQuickAssessment ? "quick" : "full",
         assessmentId,
-        answers: allQuestions.map((q) => ({
-          questionId: q.id,
-          chosenIndex: answers[q.id] ?? -1,
-        })),
+        answers: answeredPairs,
       };
   
       const res = await submitAssessment(payload);
@@ -304,7 +399,7 @@ useEffect(() => {
       const scoreDataFromResponse = res?.data?.score || res?.score || res?.data || {};
       
       // Extract correct totalScore/outOfScore path from API response
-      const totalPossibleScore = allQuestions.reduce((sum, q) => {
+      const totalPossibleScore = originalQuestions.reduce((sum, q) => {
         const pts = typeof q.points === 'number' ? q.points : 0;
         return sum + pts;
       }, 0);
@@ -317,7 +412,7 @@ useEffect(() => {
         scoreDataFromResponse?.outof ??
         scoreDataFromResponse?.out ??
         scoreDataFromResponse?.maxScore ??
-        (totalPossibleScore > 0 ? totalPossibleScore : (Array.isArray(allQuestions) ? allQuestions.length : 0))
+        (totalPossibleScore > 0 ? totalPossibleScore : (Array.isArray(originalQuestions) ? originalQuestions.length : 0))
       );
 
       // Get the actual score value - handle nested response structure
@@ -363,11 +458,20 @@ useEffect(() => {
       alert("Submission failed. Check console for details.");
     }
   }, [answers, assessmentId, fromQuickAssessment, isReviewPhase, unansweredQuestions, originalQuestions]);
+
+  // Auto-submit effect (covers timer/skip at last review item and zero unanswered left)
+  useEffect(() => {
+    if (autoSubmit) {
+      setAutoSubmit(false);
+      // Submit only answered questions: handled by payload chosenIndex -1
+      handleAssessmentClick();
+    }
+  }, [autoSubmit, handleAssessmentClick]);
   /** =========================
       Timer Logic
   ========================= */
   useEffect(() => {
-    if (!questions.length || !currentQuestion) return;
+    if (!questions.length || !currentQuestion?.id) return;
 
     // Set initial time for the question
     let initialTime = 60;
@@ -387,17 +491,30 @@ useEffect(() => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
           
-          // If time runs out and no answer was selected, add to unanswered questions
-          if (answers[currentQuestion.id] === undefined) {
-            setUnansweredQuestions(prevUnanswered => [
-              ...prevUnanswered,
+          // If time runs out and no answer was selected
+          if (currentQuestion?.id && answers[currentQuestion.id] === undefined) {
+            if (!isReviewPhase) {
+              // Only queue during first pass; never add during review
+            const newUnansweredQuestions = [
+              ...unansweredQuestionsRef.current,
               {
                 question: currentQuestion,
                 index: currentIndex,
                 remainingTime: 0, // Time ran out
                 originalIndex: currentQuestion.originalIndex
               }
-            ]);
+            ];
+            setUnansweredQuestions(newUnansweredQuestions);
+            unansweredQuestionsRef.current = newUnansweredQuestions;
+            } else {
+              // In review, treat timeout as final skip: remove and possibly auto-submit
+              const pruned = unansweredQuestionsRef.current.filter(item => item.question.id !== currentQuestion.id);
+              setUnansweredQuestions(pruned);
+              unansweredQuestionsRef.current = pruned;
+              if (pruned.length === 0) {
+                setAutoSubmit(true);
+              }
+            }
           }
           
           handleContinue();
@@ -407,10 +524,12 @@ useEffect(() => {
       });
       
       // Update the question timer for tracking time spent
-      setQuestionTimers(prev => ({
-        ...prev,
-        [currentQuestion.id]: prev[currentQuestion.id] - 1
-      }));
+      if (currentQuestion?.id) {
+        setQuestionTimers(prev => ({
+          ...prev,
+          [currentQuestion.id]: prev[currentQuestion.id] - 1
+        }));
+      }
     }, 1000);
 
     return () => {
@@ -500,15 +619,15 @@ useEffect(() => {
                 {showAllQuestions && (
                   <div className="mt-2 flex flex-col gap-2">
                     {questionsToDisplay
-                      .slice(Math.floor(displayIndex / 5) * 5, Math.floor(displayIndex / 5) * 5 + 5)
+                      .slice(Math.floor(listWindowIndex / 5) * 5, Math.floor(listWindowIndex / 5) * 5 + 5)
                       .map((q, index) => {
-                        const globalIndex = Math.floor(displayIndex / 5) * 5 + index;
+                        const globalIndex = Math.floor(listWindowIndex / 5) * 5 + index;
                         const isUnansweredInReview = isReviewPhase && answers[q.id] === undefined;
                         return (
                           <div
                             key={q.id}
                             className={`p-3 rounded text-[13px] cursor-default border ${
-                              globalIndex === displayIndex
+                              globalIndex === currentIndex
                                 ? "bg-[#FFE2D9] border-[#FF2738]"
                                 : isUnansweredInReview
                                 ? "bg-[#FFF3CD] border-[#FFC107]"
@@ -529,15 +648,15 @@ useEffect(() => {
               {/* Desktop view - UPDATED for review phase */}
               <div className="hidden lg:flex flex-col gap-2">
                 {questionsToDisplay
-                  .slice(Math.floor(displayIndex / 5) * 5, Math.floor(displayIndex / 5) * 5 + 5)
+                  .slice(Math.floor(listWindowIndex / 5) * 5, Math.floor(listWindowIndex / 5) * 5 + 5)
                   .map((q, index) => {
-                    const globalIndex = Math.floor(displayIndex / 5) * 5 + index;
+                    const globalIndex = Math.floor(listWindowIndex / 5) * 5 + index;
                     const isUnansweredInReview = isReviewPhase && answers[q.id] === undefined;
                     return (
                       <div
                         key={q.id}
                         className={`lg:p-1 xl:p-3 rounded lg:text-[12px] xl:text-[13px] cursor-default border ${
-                          globalIndex === displayIndex
+                          globalIndex === currentIndex
                             ? "bg-[#FFE2D9] border-[#FF2738]"
                             : isUnansweredInReview
                             ? "bg-[#FFF3CD] border-[#FFC107]"
@@ -578,8 +697,8 @@ useEffect(() => {
               </div>
               <div className="flex justify-between mt-2">
                 <span className="text-[15px] font-semibold">
-                  {isReviewPhase ? 'Review ' : ''}Question {currentIndex + 1} of{' '}
-                  {isReviewPhase ? unansweredQuestions.length : questions.length}
+                  {isReviewPhase ? 'Review ' : ''}Question {isReviewPhase ? Math.min(currentIndex + 1, unansweredQuestionsRef.current.length) : currentIndex + 1} of{' '}
+                  {isReviewPhase ? unansweredQuestionsRef.current.length : questions.length}
                 </span>
                 <span className="text-[15px] font-semibold">{progressPercent}%</span>
               </div>
@@ -633,17 +752,22 @@ useEffect(() => {
               <button
                 className="px-4 py-2 w-full bg-orange-500 text-white rounded-lg"
                 onClick={() => {
-                  if (isReviewPhase && currentIndex === unansweredQuestions.length - 1) {
+                  const currentUnansweredCount = unansweredQuestionsRef.current.length;
+                  
+                  if (isReviewPhase && currentIndex >= currentUnansweredCount - 1) {
+                    // End of review phase - submit assessment
                     handleAssessmentClick();
-                  } else if (!isReviewPhase && currentIndex === questions.length - 1 && unansweredQuestions.length === 0) {
+                  } else if (!isReviewPhase && currentIndex === questions.length - 1 && currentUnansweredCount === 0) {
+                    // End of regular phase with no unanswered questions - submit assessment
                     handleAssessmentClick();
                   } else {
+                    // Continue to next question
                     handleContinue();
                   }
                 }}
               >
-                {(isReviewPhase && currentIndex === unansweredQuestions.length - 1) || 
-                 (!isReviewPhase && currentIndex === questions.length - 1 && unansweredQuestions.length === 0)
+                {(isReviewPhase && currentIndex >= unansweredQuestionsRef.current.length - 1) || 
+                 (!isReviewPhase && currentIndex === questions.length - 1 && unansweredQuestionsRef.current.length === 0)
                   ? 'Submit'
                   : 'Continue'}
               </button>
