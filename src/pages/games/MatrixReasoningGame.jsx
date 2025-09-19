@@ -13,7 +13,8 @@ import {
     ChevronDown,
     Sparkles,
     Zap,
-    Eye
+    Eye,
+    Heart
 } from 'lucide-react';
 
 // Pattern generation utilities for Matrix Reasoning Game
@@ -35,8 +36,6 @@ const shuffleArray = (array) => {
     }
     return shuffled;
 };
-
-
 
 // --- Option de-dup helpers ---
 const patternKey = (p) => (p ? `${p.type}:${JSON.stringify(p.props)}` : 'null');
@@ -999,55 +998,6 @@ const generateMathematicalPattern = () => {
     return { matrix, correctAnswer, options };
 };
 
-// Pattern generators for different difficulty levels (not used directly by the game flow, kept for completeness)
-export const generateEasyPattern = () => {
-    const patternTypes = ['color', 'shape', 'number', 'checkerboard-color', 'column-shape', 'dots-grid-inc'];
-    const type = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-
-    switch (type) {
-        case 'color': return generateColorPattern();
-        case 'shape': return generateShapePattern();
-        case 'number': return generateNumberPattern();
-        case 'checkerboard-color': return generateCheckerboardColorPattern();
-        case 'column-shape': return generateColumnShapePattern();
-        case 'dots-grid-inc': return generateDotsGridIncrementPattern();
-        default: return generateColorPattern();
-    }
-};
-
-export const generateMediumPattern = () => {
-    const patternTypes = ['shape-color', 'rotation', 'size-progression', 'dots', 'row-sum', 'row-diff', 'column-sum', 'row-rotation'];
-    const type = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-
-    switch (type) {
-        case 'shape-color': return generateShapeColorPattern();
-        case 'rotation': return generateRotationPattern();
-        case 'size-progression': return generateSizeProgressionPattern();
-        case 'dots': return generateDotsPattern();
-        case 'row-sum': return generateRowSumPattern();
-        case 'row-diff': return generateRowDifferencePattern();
-        case 'column-sum': return generateColumnSumPattern();
-        case 'row-rotation': return generateRowRotationPattern();
-        default: return generateShapeColorPattern();
-    }
-};
-
-export const generateHardPattern = () => {
-    const patternTypes = ['complex-sequence', 'mathematical', 'multi-attribute', 'arrows', 'prime-seq', 'triangular-seq', 'parity-multi-attr'];
-    const type = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-
-    switch (type) {
-        case 'complex-sequence': return generateComplexSequencePattern();
-        case 'mathematical': return generateMathematicalPattern();
-        case 'multi-attribute': return generateMultiAttributePattern();
-        case 'arrows': return generateArrowPattern();
-        case 'prime-seq': return generatePrimeSequencePattern();
-        case 'triangular-seq': return generateTriangularSequencePattern();
-        case 'parity-multi-attr': return generateParityMultiAttributePattern();
-        default: return generateComplexSequencePattern();
-    }
-};
-
 const generateMultiAttributePattern = () => {
     const shapes = [getRandomShape(), getRandomShape(), getRandomShape()];
     const colors = [getRandomColor(), getRandomColor(), getRandomColor()];
@@ -1137,30 +1087,6 @@ const generateParityNumberPattern = () => {
     return { matrix, correctAnswer, options };
 };
 
-
-
-const PATTERN_POOLS = {
-    Easy: [
-        { kind: 'color', fn: generateColorPattern },
-        { kind: 'shape', fn: generateShapePattern },
-        { kind: 'number', fn: generateNumberPattern }
-    ],
-    Medium: [
-        { kind: 'shape-color', fn: generateShapeColorPattern },
-        { kind: 'rotation', fn: generateRotationPattern },
-        { kind: 'size-progression', fn: generateSizeProgressionPattern },
-        { kind: 'dots', fn: generateDotsPattern },
-        { kind: 'row-sum', fn: generateRowSumPattern }
-    ],
-    Hard: [
-        { kind: 'complex-sequence', fn: generateComplexSequencePattern },
-        { kind: 'mathematical', fn: generateMathematicalPattern },
-        { kind: 'multi-attribute', fn: generateMultiAttributePattern },
-        { kind: 'arrows', fn: generateArrowPattern },
-        { kind: 'latin-shape', fn: generateLatinShapePattern }
-    ]
-};
-
 // Pattern recognition helpers
 const patternsMatch = (pattern1, pattern2) => {
     if (!pattern1 || !pattern2) return false;
@@ -1185,9 +1111,9 @@ const MatrixCell = ({
 }) => {
     const getSizeClasses = () => {
         switch (size) {
-            case 'small': return 'w-12 h-12';
-            case 'large': return 'w-20 h-20 md:w-24 md:h-24';
-            default: return 'w-16 h-16 md:w-20 md:h-20';
+            case 'small': return 'w-10 h-10 sm:w-12 sm:h-12';
+            case 'large': return 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24';
+            default: return 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20';
         }
     };
 
@@ -1412,8 +1338,6 @@ const MatrixReasoningGame = () => {
     const [finalScore, setFinalScore] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState(300);
     const [currentLevel, setCurrentLevel] = useState(1);
-    const [streak, setStreak] = useState(0);
-    const [maxStreak, setMaxStreak] = useState(0);
     const [hintsUsed, setHintsUsed] = useState(0);
     const [maxHints, setMaxHints] = useState(3);
     const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -1422,6 +1346,10 @@ const MatrixReasoningGame = () => {
     const [questionStartTime, setQuestionStartTime] = useState(0);
     const [gameDuration, setGameDuration] = useState(0);
     const [gameStartTime, setGameStartTime] = useState(0);
+
+    // Lives system
+    const [lives, setLives] = useState(3);
+    const [maxLives, setMaxLives] = useState(3);
 
     // Current puzzle state
     const [currentPuzzle, setCurrentPuzzle] = useState(null);
@@ -1433,200 +1361,182 @@ const MatrixReasoningGame = () => {
     const [showHint, setShowHint] = useState(false);
     const [showInstructions, setShowInstructions] = useState(true);
     const [isAnswering, setIsAnswering] = useState(false);
-    const [deck, setDeck] = useState([]);     // array of kind strings for the current run
-    const [deckPos, setDeckPos] = useState(0);
 
+    // Simple scoring system based on difficulty
     const pointsPerPuzzle = useMemo(() => {
-        return deck.length ? 200 / deck.length : 0;
-    }, [deck.length]);
+        switch (difficulty) {
+            case 'Easy': return 25;
+            case 'Moderate': return 40;
+            case 'Hard': return 50;
+            default: return 25;
+        }
+    }, [difficulty]);
 
-
-
-    // ------------- Fixed mapping: kind -> generator function -------------
-    const KIND_TO_GENERATOR = {
-        // Easy
-        'color': generateColorPattern,
-        'shape': generateShapePattern,
-        'number': generateNumberPattern,
-        'checkerboard-color': generateCheckerboardColorPattern,
-        'column-shape': generateColumnShapePattern,
-        'dots-grid-inc': generateDotsGridIncrementPattern,
-        'parity-number': generateParityNumberPattern,
-
-        // Medium
-        'shape-color': generateShapeColorPattern,
-        'rotation': generateRotationPattern,
-        'size-progression': generateSizeProgressionPattern,
-        'dots': generateDotsPattern,
-        'row-sum': generateRowSumPattern,
-        'row-diff': generateRowDifferencePattern,
-        'column-sum': generateColumnSumPattern,
-        'row-rotation': generateRowRotationPattern,
-        'compass-rotation': generateCompassRotationPattern,
-
-        // Hard
-        'complex-sequence': generateComplexSequencePattern,
-        'mathematical': generateMathematicalPattern,
-        'multi-attribute': generateMultiAttributePattern,
-        'arrows': generateArrowPattern,
-        'prime-seq': generatePrimeSequencePattern,
-        'triangular-seq': generateTriangularSequencePattern,
-        'parity-multi-attr': generateParityMultiAttributePattern,
-        'latin-shape': generateLatinShapePattern,
-        'affine-progression': generateAffineProgressionPattern
-    };
-
-    // ------------- Fixed decks per difficulty (unique, ordered) -------------
-    const DECKS = {
-        Easy: [
-            'color',
-            'shape',
-            'number',
-            'checkerboard-color',
-            'column-shape',
-            'dots-grid-inc',
-            'parity-number'
-        ],
-        Medium: [
-            'shape-color',
-            'rotation',
-            'size-progression',
-            'dots',
-            'row-sum',
-            'row-diff',
-            'column-sum',
-            'row-rotation',
-            'compass-rotation'
-        ],
-        Hard: [
-            'complex-sequence',
-            'mathematical',
-            'multi-attribute',
-            'arrows',
-            'prime-seq',
-            'triangular-seq',
-            'parity-multi-attr',
-            'latin-shape',
-            'affine-progression'
-        ]
-    };
-
-    const normalizeDifficulty = (d) => {
-        if (!d) return 'Easy';
-        if (typeof d === 'string') return d.trim();
-        if (typeof d === 'object') return (d.value || d.label || 'Easy').trim();
-        return 'Easy';
-    };
-
-    // Difficulty settings
+    // Difficulty settings with lives
     const difficultySettings = {
         Easy: {
-            timeLimit: 300,
+            timeLimit: 150,
             hints: 3,
             questionsPerLevel: 5,
             description: 'Simple shape and color patterns',
             icon: '🟢',
-            basePoints: 15
+            basePoints: 25,
+            totalQuestions: 8,
+            lives: 3
         },
-        Medium: {
-            timeLimit: 240,
+        Moderate: {
+            timeLimit: 120,
             hints: 2,
             questionsPerLevel: 4,
             description: 'Multi-attribute patterns with rotations',
             icon: '🟡',
-            basePoints: 25
+            basePoints: 40,
+            totalQuestions: 5,
+            lives: 2
         },
         Hard: {
-            timeLimit: 180,
+            timeLimit: 90,
             hints: 1,
             questionsPerLevel: 3,
             description: 'Complex sequences and mathematical patterns',
             icon: '🔴',
-            basePoints: 35
+            basePoints: 50,
+            totalQuestions: 4,
+            lives: 1
         }
+    };
+
+    // Pattern generators by difficulty
+    const patternGenerators = {
+        Easy: [
+            generateColorPattern,
+            generateShapePattern,
+            generateNumberPattern,
+            generateCheckerboardColorPattern,
+            generateColumnShapePattern,
+            generateDotsGridIncrementPattern,
+            generateParityNumberPattern,
+            generateRowShiftPattern
+        ],
+        Moderate: [
+            generateShapeColorPattern,
+            generateRotationPattern,
+            generateSizeProgressionPattern,
+            generateDotsPattern,
+            generateRowSumPattern,
+            generateRowDifferencePattern,
+            generateColumnSumPattern,
+            generateRowRotationPattern,
+            generateCompassRotationPattern
+        ],
+        Hard: [
+            generateComplexSequencePattern,
+            generateMathematicalPattern,
+            generateMultiAttributePattern,
+            generateArrowPattern,
+            generatePrimeSequencePattern,
+            generateTriangularSequencePattern,
+            generateParityMultiAttributePattern,
+            generateLatinShapePattern,
+            generateAffineProgressionPattern
+        ]
     };
 
     // Generate new puzzle based on difficulty
     const generateNewPuzzle = useCallback(() => {
-        const diff = normalizeDifficulty(difficulty);
-
-        // Out of puzzles? Finish the game.
-        if (deckPos >= deck.length) {
+        // Check if we've completed all questions for this difficulty
+        const settings = difficultySettings[difficulty] || difficultySettings.Easy;
+        
+        if (totalQuestions >= settings.totalQuestions) {
+            // Game should end here
+            const endTime = Date.now();
+            const duration = Math.floor((endTime - gameStartTime) / 1000);
+            setGameDuration(duration);
             setFinalScore(score);
             setGameState('finished');
             setShowCompletionModal(true);
             return;
         }
 
-        const kind = deck[deckPos];
-        const fn = KIND_TO_GENERATOR[kind] || generateColorPattern; // safe fallback
-        const puzzle = fn();
+        // Check if lives are exhausted
+        if (lives <= 0) {
+            const endTime = Date.now();
+            const duration = Math.floor((endTime - gameStartTime) / 1000);
+            setGameDuration(duration);
+            setFinalScore(score);
+            setGameState('finished');
+            setShowCompletionModal(true);
+            return;
+        }
 
-        setCurrentPuzzle({ ...puzzle, kind });
-        setDeckPos((p) => p + 1);
+        const generators = patternGenerators[difficulty] || patternGenerators.Easy;
+        const generator = generators[Math.floor(Math.random() * generators.length)];
+        const puzzle = generator();
 
+        setCurrentPuzzle(puzzle);
         setSelectedAnswer(null);
         setShowFeedback(false);
         setShowHint(false);
         setIsAnswering(false);
         setQuestionStartTime(Date.now());
-    }, [difficulty, deck, deckPos, score]);
+    }, [difficulty, totalQuestions, score, gameStartTime, lives]);
 
-    useEffect(() => {
-        // start first puzzle only when: game is playing, deck is ready, and there isn't a puzzle yet
-        if (gameState === 'playing' && deck.length > 0 && currentPuzzle == null && deckPos === 0) {
-            generateNewPuzzle();
-        }
-    }, [gameState, deck, deckPos, currentPuzzle, generateNewPuzzle]);
-
-    // Handle answer selection
+    // Handle answer selection - FIXED TO STOP AT QUESTION LIMIT
     const handleAnswerSelect = (answer, index) => {
         if (showFeedback || gameState !== 'playing' || isAnswering) return;
 
         setIsAnswering(true);
         setSelectedAnswer(index);
 
-        const responseTime = Date.now() - questionStartTime;
+        const responseTime = Math.max(0, Date.now() - questionStartTime);
         setTotalResponseTime(prev => prev + responseTime);
-        setTotalQuestions(prev => prev + 1);
 
         const isCorrect = patternsMatch(answer, currentPuzzle.correctAnswer);
 
-        // --- Simple deck-based scoring ---
-        const delta = isCorrect ? pointsPerPuzzle : -pointsPerPuzzle;
-        setScore(prev => {
-            const next = Math.max(0, Math.min(200, prev + delta));
-            return next;
-        });
+        // Update question count FIRST
+        const newTotalQuestions = totalQuestions + 1;
+        setTotalQuestions(newTotalQuestions);
 
+        // Level progression based on questions per level
+        const settings = difficultySettings[difficulty] || difficultySettings.Easy;
+        if (newTotalQuestions > 0 && newTotalQuestions % settings.questionsPerLevel === 0) {
+            setCurrentLevel(prevLevel => prevLevel + 1);
+        }
+
+        // SCORING AND LIVES SYSTEM
         if (isCorrect) {
+            setScore(prev => Math.min(200, prev + pointsPerPuzzle));
             setCorrectAnswers(prev => prev + 1);
-            setStreak(prev => {
-                const newStreak = prev + 1;
-                setMaxStreak(current => Math.max(current, newStreak));
-                return newStreak;
-            });
             setFeedbackType('correct');
             setFeedbackMessage('Excellent! You found the correct pattern!');
-
-            // Level progression
-            if (totalQuestions > 0 && (totalQuestions + 1) % difficultySettings[difficulty].questionsPerLevel === 0) {
-                setCurrentLevel(prev => prev + 1);
-            }
         } else {
-            setStreak(0);
+            // Lose a life for wrong answer
+            const newLives = lives - 1;
+            setLives(newLives);
             setFeedbackType('incorrect');
-            setFeedbackMessage('Not quite right. Look for the pattern more carefully.');
+            setFeedbackMessage(`Incorrect! Lives remaining: ${newLives}`);
         }
 
         setShowFeedback(true);
 
-        // Auto-advance to next question
-        setTimeout(() => {
-            if (timeRemaining > 0) {
-                generateNewPuzzle();
-            }
-        }, 2500);
+        // Check if game should end after this question
+        if (newTotalQuestions >= settings.totalQuestions || lives - (isCorrect ? 0 : 1) <= 0) {
+            setTimeout(() => {
+                const endTime = Date.now();
+                const duration = Math.floor((endTime - gameStartTime) / 1000);
+                setGameDuration(duration);
+                setFinalScore(score + (isCorrect ? pointsPerPuzzle : 0));
+                setGameState('finished');
+                setShowCompletionModal(true);
+            }, 2500);
+        } else {
+            // Auto-advance to next question after delay
+            setTimeout(() => {
+                if (timeRemaining > 0 && gameState === 'playing') {
+                    generateNewPuzzle();
+                }
+            }, 2500);
+        }
     };
 
     // Use hint
@@ -1660,24 +1570,29 @@ const MatrixReasoningGame = () => {
                 });
             }, 1000);
         }
+
+        if (gameState === 'finished') {
+            clearInterval(interval);
+        }
+
         return () => clearInterval(interval);
     }, [gameState, timeRemaining, gameStartTime, score]);
 
+    // Generate first puzzle when game starts
+    useEffect(() => {
+        if (gameState === 'playing' && !currentPuzzle) {
+            generateNewPuzzle();
+        }
+    }, [gameState, currentPuzzle, generateNewPuzzle]);
+
     // Initialize game
     const initializeGame = useCallback(() => {
-        const settings = difficultySettings[normalizeDifficulty(difficulty)] || difficultySettings.Easy;
-
-        const diff = normalizeDifficulty(difficulty);
-        const deckKinds = DECKS[diff] || DECKS.Easy;
-        setDeck(deckKinds);
-        setDeckPos(0);
+        const settings = difficultySettings[difficulty] || difficultySettings.Easy;
 
         setScore(0);
         setFinalScore(0);
         setTimeRemaining(settings.timeLimit);
         setCurrentLevel(1);
-        setStreak(0);
-        setMaxStreak(0);
         setMaxHints(settings.hints);
         setHintsUsed(0);
         setCorrectAnswers(0);
@@ -1688,6 +1603,11 @@ const MatrixReasoningGame = () => {
         setSelectedAnswer(null);
         setShowHint(false);
         setIsAnswering(false);
+        setCurrentPuzzle(null);
+        
+        // Initialize lives based on difficulty
+        setLives(settings.lives);
+        setMaxLives(settings.lives);
     }, [difficulty]);
 
     const handleStart = () => {
@@ -1698,29 +1618,28 @@ const MatrixReasoningGame = () => {
 
     const handleReset = () => {
         initializeGame();
-        setCurrentPuzzle(null);
         setShowCompletionModal(false);
         setGameState('ready');
     };
 
     const handleGameComplete = (payload) => {
-        // Hook for parent integration if needed
-        // console.log('Game completed:', payload);
+        console.log('Game completed:', payload);
     };
 
     // Prevent difficulty change during gameplay
     const handleDifficultyChange = (newDifficulty) => {
         if (gameState === 'ready') {
-            setDifficulty(normalizeDifficulty(newDifficulty));
+            setDifficulty(newDifficulty);
         }
     };
 
     const customStats = {
         currentLevel,
-        streak: maxStreak,
         hintsUsed,
         correctAnswers,
         totalQuestions,
+        lives,
+        maxLives,
         accuracy: totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0,
         averageResponseTime: totalQuestions > 0 ? Math.round(totalResponseTime / totalQuestions / 1000) : 0
     };
@@ -1767,20 +1686,21 @@ const MatrixReasoningGame = () => {
                                         🎯 Pattern Types
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong>Easy:</strong> Colors and simple shapes</li>
-                                        <li>• <strong>Medium:</strong> Rotations and combinations</li>
-                                        <li>• <strong>Hard:</strong> Complex sequences and math</li>
+                                        <li>• <strong>Easy:</strong> Colors and simple shapes (8 questions)</li>
+                                        <li>• <strong>Moderate:</strong> Rotations and combinations (5 questions)</li>
+                                        <li>• <strong>Hard:</strong> Complex sequences and math (4 questions)</li>
                                     </ul>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg'>
                                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        📊 Scoring (0-200)
+                                        ❤️ Lives & Scoring (0-200)
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Accuracy and speed bonuses</li>
-                                        <li>• Streak multipliers for consecutive wins</li>
-                                        <li>• Level progression rewards</li>
+                                        <li>• Easy: 3 lives, 25 pts per correct</li>
+                                        <li>• Moderate: 2 lives, 40 pts per correct</li>
+                                        <li>• Hard: 1 life, 50 pts per correct</li>
+                                        <li>• Wrong answers lose a life</li>
                                     </ul>
                                 </div>
 
@@ -1801,7 +1721,7 @@ const MatrixReasoningGame = () => {
                 category="Logic"
                 gameState={gameState}
                 setGameState={setGameState}
-                score={gameState === 'finished' ? Math.round(finalScore) : Math.round(score)}
+                score={gameState === 'finished' ? finalScore : score}
                 timeRemaining={timeRemaining}
                 difficulty={difficulty}
                 setDifficulty={handleDifficultyChange}
@@ -1814,6 +1734,25 @@ const MatrixReasoningGame = () => {
                 <div className="flex flex-col items-center">
                     {/* Game Controls */}
                     <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
+                        {/* Progress Display */}
+                        {gameState === 'playing' && (
+                            <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-indigo-100 px-4 py-2 rounded-lg">
+                                <span className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                    Progress: {totalQuestions}/{difficultySettings[difficulty].totalQuestions}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Lives Display */}
+                        {gameState === 'playing' && (
+                            <div className="flex items-center gap-2 bg-gradient-to-r from-red-100 to-pink-100 px-4 py-2 rounded-lg">
+                                <Heart className="h-4 w-4 text-red-600" />
+                                <span className="text-sm font-medium text-red-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                    Lives: {lives}/{maxLives}
+                                </span>
+                            </div>
+                        )}
+
                         {gameState === 'playing' && (
                             <button
                                 onClick={useHint}
@@ -1829,8 +1768,6 @@ const MatrixReasoningGame = () => {
                             </button>
                         )}
                     </div>
-
-
 
                     {currentPuzzle && (
                         <div className="w-full max-w-4xl">
@@ -1865,7 +1802,6 @@ const MatrixReasoningGame = () => {
                                                         showHint={showHint && isLastCell}
                                                         className="transform transition-all duration-500 hover:scale-110 hover:shadow-lg"
                                                     />
-
                                                 </div>
                                             );
                                         })
@@ -1970,22 +1906,10 @@ const MatrixReasoningGame = () => {
                                         }`} style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                                         {feedbackMessage}
                                     </div>
-                                    {feedbackType === 'correct' && streak > 1 && (
-                                        <div className="mt-2 flex items-center justify-center gap-2">
-                                            <Sparkles className="h-5 w-5 text-yellow-500 animate-spin" />
-                                            <span className="text-yellow-700 font-semibold animate-pulse" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                                {streak} in a row! 🔥
-                                            </span>
-                                            <Sparkles className="h-5 w-5 text-yellow-500 animate-spin" />
-                                        </div>
-                                    )}
                                 </div>
                             )}
-
                         </div>
                     )}
-
-
                 </div>
             </GameFramework>
 
@@ -2000,8 +1924,8 @@ const MatrixReasoningGame = () => {
                     totalQuestions,
                     accuracy: customStats.accuracy,
                     averageResponseTime: customStats.averageResponseTime,
-                    maxStreak,
-                    hintsUsed
+                    hintsUsed,
+                    livesRemaining: lives
                 }}
             />
         </div>

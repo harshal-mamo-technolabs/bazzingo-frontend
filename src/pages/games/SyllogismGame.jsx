@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Brain, CheckCircle, XCircle, Lightbulb, Trophy, Clock, Target, ChevronUp, ChevronDown } from 'lucide-react';
+import { Brain, CheckCircle, XCircle, Lightbulb, Trophy, Clock, Target, ChevronUp, ChevronDown, Heart } from 'lucide-react';
 
 const syllogismData = {
     Easy: [
@@ -71,7 +71,7 @@ const syllogismData = {
             explanation: "This follows the pattern: No A are B, All C are A, therefore No C are B (valid)."
         },
         {
-            id: 25,
+            id: 9,
             premise1: "All mammals are warm-blooded.",
             premise2: "Dolphins are mammals.",
             conclusion: "Dolphins are warm-blooded.",
@@ -79,57 +79,17 @@ const syllogismData = {
             explanation: "All A are B; X is A; therefore X is B (valid)."
         },
         {
-            id: 26,
+            id: 10,
             premise1: "All cups have handles.",
             premise2: "This mug has a handle.",
             conclusion: "This mug is a cup.",
             isValid: false,
             explanation: "Affirming the consequent: having a handle doesn't make it a cup."
-        },
-        {
-            id: 27,
-            premise1: "No insects are vertebrates.",
-            premise2: "All bees are insects.",
-            conclusion: "No bees are vertebrates.",
-            isValid: true,
-            explanation: "No A are B; All C are A; therefore No C are B (valid)."
-        },
-        {
-            id: 28,
-            premise1: "Some cars are electric.",
-            premise2: "All electric vehicles need power.",
-            conclusion: "Some cars need power.",
-            isValid: true,
-            explanation: "Some A are B; All B are C; therefore Some A are C (valid)."
-        },
-        {
-            id: 29,
-            premise1: "All squares have four sides.",
-            premise2: "This shape has four sides.",
-            conclusion: "This shape is a square.",
-            isValid: false,
-            explanation: "Converse error: having four sides doesn't imply being a square."
-        },
-        {
-            id: 30,
-            premise1: "All teachers read books.",
-            premise2: "Maria reads books.",
-            conclusion: "Maria is a teacher.",
-            isValid: false,
-            explanation: "Undistributed middle: from 'reads books' you can't infer 'teacher'."
-        },
-        {
-            id: 31,
-            premise1: "All triangles are polygons.",
-            premise2: "All polygons are shapes.",
-            conclusion: "All triangles are shapes.",
-            isValid: true,
-            explanation: "All A are B; All B are C; therefore All A are C (valid)."
         }
     ],
-    Medium: [
+    Moderate: [
         {
-            id: 9,
+            id: 1,
             premise1: "Some politicians are honest.",
             premise2: "All honest people are trustworthy.",
             conclusion: "Some politicians are trustworthy.",
@@ -137,7 +97,7 @@ const syllogismData = {
             explanation: "This follows the pattern: Some A are B, All B are C, therefore Some A are C (valid)."
         },
         {
-            id: 10,
+            id: 2,
             premise1: "All squares are rectangles.",
             premise2: "Some rectangles are not squares.",
             conclusion: "Some rectangles are squares.",
@@ -145,7 +105,7 @@ const syllogismData = {
             explanation: "If all squares are rectangles, then at least some rectangles must be squares."
         },
         {
-            id: 11,
+            id: 3,
             premise1: "No vegetarians eat meat.",
             premise2: "Some healthy people are vegetarians.",
             conclusion: "Some healthy people do not eat meat.",
@@ -153,7 +113,7 @@ const syllogismData = {
             explanation: "This combines universal negative with particular affirmative validly."
         },
         {
-            id: 12,
+            id: 4,
             premise1: "All geniuses are creative.",
             premise2: "Some creative people are not recognized.",
             conclusion: "Some geniuses are not recognized.",
@@ -161,7 +121,7 @@ const syllogismData = {
             explanation: "This commits the fallacy of the undistributed middle term."
         },
         {
-            id: 13,
+            id: 5,
             premise1: "Some books are educational.",
             premise2: "All educational materials are valuable.",
             conclusion: "Some books are valuable.",
@@ -169,7 +129,7 @@ const syllogismData = {
             explanation: "This follows the valid pattern: Some A are B, All B are C, therefore Some A are C."
         },
         {
-            id: 14,
+            id: 6,
             premise1: "All professional athletes are disciplined.",
             premise2: "No lazy people are disciplined.",
             conclusion: "No professional athletes are lazy.",
@@ -177,7 +137,7 @@ const syllogismData = {
             explanation: "This follows the pattern: All A are B, No C are B, therefore No A are C (valid)."
         },
         {
-            id: 15,
+            id: 7,
             premise1: "Some scientists are Nobel laureates.",
             premise2: "All Nobel laureates are brilliant.",
             conclusion: "All scientists are brilliant.",
@@ -185,97 +145,17 @@ const syllogismData = {
             explanation: "This commits the fallacy of hasty generalization from 'some' to 'all'."
         },
         {
-            id: 16,
+            id: 8,
             premise1: "All effective medicines are tested.",
             premise2: "Some herbal remedies are not tested.",
             conclusion: "Some herbal remedies are not effective medicines.",
             isValid: true,
             explanation: "This follows from the contrapositive: if not tested, then not effective medicine."
-        },
-        {
-            id: 32,
-            premise1: "Some artists are painters.",
-            premise2: "All painters use brushes.",
-            conclusion: "Some artists use brushes.",
-            isValid: true,
-            explanation: "Some A are B; All B are C; therefore Some A are C (valid)."
-        },
-        {
-            id: 33,
-            premise1: "All metals conduct electricity.",
-            premise2: "Some coins are metals.",
-            conclusion: "Some coins conduct electricity.",
-            isValid: true,
-            explanation: "All A are B; Some C are A; therefore Some C are B (valid)."
-        },
-        {
-            id: 34,
-            premise1: "All writers are readers.",
-            premise2: "Some readers are not critics.",
-            conclusion: "Some writers are not critics.",
-            isValid: false,
-            explanation: "Undistributed middle: 'some readers not critics' need not be writers."
-        },
-        {
-            id: 35,
-            premise1: "Some programmers are gamers.",
-            premise2: "No gamers are early sleepers.",
-            conclusion: "Some programmers are not early sleepers.",
-            isValid: true,
-            explanation: "Some A are B; No B are C; therefore Some A are not C (valid)."
-        },
-        {
-            id: 36,
-            premise1: "All fruits are healthy.",
-            premise2: "Some snacks are fruits.",
-            conclusion: "Some snacks are healthy.",
-            isValid: true,
-            explanation: "All A are B; Some C are A; therefore Some C are B (valid)."
-        },
-        {
-            id: 37,
-            premise1: "All poets are imaginative.",
-            premise2: "Some imaginative people are not practical.",
-            conclusion: "Some poets are not practical.",
-            isValid: false,
-            explanation: "Undistributed middle: 'imaginative' doesn't connect poets to 'not practical'."
-        },
-        {
-            id: 38,
-            premise1: "No reptiles have fur.",
-            premise2: "Some animals have fur.",
-            conclusion: "Some animals are not reptiles.",
-            isValid: true,
-            explanation: "No A are B; Some C are B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 39,
-            premise1: "All engineers like mathematics.",
-            premise2: "All mathematicians like puzzles.",
-            conclusion: "All engineers like puzzles.",
-            isValid: false,
-            explanation: "Undistributed middle: no link from 'like mathematics' to 'like puzzles'."
-        },
-        {
-            id: 40,
-            premise1: "Some students are diligent.",
-            premise2: "All diligent people succeed.",
-            conclusion: "Some students succeed.",
-            isValid: true,
-            explanation: "Some A are B; All B are C; therefore Some A are C (valid)."
-        },
-        {
-            id: 41,
-            premise1: "All squares are rectangles.",
-            premise2: "All rectangles are quadrilaterals.",
-            conclusion: "All squares are quadrilaterals.",
-            isValid: true,
-            explanation: "All A are B; All B are C; therefore All A are C (valid)."
         }
     ],
     Hard: [
         {
-            id: 17,
+            id: 1,
             premise1: "All things that promote happiness are good.",
             premise2: "Some pleasures do not promote happiness.",
             conclusion: "Some pleasures are not good.",
@@ -283,7 +163,7 @@ const syllogismData = {
             explanation: "This uses the contrapositive: if something doesn't promote happiness, it's not good."
         },
         {
-            id: 18,
+            id: 2,
             premise1: "No circular arguments are valid.",
             premise2: "Some invalid arguments are persuasive.",
             conclusion: "Some circular arguments are persuasive.",
@@ -291,7 +171,7 @@ const syllogismData = {
             explanation: "This commits the fallacy of the undistributed middle term."
         },
         {
-            id: 19,
+            id: 3,
             premise1: "All rational decisions are based on evidence.",
             premise2: "Some intuitive choices are not based on evidence.",
             conclusion: "Some intuitive choices are not rational decisions.",
@@ -299,7 +179,7 @@ const syllogismData = {
             explanation: "This follows from contraposition: not evidence-based implies not rational."
         },
         {
-            id: 20,
+            id: 4,
             premise1: "Some complex problems have simple solutions.",
             premise2: "All simple solutions are elegant.",
             conclusion: "Some complex problems have elegant solutions.",
@@ -307,147 +187,15 @@ const syllogismData = {
             explanation: "This follows the pattern: Some A have B, All B are C, therefore Some A have C."
         },
         {
-            id: 21,
+            id: 5,
             premise1: "All meaningful statements are either analytic or synthetic.",
             premise2: "Some philosophical propositions are not analytic.",
             conclusion: "Some philosophical propositions are synthetic.",
             isValid: false,
             explanation: "This assumes philosophical propositions are meaningful statements, which isn't stated."
-        },
-        {
-            id: 22,
-            premise1: "No contradictory statements can both be true.",
-            premise2: "All paradoxes contain contradictory statements.",
-            conclusion: "No paradoxes can be entirely true.",
-            isValid: true,
-            explanation: "This follows the pattern: No A can be B, All C contain A, therefore No C can be B."
-        },
-        {
-            id: 23,
-            premise1: "All sustainable practices consider future generations.",
-            premise2: "Some profitable activities do not consider future generations.",
-            conclusion: "Some profitable activities are not sustainable practices.",
-            isValid: true,
-            explanation: "This uses contraposition: if it doesn't consider future generations, it's not sustainable."
-        },
-        {
-            id: 24,
-            premise1: "Some ethical theories are consequentialist.",
-            premise2: "All consequentialist theories focus on outcomes.",
-            conclusion: "All ethical theories focus on outcomes.",
-            isValid: false,
-            explanation: "This commits the fallacy of hasty generalization from 'some' to 'all'."
-        },
-        {
-            id: 42,
-            premise1: "All just actions are permissible.",
-            premise2: "Some punishments are not permissible.",
-            conclusion: "Some punishments are not just actions.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 43,
-            premise1: "No coherent theories are self-contradictory.",
-            premise2: "Some proposed theories are self-contradictory.",
-            conclusion: "Some proposed theories are not coherent.",
-            isValid: true,
-            explanation: "No A are B; Some C are B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 44,
-            premise1: "All knowledge requires justification.",
-            premise2: "Some true beliefs lack justification.",
-            conclusion: "Some true beliefs are not knowledge.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 45,
-            premise1: "Some norms are culturally relative.",
-            premise2: "All culturally relative norms vary across societies.",
-            conclusion: "Some norms vary across societies.",
-            isValid: true,
-            explanation: "Some A are B; All B are C; therefore Some A are C (valid)."
-        },
-        {
-            id: 46,
-            premise1: "All obligations imply ability ('ought' implies 'can').",
-            premise2: "Some demands do not imply ability.",
-            conclusion: "Some demands are not obligations.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 47,
-            premise1: "All necessary truths hold in every possible world.",
-            premise2: "Some mathematical conjectures do not hold in every possible world.",
-            conclusion: "Some mathematical conjectures are not necessary truths.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 48,
-            premise1: "No perfectly rational agents act akratically.",
-            premise2: "Some humans act akratically.",
-            conclusion: "Some humans are not perfectly rational agents.",
-            isValid: true,
-            explanation: "No A are B; Some C are B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 49,
-            premise1: "All explanations increase understanding.",
-            premise2: "Some metaphors increase understanding.",
-            conclusion: "Some metaphors are explanations.",
-            isValid: false,
-            explanation: "Converse error: from 'all explanations increase understanding' we can't infer the reverse."
-        },
-        {
-            id: 50,
-            premise1: "Some beliefs are incorrigible.",
-            premise2: "All incorrigible beliefs are self-justifying.",
-            conclusion: "Some beliefs are self-justifying.",
-            isValid: true,
-            explanation: "Some A are B; All B are C; therefore Some A are C (valid)."
-        },
-        {
-            id: 51,
-            premise1: "All evidence-based policies are revisable.",
-            premise2: "Some dogmas are not revisable.",
-            conclusion: "Some dogmas are not evidence-based policies.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 52,
-            premise1: "All consistent sets of statements can be modeled.",
-            premise2: "Some paradoxes cannot be modeled.",
-            conclusion: "Some paradoxes are not consistent sets of statements.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
-        },
-        {
-            id: 53,
-            premise1: "All transparent decisions are accountable.",
-            premise2: "Some opaque decisions are not accountable.",
-            conclusion: "Some opaque decisions are not transparent decisions.",
-            isValid: true,
-            explanation: "All A are B; Some C are not B; therefore Some C are not A (valid)."
         }
     ]
 };
-
-const getRandomSyllogisms = (difficulty, count = 10) => {
-    const syllogisms = syllogismData[difficulty] || syllogismData.Easy;
-    const shuffled = [...syllogisms].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, Math.min(count, shuffled.length));
-};
-
-const getRandomSyllogism = (difficulty) => {
-    const syllogisms = syllogismData[difficulty] || syllogismData.Easy;
-    return syllogisms[Math.floor(Math.random() * syllogisms.length)];
-};
-
 
 const SyllogismGame = () => {
     const [gameState, setGameState] = useState('ready');
@@ -475,52 +223,104 @@ const SyllogismGame = () => {
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const [showInstructions, setShowInstructions] = useState(true);
     const [wrongAnswers, setWrongAnswers] = useState(0);
-    const [maxQuestions, setMaxQuestions] = useState(20);
+    const [maxQuestions, setMaxQuestions] = useState(10);
     const [usedQuestionIds, setUsedQuestionIds] = useState(new Set());
+    const [availableQuestions, setAvailableQuestions] = useState([]);
+    const [isCorrectAnswer, setIsCorrectAnswer] = useState(null);
+    const [lives, setLives] = useState(3);
 
-    const DIFFICULTY_ALIASES = { Moderate: 'Medium', medium: 'Medium', easy: 'Easy', hard: 'Hard' };
+    const DIFFICULTY_ALIASES = { Moderate: 'Moderate', easy: 'Easy', hard: 'Hard' };
     const normalizeDifficulty = (d) => DIFFICULTY_ALIASES[d] || d;
 
+    // Updated difficulty settings with your requested values
+    const difficultySettings = {
+        Easy: { 
+            timeLimit: 300, 
+            hints: 3, 
+            questionsCount: 10, 
+            pointsPerQuestion: 20,
+            description: 'Basic syllogisms with clear logical patterns' 
+        },
+        Moderate: { 
+            timeLimit: 240, 
+            hints: 2, 
+            questionsCount: 8, 
+            pointsPerQuestion: 25,
+            description: 'Moderate complexity with some tricky logical structures' 
+        },
+        Hard: { 
+            timeLimit: 180, 
+            hints: 1, 
+            questionsCount: 5, 
+            pointsPerQuestion: 40,
+            description: 'Complex philosophical and abstract reasoning' 
+        }
+    };
+
     const POINTS_PER_QUESTION = useMemo(() => {
-        return 200 / (maxQuestions || 1);
-    }, [maxQuestions]);
+        const settings = difficultySettings[difficulty] || difficultySettings.Easy;
+        return settings.pointsPerQuestion;
+    }, [difficulty]);
 
     const scoreRef = useRef(0);
     useEffect(() => { scoreRef.current = score; }, [score]);
 
-    // Difficulty settings
-    const difficultySettings = {
-        Easy: { timeLimit: 300, hints: 3, questionsCount: 15, description: 'Basic syllogisms with clear logical patterns' },
-        Medium: { timeLimit: 240, hints: 2, questionsCount: 18, description: 'Moderate complexity with some tricky logical structures' },
-        Hard: { timeLimit: 180, hints: 1, questionsCount: 20, description: 'Complex philosophical and abstract reasoning' }
-    };
+    // Initialize available questions when difficulty changes
+    useEffect(() => {
+        if (gameState === 'ready') {
+            const diffKey = normalizeDifficulty(difficulty);
+            const questions = syllogismData[diffKey] || syllogismData.Easy;
+            setAvailableQuestions([...questions]);
+            
+            // Reset timer for the new difficulty
+            const settings = difficultySettings[diffKey] || difficultySettings.Easy;
+            setTimeRemaining(settings.timeLimit);
+        }
+    }, [difficulty, gameState]);
 
     // Load next question
     const loadNextQuestion = useCallback(() => {
         const diffKey = normalizeDifficulty(difficulty);
-        let newQuestion;
-        let attempts = 0;
-        const maxAttempts = 50;
-
-        do {
-            newQuestion = getRandomSyllogism(diffKey);
-            attempts++;
-        } while (usedQuestionIds.has(newQuestion.id) && attempts < maxAttempts);
-
-        if (attempts >= maxAttempts) {
-            // If we've exhausted questions, end the game
+        const settings = difficultySettings[diffKey] || difficultySettings.Easy;
+        
+        // Check if game should end due to no lives
+        if (lives <= 0) {
             handleGameEnd();
             return;
         }
+        
+        // Check if game should end due to no more questions
+        if (availableQuestions.length === 0) {
+            handleGameEnd();
+            return;
+        }
+
+        // Check if we've reached the maximum number of questions
+        if (questionNumber >= settings.questionsCount) {
+            handleGameEnd();
+            return;
+        }
+
+        // Get a random question from available questions
+        const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+        const newQuestion = availableQuestions[randomIndex];
+        
+        // Remove this question from available questions
+        setAvailableQuestions(prev => {
+            const updated = [...prev];
+            updated.splice(randomIndex, 1);
+            return updated;
+        });
 
         setUsedQuestionIds(prev => new Set(prev.add(newQuestion.id)));
         setCurrentQuestion(newQuestion);
         setSelectedAnswer(null);
         setShowFeedback(false);
         setShowExplanation(false);
+        setIsCorrectAnswer(null);
         setQuestionStartTime(Date.now());
         setQuestionNumber(prev => prev + 1);
-    }, [difficulty, usedQuestionIds]);
+    }, [difficulty, availableQuestions, lives, questionNumber]);
 
     // Handle answer selection
     const handleAnswerSelect = (answer) => {
@@ -532,16 +332,14 @@ const SyllogismGame = () => {
         setTotalQuestions((prev) => prev + 1);
 
         const isCorrect = answer === currentQuestion.isValid;
+        setIsCorrectAnswer(isCorrect);
+        const isLast = questionNumber >= maxQuestions - 1;
 
-        // Compute if this is the last question BEFORE any async operations
-        const isLast = questionNumber >= difficultySettings[difficulty].questionsCount;
-
-        // Compute the next score locally from the ref so we don't rely on stale state
         let nextScoreLocal = scoreRef.current;
+        let newLives = lives;
 
         if (isCorrect) {
             setCorrectAnswers((prev) => prev + 1);
-
             nextScoreLocal = Math.min(
                 200,
                 +(scoreRef.current + POINTS_PER_QUESTION).toFixed(2)
@@ -557,35 +355,42 @@ const SyllogismGame = () => {
             setFeedbackMessage('Correct! Well reasoned.');
         } else {
             setWrongAnswers((prev) => prev + 1);
-
-            nextScoreLocal = Math.max(
-                0,
-                +(scoreRef.current - POINTS_PER_QUESTION).toFixed(2)
-            );
-
+            newLives = lives - 1;
+            setLives(newLives);
+            
             setStreak(0);
             setFeedbackType('incorrect');
-            setFeedbackMessage('Incorrect. Study the explanation.');
+            setFeedbackMessage('Incorrect. You lost a life.');
         }
 
-        // Commit the computed score to state AND the ref
         setScore(nextScoreLocal);
         scoreRef.current = nextScoreLocal;
 
         setShowFeedback(true);
         setShowExplanation(true);
 
-        // Auto advance or end after a short delay
         setTimeout(() => {
-            if (isLast) {
-                // Pass the exact final score so the modal shows 200 (or whatever the final is)
+            // Check if game should end due to no lives
+            if (newLives <= 0) {
                 handleGameEnd(nextScoreLocal);
-            } else {
-                loadNextQuestion();
+                return;
             }
+            
+            // Check if we've reached the maximum number of questions
+            if (isLast) {
+                handleGameEnd(nextScoreLocal);
+                return;
+            }
+            
+            // Check if there are no more questions
+            if (availableQuestions.length <= 1) {
+                handleGameEnd(nextScoreLocal);
+                return;
+            }
+            
+            loadNextQuestion();
         }, 3000);
     };
-
 
     // Use hint
     const useHint = () => {
@@ -634,7 +439,10 @@ const SyllogismGame = () => {
         const diffKey = normalizeDifficulty(difficulty);
         const settings = difficultySettings[diffKey] || difficultySettings.Easy;
 
-
+        // Reset all questions for the selected difficulty
+        const questions = syllogismData[diffKey] || syllogismData.Easy;
+        setAvailableQuestions([...questions]);
+        
         setScore(0);
         setFinalScore(0);
         setTimeRemaining(settings.timeLimit);
@@ -651,11 +459,14 @@ const SyllogismGame = () => {
         setTotalResponseTime(0);
         setGameDuration(0);
         setShowCompletionModal(false);
+        setIsCorrectAnswer(null);
+        setLives(3);
     }, [difficulty]);
 
     const handleStart = () => {
         initializeGame();
         setGameStartTime(Date.now());
+        setGameState('playing');
         loadNextQuestion();
     };
 
@@ -665,6 +476,7 @@ const SyllogismGame = () => {
         setSelectedAnswer(null);
         setShowFeedback(false);
         setShowExplanation(false);
+        setGameState('ready');
     };
 
     const handleGameComplete = (payload) => {
@@ -675,6 +487,10 @@ const SyllogismGame = () => {
     const handleDifficultyChange = (newDifficulty) => {
         if (gameState === 'ready') {
             setDifficulty(newDifficulty);
+            
+            // Reset timer for the new difficulty
+            const settings = difficultySettings[newDifficulty] || difficultySettings.Easy;
+            setTimeRemaining(settings.timeLimit);
         }
     };
 
@@ -685,7 +501,8 @@ const SyllogismGame = () => {
         streak: maxStreak,
         hintsUsed,
         questionNumber,
-        averageResponseTime: totalQuestions > 0 ? Math.round(totalResponseTime / totalQuestions / 1000) : 0
+        averageResponseTime: totalQuestions > 0 ? Math.round(totalResponseTime / totalQuestions / 1000) : 0,
+        livesRemaining: lives
     };
 
     return (
@@ -739,9 +556,10 @@ const SyllogismGame = () => {
                                         📊 Scoring
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1">
-                                        <li>• Each correct answer: +{POINTS_PER_QUESTION.toFixed(2)} points</li>
-                                        <li>• Each wrong answer: −{POINTS_PER_QUESTION.toFixed(2)} points (score never goes below 0)</li>
-                                        <li>• Max score: 200 points</li>
+                                        <li>• Easy: 10 questions, 20 points each</li>
+                                        <li>• Moderate: 8 questions, 25 points each</li>
+                                        <li>• Hard: 5 questions, 40 points each</li>
+                                        <li>• You have 3 lives - lose one for each wrong answer</li>
                                     </ul>
                                 </div>
 
@@ -751,7 +569,7 @@ const SyllogismGame = () => {
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                                         <li>• <strong>Easy:</strong> Basic logical patterns</li>
-                                        <li>• <strong>Medium:</strong> Moderate complexity</li>
+                                        <li>• <strong>Moderate:</strong> Medium complexity</li>
                                         <li>• <strong>Hard:</strong> Abstract reasoning</li>
                                     </ul>
                                 </div>
@@ -792,7 +610,7 @@ const SyllogismGame = () => {
                     </div>
 
                     {/* Game Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                         <div className="text-center bg-gray-50 rounded-lg p-3">
                             <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 Question
@@ -801,14 +619,14 @@ const SyllogismGame = () => {
                                 {questionNumber}/{maxQuestions}
                             </div>
                         </div>
-                        <div className="text-center bg-gray-50 rounded-lg p-3">
+                        {/* <div className="text-center bg-gray-50 rounded-lg p-3">
                             <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 Correct
                             </div>
                             <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 {correctAnswers}/{totalQuestions}
                             </div>
-                        </div>
+                        </div> */}
                         <div className="text-center bg-gray-50 rounded-lg p-3">
                             <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 Streak
@@ -819,10 +637,23 @@ const SyllogismGame = () => {
                         </div>
                         <div className="text-center bg-gray-50 rounded-lg p-3">
                             <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Accuracy
+                                Points
                             </div>
                             <div className="text-lg font-semibold text-blue-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {customStats.accuracy}%
+                                {score.toFixed(0)}
+                            </div>
+                        </div>
+                        <div className="text-center bg-gray-50 rounded-lg p-3">
+                            <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                Lives
+                            </div>
+                            <div className="text-lg font-semibold text-red-600 flex justify-center items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <Heart 
+                                        key={i} 
+                                        className={`h-5 w-5 ${i < lives ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} 
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -835,6 +666,9 @@ const SyllogismGame = () => {
                                 <h3 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                     Question {questionNumber}
                                 </h3>
+                                <span className="text-sm text-gray-500 ml-auto">
+                                    {POINTS_PER_QUESTION} points
+                                </span>
                             </div>
 
                             {/* Premises and Conclusion */}
@@ -920,7 +754,7 @@ const SyllogismGame = () => {
                                     </div>
                                     <p className={`text-sm ${feedbackType === 'correct' ? 'text-green-700' : 'text-red-700'
                                         }`} style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        The correct answer is: <strong>{currentQuestion.isValid ? 'Valid' : 'Invalid'}</strong>
+                                        {isCorrectAnswer ? `+${POINTS_PER_QUESTION} points` : `You have ${lives} ${lives === 1 ? 'life' : 'lives'} remaining`}
                                     </p>
                                 </div>
                             )}
@@ -953,7 +787,8 @@ const SyllogismGame = () => {
                 customStats={{
                     correctAnswers,
                     totalQuestions,
-                    accuracy: customStats.accuracy
+                    accuracy: customStats.accuracy,
+                    livesRemaining: lives
                 }}
             />
         </div>
