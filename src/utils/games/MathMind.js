@@ -1,7 +1,7 @@
 // Enhanced MathMind Architect - Round-based system with proper scoring
 export const difficultySettings = {
   Easy: { 
-    timeLimit: 600, // 10 minutes
+    timeLimit: 150, // 10 minutes
     maxTurns: 15,
     pointsPerEquation: 0, // No points per equation in Easy, uses round system
     pointsPerObjective: 0,
@@ -25,7 +25,7 @@ export const difficultySettings = {
     }
   },
   Moderate: { 
-    timeLimit: 480, // 8 minutes
+    timeLimit: 180, // 8 minutes
     maxTurns: 20,
     pointsPerEquation: 25, // 25 points per equation
     pointsPerObjective: 0,
@@ -51,7 +51,7 @@ export const difficultySettings = {
     }
   },
   Hard: { 
-    timeLimit: 360, // 6 minutes
+    timeLimit: 90, // 6 minutes
     maxTurns: 25,
     pointsPerEquation: 50, // 50 points per equation
     pointsPerObjective: 0,

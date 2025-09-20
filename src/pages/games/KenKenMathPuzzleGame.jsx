@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header';
 import GameFramework from '../../components/GameFramework';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Plus, Target, Timer, Zap, Award, ChevronUp, ChevronDown, CheckCircle, Sparkles, TrendingUp, Flame } from 'lucide-react';
+import { Plus, Target, Timer, Zap, Award, ChevronUp, ChevronDown, CheckCircle, Sparkles, TrendingUp, Flame, Heart } from 'lucide-react';
 
 const KenKenMathPuzzleGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -14,6 +14,8 @@ const KenKenMathPuzzleGame = () => {
   const [gameDuration, setGameDuration] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [lives, setLives] = useState(3); // Added lives state
+  const [wrongAnswerMessage, setWrongAnswerMessage] = useState('');
 
   // Game-specific state
   const [grid, setGrid] = useState([]);
@@ -21,7 +23,7 @@ const KenKenMathPuzzleGame = () => {
   const [selectedNumbers, setSelectedNumbers] = useState([]);
   const [currentSum, setCurrentSum] = useState(0);
   const [completedTargets, setCompletedTargets] = useState(0);
-  const [totalTargets, setTotalTargets] = useState(10);
+  const [totalTargets, setTotalTargets] = useState(8); // Default to Easy
   const [targetsHistory, setTargetsHistory] = useState([]);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
@@ -30,6 +32,7 @@ const KenKenMathPuzzleGame = () => {
   const [particles, setParticles] = useState([]);
   const [lastScoreGain, setLastScoreGain] = useState(0);
   const [scoreAnimation, setScoreAnimation] = useState(0);
+  const [timeoutIds, setTimeoutIds] = useState([]); // For cleanup
 
   const difficultySettings = {
     Easy: {
@@ -39,8 +42,9 @@ const KenKenMathPuzzleGame = () => {
       numberRange: [1, 9],
       targetRange: [10, 20],
       targetsToComplete: 8,
+      pointsPerCorrect: 25,
       description: '4x4 grid with simple addition targets',
-      scoreMultiplier: 0.8,
+      scoreMultiplier: 1.0,
       color: 'from-green-400 to-emerald-600',
       bgColor: 'bg-gradient-to-br from-green-50 to-emerald-100'
     },
@@ -50,9 +54,10 @@ const KenKenMathPuzzleGame = () => {
       maxHints: 3,
       numberRange: [1, 12],
       targetRange: [20, 35],
-      targetsToComplete: 10,
+      targetsToComplete: 5,
+      pointsPerCorrect: 40,
       description: '5x5 grid with moderate addition targets',
-      scoreMultiplier: 1.0,
+      scoreMultiplier: 1.2,
       color: 'from-yellow-400 to-orange-600',
       bgColor: 'bg-gradient-to-br from-yellow-50 to-orange-100'
     },
@@ -62,15 +67,23 @@ const KenKenMathPuzzleGame = () => {
       maxHints: 2,
       numberRange: [1, 15],
       targetRange: [30, 50],
-      targetsToComplete: 12,
+      targetsToComplete: 4,
+      pointsPerCorrect: 50,
       description: '6x6 grid with challenging addition targets',
-      scoreMultiplier: 1.3,
+      scoreMultiplier: 1.5,
       color: 'from-red-400 to-rose-600',
       bgColor: 'bg-gradient-to-br from-red-50 to-rose-100'
     }
   };
 
-  // Particle system for visual feedback
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutIds.forEach(id => clearTimeout(id));
+    };
+  }, [timeoutIds]);
+
+  // Particle system for visual feedback with cleanup
   const createParticles = (type, count = 15) => {
     const newParticles = [];
     for (let i = 0; i < count; i++) {
@@ -89,13 +102,15 @@ const KenKenMathPuzzleGame = () => {
       });
     }
     setParticles(newParticles);
-    setTimeout(() => setParticles([]), 2000);
+    const id = setTimeout(() => setParticles([]), 2000);
+    setTimeoutIds(prev => [...prev, id]);
   };
 
   const animateScore = (gain) => {
     setLastScoreGain(gain);
     setScoreAnimation(1);
-    setTimeout(() => setScoreAnimation(0), 1000);
+    const id = setTimeout(() => setScoreAnimation(0), 1000);
+    setTimeoutIds(prev => [...prev, id]);
   };
 
   // Generate random grid numbers
@@ -117,11 +132,48 @@ const KenKenMathPuzzleGame = () => {
     return newGrid;
   }, []);
 
-  // Generate new target sum
+  // Generate valid target based on available numbers
   const generateTarget = useCallback((grid, range) => {
-    const settings = difficultySettings[difficulty];
+    // Get all available numbers
+    const availableNumbers = [];
+    grid.forEach(row => {
+      row.forEach(cell => {
+        if (!cell.used) {
+          availableNumbers.push(cell.value);
+        }
+      });
+    });
+    
+    // Try to generate a target that's achievable
+    let attempts = 0;
+    while (attempts < 50) { // Limit attempts to prevent infinite loop
+      const target = Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
+      
+      // Check if this target can be achieved with available numbers
+      if (isTargetAchievable(availableNumbers, target)) {
+        return target;
+      }
+      attempts++;
+    }
+    
+    // Fallback: return a random target within range
     return Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
-  }, [difficulty]);
+  }, []);
+
+  // Helper function to check if a target is achievable with available numbers
+  const isTargetAchievable = (numbers, target) => {
+    // Simple check: see if any number is <= target and at least one other number can complement it
+    for (let i = 0; i < numbers.length; i++) {
+      if (numbers[i] <= target) {
+        for (let j = i + 1; j < numbers.length; j++) {
+          if (numbers[i] + numbers[j] === target) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
 
   // Initialize game
   const initializeGame = useCallback(() => {
@@ -140,11 +192,13 @@ const KenKenMathPuzzleGame = () => {
     setBestStreak(0);
     setHintsUsed(0);
     setWrongAttempts(0);
+    setLives(3); // Reset lives
     setScore(0);
     setFinalScore(0);
     setTimeRemaining(settings.timeLimit);
     setParticles([]);
     setGameDuration(0);
+    setWrongAnswerMessage(''); // Add this line to clear the wrong answer message
   }, [difficulty, generateGrid, generateTarget]);
 
   // Handle cell click
@@ -172,6 +226,21 @@ const KenKenMathPuzzleGame = () => {
     setGrid(newGrid);
   };
 
+  // Check if game should end
+  const checkGameEnd = useCallback(() => {
+    if (lives <= 0 || completedTargets >= totalTargets) {
+      const endTime = Date.now();
+      const duration = Math.floor((endTime - gameStartTime) / 1000);
+      setGameDuration(duration);
+      setFinalScore(score);
+      setGameState('finished');
+      setShowCompletionModal(true);
+      createParticles('success', 50);
+      return true;
+    }
+    return false;
+  }, [lives, completedTargets, totalTargets, gameStartTime, score]);
+
   // Submit current selection
   const submitAnswer = () => {
     if (selectedNumbers.length === 0) return;
@@ -198,24 +267,27 @@ const KenKenMathPuzzleGame = () => {
       // Add to history
       setTargetsHistory(prev => [...prev, { target: currentTarget, numbers: selectedNumbers.length, correct: true }]);
       
-      // Score calculation for correct answer
-      const baseScore = 15;
-      const streakBonus = Math.min(10, consecutiveCorrect * 2);
-      const speedBonus = selectedNumbers.length === 2 ? 5 : 0; // Bonus for efficient solutions
-      const totalGain = baseScore + streakBonus + speedBonus;
+      // Score calculation for correct answer - updated logic
+      const settings = difficultySettings[difficulty];
+      const pointsGained = settings.pointsPerCorrect;
       
-      animateScore(totalGain);
+      setScore(prev => prev + pointsGained);
+      animateScore(pointsGained);
       createParticles('success', 20);
       
-      // Generate new target if not finished
-      if (completedTargets + 1 < totalTargets) {
+      // Check if game should end
+      if (!checkGameEnd()) {
+        // Generate new target if not finished
         const settings = difficultySettings[difficulty];
         setCurrentTarget(generateTarget(newGrid, settings.targetRange));
       }
+      setWrongAnswerMessage(''); // Clear wrong message if any
     } else {
       // Wrong answer
-      setWrongAttempts(prev => prev + 1);
+      setWrongAnswerMessage('Wrong answer entered! Try again.'); // Add this line
+      setWrongAttempts(prev => prev + 1);  
       setConsecutiveCorrect(0);
+      setLives(prev => prev - 1);
       
       // Clear selection
       const newGrid = [...grid];
@@ -231,14 +303,18 @@ const KenKenMathPuzzleGame = () => {
       // Add to history
       setTargetsHistory(prev => [...prev, { target: currentTarget, numbers: selectedNumbers.length, correct: false }]);
       
-      animateScore(-5); // Penalty for wrong answer
+      animateScore(0); // No penalty, just lose a life
       createParticles('error', 10);
+      
+      // Check if game should end
+      checkGameEnd();
     }
   };
 
   // Get hint - highlight possible combinations
   const getHint = () => {
     if (hintsUsed >= difficultySettings[difficulty].maxHints) return;
+    setWrongAnswerMessage(''); // Add this line
     
     // Find a valid combination
     const availableCells = [];
@@ -265,7 +341,7 @@ const KenKenMathPuzzleGame = () => {
           ]);
           setCurrentSum(currentTarget);
           setHintsUsed(prev => prev + 1);
-          animateScore(-10); // Penalty for using hint
+          animateScore(0); // No score penalty, just use hint
           createParticles('warning', 10);
           return;
         }
@@ -289,7 +365,7 @@ const KenKenMathPuzzleGame = () => {
             ]);
             setCurrentSum(currentTarget);
             setHintsUsed(prev => prev + 1);
-            animateScore(-10);
+            animateScore(0);
             createParticles('warning', 10);
             return;
           }
@@ -300,6 +376,7 @@ const KenKenMathPuzzleGame = () => {
 
   // Clear current selection
   const clearSelection = () => {
+    setWrongAnswerMessage(''); // Add this line
     const newGrid = [...grid];
     selectedNumbers.forEach(cellKey => {
       const [row, col] = cellKey.split('-').map(Number);
@@ -310,52 +387,12 @@ const KenKenMathPuzzleGame = () => {
     setCurrentSum(0);
   };
 
-  // Calculate score
-  const calculateScore = useCallback(() => {
-    const settings = difficultySettings[difficulty];
-    
-    // Base score from completed targets
-    const completionScore = (completedTargets / totalTargets) * 120;
-    
-    // Time bonus (remaining time as percentage of initial time)
-    const timeBonus = Math.min(30, (timeRemaining / settings.timeLimit) * 30);
-    
-    // Accuracy bonus (correct vs wrong attempts)
-    const totalAttempts = completedTargets + wrongAttempts;
-    const accuracyBonus = totalAttempts > 0 ? (completedTargets / totalAttempts) * 25 : 0;
-    
-    // Streak bonus
-    const streakBonus = Math.min(15, bestStreak * 2);
-    
-    // Hint penalty
-    const hintPenalty = hintsUsed * 10;
-    
-    // Final calculation
-    let finalScore = (completionScore + timeBonus + accuracyBonus + streakBonus - hintPenalty) * settings.scoreMultiplier;
-    
-    // Ensure score is between 0 and 200
-    return Math.round(Math.max(0, Math.min(200, finalScore)));
-  }, [completedTargets, totalTargets, timeRemaining, difficulty, wrongAttempts, bestStreak, hintsUsed]);
-
-  // Update score
-  useEffect(() => {
-    if (gameState === 'playing') {
-      setScore(calculateScore());
-    }
-  }, [calculateScore, gameState]);
-
   // Check if game is completed
   useEffect(() => {
-    if (gameState === 'playing' && completedTargets >= totalTargets) {
-      const endTime = Date.now();
-      const duration = Math.floor((endTime - gameStartTime) / 1000);
-      setGameDuration(duration);
-      setFinalScore(calculateScore());
-      setGameState('finished');
-      setShowCompletionModal(true);
-      createParticles('success', 50);
+    if (gameState === 'playing') {
+      checkGameEnd();
     }
-  }, [completedTargets, totalTargets, gameState, gameStartTime, calculateScore]);
+  }, [gameState, completedTargets, totalTargets, lives, checkGameEnd]);
 
   // Timer
   useEffect(() => {
@@ -364,10 +401,7 @@ const KenKenMathPuzzleGame = () => {
       interval = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
-            const endTime = Date.now();
-            const duration = Math.floor((endTime - gameStartTime) / 1000);
-            setGameDuration(duration);
-            setFinalScore(calculateScore());
+            setFinalScore(score);
             setGameState('finished');
             setShowCompletionModal(true);
             return 0;
@@ -377,11 +411,12 @@ const KenKenMathPuzzleGame = () => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [gameState, timeRemaining, gameStartTime, calculateScore]);
+  }, [gameState, timeRemaining, score]);
 
   const handleStart = () => {
     initializeGame();
     setGameStartTime(Date.now());
+    setGameState('playing');
   };
 
   const handleReset = () => {
@@ -407,6 +442,7 @@ const KenKenMathPuzzleGame = () => {
     wrongAttempts,
     consecutiveCorrect,
     bestStreak,
+    lives, // Added lives to stats
     accuracy: completedTargets + wrongAttempts > 0 ? Math.round((completedTargets / (completedTargets + wrongAttempts)) * 100) : 0
   };
 
@@ -494,15 +530,16 @@ const KenKenMathPuzzleGame = () => {
                     <li>• Click numbers to select them</li>
                     <li>• Watch the sum update</li>
                     <li>• Submit when sum equals target</li>
+                    <li>• You have 3 lives - game ends if you lose all</li>
                   </ul>
                 </div>
 
                 <div className='bg-white p-4 rounded-xl shadow-sm border border-blue-100'>
                   <h4 className="text-sm font-bold text-blue-800 mb-2">📊 Scoring</h4>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• +15 points per correct target</li>
-                    <li>• Time & streak bonuses</li>
-                    <li>• -5 points for wrong answers</li>
+                    <li>• <strong>Easy:</strong> 25 points per target (8 targets)</li>
+                    <li>• <strong>Medium:</strong> 40 points per target (5 targets)</li>
+                    <li>• <strong>Hard:</strong> 50 points per target (4 targets)</li>
                   </ul>
                 </div>
 
@@ -510,8 +547,8 @@ const KenKenMathPuzzleGame = () => {
                   <h4 className="text-sm font-bold text-blue-800 mb-2">🎚️ Difficulty</h4>
                   <ul className="text-sm text-blue-700 space-y-1">
                     <li>• <strong>Easy:</strong> 4×4 grid, 8 targets</li>
-                    <li>• <strong>Medium:</strong> 5×5 grid, 10 targets</li>
-                    <li>• <strong>Hard:</strong> 6×6 grid, 12 targets</li>
+                    <li>• <strong>Medium:</strong> 5×5 grid, 5 targets</li>
+                    <li>• <strong>Hard:</strong> 6×6 grid, 4 targets</li>
                   </ul>
                 </div>
               </div>
@@ -539,6 +576,24 @@ const KenKenMathPuzzleGame = () => {
               {lastScoreGain > 0 ? '+' : ''}{lastScoreGain}
             </div>
           )}
+
+          {/* Lives Display */}
+          <div className="flex items-center justify-center gap-2">
+            {[...Array(3)].map((_, i) => (
+              <Heart 
+                key={i} 
+                className={`h-6 w-6 ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-300'}`} 
+              />
+            ))}
+          </div>
+          {/* Wrong Answer Message */}
+{wrongAnswerMessage && (
+  <div className="w-full max-w-md mx-auto animate-shake">
+    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
+      {wrongAnswerMessage}
+    </div>
+  </div>
+)}
 
           {/* Current Target Display - Gaming Style */}
           <div className="relative w-full max-w-md mx-auto">
@@ -623,11 +678,10 @@ const KenKenMathPuzzleGame = () => {
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 w-full max-w-lg">
             <button
               onClick={submitAnswer}
-              disabled={selectedNumbers.length === 0 || currentSum !== currentTarget}
               className={`
                 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base
                 flex items-center gap-2 transition-all duration-200 transform
-                ${currentSum === currentTarget && selectedNumbers.length > 0
+                ${selectedNumbers.length > 0
                   ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-green-500/25 hover:scale-105 animate-pulse'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }
@@ -645,7 +699,7 @@ const KenKenMathPuzzleGame = () => {
               CLEAR
             </button>
             
-        {/*    <button
+            <button
               onClick={getHint}
               disabled={hintsUsed >= difficultySettings[difficulty].maxHints}
               className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-200 transform hover:scale-105 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center gap-2"
@@ -653,7 +707,6 @@ const KenKenMathPuzzleGame = () => {
               <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
               HINT ({hintsUsed}/{difficultySettings[difficulty].maxHints})
             </button>
-        */}
           </div>
 
           {/* Number Grid - Responsive Gaming Design */}
@@ -707,8 +760,8 @@ const KenKenMathPuzzleGame = () => {
             </div>
           </div>
 
-          {/* Game Stats - Enhanced Gaming Cards 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-4xl">
+          {/* Game Stats - Enhanced Gaming Cards */}
+          {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-4xl">
             <div className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Flame className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -739,11 +792,11 @@ const KenKenMathPuzzleGame = () => {
             
             <div className="bg-gradient-to-br from-yellow-500 to-amber-600 text-white rounded-xl p-3 sm:p-4 text-center shadow-lg">
               <div className="flex items-center justify-center gap-1 mb-1">
-                <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
-                <div className="text-xs sm:text-sm font-medium opacity-90">HINTS LEFT</div>
+                <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                <div className="text-xs sm:text-sm font-medium opacity-90">LIVES</div>
               </div>
               <div className="text-lg sm:text-xl font-black">
-                {difficultySettings[difficulty].maxHints - hintsUsed}
+                {lives}
               </div>
             </div>
           </div> */}
@@ -754,6 +807,7 @@ const KenKenMathPuzzleGame = () => {
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
         score={finalScore}
+        message={lives <= 0 ? "You ran out of lives!" : "Congratulations! You completed all targets!"}
       />
 
       <style jsx>{`
@@ -779,6 +833,14 @@ const KenKenMathPuzzleGame = () => {
         .hover\\:scale-102:hover {
           transform: scale(1.02);
         }
+        @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
       `}</style>
     </div>
   );
