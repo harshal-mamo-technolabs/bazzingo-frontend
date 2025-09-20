@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import MainLayout from '../components/Layout/MainLayout';
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
+import { useLocation } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
 import { 
   fetchSubscriptionStatus, 
   selectSubscriptionData, 
@@ -18,11 +20,33 @@ const Subscription = () => {
   
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [isEndingTrial, setIsEndingTrial] = useState(false);
+  const actionsRef = useRef(null);
+  const location = useLocation();
 
   // Fetch subscription status on component mount
   useEffect(() => {
     dispatch(fetchSubscriptionStatus());
   }, [dispatch]);
+
+  // Focus actions if linked with action=end-trial
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const action = params.get('action');
+    if (action === 'end-trial' && actionsRef.current) {
+      try {
+        actionsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch {}
+      if (subscriptionData.status === 'trialing') {
+        toast((t) => (
+          <span>
+            You can end your trial below.
+            <button onClick={() => toast.dismiss(t.id)} className="ml-2 underline">Dismiss</button>
+          </span>
+        ));
+      }
+    }
+  }, [location.search, subscriptionData.status]);
 
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
@@ -64,6 +88,146 @@ const Subscription = () => {
       toast.error(error.message || 'Failed to cancel subscription. Please try again.');
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleEndTrial = async () => {
+    setIsEndingTrial(true);
+    try {
+      const stored = localStorage.getItem('user');
+      if (!stored) {
+        toast.error('Please log in to manage your subscription');
+        return;
+      }
+
+      const userData = JSON.parse(stored);
+      const accessToken = userData?.accessToken || userData?.user?.token;
+      if (!accessToken) {
+        toast.error('Authentication token missing. Please log in again.');
+        return;
+      }
+
+      const payload = { timestamp: new Date().toISOString(), source: 'frontend' };
+      console.log('API Request:', { endpoint: '/stripe/end-trial-pro', timestamp: new Date(), payload });
+
+      const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/end-trial-pro`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json().catch(() => ({}));
+      console.log('API Response:', result);
+
+      if (!res.ok) {
+        const msg = result?.message || `Failed to end trial: ${res.status}`;
+        throw new Error(msg);
+      }
+
+      const requestId = result?.data?.requestId;
+      if (requestId) {
+        try { sessionStorage.setItem('endTrialRequestId', requestId); } catch {}
+      }
+
+      if (result.status !== 'success') {
+        const msg = result?.message || 'Unable to process request';
+        console.error('Action Required:', result?.data?.action, 'Request ID:', requestId);
+        toast.error(`${msg}${requestId ? ` (Ref: ${requestId})` : ''}`);
+        return;
+      }
+
+      const action = result?.data?.action;
+      console.log('Action Required:', action);
+      console.log('Request ID:', requestId);
+
+      if (action === 'requires_3ds_authentication') {
+        const auth = result?.data?.authentication || {};
+        const clientSecret = auth.clientSecret;
+        if (!clientSecret) {
+          throw new Error('Missing client secret for 3DS authentication');
+        }
+
+        const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+        if (!stripe) throw new Error('Stripe failed to initialize');
+
+        const { error } = await stripe.confirmCardPayment(clientSecret);
+        if (error) {
+          throw new Error(error.message || 'Authentication failed. Please try again.');
+        }
+
+        // After successful 3DS, call API again to finalize
+        console.log('3DS succeeded, retrying API...');
+        const retryRes = await fetch(`${API_CONNECTION_HOST_URL}/stripe/end-trial-pro`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({ timestamp: new Date().toISOString(), source: 'frontend' })
+        });
+        const retryJson = await retryRes.json().catch(() => ({}));
+        console.log('API Response (retry):', retryJson);
+
+        const retryRequestId = retryJson?.data?.requestId;
+        if (retryRequestId) {
+          try { sessionStorage.setItem('endTrialRequestId', retryRequestId); } catch {}
+        }
+
+        if (!retryRes.ok || retryJson?.status !== 'success') {
+          const msg = retryJson?.message || `Failed to finalize end trial: ${retryRes.status}`;
+          throw new Error(`${msg}${retryRequestId ? ` (Ref: ${retryRequestId})` : ''}`);
+        }
+
+        const retryAction = retryJson?.data?.action;
+        if (retryAction === 'trial_ended_successfully') {
+          toast.success(retryJson?.message || 'Trial ended successfully. Subscription is now active.');
+          dispatch(fetchSubscriptionStatus());
+          return;
+        }
+        if (retryAction === 'payment_failed') {
+          const reason = retryJson?.data?.paymentIssue?.lastError?.message || 'Payment failed.';
+          toast.error(`${retryJson?.message || 'Payment failed.'} ${reason ? `- ${reason}` : ''}`);
+          return;
+        }
+        if (retryAction === 'unknown') {
+          toast.error(`${retryJson?.message || 'Unknown state.'}${retryRequestId ? ` (Ref: ${retryRequestId})` : ''}`);
+          return;
+        }
+
+        // Fallback
+        toast.success(retryJson?.message || 'Trial ended successfully.');
+        dispatch(fetchSubscriptionStatus());
+        return;
+      }
+
+      if (action === 'trial_ended_successfully') {
+        toast.success(result?.message || 'Trial ended successfully. Subscription is now active.');
+        dispatch(fetchSubscriptionStatus());
+        return;
+      }
+
+      if (action === 'payment_failed') {
+        const reason = result?.data?.paymentIssue?.lastError?.message || 'Payment failed.';
+        toast.error(`${result?.message || 'Payment failed.'} ${reason ? `- ${reason}` : ''}`);
+        return;
+      }
+
+      if (action === 'unknown') {
+        toast.error(`${result?.message || 'Unknown state.'}${requestId ? ` (Ref: ${requestId})` : ''}`);
+        return;
+      }
+
+      // Fallback for any other shape
+      toast.success(result?.message || 'Trial ended successfully.');
+      dispatch(fetchSubscriptionStatus());
+    } catch (err) {
+      console.error('Error ending trial (pro):', err);
+      toast.error(err.message || 'Failed to end trial. Please try again.');
+    } finally {
+      setIsEndingTrial(false);
     }
   };
 
@@ -286,9 +450,18 @@ const Subscription = () => {
               </div>
 
               {/* Actions */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
+              <div ref={actionsRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Subscription Actions</h3>
                  <div className="flex flex-col sm:flex-row gap-4">
+                   {subscriptionData.status === 'trialing' && (
+                     <button
+                       onClick={handleEndTrial}
+                       disabled={isEndingTrial}
+                       className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                     >
+                       {isEndingTrial ? 'Ending trial...' : 'End Trial & Activate Monthly'}
+                     </button>
+                   )}
                    {(subscriptionData.status === 'active' || subscriptionData.status === 'trialing') && !subscriptionData.cancelAtPeriodEnd && (
                      <button
                        onClick={() => setShowCancelConfirm(true)}

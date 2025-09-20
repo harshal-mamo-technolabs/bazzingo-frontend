@@ -4,10 +4,11 @@ import MainLayout from "../components/Layout/MainLayout";
 import TopRank from "../components/Charts/TopRank";
 import SubscriptionBlocker from "../components/Subscription/SubscriptionBlocker";
 import { getLeaderboard, getDailyStreakStatus } from "../services/dashbaordService";
+import { useNavigate } from 'react-router-dom';
 import { countries } from "../utils/constant";
 import SelectMenu from "../components/Leaderboard/SelectMenu.jsx";
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading } from '../app/subscriptionSlice';
+import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading, selectSubscriptionData } from '../app/subscriptionSlice';
 
 const ProgressBar = ({ percentage }) => (
   <div className="relative w-full lg:max-w-[150px] h-7 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
@@ -50,6 +51,8 @@ const Leadboard = () => {
   const hasActiveSubscription = useSelector(selectHasActiveSubscription);
   const subscriptionInitialized = useSelector(selectSubscriptionInitialized);
   const subscriptionLoading = useSelector(selectSubscriptionLoading);
+  const subscriptionData = useSelector(selectSubscriptionData);
+  const navigate = useNavigate();
 
   // Build dropdown options
   const countryOptions = countries.map(c => ({ key: c, label: c }));
@@ -146,10 +149,16 @@ const Leadboard = () => {
   return (
     <MainLayout unreadCount={unreadCount}>
       <SubscriptionBlocker 
-        showBlocker={subscriptionInitialized && !hasActiveSubscription}
-        title="Premium Leaderboard"
-        message="Please subscribe to Bazzingo plan to access leaderboard rankings and compete with other users"
-        buttonText="Subscribe Now"
+        showBlocker={subscriptionInitialized && (
+          // Block if no subscription OR currently on trial
+          !hasActiveSubscription || subscriptionData.status === 'trialing'
+        )}
+        title={subscriptionData.status === 'trialing' ? 'Leaderboard unavailable on trial' : 'Premium Leaderboard'}
+        message={subscriptionData.status === 'trialing'
+          ? 'End your trial and activate the Silver Monthly plan to access Leaderboard rankings and compete with others.'
+          : 'Please subscribe to Bazzingo plan to access leaderboard rankings and compete with other users'}
+        buttonText={subscriptionData.status === 'trialing' ? 'End Trial Now' : 'Subscribe Now'}
+        onSubscribe={subscriptionData.status === 'trialing' ? () => navigate('/subscription?action=end-trial&from=leaderboard') : undefined}
       >
         <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
         <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7">
