@@ -87,6 +87,7 @@ export default function VisualReasoningStaticAssessment() {
   const [reviewTimers, setReviewTimers] = useState({}); // Track remaining time for review questions
   const [recentActivityNames, setRecentActivityNames] = useState([]);
   const [autoSubmit, setAutoSubmit] = useState(false);
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -273,14 +274,6 @@ useEffect(() => {
       ...prev,
       [currentQuestion.id]: idx,
     }));
-
-    // If we're in review phase and this question was unanswered, remove it from unanswered list
-    if (isReviewPhase && answers[currentQuestion.id] === undefined) {
-      const updatedUnanswered = unansweredQuestions.filter(item => item.question.id !== currentQuestion.id);
-      setUnansweredQuestions(updatedUnanswered);
-      unansweredQuestionsRef.current = updatedUnanswered;
-      console.log(`Question ${currentQuestion.id} answered in review - removed from unanswered. Remaining: ${updatedUnanswered.length}`);
-    }
   };
 
   /** =========================
@@ -292,6 +285,31 @@ useEffect(() => {
 
     let willAddToUnanswered = false;
     let updatedUnansweredQuestions = unansweredQuestions;
+
+    // In review phase, handle advancement explicitly on button click (no auto-advance on select)
+    if (isReviewPhase) {
+      if (answers[currentQuestion.id] === undefined) {
+        // Skipped again: remove permanently
+        const pruned = unansweredQuestions.filter(item => item.question.id !== currentQuestion.id);
+        setUnansweredQuestions(pruned);
+        unansweredQuestionsRef.current = pruned;
+        if (pruned.length === 0) { setAutoSubmit(true); return; }
+        const nextIndex = Math.min(currentIndex, pruned.length - 1);
+        setCurrentIndex(nextIndex);
+        setSelectedOption(answers[pruned[nextIndex]?.question.id] ?? null);
+        return;
+      } else {
+        // Answered now: remove from review and go next
+        const pruned = unansweredQuestions.filter(item => item.question.id !== currentQuestion.id);
+        setUnansweredQuestions(pruned);
+        unansweredQuestionsRef.current = pruned;
+        if (pruned.length === 0) { setAutoSubmit(true); return; }
+        const nextIndex = Math.min(currentIndex, pruned.length - 1);
+        setCurrentIndex(nextIndex);
+        setSelectedOption(answers[pruned[nextIndex]?.question.id] ?? null);
+        return;
+      }
+    }
 
     // If user clicks Continue without selecting an option
     if (answers[currentQuestion.id] === undefined) {
@@ -382,6 +400,8 @@ useEffect(() => {
     try {
       if (!assessmentId) return alert("No assessment ID – cannot submit!");
   
+      setIsSubmittingScore(true);
+
       // Build payload with ONLY answered questions (omit -1)
       const answeredPairs = Object.entries(answers)
         .filter(([, idx]) => typeof idx === 'number' && idx > -1)
@@ -456,6 +476,8 @@ useEffect(() => {
     } catch (err) {
       console.error("❌ Error submitting assessment:", err);
       alert("Submission failed. Check console for details.");
+    } finally {
+      setIsSubmittingScore(false);
     }
   }, [answers, assessmentId, fromQuickAssessment, isReviewPhase, unansweredQuestions, originalQuestions]);
 
@@ -748,9 +770,10 @@ useEffect(() => {
 
             {/* Actions */}
             <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-auto">
-              <button className="px-4 py-2 w-full bg-[#D8D8D8] text-gray-600 rounded-lg">Exit & Save</button>
+              <button className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`} disabled={isSubmittingScore}>Exit & Save</button>
               <button
-                className="px-4 py-2 w-full bg-orange-500 text-white rounded-lg"
+                className={`px-4 py-2 w-full rounded-lg text-white ${isSubmittingScore ? 'bg-orange-300 cursor-wait' : 'bg-orange-500 hover:bg-orange-600'}`}
+                disabled={isSubmittingScore}
                 onClick={() => {
                   const currentUnansweredCount = unansweredQuestionsRef.current.length;
                   
@@ -766,10 +789,18 @@ useEffect(() => {
                   }
                 }}
               >
-                {(isReviewPhase && currentIndex >= unansweredQuestionsRef.current.length - 1) || 
-                 (!isReviewPhase && currentIndex === questions.length - 1 && unansweredQuestionsRef.current.length === 0)
-                  ? 'Submit'
-                  : 'Continue'}
+                {isSubmittingScore
+                  ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <span className="inline-block w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                      Submitting...
+                    </span>
+                  ) : (
+                    ((isReviewPhase && currentIndex >= unansweredQuestionsRef.current.length - 1) || 
+                     (!isReviewPhase && currentIndex === questions.length - 1 && unansweredQuestionsRef.current.length === 0))
+                      ? 'Submit'
+                      : 'Continue'
+                  )}
               </button>
             </div>
           </div>
