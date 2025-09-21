@@ -923,7 +923,7 @@ useEffect(() => {
                   {/* Tooltip Popup */}
                   {showTooltip4 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      Shows certified IQ score and recent trend by date.
+                      Shows certified {activeCategory.toLowerCase()} score and recent trend by date.
                     </div>
                   )}
                 </div>
