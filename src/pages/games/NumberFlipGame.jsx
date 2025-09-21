@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { ChevronUp, ChevronDown } from 'lucide-react';
-
+import { ChevronUp, ChevronDown, Heart } from 'lucide-react';
 
 const NumberFlipGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -18,12 +17,34 @@ const NumberFlipGame = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showNumberFlipInstructions, setShowNumberFlipInstructions] = useState(false);
+  const [lives, setLives] = useState(3);
 
-  // Difficulty settings
+  // Difficulty settings - updated with new requirements
   const difficultySettings = {
-    Easy: { rows: 3, cols: 4, pairs: 6, timeLimit: 60 },
-    Moderate: { rows: 4, cols: 4, pairs: 8, timeLimit: 50 },
-    Hard: { rows: 4, cols: 6, pairs: 12, timeLimit: 40 }
+    Easy: { 
+      rows: 4, 
+      cols: 4, 
+      pairs: 8, 
+      timeLimit: 120, 
+      pointsPerMatch: 25,
+      lives: 6
+    },
+    Moderate: { 
+      rows: 4, 
+      cols: 5, 
+      pairs: 10, 
+      timeLimit: 150, 
+      pointsPerMatch: 20,
+      lives: 8
+    },
+    Hard: { 
+      rows: 5, 
+      cols: 8, 
+      pairs: 20, 
+      timeLimit: 240, 
+      pointsPerMatch: 10,
+      lives: 10
+    }
   };
 
   // Initialize game
@@ -51,6 +72,7 @@ const NumberFlipGame = () => {
     setAttempts(0);
     setMatches(0);
     setScore(0);
+    setLives(settings.lives);
     setTimeRemaining(settings.timeLimit);
     setIsProcessing(false);
   }, [difficulty]);
@@ -89,9 +111,13 @@ const NumberFlipGame = () => {
           setMatches(prev => prev + 1);
           setFlippedCards([]);
           setIsProcessing(false);
+          
+          // Update score based on difficulty
+          const settings = difficultySettings[difficulty];
+          setScore(prev => prev + settings.pointsPerMatch);
         }, 500);
       } else {
-        // No match - flip back after delay
+        // No match - flip back after delay and decrease lives
         setTimeout(() => {
           setCards(prev => prev.map(c =>
             (c.id === firstCardId || c.id === secondCardId)
@@ -100,32 +126,22 @@ const NumberFlipGame = () => {
           ));
           setFlippedCards([]);
           setIsProcessing(false);
+          
+          // Decrease lives
+          setLives(prev => {
+            const newLives = prev - 1;
+            if (newLives <= 0) {
+              setGameState('finished');
+              setShowCompletionModal(true);
+            }
+            return newLives;
+          });
         }, 1000);
       }
     } else {
       setFlippedCards(newFlippedCards);
     }
   };
-
-  // Calculate score
-  useEffect(() => {
-    if (attempts > 0) {
-      const accuracy = matches / attempts;
-      let newScore = accuracy * 200;
-
-      // Time penalty: 1 point for every 3 seconds overtime
-      const settings = difficultySettings[difficulty];
-      const timeUsed = settings.timeLimit - timeRemaining;
-      const expectedTime = settings.timeLimit * 0.7; // Expected completion time
-      if (timeUsed > expectedTime) {
-        const overtime = timeUsed - expectedTime;
-        newScore -= Math.floor(overtime / 3);
-      }
-
-      setScore(Math.round(Math.max(0, Math.min(200, newScore))));
-
-    }
-  }, [attempts, matches, timeRemaining, difficulty]);
 
   // Check win condition
   useEffect(() => {
@@ -155,10 +171,12 @@ const NumberFlipGame = () => {
   }, [gameState, timeRemaining]);
 
   const handleStart = () => {
+    setGameState('playing');
     initializeGame();
   };
 
   const handleReset = () => {
+    setGameState('ready');
     initializeGame();
   };
 
@@ -167,15 +185,18 @@ const NumberFlipGame = () => {
     // Here you would typically send the payload to your analytics service
   };
 
-  const getGridCols = () => {
-    const settings = difficultySettings[difficulty];
-    return `grid-cols-${settings.cols}`;
-  };
-
-  const customStats = {
-    attempts,
-    matches,
-    accuracy: attempts > 0 ? matches / attempts : 0
+  const renderLives = () => {
+    return (
+      <div className="flex items-center space-x-1">
+        {Array.from({ length: difficultySettings[difficulty].lives }).map((_, index) => (
+          <Heart 
+            key={index} 
+            size={20} 
+            className={index < lives ? "text-red-500 fill-red-500" : "text-gray-300"} 
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -185,74 +206,74 @@ const NumberFlipGame = () => {
         gameTitle="Number Flip"
         gameDescription={
           <div className="mx-auto px-4 lg:px-0 mb-0 mt-8">
-  <div className="bg-[#E8E8E8] rounded-lg p-6">
-    {/* Toggle Header */}
-    <div
-      className="flex items-center justify-between cursor-pointer mb-4"
-      onClick={() => setShowNumberFlipInstructions(!showNumberFlipInstructions)}
-    >
-      <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-        How to Play Number Flip
-      </h3>
-      {showNumberFlipInstructions ? (
-        <ChevronUp className="text-blue-900" size={20} />
-      ) : (
-        <ChevronDown className="text-blue-900" size={20} />
-      )}
-    </div>
+            <div className="bg-[#E8E8E8] rounded-lg p-6">
+              {/* Toggle Header */}
+              <div
+                className="flex items-center justify-between cursor-pointer mb-4"
+                onClick={() => setShowNumberFlipInstructions(!showNumberFlipInstructions)}
+              >
+                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  How to Play Number Flip
+                </h3>
+                {showNumberFlipInstructions ? (
+                  <ChevronUp className="text-blue-900" size={20} />
+                ) : (
+                  <ChevronDown className="text-blue-900" size={20} />
+                )}
+              </div>
 
-    {/* Toggle Content */}
-    {showNumberFlipInstructions && (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-3 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            🎯 Objective
-          </h4>
-          <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            Find and match all pairs of hidden numbers on the board before the timer runs out.
-          </p>
-        </div>
+              {/* Toggle Content */}
+              {showNumberFlipInstructions && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-white p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      🎯 Objective
+                    </h4>
+                    <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      Find and match all pairs of hidden numbers on the board before running out of lives or time.
+                    </p>
+                  </div>
 
-        <div className="bg-white p-3 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            🔄 Gameplay
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            <li>• Flip two cards at a time</li>
-            <li>• If they match, they stay revealed</li>
-            <li>• If not, they flip back after a moment</li>
-          </ul>
-        </div>
+                  <div className="bg-white p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      🔄 Gameplay
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      <li>• Flip two cards at a time</li>
+                      <li>• If they match, they stay revealed</li>
+                      <li>• If not, they flip back and you lose a life</li>
+                    </ul>
+                  </div>
 
-        <div className="bg-white p-3 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            📊 Scoring
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            <li>• Accuracy affects your score</li>
-            <li>• Fewer attempts = higher score</li>
-            <li>• Time penalties reduce points</li>
-            <li>• Max score: 200</li>
-          </ul>
-        </div>
+                  <div className="bg-white p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      📊 Scoring
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      <li>• Easy: 25 points per match (8 matches)</li>
+                      <li>• Moderate: 20 points per match (10 matches)</li>
+                      <li>• Hard: 10 points per match (20 matches)</li>
+                      <li>• Max score: 200</li>
+                    </ul>
+                  </div>
 
-        <div className="bg-white p-3 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            💡 Strategy
-          </h4>
-          <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-            <li>• Pay attention to card positions</li>
-            <li>• Use memory to track numbers</li>
-            <li>• Flip fast, but think carefully</li>
-            <li>• Minimize wrong attempts</li>
-          </ul>
-        </div>
-      </div>
-    )}
-  </div>
-</div>
+                  <div className="bg-white p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                      💡 Strategy
+                    </h4>
+                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+                      <li>• Pay attention to card positions</li>
+                      <li>• Use memory to track numbers</li>
+                      <li>• Be careful - wrong matches cost lives!</li>
+                      <li>• Easy: 6 lives, Moderate: 8 lives, Hard: 10 lives</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         }
-        category="Logic"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}
@@ -262,12 +283,13 @@ const NumberFlipGame = () => {
         onStart={handleStart}
         onReset={handleReset}
         onGameComplete={handleGameComplete}
-        customStats={customStats}
+        customStats={{ attempts, matches, accuracy: attempts > 0 ? (matches / attempts) : 0 }}
+        customHeaderElements={gameState === 'playing' && renderLives()}
       >
         {/* Game Content */}
         <div className="flex flex-col items-center">
           {/* Game Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6 w-full max-w-md">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Attempts
@@ -292,13 +314,22 @@ const NumberFlipGame = () => {
                 {attempts > 0 ? Math.round((matches / attempts) * 100) : 0}%
               </div>
             </div>
+            <div className="text-center bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Lives
+              </div>
+              <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {lives}
+              </div>
+            </div>
           </div>
 
           {/* Card Grid */}
           <div
-            className={`grid gap-2 max-w-2xl mx-auto ${difficulty === 'Easy' ? 'grid-cols-4' :
-              difficulty === 'Moderate' ? 'grid-cols-4' : 'grid-cols-6'
-              }`}
+            className={`grid gap-2 max-w-4xl mx-auto ${
+              difficulty === 'Easy' ? 'grid-cols-4' :
+              difficulty === 'Moderate' ? 'grid-cols-5' : 'xl:grid-cols-8 grid-cols-5'
+            }`}
           >
             {cards.map((card) => (
               <button
@@ -306,7 +337,7 @@ const NumberFlipGame = () => {
                 onClick={() => handleCardFlip(card.id)}
                 disabled={card.isFlipped || card.isMatched || isProcessing}
                 className={`
-                  aspect-square w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 transition-all duration-300 flex items-center justify-center text-lg font-bold
+                  aspect-square w-12 h-12 md:w-14 md:h-14 rounded-lg border-2 transition-all duration-300 flex items-center justify-center text-lg font-bold
                   ${card.isMatched
                     ? 'bg-green-100 border-green-400 text-green-700'
                     : card.isFlipped
@@ -335,6 +366,13 @@ const NumberFlipGame = () => {
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
         score={score}
+        maxScore={200}
+        stats={{
+          attempts,
+          matches,
+          accuracy: attempts > 0 ? (matches / attempts) : 0,
+          livesUsed: difficultySettings[difficulty].lives - lives
+        }}
       />
     </div>
   );

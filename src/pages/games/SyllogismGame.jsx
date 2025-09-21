@@ -235,21 +235,21 @@ const SyllogismGame = () => {
     // Updated difficulty settings with your requested values
     const difficultySettings = {
         Easy: { 
-            timeLimit: 300, 
+            timeLimit: 150, 
             hints: 3, 
             questionsCount: 10, 
             pointsPerQuestion: 20,
             description: 'Basic syllogisms with clear logical patterns' 
         },
         Moderate: { 
-            timeLimit: 240, 
+            timeLimit: 120, 
             hints: 2, 
             questionsCount: 8, 
             pointsPerQuestion: 25,
             description: 'Moderate complexity with some tricky logical structures' 
         },
         Hard: { 
-            timeLimit: 180, 
+            timeLimit: 90, 
             hints: 1, 
             questionsCount: 5, 
             pointsPerQuestion: 40,

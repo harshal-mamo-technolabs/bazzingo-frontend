@@ -19,6 +19,8 @@ const SequenceRecallGame = () => {
   const [totalPositions, setTotalPositions] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showSequenceInstructions, setShowSequenceInstructions] = useState(false);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [maxQuestions, setMaxQuestions] = useState(8);
 
   // Available colors
   const colors = [
@@ -32,9 +34,9 @@ const SequenceRecallGame = () => {
 
   // Difficulty settings
   const difficultySettings = {
-    Easy: { previewTime: 2000, startLength: 3, maxLength: 6, timeLimit: 60 },
-    Moderate: { previewTime: 1000, startLength: 4, maxLength: 8, timeLimit: 50 },
-    Hard: { previewTime: 700, startLength: 5, maxLength: 10, timeLimit: 40 }
+    Easy: { previewTime: 2000, startLength: 3, maxLength: 6, timeLimit: 150, maxQuestions: 8, pointsPerQuestion: 25 },
+    Moderate: { previewTime: 1000, startLength: 4, maxLength: 8, timeLimit: 120, maxQuestions: 5, pointsPerQuestion: 40 },
+    Hard: { previewTime: 700, startLength: 5, maxLength: 10, timeLimit: 90, maxQuestions: 4, pointsPerQuestion: 50 }
   };
 
   // Generate new sequence
@@ -60,6 +62,8 @@ const SequenceRecallGame = () => {
     setTotalPositions(0);
     setScore(0);
     setTimeRemaining(settings.timeLimit);
+    setQuestionsAnswered(0);
+    setMaxQuestions(settings.maxQuestions);
   }, [difficulty]);
 
   // Start new round
@@ -94,6 +98,7 @@ const SequenceRecallGame = () => {
         }, previewTime);
       } else {
         setIsShowingSequence(false);
+        setGameState('playing'); // Fixed: Set game state to playing after sequence is shown
       }
     };
 
@@ -119,41 +124,33 @@ const SequenceRecallGame = () => {
 
       setCorrectPositions(prev => prev + correct);
       setTotalPositions(prev => prev + sequence.length);
-
-      // Check if perfect match
+      
+      // Update score based on difficulty
+      const settings = difficultySettings[difficulty];
       if (correct === sequence.length) {
-        // Perfect match - advance to next level
+        // Perfect match - add points and advance to next level
+        setScore(prev => prev + settings.pointsPerQuestion);
+      }
+      
+      // Always count as a question answered
+      const newQuestionsAnswered = questionsAnswered + 1;
+      setQuestionsAnswered(newQuestionsAnswered);
+
+      // Check if game should end
+      if (newQuestionsAnswered >= maxQuestions) {
+        setTimeout(() => {
+          setGameState('finished');
+          setShowCompletionModal(true);
+        }, 1000);
+      } else {
+        // Continue to next round
         setTimeout(() => {
           setCurrentLevel(prev => prev + 1);
           startNewRound();
         }, 1000);
-      } else {
-        // Imperfect match - show feedback and continue
-        setTimeout(() => {
-          startNewRound();
-        }, 1500);
       }
     }
   };
-
-  // Calculate score
-  useEffect(() => {
-    if (totalPositions > 0) {
-      const accuracy = correctPositions / totalPositions;
-      let newScore = accuracy * 200;
-
-      // Time penalty
-      const settings = difficultySettings[difficulty];
-      const timeUsed = settings.timeLimit - timeRemaining;
-      const expectedTime = settings.timeLimit * 0.8;
-      if (timeUsed > expectedTime) {
-        const penalty = (timeUsed - expectedTime) * 2;
-        newScore -= penalty;
-      }
-
-      setScore(Math.max(0, Math.min(200, newScore)));
-    }
-  }, [correctPositions, totalPositions, timeRemaining, difficulty]);
 
   // Timer countdown
   useEffect(() => {
@@ -174,6 +171,7 @@ const SequenceRecallGame = () => {
   }, [gameState, timeRemaining]);
 
   const handleStart = () => {
+    setGameState('playing');
     initializeGame();
     setTimeout(() => {
       startNewRound();
@@ -181,6 +179,7 @@ const SequenceRecallGame = () => {
   };
 
   const handleReset = () => {
+    setGameState('ready');
     initializeGame();
   };
 
@@ -191,7 +190,9 @@ const SequenceRecallGame = () => {
   const customStats = {
     sequenceLength,
     correctPositions,
-    totalPositions
+    totalPositions,
+    questionsAnswered,
+    maxQuestions
   };
 
   return (
@@ -237,7 +238,7 @@ const SequenceRecallGame = () => {
                       <li>• Watch the color sequence carefully</li>
                       <li>• Click colors in the same order</li>
                       <li>• Correct sequence advances to next level</li>
-                      <li>• Wrong sequence repeats the level</li>
+                      <li>• Wrong sequence continues to next question</li>
                     </ul>
                   </div>
 
@@ -246,11 +247,10 @@ const SequenceRecallGame = () => {
                       📊 Scoring
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Accuracy is key (120 points max)</li>
-                      <li>• Level progression bonus (40 points)</li>
-                      <li>• Time efficiency bonus (30 points)</li>
-                      <li>• Mistakes reduce score (-2 each)</li>
-                      <li>• Perfect game bonus (+10 points)</li>
+                      <li>• Easy: 8 questions, 15 points each</li>
+                      <li>• Moderate: 5 questions, 40 points each</li>
+                      <li>• Hard: 4 questions, 50 points each</li>
+                      <li>• Only perfect sequences earn points</li>
                     </ul>
                   </div>
 
@@ -285,7 +285,7 @@ const SequenceRecallGame = () => {
         {/* Game Content */}
         <div className="flex flex-col items-center">
           {/* Game Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6 w-full max-w-md">
+          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-md">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 Level
@@ -304,10 +304,18 @@ const SequenceRecallGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Accuracy
+                Questions
               </div>
               <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {totalPositions > 0 ? Math.round((correctPositions / totalPositions) * 100) : 0}%
+                {questionsAnswered}/{maxQuestions}
+              </div>
+            </div>
+            <div className="text-center bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Score
+              </div>
+              <div className="text-lg font-semibold text-blue-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {score}
               </div>
             </div>
           </div>
@@ -332,18 +340,18 @@ const SequenceRecallGame = () => {
               <button
                 key={color.id}
                 onClick={() => handleColorSelect(color.id)}
-                disabled={isShowingSequence}
+                disabled={isShowingSequence || gameState !== 'playing'}
                 className={`
                   w-20 h-20 md:w-24 md:h-24 rounded-lg border-4 transition-all duration-200 flex items-center justify-center
                   ${activeColor === color.id
                     ? 'border-white shadow-lg scale-110'
                     : 'border-gray-300 hover:border-gray-400'
                   }
-                  ${isShowingSequence ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
+                  ${isShowingSequence || gameState !== 'playing' ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
                 `}
                 style={{
                   backgroundColor: color.color,
-                  opacity: isShowingSequence && activeColor !== color.id ? 0.5 : 1
+                  opacity: (isShowingSequence || gameState !== 'playing') && activeColor !== color.id ? 0.5 : 1
                 }}
               >
                 <span className="text-white font-bold text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -362,10 +370,11 @@ const SequenceRecallGame = () => {
               <div className="flex gap-2">
                 {playerSequence.map((colorId, index) => {
                   const color = colors.find(c => c.id === colorId);
+                  const isCorrect = sequence[index] === colorId;
                   return (
                     <div
                       key={index}
-                      className="w-8 h-8 rounded border-2 border-gray-300"
+                      className={`w-8 h-8 rounded border-2 ${isCorrect ? 'border-green-500' : 'border-red-500'}`}
                       style={{ backgroundColor: color.color }}
                     />
                   );
@@ -379,7 +388,9 @@ const SequenceRecallGame = () => {
             <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
               {isShowingSequence
                 ? 'Watch carefully and memorize the color sequence.'
-                : 'Click the colors in the same order you saw them.'
+                : gameState === 'playing'
+                ? 'Click the colors in the same order you saw them.'
+                : 'Click Start to begin the game.'
               }
             </p>
           </div>
