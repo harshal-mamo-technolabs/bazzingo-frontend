@@ -619,18 +619,16 @@ useEffect(() => {
                   </button>
                 ))}
               </div>
-
-              {/* Right - Dropdown */}
+ {/* Right - Dropdown */}
               <div className="w-full md:w-auto">
               <TimeRangeDropdown
                 options={timeRanges}
                 value={selectedTimeRange}
                 onChange={setSelectedTimeRange}
                 align="right"
-                width="w-48" // tweak if you want a wider menu
+                width="w-48"
               />
             </div>
-
             </div>
           </div>
 
@@ -677,6 +675,7 @@ useEffect(() => {
                 ) : (
                   <ResponsiveContainer width="100%" height={250}>
                     <RadarChart
+                     key={`${activeCategory}-${selectedTimeRange}`}
                       cx="45%"
                       cy="55%"
                       outerRadius="90%"
@@ -908,7 +907,7 @@ useEffect(() => {
               {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-900">
-                  Certified IQ Test Score
+                Certified {activeCategory} Score
                 </h3>
 
                 {/* Show on md+ */}
@@ -923,7 +922,7 @@ useEffect(() => {
                   {/* Tooltip Popup */}
                   {showTooltip4 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      Shows certified IQ score and recent trend by date.
+                      Shows certified {activeCategory.toLowerCase()}  and recent trend by date.
                     </div>
                   )}
                 </div>
@@ -931,7 +930,7 @@ useEffect(() => {
                 {/* Show only on mobile */}
                 <div className="block md:hidden w-[40%] md:w-auto">
                   <button className="w-full md:w-auto px-4 py-1.5 rounded-lg text-[11px] md:text-sm font-medium text-gray-400 bg-white border border-gray-300 flex items-center justify-center md:justify-start space-x-1">
-                    <span>Last 7 Days</span>
+                    <span>{selectedTimeRange.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
                     <svg
                       className="w-4 h-4 ml-1 text-gray-500"
                       fill="none"
@@ -957,7 +956,9 @@ useEffect(() => {
               </div>
 
               {/* Chart */}
-              <TestScore onIqDataLoaded={handleIqDataLoaded} activeCategory={activeCategory} />
+              <TestScore  onIqDataLoaded={handleIqDataLoaded} 
+                activeCategory={activeCategory} 
+                selectedTimeRange={selectedTimeRange} />
             </div>
 
             {/* Middle Card - Recent Tests */}

@@ -27,6 +27,7 @@ const RecentTest = () =>{
         const mapped = scores.slice(0, 2).map((s) => ({
           title: s.assessmentName || "Assessment",
           score: s.totalScore ?? 0,
+          outOfScore: s.outOfScore ?? 0,
           icon: "/Brain_game.png",
           date: (() => {
             const d = new Date(s.submittedAt);
@@ -89,7 +90,7 @@ const RecentTest = () =>{
             <p className="text-xs text-gray-500">{item.date}</p>
           </div>
         </div>
-        <div className="text-lg font-bold text-black">{item.score}</div>
+        <div className="text-lg font-bold text-black">{item.score}/{item.outOfScore}</div>
       </div>
     ))}
   </div>
