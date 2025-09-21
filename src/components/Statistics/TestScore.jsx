@@ -85,7 +85,6 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
     );
   }
 
-  // Function to create a map of scores by date
   const createScoreMap = (scores) => {
     const map = {};
     
@@ -93,7 +92,11 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
       scores.forEach(score => {
         const dateObj = new Date(score.date);
         const dateKey = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
-        map[dateKey] = score.programScore;
+        
+        // Keep the HIGHEST score for each date
+        if (!map[dateKey] || score.programScore > map[dateKey]) {
+          map[dateKey] = score.programScore;
+        }
       });
     }
     
@@ -125,8 +128,11 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
       return emptyChart;
     }
     
-    // Find the most recent date (could be today or earlier)
+    // NEW LOGIC: Check if there's only one date with data
+    const hasOnlyOneDateData = availableDates.length === 1;
     const mostRecentDate = availableDates[availableDates.length - 1];
+    const mostRecentDateKey = `${mostRecentDate.getFullYear()}-${(mostRecentDate.getMonth() + 1).toString().padStart(2, '0')}-${mostRecentDate.getDate().toString().padStart(2, '0')}`;
+    const mostRecentScore = scoreMap[mostRecentDateKey];
     
     // Generate the last 7 days ending with the most recent date
     const chartData = [];
@@ -135,12 +141,18 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
       chartDate.setDate(mostRecentDate.getDate() - i);
       
       const dateKey = `${chartDate.getFullYear()}-${(chartDate.getMonth() + 1).toString().padStart(2, '0')}-${chartDate.getDate().toString().padStart(2, '0')}`;
-      const score = scoreMap[dateKey] || 0;
+      
+      let score = scoreMap[dateKey] || 0;
+      
+      // NEW LOGIC: If only one date has data, show that score on the previous day too
+      if (hasOnlyOneDateData && i === 1) { // i=1 represents the day before most recent
+        score = mostRecentScore;
+      }
       
       chartData.push({
         date: chartDate,
         score: score,
-        isEmpty: score === 0
+        isEmpty: score === 0 && !(hasOnlyOneDateData && i === 1) // FIXED: Changed to i === 1
       });
     }
     
