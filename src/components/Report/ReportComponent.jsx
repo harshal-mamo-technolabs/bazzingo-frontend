@@ -102,10 +102,6 @@ const ReportComponent = forwardRef(({
               <span className="font-semibold">{stats.total} / {scoreData?.outOfScore || totalQuestions}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>Estimated Band</span>
-              <span className="font-semibold">{stats.band}</span>
-            </div>
-            <div className="flex items-center justify-between">
               <span>Accuracy</span>
               <span className="font-semibold">{stats.accuracy}%</span>
             </div>
@@ -193,14 +189,10 @@ const ReportComponent = forwardRef(({
       {/* Final Score Summary */}
       <div className="p-6 pt-0">
         <div className="font-semibold mb-2">Final Score Summary</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="border rounded p-4">
             <div className="text-gray-500">Total Score</div>
             <div className="text-lg font-semibold">{stats.total} / {scoreData?.outOfScore || totalQuestions}</div>
-          </div>
-          <div className="border rounded p-4">
-            <div className="text-gray-500">Estimated Band</div>
-            <div className="text-lg font-semibold">{stats.band}</div>
           </div>
           <div className="border rounded p-4">
             <div className="text-gray-500">Accuracy</div>

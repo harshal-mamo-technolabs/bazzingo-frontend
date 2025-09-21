@@ -266,6 +266,28 @@ export async function getUserProfile() {
   return response.data;
 }
 
+export async function getSubmittedFullAssessments() {
+  const userData = localStorage.getItem("user");
+  if (!userData) throw new Error("User not authenticated");
+
+  let parsedUserData;
+  try {
+    parsedUserData = JSON.parse(userData);
+  } catch (err) {
+    throw new Error("Invalid User Data. Please log in again: ", err);
+  }
+
+  const token = parsedUserData?.accessToken || parsedUserData?.user?.token;
+  if (!token) throw new Error("No access token found");
+
+  const response = await axios.get(`${API_CONNECTION_HOST_URL}/assessment/user/full-scores`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+}
+
 export async function updateUserProfile(profileData) {
   const userData = localStorage.getItem("user");
   if (!userData) throw new Error("User not authenticated");
