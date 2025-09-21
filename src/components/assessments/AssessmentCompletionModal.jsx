@@ -27,6 +27,7 @@ const AssessmentCompletionModal = ({
   const [downloading, setDownloading] = useState("");
   const [assessmentDetails, setAssessmentDetails] = useState(null);
   const [scoreDetails, setScoreDetails] = useState(null);
+  const [programScores, setProgramScores] = useState(null);
   const certificateRef = useRef(null);
   const reportRef = useRef(null);
 
@@ -59,6 +60,35 @@ const AssessmentCompletionModal = ({
       fetchScoreDetails();
     }
   }, [isOpen, scoreId]);
+
+  // Fetch program scores when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const fetchProgramScores = async () => {
+        try {
+          const stored = localStorage.getItem('user');
+          if (!stored) return;
+          
+          const userData = JSON.parse(stored);
+          const accessToken = userData?.accessToken || userData?.user?.token;
+          if (!accessToken) return;
+
+          const res = await axios.get(`${API_CONNECTION_HOST_URL}/assessment/program-scores-only`, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          });
+          
+          if (res.data?.status === 'success') {
+            setProgramScores(res.data?.data || {});
+          }
+        } catch (error) {
+          console.error("Failed to fetch program scores:", error);
+        }
+      };
+      fetchProgramScores();
+    }
+  }, [isOpen]);
 
   // Get assessment type for dynamic content
   const assessmentType = assessmentDetails?.mainCategory || "IQ Test";
@@ -330,6 +360,7 @@ const AssessmentCompletionModal = ({
           userAge={userAge}
           mainCategory={mainCategory}
           totalQuestions={totalQuestions}
+          programScores={programScores}
         />
       </div>
 
