@@ -33,6 +33,7 @@ const Dashboard = () => {
   // Add userData state
   const [userData, setUserData] = useState(null);
   const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
+  const [hasOpenedModal, setHasOpenedModal] = useState(false); // 👈 new flag
 
   // Update the fetchUserProfile effect
   useEffect(() => {
@@ -139,10 +140,11 @@ const Dashboard = () => {
 
   // 👇 open modal automatically once dailyGames is populated
 useEffect(() => {
-  if (dailyGames.length > 0) {
+  if (dailyGames.length > 0 && !hasOpenedModal) {
     setIsModalOpen(true);
+    setHasOpenedModal(true); // prevent opening again
   }
-}, [dailyGames]);
+}, [dailyGames, hasOpenedModal]);
 
   const openAssessment = useCallback(async () => {
     try {
