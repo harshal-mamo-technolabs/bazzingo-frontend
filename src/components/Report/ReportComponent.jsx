@@ -25,6 +25,7 @@ const ReportComponent = forwardRef(({
   userAge = "",
   mainCategory = "iq-test",
   totalQuestions = 0,
+  programScores = {},
   className = "",
   style = {}
 }, ref) => {
@@ -114,6 +115,29 @@ const ReportComponent = forwardRef(({
                 {stats.correctAnswers} / {Math.round((scoreData?.outOfScore || totalQuestions) / 5)}
               </span>
             </div>
+            {/* Category-specific scores */}
+            {programScores && Object.keys(programScores).length > 0 && (
+              <>
+                {mainCategory === 'iq-test' && programScores['iq-test'] !== undefined && (
+                  <div className="flex items-center justify-between border-t pt-2 mt-2">
+                    <span>IQ Score</span>
+                    <span className="font-semibold">{programScores['iq-test']}</span>
+                  </div>
+                )}
+                {mainCategory === 'driving-license' && programScores['driving-license'] !== undefined && (
+                  <div className="flex items-center justify-between border-t pt-2 mt-2">
+                    <span>Driving License Score</span>
+                    <span className="font-semibold">{programScores['driving-license']}</span>
+                  </div>
+                )}
+                {mainCategory === 'logic' && programScores['logic'] !== undefined && (
+                  <div className="flex items-center justify-between border-t pt-2 mt-2">
+                    <span>Logic Score</span>
+                    <span className="font-semibold">{programScores['logic']}</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
@@ -183,6 +207,33 @@ const ReportComponent = forwardRef(({
             <div className="text-lg font-semibold">{stats.accuracy}%</div>
           </div>
         </div>
+        
+        {/* Category-specific scores section */}
+        {programScores && Object.keys(programScores).length > 0 && (
+          <div className="mt-4">
+            <div className="font-semibold mb-2">Category-Specific Scores</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              {mainCategory === 'iq-test' && programScores['iq-test'] !== undefined && (
+                <div className="border rounded p-4">
+                  <div className="text-gray-500">IQ Score</div>
+                  <div className="text-lg font-semibold">{programScores['iq-test']}</div>
+                </div>
+              )}
+              {mainCategory === 'driving-license' && programScores['driving-license'] !== undefined && (
+                <div className="border rounded p-4">
+                  <div className="text-gray-500">Driving License Score</div>
+                  <div className="text-lg font-semibold">{programScores['driving-license']}</div>
+                </div>
+              )}
+              {mainCategory === 'logic' && programScores['logic'] !== undefined && (
+                <div className="border rounded p-4">
+                  <div className="text-gray-500">Logic Score</div>
+                  <div className="text-lg font-semibold">{programScores['logic']}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recommended Activities */}
