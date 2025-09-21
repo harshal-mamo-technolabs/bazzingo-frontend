@@ -350,6 +350,8 @@ const AssessmentCompletionModal = ({
           assessmentId={assessmentId}
           userName={userName}
           totalScoreofAssessment={totalScoreofAssessment}
+          programScores={programScores}
+          mainCategory={mainCategory}
         />
         <ReportComponent
           ref={reportRef}

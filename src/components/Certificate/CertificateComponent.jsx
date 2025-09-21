@@ -14,6 +14,8 @@ const CertificateComponent = forwardRef(({
   assessmentId, 
   totalScoreofAssessment ="0",
   userName = "User",
+  programScores = null,
+  mainCategory = "iq-test",
   className = "",
   style = {}
 }, ref) => {
@@ -33,6 +35,23 @@ const CertificateComponent = forwardRef(({
   const certificateId = generateCertificateId(assessmentId);
   const reportUrl = generateReportUrl(scoreData?._id, assessmentId);
   const domainScores = generateDomainScores(scoreData);
+  
+  // Determine which score to display based on category
+  const getDisplayScore = () => {
+    if (!programScores) return totalScoreofAssessment; // Handle null/undefined programScores
+    
+    if (mainCategory === 'iq-test' && programScores['iq-test'] !== undefined) {
+      return programScores['iq-test'];
+    } else if (mainCategory === 'driving-license' && programScores['driving-license'] !== undefined) {
+      return programScores['driving-license'];
+    } else if (mainCategory === 'logic' && programScores['logic'] !== undefined) {
+      return programScores['logic'];
+    }
+    return totalScoreofAssessment; // fallback to original score
+  };
+  
+  const displayScore = getDisplayScore();
+  
   const domainGradients = [
     'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
     'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)',
@@ -82,7 +101,9 @@ const CertificateComponent = forwardRef(({
               CERTIFICATE OF
             </div>
             <div className="text-5xl font-bold text-[#1e3a8a] tracking-wide">
-              IQ ACHIEVEMENT
+              {mainCategory === 'iq-test' ? 'IQ ACHIEVEMENT' : 
+               mainCategory === 'driving-license' ? 'DRIVING LICENSE ACHIEVEMENT' :
+               mainCategory === 'logic' ? 'LOGIC ACHIEVEMENT' : 'ACHIEVEMENT'}
             </div>
           </div>
 
@@ -92,9 +113,13 @@ const CertificateComponent = forwardRef(({
             
             <div className="text-6xl font-bold text-[#1e3a8a] mb-8">{userName}</div>
             
-            <div className="text-xl text-gray-700 mb-6">has achieved a Full Scale IQ score of</div>
+            <div className="text-xl text-gray-700 mb-6">
+              has achieved a {mainCategory === 'iq-test' ? 'IQ' : 
+                              mainCategory === 'driving-license' ? 'Driving License' :
+                              mainCategory === 'logic' ? 'Logic' : 'Assessment'} score of
+            </div>
             
-            <div className="text-9xl font-bold text-[#f97316] mb-4">{totalScoreofAssessment}</div>
+            <div className="text-9xl font-bold text-[#f97316] mb-4">{displayScore}</div>
             
             {/* <div className="text-lg text-gray-600 mb-2">Confidence Interval {ciLow}—{ciHigh}</div>
             <div className="text-lg text-gray-600 mb-12">Percentile Rank {percentile}</div> */}

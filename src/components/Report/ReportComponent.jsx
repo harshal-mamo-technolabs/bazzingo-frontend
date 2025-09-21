@@ -25,7 +25,7 @@ const ReportComponent = forwardRef(({
   userAge = "",
   mainCategory = "iq-test",
   totalQuestions = 0,
-  programScores = {},
+  programScores = null,
   className = "",
   style = {}
 }, ref) => {
@@ -116,7 +116,7 @@ const ReportComponent = forwardRef(({
               </span>
             </div>
             {/* Category-specific scores */}
-            {programScores && Object.keys(programScores).length > 0 && (
+            {programScores && programScores !== null && Object.keys(programScores).length > 0 && (
               <>
                 {mainCategory === 'iq-test' && programScores['iq-test'] !== undefined && (
                   <div className="flex items-center justify-between border-t pt-2 mt-2">
@@ -209,7 +209,7 @@ const ReportComponent = forwardRef(({
         </div>
         
         {/* Category-specific scores section */}
-        {programScores && Object.keys(programScores).length > 0 && (
+        {programScores && programScores !== null && Object.keys(programScores).length > 0 && (
           <div className="mt-4">
             <div className="font-semibold mb-2">Category-Specific Scores</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
