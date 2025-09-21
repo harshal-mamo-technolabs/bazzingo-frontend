@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import LeaderboardTable from "../components/Tables/LeadboardTable";
 import MainLayout from "../components/Layout/MainLayout";
 import TopRank from "../components/Charts/TopRank";
@@ -9,7 +9,6 @@ import { countries } from "../utils/constant";
 import SelectMenu from "../components/Leaderboard/SelectMenu.jsx";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading, selectSubscriptionData } from '../app/subscriptionSlice';
-import { Info } from 'lucide-react';
 
 const ProgressBar = ({ percentage }) => (
   <div className="relative w-full lg:max-w-[150px] h-7 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
@@ -46,8 +45,6 @@ const Leadboard = () => {
   const [loading, setLoading] = useState(false);
   const [dailyStreakData, setDailyStreakData] = useState(null);
   const [streakLoading, setStreakLoading] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const iconRef = useRef(null);
   
   // Redux subscription state
   const dispatch = useDispatch();
@@ -148,13 +145,6 @@ const Leadboard = () => {
 
   const processedActivities = getProcessedActivities();
   const hasActivities = processedActivities.length > 0;
-
-  const handleTooltipClick = (setTooltipFn) => {
-    setTooltipFn(true);
-    setTimeout(() => {
-      setTooltipFn(false);
-    }, 3000); // auto close in 3 seconds
-  };
 
   return (
     <MainLayout unreadCount={unreadCount}>
@@ -320,23 +310,7 @@ const Leadboard = () => {
 
                 {hasActivities && (
                   <div className="order-3 lg:order-2 bg-[#EEEEEE] rounded-lg p-2 md:p-3 shadow-sm h-[350px]">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1">Recent Activity</h3>
-                      {/* Tooltip Trigger */}
-                      <div
-                        ref={iconRef}
-                        className="relative cursor-pointer"
-                        onClick={() => handleTooltipClick(setShowTooltip)}
-                      >
-                        <Info className="w-4 h-4 text-black" />
-                        {/* Tooltip Popup */}
-                        {showTooltip && (
-                          <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                            Track your daily progress and complete suggested activities to improve your ranking.
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4">Recent Activity</h3>
                     <div className="space-y-4 mt-4">
                       {processedActivities.map((activity, idx) => {
                         const { icon, alt, iconBg } = staticIconMap[activity.type] || staticIconMap.game;
@@ -428,23 +402,7 @@ const Leadboard = () => {
             {hasActivities && (
               <div className="order-3 lg:order-2 w-full lg:w-[350px]">
                 <div className="bg-[#EEEEEE] rounded-lg p-2 md:p-6 shadow-sm h-[350px]">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-gray-900">Recent Activity</h3>
-                    {/* Tooltip Trigger */}
-                    <div
-                      ref={iconRef}
-                      className="relative cursor-pointer"
-                      onClick={() => handleTooltipClick(setShowTooltip)}
-                    >
-                      <Info className="w-4 h-4 text-black" />
-                      {/* Tooltip Popup */}
-                      {showTooltip && (
-                        <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                          Track your daily progress and complete suggested activities to improve your ranking.
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
                   <div className="space-y-4 mt-4">
                     {processedActivities.map((activity, idx) => {
                       const { icon, alt, iconBg } = staticIconMap[activity.type] || staticIconMap.game;
