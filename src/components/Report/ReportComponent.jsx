@@ -99,16 +99,12 @@ const ReportComponent = forwardRef(({
           <div className="border rounded p-4 flex flex-col gap-2 text-sm">
             <div className="flex items-center justify-between">
               <span>Total Score</span>
-              <span className="font-semibold">{stats.total} / {scoreData?.outOfScore || totalQuestions}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Accuracy</span>
-              <span className="font-semibold">{stats.accuracy}%</span>
+              <span className="font-semibold">{stats.total} / 150</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Correct Answers</span>
               <span className="font-semibold">
-                {stats.correctAnswers} / {Math.round((scoreData?.outOfScore || totalQuestions) / 5)}
+                {Math.round(stats.total / 5)} / 30
               </span>
             </div>
             {/* Category-specific scores */}
@@ -192,11 +188,11 @@ const ReportComponent = forwardRef(({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="border rounded p-4">
             <div className="text-gray-500">Total Score</div>
-            <div className="text-lg font-semibold">{stats.total} / {scoreData?.outOfScore || totalQuestions}</div>
+            <div className="text-lg font-semibold">{stats.total} / 150</div>
           </div>
           <div className="border rounded p-4">
-            <div className="text-gray-500">Accuracy</div>
-            <div className="text-lg font-semibold">{stats.accuracy}%</div>
+            <div className="text-gray-500">Correct Answers</div>
+            <div className="text-lg font-semibold">{Math.round(stats.total / 5)} / 30</div>
           </div>
         </div>
         
