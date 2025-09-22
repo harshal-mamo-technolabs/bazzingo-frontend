@@ -103,56 +103,29 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
     return map;
   };
 
-  // Function to format chart data to show last 7 days with gaps filled
+  // Function to format chart data to show last 7 days with gaps filled as 0
   const formatChartData = () => {
     const scoreMap = createScoreMap(categoryData.scores);
     const today = new Date();
     
-    // Get all available dates and sort them
-    const availableDates = Object.keys(scoreMap)
-      .map(dateStr => new Date(dateStr))
-      .sort((a, b) => a - b);
-    
-    // If no dates available, create empty 7-day chart
-    if (availableDates.length === 0) {
-      const emptyChart = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(today.getDate() - i);
-        emptyChart.push({
-          date: date,
-          score: 0,
-          isEmpty: true
-        });
-      }
-      return emptyChart;
-    }
-    
-    // NEW LOGIC: Check if there's only one date with data
-    const hasOnlyOneDateData = availableDates.length === 1;
-    const mostRecentDate = availableDates[availableDates.length - 1];
-    const mostRecentDateKey = `${mostRecentDate.getFullYear()}-${(mostRecentDate.getMonth() + 1).toString().padStart(2, '0')}-${mostRecentDate.getDate().toString().padStart(2, '0')}`;
-    const mostRecentScore = scoreMap[mostRecentDateKey];
-    
-    // Generate the last 7 days ending with the most recent date
+    // Generate the last 7 days including today
     const chartData = [];
     for (let i = 6; i >= 0; i--) {
-      const chartDate = new Date(mostRecentDate);
-      chartDate.setDate(mostRecentDate.getDate() - i);
+      const chartDate = new Date(today);
+      chartDate.setDate(today.getDate() - i);
+      
+      // Reset time part to avoid timezone issues
+      chartDate.setHours(0, 0, 0, 0);
       
       const dateKey = `${chartDate.getFullYear()}-${(chartDate.getMonth() + 1).toString().padStart(2, '0')}-${chartDate.getDate().toString().padStart(2, '0')}`;
       
-      let score = scoreMap[dateKey] || 0;
-      
-      // NEW LOGIC: If only one date has data, show that score on the previous day too
-      if (hasOnlyOneDateData && i === 1) { // i=1 represents the day before most recent
-        score = mostRecentScore;
-      }
+      // Use the score if available, otherwise 0
+      const score = scoreMap[dateKey] || 0;
       
       chartData.push({
         date: chartDate,
         score: score,
-        isEmpty: score === 0 && !(hasOnlyOneDateData && i === 1) // FIXED: Changed to i === 1
+        isEmpty: score === 0
       });
     }
     
@@ -168,7 +141,7 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
   }
   
   const chartMaxValue = allScores.length > 0 
-    ? Math.max(...allScores, 100) * 1.2 // 20% padding
+    ? Math.max(...allScores, 100) * 1.9 // 20% padding
     : 100;
 
   return (
@@ -186,16 +159,16 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
           return (
             <div key={idx} className="flex flex-col items-center flex-1 max-w-[30px]">
               <div
-                className={`w-3 rounded-t transition-all duration-300 ${data.score > 0 ? 'bg-orange-500' : 'bg-gray-300'}`}
+                className={`w-4 rounded-t transition-all duration-300 ${data.score > 0 ? 'bg-orange-500' : 'bg-gray-300'}`}
                 style={{
                   height: `${barHeight}px`,
                   minHeight: data.score > 0 ? '3px' : '0px',
                 }}
               ></div>
-              <div className={`text-[11px] font-semibold mt-1 ${data.score > 0 ? '' : 'text-gray-400'}`}>
+              <div className={`text-[12px] font-semibold mt-1 ${data.score > 0 ? '' : 'text-gray-400'}`}>
                 {data.score > 0 ? data.score : '0'}
               </div>
-              <div className="text-[9px] text-gray-600 whitespace-nowrap leading-tight">
+              <div className="text-[10px] text-gray-600 whitespace-nowrap leading-tight">
                 {formattedDate}
               </div>
             </div>
