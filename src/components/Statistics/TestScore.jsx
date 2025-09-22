@@ -1,20 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getUserProgramScores } from '../../services/dashbaordService';
 import BazzingoLoader from '../Loading/BazzingoLoader';
 
-const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test', selectedTimeRange = 'last7Days' }) => {
+const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
   const [programData, setProgramData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Memoize the fetch function to prevent unnecessary re-renders
-  const fetchProgramData = useCallback(async () => {
+  const fetchProgramData = async () => {
     try {
       setLoading(true);
       const response = await getUserProgramScores();
       setProgramData(response.data);
       
-      // Call the callback function with the current program score for the active category
       if (onIqDataLoaded) {
         const categoryMap = {
           'IQ Test': 'iq-test',
@@ -37,52 +35,16 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test', selectedTimeRan
     } finally {
       setLoading(false);
     }
-  }, [onIqDataLoaded, activeCategory]);
+  };
 
   useEffect(() => {
     fetchProgramData();
-  }, [fetchProgramData]);
-
-  // Filter scores based on selected time range
-  const filterScoresByTimeRange = (scores) => {
-    if (!scores || !Array.isArray(scores)) return [];
-    
-    const now = new Date();
-    let startDate;
-    
-    switch (selectedTimeRange) {
-      case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        break;
-      case 'last7Days':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'last1Month':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        break;
-      case 'last3Months':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-        break;
-      case 'last6Months':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-        break;
-      case 'last1Year':
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        break;
-      default:
-        return scores;
-    }
-    
-    return scores.filter(score => {
-      const scoreDate = new Date(score.date);
-      return scoreDate >= startDate;
-    });
-  };
+  }, [activeCategory]);
 
   if (loading) {
     return (
       <div className="rounded-lg overflow-hidden h-[330px] flex items-center justify-center">
-        <BazzingoLoader message="Fetching today's stats..." />
+        <BazzingoLoader message="Fetching latest scores..." />
       </div>
     );
   }
@@ -95,11 +57,9 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test', selectedTimeRan
     );
   }
 
-  // Get data for the current category
   const getCategoryData = () => {
     if (!programData || !programData.programScore) return null;
     
-    // Map category names to API keys
     const categoryMap = {
       'IQ Test': 'iq-test',
       'Driving License': 'driving-license',
@@ -112,12 +72,7 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test', selectedTimeRan
       return null;
     }
     
-    const categoryData = {...programData.programScore[categoryKey]};
-    
-    // Filter scores based on time range
-    categoryData.scores = filterScoresByTimeRange(categoryData.scores);
-    
-    return categoryData;
+    return {...programData.programScore[categoryKey]};
   };
 
   const categoryData = getCategoryData();
@@ -130,118 +85,122 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test', selectedTimeRan
     );
   }
 
+  const createScoreMap = (scores) => {
+    const map = {};
+    
+    if (scores && Array.isArray(scores)) {
+      scores.forEach(score => {
+        const dateObj = new Date(score.date);
+        const dateKey = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
+        
+        // Keep the HIGHEST score for each date
+        if (!map[dateKey] || score.programScore > map[dateKey]) {
+          map[dateKey] = score.programScore;
+        }
+      });
+    }
+    
+    return map;
+  };
+
+  // Function to format chart data to show last 7 days with gaps filled
+  const formatChartData = () => {
+    const scoreMap = createScoreMap(categoryData.scores);
+    const today = new Date();
+    
+    // Get all available dates and sort them
+    const availableDates = Object.keys(scoreMap)
+      .map(dateStr => new Date(dateStr))
+      .sort((a, b) => a - b);
+    
+    // If no dates available, create empty 7-day chart
+    if (availableDates.length === 0) {
+      const emptyChart = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        emptyChart.push({
+          date: date,
+          score: 0,
+          isEmpty: true
+        });
+      }
+      return emptyChart;
+    }
+    
+    // NEW LOGIC: Check if there's only one date with data
+    const hasOnlyOneDateData = availableDates.length === 1;
+    const mostRecentDate = availableDates[availableDates.length - 1];
+    const mostRecentDateKey = `${mostRecentDate.getFullYear()}-${(mostRecentDate.getMonth() + 1).toString().padStart(2, '0')}-${mostRecentDate.getDate().toString().padStart(2, '0')}`;
+    const mostRecentScore = scoreMap[mostRecentDateKey];
+    
+    // Generate the last 7 days ending with the most recent date
+    const chartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const chartDate = new Date(mostRecentDate);
+      chartDate.setDate(mostRecentDate.getDate() - i);
+      
+      const dateKey = `${chartDate.getFullYear()}-${(chartDate.getMonth() + 1).toString().padStart(2, '0')}-${chartDate.getDate().toString().padStart(2, '0')}`;
+      
+      let score = scoreMap[dateKey] || 0;
+      
+      // NEW LOGIC: If only one date has data, show that score on the previous day too
+      if (hasOnlyOneDateData && i === 1) { // i=1 represents the day before most recent
+        score = mostRecentScore;
+      }
+      
+      chartData.push({
+        date: chartDate,
+        score: score,
+        isEmpty: score === 0 && !(hasOnlyOneDateData && i === 1) // FIXED: Changed to i === 1
+      });
+    }
+    
+    return chartData;
+  };
+
+  const chartData = formatChartData();
+  
+  // Calculate max value for chart scaling
+  const allScores = chartData.map(item => item.score);
+  if (categoryData.programScore > 0) {
+    allScores.push(categoryData.programScore);
+  }
+  
+  const chartMaxValue = allScores.length > 0 
+    ? Math.max(...allScores, 100) * 1.2 // 20% padding
+    : 100;
+
   return (
     <>
-      <div className="flex justify-center items-end gap-3 mt-0 h-[100px] overflow-hidden">
-        {(() => {
-          // Always show exactly 6 bars
-          const totalBars = 6;
+      <div className="flex justify-center items-end gap-2.5 mt-0 h-[90px] overflow-hidden px-1">
+        {chartData.map((data, idx) => {
+          const normalizedScore = Math.min(data.score, chartMaxValue);
+          const barHeight = (normalizedScore / chartMaxValue) * 70;
           
-          // API returns scores with most recent first, but we need to display oldest to newest
-          // So we reverse the array to get chronological order
-          const chronologicalScores = [...categoryData.scores].reverse();
-          const historicalScores = chronologicalScores.slice(0, totalBars);
-          const historicalCount = historicalScores.length;
-          
-          // Calculate how many current score bars we need to show
-          const currentScoreBarsCount = Math.max(0, totalBars - historicalCount);
-          
-          // Get the most recent date from historical scores to continue from
-          let lastDate = historicalCount > 0 
-            ? new Date(historicalScores[historicalCount - 1].date) // Most recent date is last in chronological array
-            : new Date(); // If no historical data, start from today
-          
-          // Calculate max value for chart scaling
-          const allScores = historicalScores.map(item => item.programScore);
-          
-          // Always include current score for scaling, even if no historical data
-          if (categoryData.programScore > 0) {
-            allScores.push(categoryData.programScore);
-          }
-          
-          const chartMaxValue = Math.max(...allScores, 100) * 1.9; // Add 20% padding
+          // Format date for display with abbreviated month
+          const day = data.date.getDate();
+          const month = data.date.toLocaleString('default', { month: 'short' });
+          const formattedDate = `${day} ${month}`;
           
           return (
-            <>
-              {/* Render historical scores in chronological order */}
-              {historicalScores.map((item, idx) => {
-                const score = item.programScore;
-                const normalizedScore = Math.min(score, chartMaxValue);
-                const barHeight = (normalizedScore / chartMaxValue) * 100;
-                
-                // Format date to short format (e.g., "11 Sep")
-                const dateObj = new Date(item.date);
-                const formattedDate = `${dateObj.getDate()} ${dateObj.toLocaleString('default', { month: 'short' })}`;
-                
-                return (
-                  <div key={item._id || idx} className="flex flex-col items-center">
-                    <div
-                      className="w-5 bg-orange-500 rounded-t-lg transition-all duration-300"
-                      style={{
-                        height: `${barHeight}px`,
-                      }}
-                    ></div>
-                    <div className="text-xs font-semibold mt-1">
-                      {score}
-                    </div>
-                    <div className="text-[10px] text-gray-600 whitespace-nowrap">
-                      {formattedDate}
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {/* Render current score bars for remaining slots with forward dates */}
-              {Array.from({ length: currentScoreBarsCount }).map((_, idx) => {
-                const normalizedScore = Math.min(categoryData.programScore, chartMaxValue);
-                const barHeight = (normalizedScore / chartMaxValue) * 100;
-                
-                // Calculate the next date (one day after the previous date)
-                const nextDate = new Date(lastDate);
-                nextDate.setDate(nextDate.getDate() + 1); // Go forward one day for the next bar
-                lastDate = nextDate; // Update for the next iteration
-                
-                // Format date to short format (e.g., "11 Sep")
-                const formattedDate = `${nextDate.getDate()} ${nextDate.toLocaleString('default', { month: 'short' })}`;
-                
-                return (
-                  <div key={`current-${idx}`} className="flex flex-col items-center">
-                    <div
-                      className="w-5 bg-orange-500 rounded-t-lg transition-all duration-300"
-                      style={{
-                        height: `${barHeight}px`,
-                      }}
-                    ></div>
-                    <div className="text-xs font-semibold mt-1">
-                      {categoryData.programScore}
-                    </div>
-                    <div className="text-[10px] text-gray-600 whitespace-nowrap">
-                      {formattedDate}
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {/* If no historical data and no current score bars, show at least one bar with current score */}
-              {historicalCount === 0 && currentScoreBarsCount === 0 && categoryData.programScore > 0 && (
-                <div className="flex flex-col items-center">
-                  <div
-                    className="w-5 bg-orange-500 rounded-t-lg transition-all duration-300"
-                    style={{
-                      height: `${Math.min(categoryData.programScore, chartMaxValue) / chartMaxValue * 100}px`,
-                    }}
-                  ></div>
-                  <div className="text-xs font-semibold mt-1">
-                    {categoryData.programScore}
-                  </div>
-                  <div className="text-[10px] text-gray-600 whitespace-nowrap">
-                    Today
-                  </div>
-                </div>
-              )}
-            </>
+            <div key={idx} className="flex flex-col items-center flex-1 max-w-[30px]">
+              <div
+                className={`w-3 rounded-t transition-all duration-300 ${data.score > 0 ? 'bg-orange-500' : 'bg-gray-300'}`}
+                style={{
+                  height: `${barHeight}px`,
+                  minHeight: data.score > 0 ? '3px' : '0px',
+                }}
+              ></div>
+              <div className={`text-[11px] font-semibold mt-1 ${data.score > 0 ? '' : 'text-gray-400'}`}>
+                {data.score > 0 ? data.score : '0'}
+              </div>
+              <div className="text-[9px] text-gray-600 whitespace-nowrap leading-tight">
+                {formattedDate}
+              </div>
+            </div>
           );
-        })()}
+        })}
       </div>
     </>
   );
