@@ -125,7 +125,8 @@ const Signup = () => {
       </div>
       <div className="w-full">
         <SignupForm signupHandler={signupHandler} />
-        <div className="text-center my-4 md:my-6">
+        {/* Social Login Section - Commented Out */}
+        {/* <div className="text-center my-4 md:my-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">Or Continue With</p>
         </div>
         <div className="flex justify-center gap-4">
@@ -155,7 +156,7 @@ const Signup = () => {
               Facebook
             </span>
           </Button>
-        </div>
+        </div> */}
         <div className="text-center mt-3 md:mt-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">
             Already have an account?{' '}
