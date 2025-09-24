@@ -168,13 +168,13 @@ const CertificateComponent = forwardRef(({
               </div>
             </div>
             
-            <div className="text-right">
+            {/* <div className="text-right">
               <div className="text-2xl font-semibold text-[#1e3a8a] mb-1" style={{fontFamily: 'cursive'}}>
                 Daniel Foster
               </div>
               <div className="h-px w-48 bg-gray-400 mb-2"></div>
               <div className="text-sm text-gray-600">Chief Psychologist</div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

@@ -43,7 +43,7 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
   };
 
   const getDescription = (isAvailReport, isAvailCertification) => {
-    let description = "Please try this test to get detailed analysed report to know better your performance";
+    let description = "";
     if (isAvailCertification) {
       description += " and the certificate to share";
     }
