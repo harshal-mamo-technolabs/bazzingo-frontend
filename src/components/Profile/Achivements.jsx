@@ -50,9 +50,14 @@ const Achievements = () => {
     "Top 10 Champion": "/LockedBadge.png"
   };
 
+  // Get country name from API (capitalize first letter)
+const countryName = ranksAndBadges?.country
+? ranksAndBadges.country.charAt(0).toUpperCase() + ranksAndBadges.country.slice(1)
+: "India"; // fallback
+
   const leaderboardImages = {
     "Global": "/global.png",
-    "India": "/Global2.png",
+    [countryName]: "/Global2.png",
     "By Age": "/human.png",
     "By Assessment": "/search.png",
   };
@@ -113,7 +118,7 @@ const Achievements = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {[
                 { label: "Global", value: ranksAndBadges.globalRank },
-                { label: "India", value: ranksAndBadges.countyRank },
+                { label: [countryName], value: ranksAndBadges.countyRank },
                 { label: "By Age", value: ranksAndBadges.byAgeRank },
                 { label: "By Assessment", value: ranksAndBadges.byAssessment }
               ].map((item, i) => (
