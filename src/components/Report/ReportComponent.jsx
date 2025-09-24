@@ -211,16 +211,16 @@ const ReportComponent = forwardRef(({
                 <div className="border rounded p-4">
                   <div className="text-gray-500">Driving License Score</div>
                   <div className="text-lg font-semibold">{programScores['driving-license']}</div>
-                </div>
+          </div>
               )}
               {mainCategory === 'logic' && programScores['logic'] !== undefined && (
-                <div className="border rounded p-4">
+          <div className="border rounded p-4">
                   <div className="text-gray-500">Logic Score</div>
                   <div className="text-lg font-semibold">{programScores['logic']}</div>
                 </div>
               )}
-            </div>
           </div>
+        </div>
         )}
       </div>
 

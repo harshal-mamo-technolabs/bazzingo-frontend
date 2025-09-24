@@ -27,7 +27,7 @@ const FishermansCatchGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(180);
+  const [timeRemaining, setTimeRemaining] = useState(60);
   const [currentScenario, setCurrentScenario] = useState(0);
   const [correctCatches, setCorrectCatches] = useState(0);
   const [wrongCatches, setWrongCatches] = useState(0);
@@ -397,7 +397,7 @@ const FishermansCatchGame = () => {
             </div>
           </div>
         }
-        category="Quick Reflexes"
+        category="Memory"
         gameState={gameState}
         setGameState={setGameState}
         score={score}

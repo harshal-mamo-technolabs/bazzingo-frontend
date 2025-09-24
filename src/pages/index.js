@@ -16,20 +16,11 @@ import Statistics from './Statistics';
 import Leadboard from './Leadboard';
 import NotFound from './NotFound';
 import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
-import AssessmentPaymentDemo from './AssessmentPaymentDemo';
-import AssessmentElementsDemo from './AssessmentElementsDemo';
-import SubscriptionTest from './SubscriptionTest';
-import PlanCheckoutDemo from './PlanCheckoutDemo';
-import PlanSubscribeElementsDemo from './PlanSubscribeElementsDemo';
-import PlanSubscribePaymentElementDemo from './PlanSubscribePaymentElementDemo';
 import PaymentSuccess from './PaymentSuccess';
 import PaymentCancel from './PaymentCancel';
 import Plan from './Plan';
 import Subscription from './Subscription';
 import Notifications from './Notifications';
-import Report from './Report';
-import Certificate from './Certificate';
-import Download from './Download';
 
 // Working games import
 import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
@@ -65,7 +56,6 @@ import EmotionDecoderGame from './games/EmotionDecoderGame';
 import EscapeGridGame from './UnusedGames/EcsapeGridGame';
 import MathMindGame from './games/MathMindGame';
 import MemoryTownBuilderGame from './games/MemoryTownBuilderGame';
-import AIAlignmentLabGame from './games/AIAlignmentGame';
 import AdriaticCodebreaker from './games/AdriaticCodebreaker';
 import MarketRushGame from './games/MarketRushGame';
 import BorderlineBrainsGame from './games/BorderlineBrainsGame';
@@ -139,20 +129,11 @@ export {
   Leadboard,
   NotFound,
   VisualReasoningStaticAssessment,
-  AssessmentPaymentDemo,
-  AssessmentElementsDemo,
-  PlanCheckoutDemo,
-  SubscriptionTest,
-  PlanSubscribeElementsDemo,
-  PlanSubscribePaymentElementDemo,
   PaymentSuccess,
   PaymentCancel,
   Plan,
   Subscription,
   Notifications,
-  Report,
-  Certificate,
-  Download,
  
   // ✅ Working game pages
   MetacognitiveStrategyNavigatorGame,
@@ -188,7 +169,6 @@ export {
   EscapeGridGame,
   MathMindGame,
   MemoryTownBuilderGame,
-  AIAlignmentLabGame,
   AdriaticCodebreaker,
   MarketRushGame,
   BorderlineBrainsGame,

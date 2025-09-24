@@ -1,8 +1,8 @@
 
 // Difficulty settings
 export const difficultySettings = {
-    Easy: { timeLimit: 300, lives: 5, hints: 3, questionCount: 8, pointsPerQuestion: 25 },
-    Moderate: { timeLimit: 240, lives: 4, hints: 2, questionCount: 5, pointsPerQuestion: 40 },
+    Easy: { timeLimit: 180, lives: 5, hints: 3, questionCount: 8, pointsPerQuestion: 25 },
+    Moderate: { timeLimit: 180, lives: 4, hints: 2, questionCount: 5, pointsPerQuestion: 40 },
     Hard: { timeLimit: 180, lives: 3, hints: 1, questionCount: 4, pointsPerQuestion: 50 }
   };
 

@@ -20,7 +20,7 @@ const EmotionDecoderGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [timeRemaining, setTimeRemaining] = useState(180);
   const [currentScenario, setCurrentScenario] = useState(0);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
@@ -461,40 +461,24 @@ const EmotionDecoderGame = () => {
           </div>
 
           {/* Game Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Scenario
-              </div>
-              <div className="text-lg font-semibold text-[#F97316]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
-              </div>
+          <div className="grid grid-rows-2 gap-4 mb-6 w-full max-w-2xl">
+          <div className="text-center bg-gray-50 rounded-lg p-3">
+            <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              Scenario
             </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
-              </div>
-              <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {'❤️'.repeat(lives)}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Streak
-              </div>
-              <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {streak}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Tagged
-              </div>
-              <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {taggedEmotions.length}
-              </div>
+            <div className="text-lg font-semibold text-[#F97316]" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
             </div>
           </div>
+          <div className="text-center bg-gray-50 rounded-lg p-3">
+            <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              Lives
+            </div>
+            <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              {'❤️'.repeat(lives)}
+            </div>
+          </div>
+        </div>
 
           {/* Scenario Header */}
           {currentScenarioData && gameState === 'playing' && (

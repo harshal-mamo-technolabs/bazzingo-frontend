@@ -4,7 +4,6 @@ import { getPlansData } from '../services/dashbaordService';
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
 import { loadStripe } from '@stripe/stripe-js';
 
-// Simple Error Boundary Component
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -54,7 +53,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Alert Component
 function Alert({ message }) {
   if (!message) return null;
   return (
@@ -64,7 +62,6 @@ function Alert({ message }) {
   );
 }
 
-// Hint Component
 function Hint({ text }) {
   if (!text) return null;
   return (
@@ -74,7 +71,6 @@ function Hint({ text }) {
   );
 }
 
-// Currency Amount Display Component
 function CurrencyAmount({ amount, suffix }) {
   return (
     <div className="flex items-end gap-1">
@@ -91,7 +87,6 @@ function CurrencyAmount({ amount, suffix }) {
   );
 }
 
-// Toggle Component
 const Toggle = ({ value, onChange }) => {
   const isMonthly = value === 'monthly';
   return (
@@ -134,16 +129,13 @@ const Toggle = ({ value, onChange }) => {
 };
 
 const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscription, isLoggedIn, processingPlanId }) => {
-  // Get the price based on billing period
   const priceData = plan.prices[billing === 'monthly' ? 'monthly' : 'yearly'];
   const trialPriceData = plan.prices.trial;
   
-  // Check if user already has this plan
   const hasPlan = userSubscription && userSubscription.planId === plan._id;
   const isTrial = userSubscription && userSubscription.status === 'trialing' && userSubscription.planId === plan._id;
   const isProcessing = processingPlanId === plan._id;
   
-  // Calculate per month price - handle cases where intervalCount might be missing or 0
   const perMonth = useMemo(() => {
     if (!priceData || !priceData.priceId) return 0;
     
@@ -155,7 +147,6 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
     return priceData.priceId.unitAmount / intervalCount;
   }, [billing, priceData]);
 
-  // Calculate period total
   const periodTotal = useMemo(() => {
     if (!priceData || !priceData.priceId) return 0;
     return priceData.priceId.unitAmount;
@@ -163,14 +154,12 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
 
   const priceSuffix = billing === 'yearly' ? '/mo billed yearly' : `/mo`;
 
-  // Features array - keeping the static features as per your requirement
   const features = [
     'Access to core games', 
     'Daily brain teaser', 
     'Basic insights'
   ];
   
-  // Add more features for higher plans
   if (plan.name.includes('Gold') || plan.name.includes('Diamond')) {
     features.push('All games & assessments', 'Personalized training plan');
   }
@@ -179,7 +168,6 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
     features.push('1:1 expert sessions', 'Advanced cognitive reports');
   }
 
-  // Get interval count for display
   const intervalCount = priceData?.intervalCount || 1;
 
   return (
@@ -266,7 +254,7 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
                     {!isLoggedIn ? 'Login to Subscribe' : isProcessing ? 'Processing...' : `Choose ${plan.name}`}
                   </button>
                   
-                  {trialPriceData && trialPriceData.unitAmount && !hasPlan && (
+                  {trialPriceData && trialPriceData.unitAmount && !hasPlan && billing !== 'yearly' && (
                     <button
                       onClick={() => onTrialSelect(plan, 'trial')}
                       disabled={isProcessing || !isLoggedIn}
@@ -308,7 +296,6 @@ function Payment() {
   const [userToken, setUserToken] = useState('');
 
 
-  // Check if user has an active subscription
   const checkUserSubscription = () => {
     try {
       const subscriptionData = sessionStorage.getItem('lastSubscriptionResponse');
@@ -318,10 +305,6 @@ function Payment() {
           const status = subscription.payload.data.status;
           const subscriptionId = subscription.payload.data.subscriptionId;
           
-          // Only consider it an active subscription if:
-          // 1. Status is healthy (active, trialing, succeeded, processing)
-          // 2. We have a valid subscription ID
-          // 3. The reason indicates success (not error or incomplete)
           const isHealthyStatus = ['active', 'trialing', 'succeeded', 'processing'].includes(status?.toLowerCase());
           const hasValidSubscriptionId = subscriptionId && subscriptionId.trim() !== '';
           const isSuccessReason = !subscription.reason || 
@@ -334,15 +317,6 @@ function Payment() {
               subscriptionId: subscriptionId
             });
           } else {
-            // Clear any invalid subscription data
-            console.log('Invalid subscription data found, clearing:', {
-              status,
-              subscriptionId,
-              reason: subscription.reason,
-              isHealthyStatus,
-              hasValidSubscriptionId,
-              isSuccessReason
-            });
             setUserSubscription(null);
           }
         }
@@ -368,7 +342,6 @@ function Payment() {
       }
     };
 
-    // Initialize Stripe
     const initializeStripe = async () => {
       try {
         const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key_here');
@@ -378,7 +351,6 @@ function Payment() {
       }
     };
 
-    // Initialize user token
     const initializeUserToken = () => {
       try {
         const raw = localStorage.getItem('user');
@@ -399,11 +371,10 @@ function Payment() {
     };
 
     fetchPlans();
-    initializeUserToken(); // Initialize user token on component mount
+    initializeUserToken(); 
     initializeStripe();
   }, []);
 
-  // ---------- Stripe Subscription Integration ----------
   const validTypes = ['trial', 'monthly', 'yearly'];
 
   const validateSameOrigin = (url) => {
@@ -454,27 +425,13 @@ function Payment() {
 
   const handle3DSecureAuthenticationNewFlow = async (clientSecret, paymentMethodId, paymentIntentId, planId, subType, successUrl) => {
     try {
-      console.log('🔐 [3DS NEW FLOW] Starting 3D Secure authentication process:', {
-        timestamp: new Date().toISOString(),
-        clientSecretPreview: clientSecret?.slice(0, 20) + '...',
-        paymentMethodId,
-        paymentIntentId,
-        planId,
-        subType,
-        successUrl,
-        stripeLoaded: !!stripePromise
-      });
-
-      setHint('🔐 Completing 3D Secure authentication...');
-
       if (!stripePromise) {
         console.error('❌ [3DS NEW FLOW] Stripe promise not available');
         throw new Error('Stripe not loaded. Please refresh the page and try again.');
       }
 
       const stripe = await stripePromise;
-      console.log('✅ [3DS NEW FLOW] Stripe instance loaded successfully');
-
+    
       if (!paymentMethodId) {
         console.error('❌ [3DS NEW FLOW] Payment method ID is missing');
         throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
@@ -490,43 +447,15 @@ function Payment() {
         throw new Error('Missing payment intent ID for confirmation. Please retry the payment.');
       }
 
-      console.log('🔐 [3DS NEW FLOW] Calling stripe.confirmCardPayment with:', {
-        clientSecretPreview: clientSecret.slice(0, 20) + '...',
-        paymentMethodId,
-        paymentIntentId,
-        timestamp: new Date().toISOString()
-      });
-
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: paymentMethodId
-      });
-
-      console.log('🔐 [3DS NEW FLOW] Stripe confirmCardPayment result:', {
-        timestamp: new Date().toISOString(),
-        error: error ? {
-          type: error.type,
-          code: error.code,
-          message: error.message,
-          decline_code: error.decline_code
-        } : null,
-        paymentIntent: paymentIntent ? {
-          id: paymentIntent.id,
-          status: paymentIntent.status,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          client_secret: paymentIntent.client_secret?.slice(0, 20) + '...'
-        } : null
       });
 
       if (error) {
         console.error('❌ [3DS NEW FLOW] Stripe error occurred:', error);
         throw new Error(error.message || 'Authentication failed. Please try again.');
       }
-
-      console.log('✅ [3DS NEW FLOW] 3D Secure authentication successful! Now confirming subscription...');
-      setHint('✅ Authentication successful! Creating subscription...');
       
-      // Now call the confirm endpoint
       await confirmSubscription(paymentIntentId, planId, subType, successUrl);
       
     } catch (err) {
@@ -555,43 +484,13 @@ function Payment() {
 
   const confirmSubscription = async (paymentIntentId, planId, subType, successUrl) => {
     try {
-      console.log('✅ [CONFIRM] Starting subscription confirmation:', {
-        timestamp: new Date().toISOString(),
-        paymentIntentId,
-        planId,
-        subType,
-        successUrl
-      });
-
-      setHint('✅ Creating subscription...');
-
       const body = { paymentIntentId, planId, type: subType };
       const headers = authHeader();
-      
-      console.log('📤 [CONFIRM] Making confirmation API request:', {
-        timestamp: new Date().toISOString(),
-        url: `${API_CONNECTION_HOST_URL}/stripe/subscription/confirm`,
-        method: 'POST',
-        headers: {
-          ...headers,
-          Authorization: headers.Authorization ? headers.Authorization.slice(0, 20) + '...' : 'missing'
-        },
-        body: body
-      });
 
       const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/subscription/confirm`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
-      });
-
-      console.log('📥 [CONFIRM] Received confirmation response:', {
-        timestamp: new Date().toISOString(),
-        status: res.status,
-        statusText: res.statusText,
-        headers: Object.fromEntries(res.headers.entries()),
-        ok: res.ok,
-        url: res.url
       });
 
       if (!res.ok) {
@@ -610,16 +509,8 @@ function Payment() {
         return {};
       });
 
-      console.log('📋 [CONFIRM] Confirmation response payload:', {
-        timestamp: new Date().toISOString(),
-        status: res.status,
-        payload: payload,
-        payloadStringified: JSON.stringify(payload, null, 2)
-      });
-
       // Handle successful confirmation
       if (payload?.status === 'success' && payload?.data?.subscriptionId) {
-        console.log('✅ [CONFIRM] Subscription confirmed successfully!');
         
         const qp = new URLSearchParams({
           subscription_id: payload.data.subscriptionId,
@@ -629,7 +520,6 @@ function Payment() {
         }).toString();
 
         persistAndLog({ payload, reason: 'subscription_confirmed_success' });
-        console.log('🔄 [CONFIRM] Redirecting to success page:', `${successUrl}?${qp}`);
         
         window.location.href = `${successUrl}?${qp}`;
         return;
@@ -661,25 +551,12 @@ function Payment() {
 
   const handle3DSecureAuthentication = async (clientSecret, paymentMethodId, subscriptionId, suc, subType) => {
     try {
-      console.log('🔐 [3DS AUTH] Starting 3D Secure authentication process:', {
-        timestamp: new Date().toISOString(),
-        clientSecretPreview: clientSecret?.slice(0, 20) + '...',
-        paymentMethodId,
-        subscriptionId,
-        successUrl: suc,
-        subType,
-        stripeLoaded: !!stripePromise
-      });
-
-      setHint('🔐 Completing 3D Secure authentication...');
-
       if (!stripePromise) {
         console.error('❌ [3DS AUTH] Stripe promise not available');
         throw new Error('Stripe not loaded. Please refresh the page and try again.');
       }
 
       const stripe = await stripePromise;
-      console.log('✅ [3DS AUTH] Stripe instance loaded successfully');
 
       if (!paymentMethodId) {
         console.error('❌ [3DS AUTH] Payment method ID is missing');
@@ -691,31 +568,8 @@ function Payment() {
         throw new Error('Missing client secret for 3DS confirmation. Please retry the payment.');
       }
 
-      console.log('🔐 [3DS AUTH] Calling stripe.confirmCardPayment with:', {
-        clientSecretPreview: clientSecret.slice(0, 20) + '...',
-        paymentMethodId,
-        timestamp: new Date().toISOString()
-      });
-
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: paymentMethodId
-      });
-
-      console.log('🔐 [3DS AUTH] Stripe confirmCardPayment result:', {
-        timestamp: new Date().toISOString(),
-        error: error ? {
-          type: error.type,
-          code: error.code,
-          message: error.message,
-          decline_code: error.decline_code
-        } : null,
-        paymentIntent: paymentIntent ? {
-          id: paymentIntent.id,
-          status: paymentIntent.status,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          client_secret: paymentIntent.client_secret?.slice(0, 20) + '...'
-        } : null
       });
 
       if (error) {
@@ -723,9 +577,6 @@ function Payment() {
         throw new Error(error.message || 'Authentication failed. Please try again.');
       }
 
-      console.log('✅ [3DS AUTH] 3D Secure authentication successful!');
-        setHint('✅ Authentication successful! Subscription created.');
-        
         const qp = new URLSearchParams({
           subscription_id: subscriptionId || '',
           status: 'succeeded',
@@ -733,8 +584,6 @@ function Payment() {
           authenticated: 'true'
         }).toString();
 
-      console.log('💾 [3DS AUTH] Persisting success data to sessionStorage');
-        // Persist 3DS success info for success page
         try {
           const toPersist = { 
             clientSecret, 
@@ -746,17 +595,13 @@ function Payment() {
             when: Date.now(), 
             ...toPersist 
           }, null, 2));
-        console.log('✅ [3DS AUTH] Successfully persisted 3DS success payload:', toPersist);
         } catch (e) {
         console.warn('⚠️ [3DS AUTH] Failed to persist 3DS success:', e);
         }
 
       const redirectUrl = `${suc}?${qp}`;
-      console.log('🔄 [3DS AUTH] Preparing redirect to success page:', redirectUrl);
         
-        // Small delay to show success message
         setTimeout(() => {
-        console.log('🔄 [3DS AUTH] Executing redirect to:', redirectUrl);
         window.location.href = redirectUrl;
         }, 1000);
         
@@ -802,38 +647,6 @@ function Payment() {
     const successUrl = `${origin}/payment/success`;
     const cancelUrl = `${origin}/payment/cancel`;
 
-    // Comprehensive logging for debugging
-    console.log('🚀 [PLAN PAYMENT] Starting subscription process:', {
-      timestamp: new Date().toISOString(),
-      plan: {
-        id: planId,
-        name: plan.name,
-      type: subType,
-        fullPlan: plan
-      },
-      user: {
-        isLoggedIn,
-        tokenMasked: token ? token.slice(0, 6) + '…' : '(empty)',
-        tokenLength: token.length,
-        tokenValid: token && token.length > 10
-      },
-      urls: {
-        successUrl,
-        cancelUrl,
-        origin
-      },
-      stripe: {
-        loaded: !!stripePromise,
-        publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? 'present' : 'missing'
-      },
-      api: {
-        baseUrl: API_CONNECTION_HOST_URL,
-        endpoint: `${API_CONNECTION_HOST_URL}/stripe/subscription`
-      }
-    });
-
-    console.log('🔍 [PLAN PAYMENT] Validating inputs...');
-
     if (!token) {
       console.error('❌ [PLAN PAYMENT] Validation failed: No user token');
       setError('Please log in to subscribe to a plan.');
@@ -861,30 +674,10 @@ function Payment() {
       setSubscriptionLoading(false);
       return;
     }
-    
-    console.log('✅ [PLAN PAYMENT] All validations passed');
-
-    setHint('Processing subscription...');
 
     try {
       const body = { planId: planId, type: subType, successUrl: successUrl, cancelUrl: cancelUrl };
       const headers = authHeader();
-      
-      console.log('📤 [PLAN PAYMENT] Making API request:', {
-        timestamp: new Date().toISOString(),
-        url: `${API_CONNECTION_HOST_URL}/stripe/subscription`,
-        method: 'POST',
-        headers: {
-          ...headers,
-          Authorization: headers.Authorization ? headers.Authorization.slice(0, 20) + '...' : 'missing'
-        },
-        body: body,
-        requestDetails: {
-          contentType: headers['Content-Type'],
-          authHeaderLength: headers.Authorization ? headers.Authorization.length : 0,
-          bodyStringified: JSON.stringify(body)
-        }
-      });
 
       const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/subscription`, {
         method: 'POST',
@@ -892,18 +685,6 @@ function Payment() {
         body: JSON.stringify(body),
       });
 
-      console.log('📥 [PLAN PAYMENT] Received response:', {
-        timestamp: new Date().toISOString(),
-        status: res.status,
-        statusText: res.statusText,
-        headers: Object.fromEntries(res.headers.entries()),
-        ok: res.ok,
-        url: res.url,
-        responseType: res.headers.get('content-type'),
-        responseSize: res.headers.get('content-length')
-      });
-
-      // Check if response is ok before parsing
       if (!res.ok) {
         const errorText = await res.text();
         console.error('❌ [PLAN PAYMENT] HTTP Error - API LEVEL ISSUE:', {
@@ -930,65 +711,13 @@ function Payment() {
         return {};
       });
 
-      // Comprehensive logging of server response
-      console.log('📋 [PLAN PAYMENT] Server response payload - SUCCESS:', {
-        timestamp: new Date().toISOString(),
-        status: res.status,
-        payload: payload,
-        payloadStringified: JSON.stringify(payload, null, 2),
-        payloadKeys: Object.keys(payload),
-        hasData: !!payload.data,
-        dataKeys: payload.data ? Object.keys(payload.data) : [],
-        issueType: 'SUCCESS_RESPONSE'
-      });
-
       const topStatus = payload?.status; // "success" | "requires_action" | etc.
       const data = payload?.data || {};
       const dataStatus = data?.status || data?.state;
 
-      console.log('🔍 [PLAN PAYMENT] Processing response:', {
-        topStatus,
-        dataStatus,
-        data: data,
-        hasSubscriptionId: !!data?.subscriptionId,
-        hasClientSecret: !!data?.clientSecret,
-        hasPaymentMethodId: !!data?.paymentMethodId,
-        requiresAction: data?.requiresAction,
-        hasUrl: !!data?.url,
-        clientSecretPreview: data?.clientSecret ? data.clientSecret.slice(0, 20) + '...' : 'missing',
-        paymentMethodId: data?.paymentMethodId || 'missing',
-        subscriptionId: data?.subscriptionId || 'missing'
-      });
-
-      // Detailed analysis of what the server is actually returning
-      console.log('🔍 [PLAN PAYMENT] DETAILED SERVER RESPONSE ANALYSIS:', {
-        timestamp: new Date().toISOString(),
-        fullPayload: payload,
-        dataObject: data,
-        dataKeys: Object.keys(data),
-        dataValues: Object.values(data),
-        expectedFields: {
-          subscriptionId: data?.subscriptionId ? '✅ Present' : '❌ Missing',
-          status: data?.status ? '✅ Present' : '❌ Missing',
-          clientSecret: data?.clientSecret ? '✅ Present' : '❌ Missing',
-          paymentMethodId: data?.paymentMethodId ? '✅ Present' : '❌ Missing',
-          requiresAction: data?.requiresAction ? '✅ Present' : '❌ Missing'
-        },
-        issueType: 'SERVER_RESPONSE_ANALYSIS'
-      });
-
-      // ✅ 1) Direct success - subscription created without 3D Secure
-      // { status: "success", data: { subscriptionId:"...", status:"active" } }
       if (topStatus === 'success' && data?.subscriptionId && !data?.requiresAction) {
         const finalStatus = (dataStatus || '').toLowerCase();
 
-        console.log('✅ [PLAN PAYMENT] Direct subscription success (no 3D Secure required):', {
-          subscriptionId: data.subscriptionId,
-          status: finalStatus,
-          planId: data.plan?.id || planId
-        });
-
-        // Block redirect on unhealthy statuses
         if (!isHealthySubStatus(finalStatus)) {
           persistAndLog({ payload, reason: 'unhealthy_status_blocked_redirect' });
           setError(
@@ -999,7 +728,6 @@ function Payment() {
           return;
         }
 
-        // Healthy → redirect to success, but persist first
         const qp = new URLSearchParams({
           subscription_id: data.subscriptionId,
           status: dataStatus || 'active',
@@ -1013,22 +741,7 @@ function Payment() {
         return;
       }
 
-      // 🔐 2) Requires action (3DS) - NEW FLOW
-      // { status: "success", data: { requiresAction:true, clientSecret, paymentMethodId, paymentIntentId } }
       const requiresAction = data?.requiresAction === true;
-
-      console.log('🔐 [PLAN PAYMENT] Checking 3D Secure requirements (NEW FLOW):', {
-        topStatus,
-        requiresAction,
-        hasClientSecret: !!data?.clientSecret,
-        clientSecretPreview: data?.clientSecret ? data.clientSecret.slice(0, 20) + '...' : 'missing',
-        hasPaymentMethodId: !!data?.paymentMethodId,
-        paymentMethodId: data?.paymentMethodId || 'missing',
-        hasPaymentIntentId: !!data?.paymentIntentId,
-        paymentIntentId: data?.paymentIntentId || 'missing',
-        hasSubscriptionId: !!data?.subscriptionId,
-        subscriptionId: data?.subscriptionId || 'missing'
-      });
 
       if (requiresAction && data?.clientSecret && data?.paymentMethodId && data?.paymentIntentId) {
         console.log('🔐 [PLAN PAYMENT] 3D Secure authentication required - starting NEW FLOW process');
@@ -1040,7 +753,6 @@ function Payment() {
         
         persistAndLog({ payload, reason: 'requires_action_new_flow' });
         
-        console.log('🔐 [PLAN PAYMENT] Calling 3D Secure authentication handler with NEW FLOW');
         await handle3DSecureAuthenticationNewFlow(
           data.clientSecret,
           data.paymentMethodId,
@@ -1052,7 +764,6 @@ function Payment() {
         return;
       }
 
-      // ↪️ 3) Checkout fallback
       if (data?.url) {
         persistAndLog({ payload, reason: 'checkout_fallback_redirect' });
         console.log('[FE] ↪ Redirecting to Checkout:', data.url);
@@ -1060,13 +771,11 @@ function Payment() {
         return;
       }
 
-      // 🧪 4) Session without URL → error (persist for diagnostics)
       if (data?.sessionId && !data?.url) {
         persistAndLog({ payload, reason: 'session_without_url' });
         throw new Error('Session created but missing redirect URL.');
       }
 
-      // ❓ 5) Anything else
       persistAndLog({ payload, reason: 'unexpected_shape' });
       throw new Error('Unexpected response from subscription API.');
     } catch (err) {
@@ -1093,7 +802,6 @@ function Payment() {
       });
       
       setError(err?.message || 'Something went wrong.');
-      // Clear any invalid subscription data on error
       clearInvalidSubscriptionData();
     } finally {
       console.log('🏁 [PLAN PAYMENT] Subscription process completed, cleaning up');

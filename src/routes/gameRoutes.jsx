@@ -33,7 +33,6 @@ import {
   EscapeGridGame,
   MathMindGame,
   MemoryTownBuilderGame,
-  AIAlignmentLabGame,
   AdriaticCodebreaker,
   MarketRushGame,
   BorderlineBrainsGame,
@@ -248,11 +247,6 @@ export const gameRoutes = [
     path: "/games/memory-town-builder-game",
     element: <MemoryTownBuilderGame/>,
     name: "Memory Town Builder Game"
-  },
-  {
-    path: "/games/AI-Alignment-game",
-    element: <AIAlignmentLabGame/>,
-    name: "AI Alignment Game"
   },
   {
     path: "/games/Adriatic-codebreaker-game",
