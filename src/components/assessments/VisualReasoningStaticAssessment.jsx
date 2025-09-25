@@ -180,34 +180,34 @@ export default function VisualReasoningStaticAssessment() {
     fetchAssessment();
   }, [fromQuickAssessment, dynamicAssessmentId]);
 
-  const [recentActivities, setRecentActivities] = useState([]);
-const [isLoadingActivities, setIsLoadingActivities] = useState(true);
- // Load recent activities for right card
-useEffect(() => {
-  const loadRecent = async () => {
-    try {
-      setIsLoadingActivities(true);
-      const res = await getRecentDashboardActivity();
-      const acts = res?.data?.activities || [];
+//   const [recentActivities, setRecentActivities] = useState([]);
+// const [isLoadingActivities, setIsLoadingActivities] = useState(true);
+//  // Load recent activities for right card
+// useEffect(() => {
+//   const loadRecent = async () => {
+//     try {
+//       setIsLoadingActivities(true);
+//       const res = await getRecentDashboardActivity();
+//       const acts = res?.data?.activities || [];
       
-      // Map API data to our expected format with fallbacks
-      const mappedActivities = acts.map(activity => ({
-        name: activity.name || 'Unknown Activity',
-        type: activity.type || 'puzzle',
-        status: activity.status || 'in-progress',
-        progress: activity.progress || (activity.status === 'completed' ? 100 : 30)
-      }));
+//       // Map API data to our expected format with fallbacks
+//       const mappedActivities = acts.map(activity => ({
+//         name: activity.name || 'Unknown Activity',
+//         type: activity.type || 'puzzle',
+//         status: activity.status || 'in-progress',
+//         progress: activity.progress || (activity.status === 'completed' ? 100 : 30)
+//       }));
       
-      setRecentActivities(mappedActivities);
-    } catch (e) {
-      console.error("Failed to load recent activities:", e);
-      setRecentActivities([]);
-    } finally {
-      setIsLoadingActivities(false);
-    }
-  };
-  loadRecent();
-}, []);
+//       setRecentActivities(mappedActivities);
+//     } catch (e) {
+//       console.error("Failed to load recent activities:", e);
+//       setRecentActivities([]);
+//     } finally {
+//       setIsLoadingActivities(false);
+//     }
+//   };
+//   loadRecent();
+// }, []);
 
   /** =========================
       Current Question & Progress
@@ -807,11 +807,11 @@ useEffect(() => {
 
           {/* RIGHT CARD */}
 {/* RIGHT CARD - Updated with dynamic data handling */}
-<div className="lg:w-1/4 w-full lg:bg-[#EEEEEE] rounded p-4 flex flex-col h-full">
-  <h5 className="text-lg font-semibold mb-4">Recent Activity</h5>
+{/* <div className="lg:w-1/4 w-full lg:bg-[#EEEEEE] rounded p-4 flex flex-col h-full">
+  <h5 className="text-lg font-semibold mb-4">Recent Activity</h5> */}
 
   {/* Desktop */}
-  <div className="hidden lg:block">
+  {/* <div className="hidden lg:block">
     {isLoadingActivities ? (
       <div className="flex justify-center items-center h-40">
         <BazzingoLoader message="Loading activities..." size="small" />
@@ -860,10 +860,10 @@ useEffect(() => {
         <p className="text-sm mt-1">Complete an activity to see it here.</p>
       </div>
     )}
-  </div>
+  </div> */}
 
   {/* Mobile */}
-  <div className="lg:hidden block">
+  {/* <div className="lg:hidden block">
     {isLoadingActivities ? (
       <div className="flex justify-center items-center h-40">
         <BazzingoLoader message="Loading activities..." size="small" />
@@ -875,7 +875,7 @@ useEffect(() => {
             key={idx}
             className="bg-[#F2F5F6] rounded-xl px-3 py-4 flex items-center justify-between gap-3"
           >
-            {/* Icon + Label */}
+          
             <div className="flex items-center gap-2 min-w-[100px]">
               <div className={`w-10 h-10 ${
                 activity.type === 'puzzle' ? 'bg-gray-100' : 
@@ -895,12 +895,12 @@ useEffect(() => {
               </span>
             </div>
 
-            {/* Progress */}
+         
             <div className="flex-1 mx-2 max-w-[190px]">
               <ProgressBar percentage={activity.progress} />
             </div>
 
-            {/* Status */}
+           
             <div className="flex items-center justify-end min-w-[20px]">
               {activity.status === 'completed' ? (
                 <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
@@ -925,8 +925,8 @@ useEffect(() => {
         <p className="text-sm mt-1">Complete an activity to see it here.</p>
       </div>
     )}
-  </div>
-</div>
+  </div> 
+</div> */}
           {/* END RIGHT CARD */}
           {fromQuickAssessment && (
             <MiniAssesmentCompletionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} score={scoreData.score} 
