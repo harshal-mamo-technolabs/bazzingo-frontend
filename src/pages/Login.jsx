@@ -14,7 +14,7 @@ import { API_RESPONSE_STATUS_SUCCESS, getTokenExpiry } from '../utils/constant';
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status: isAuthenticated } = useSelector((state) => state.user);
+  const { status: isAuthenticated, loading } = useSelector((state) => state.user);
 
   useEffect(() => {
     dispatch(checkAndValidateToken());
@@ -126,7 +126,7 @@ const Login = () => {
       </div>
 
       <div className="w-full">
-        <LoginForm loginHandler={loginHandler} />
+        <LoginForm loginHandler={loginHandler} loading={loading} />
         {/* Social Login Section - Commented Out */}
         {/* <div className="text-center my-4 md:my-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">Or Continue With</p>

@@ -1,7 +1,7 @@
 import { Input, Button, PasswordInput } from '../Form';
 import { useForm } from "react-hook-form";
 
-export default function LoginForm({ loginHandler }) {
+export default function LoginForm({ loginHandler, loading = false }) {
   const {
     register,
     handleSubmit,
@@ -61,9 +61,12 @@ export default function LoginForm({ loginHandler }) {
 
       <Button
         type="submit"
-        className="w-full py-[10px] md:py-3 bg-orange-500 rounded-lg text-white md:text-[16px] text-[12px] font-bold tracking-wide hover:bg-orange-600 transition"
+        disabled={loading}
+        className={`w-full py-[10px] md:py-3 bg-orange-500 rounded-lg text-white md:text-[16px] text-[12px] font-bold tracking-wide hover:bg-orange-600 transition ${
+          loading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
       >
-        SIGNIN
+        {loading ? 'SIGNING IN...' : 'SIGNIN'}
       </Button>
     </form>
   )

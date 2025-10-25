@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Globe, ChevronDown } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { countries } from '../../utils/constant';
 import { updateUserProfile } from '../../services/dashbaordService';
+import SelectMenu from '../Leaderboard/SelectMenu';
 
 const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
   // Available avatar images
@@ -27,6 +28,9 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
   const [currentAvatarIndex, setCurrentAvatarIndex] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // Prepare country options for SelectMenu
+  const countryOptions = countries.map(country => ({ key: country, label: country }));
+
   // Update form data when currentProfile changes or modal opens
   useEffect(() => {
     if (currentProfile && isOpen) {
@@ -42,9 +46,6 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
       setCurrentAvatarIndex(avatarIndex !== -1 ? avatarIndex : 0);
     }
   }, [currentProfile, isOpen]);
-
-  // Track selected country for styling
-  const selectedCountry = formData.country;
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
@@ -222,30 +223,18 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                 <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
                   Country
                 </label>
-                <div className="relative">
-                  <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <select
-                    value={formData.country}
-                    onChange={(e) => handleInputChange('country', e.target.value)}
-                    disabled={loading}
-                    className={`w-full pl-12 pr-12 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] bg-white appearance-none disabled:opacity-50 ${
-                      selectedCountry ? "text-gray-800" : "text-gray-400"
-                    }`}
-                    style={{
-                      color: selectedCountry ? '#1F2937' : '#9CA3AF'
-                    }}
-                  >
-                    <option value="" disabled hidden style={{ color: '#9CA3AF' }}>
-                      Select your country
-                    </option>
-                    {countries.map((country) => (
-                      <option key={country} value={country} style={{ color: '#1F2937' }}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+                <SelectMenu
+                  options={countryOptions}
+                  value={formData.country}
+                  onChange={(val) => handleInputChange('country', val)}
+                  placeholder="Select your country"
+                  searchable
+                  clearable
+                  align="left"
+                  width="w-full"
+                  maxHeightClass="max-h-60"
+                  buttonClassName="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] bg-white hover:border-gray-400 disabled:opacity-50"
+                />
               </div>
             </div>
 

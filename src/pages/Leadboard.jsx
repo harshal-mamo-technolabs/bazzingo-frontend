@@ -162,97 +162,88 @@ const Leadboard = () => {
       >
         <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
         <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7">
-          {/* Filters */}
-          <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4">
-            <div className="flex items-center justify-between">
-              {/* Left - Tabs + Filters */}
-              <div className="hidden md:flex items-center space-x-2">
-                {/* Global */}
-                <button
-                  onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
-                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                    scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                  }`}
-                >
-                  Global
-                </button>
+          {/* Desktop Filters */}
+          <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4 hidden md:block">
+            <div className="flex items-center space-x-2">
+              {/* Global */}
+              <button
+                onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
+                className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                  scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                }`}
+              >
+                Global
+              </button>
 
-                {/* Country (custom dropdown) */}
-                <SelectMenu
-                  options={countryOptions}
-                  value={country}
-                  onChange={(val) => {
-                    if (val) {
-                      setScope("country");
-                      setAgeGroup("");
-                    } else {
-                      if (!ageGroup) setScope("global");
-                    }
-                    setCountry(val);
-                  }}
-                  placeholder="Country"
-                  searchable
-                  clearable
-                  align="left"
-                  width="w-56"
-                  maxHeightClass="max-h-80 md:max-h-96"   // cap height so it never covers the screen
-                  buttonClassName={`${
-                    country
-                      ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
-                      : "text-gray-600 bg-white"
-                  }`}
-                />
+              {/* Country (custom dropdown) */}
+              <SelectMenu
+                options={countryOptions}
+                value={country}
+                onChange={(val) => {
+                  if (val) {
+                    setScope("country");
+                    setAgeGroup("");
+                  } else {
+                    if (!ageGroup) setScope("global");
+                  }
+                  setCountry(val);
+                }}
+                placeholder="Country"
+                searchable
+                clearable
+                align="left"
+                width="w-56"
+                maxHeightClass="max-h-80 md:max-h-96"   // cap height so it never covers the screen
+                buttonClassName={`${
+                  country
+                    ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
+                    : "text-gray-600 bg-white"
+                }`}
+              />
 
-                {/* Age group (custom dropdown) */}
-                <SelectMenu
-                  options={ageOptions}
-                  value={ageGroup}
-                  onChange={(val) => {
-                    if (val) {
-                      setScope("age");
-                      setCountry("");
-                    } else {
-                      if (!country) setScope("global");
-                    }
-                    setAgeGroup(val);
-                  }}
-                  placeholder="By Age"
-                  clearable
-                  align="left"
-                  width="w-40"
-                  maxHeightClass="max-h-72"
-                  buttonClassName={`${
-                    ageGroup
-                      ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
-                      : "text-gray-600 bg-white"
-                  }`}
-                />
+              {/* Age group (custom dropdown) */}
+              <SelectMenu
+                options={ageOptions}
+                value={ageGroup}
+                onChange={(val) => {
+                  if (val) {
+                    setScope("age");
+                    setCountry("");
+                  } else {
+                    if (!country) setScope("global");
+                  }
+                  setAgeGroup(val);
+                }}
+                placeholder="By Age"
+                clearable
+                align="left"
+                width="w-40"
+                maxHeightClass="max-h-72"
+                buttonClassName={`${
+                  ageGroup
+                    ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
+                    : "text-gray-600 bg-white"
+                }`}
+              />
 
-                {/* Assessment / Game scopes */}
-                <button
-                  onClick={() => { setScope("assessment"); setCountry(""); setAgeGroup(""); }}
-                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                    scope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                  }`}
-                >
-                  By Assessment
-                </button>
+              {/* Assessment / Game scopes */}
+              <button
+                onClick={() => { setScope("assessment"); setCountry(""); setAgeGroup(""); }}
+                className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                  scope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                }`}
+              >
+                By Assessment
+              </button>
 
-                <button
-                  onClick={() => { setScope("game"); setCountry(""); setAgeGroup(""); }}
-                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                    scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                  }`}
-                >
-                  By Game
-                </button>
-              </div>
-
-              {/* Mobile header */}
-              <div className="flex w-full justify-between items-center md:hidden">
-                <p className="text-md font-medium text-gray-800">Statistics</p>
-                <img src="/Funnel.png" alt="Funnel Icon" className="w-4 h-4" />
-              </div>
+              <button
+                onClick={() => { setScope("game"); setCountry(""); setAgeGroup(""); }}
+                className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                  scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                }`}
+              >
+                By Game
+              </button>
             </div>
           </div>
 
@@ -357,7 +348,100 @@ const Leadboard = () => {
               <TopRank currentUser={leaderboardData.currentUser} />
             </div>
 
+            {/* Mobile Filters - Right above table */}
             <div className="order-2 lg:order-1 w-full lg:w-[750px]">
+              {/* Mobile Filters */}
+              <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4 md:hidden">
+                <div className="flex flex-col space-y-2">
+                  {/* Mobile filter buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
+                        scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                      }`}
+                    >
+                      Global
+                    </button>
+
+                    <button
+                      onClick={() => { setScope("assessment"); setCountry(""); setAgeGroup(""); }}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
+                        scope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                      }`}
+                    >
+                      Assessment
+                    </button>
+
+                    <button
+                      onClick={() => { setScope("game"); setCountry(""); setAgeGroup(""); }}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
+                        scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                      }`}
+                    >
+                      Game
+                    </button>
+                  </div>
+
+                  {/* Mobile dropdowns */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1">
+                      <SelectMenu
+                        options={countryOptions}
+                        value={country}
+                        onChange={(val) => {
+                          if (val) {
+                            setScope("country");
+                            setAgeGroup("");
+                          } else {
+                            if (!ageGroup) setScope("global");
+                          }
+                          setCountry(val);
+                        }}
+                        placeholder="Country"
+                        searchable
+                        clearable
+                        align="left"
+                        width="w-full"
+                        maxHeightClass="max-h-60"
+                        buttonClassName={`${
+                          country
+                            ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
+                            : "text-gray-600 bg-white"
+                        }`}
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <SelectMenu
+                        options={ageOptions}
+                        value={ageGroup}
+                        onChange={(val) => {
+                          if (val) {
+                            setScope("age");
+                            setCountry("");
+                          } else {
+                            if (!country) setScope("global");
+                          }
+                          setAgeGroup(val);
+                        }}
+                        placeholder="By Age"
+                        clearable
+                        align="left"
+                        width="w-full"
+                        maxHeightClass="max-h-60"
+                        buttonClassName={`${
+                          ageGroup
+                            ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
+                            : "text-gray-600 bg-white"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Table */}
               {(() => {
                 const results = leaderboardData.results || [];
 

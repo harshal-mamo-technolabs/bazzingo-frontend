@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { countries } from '../../utils/constant';
 import { Globe, ChevronDown } from 'lucide-react';
 
-export default function SignupForm({ signupHandler }) {
+export default function SignupForm({ signupHandler, loading = false }) {
   const {
     register,
     handleSubmit,
@@ -130,9 +130,12 @@ export default function SignupForm({ signupHandler }) {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full py-[10px] md:py-3 bg-orange-500 rounded-lg md:text-[16px] text-[12px] text-white font-bold tracking-wide hover:bg-orange-600 transition"
+        disabled={loading}
+        className={`w-full py-[10px] md:py-3 bg-orange-500 rounded-lg md:text-[16px] text-[12px] text-white font-bold tracking-wide hover:bg-orange-600 transition ${
+          loading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
       >
-        SIGNUP
+        {loading ? 'SIGNING UP...' : 'SIGNUP'}
       </Button>
     </form>
   );

@@ -203,7 +203,7 @@ const countryName = ranksAndBadges?.country
             <div className="grid grid-cols-2 gap-2">
               {[
                 { label: "Global", value: ranksAndBadges.globalRank },
-                { label: "India", value: ranksAndBadges.countyRank },
+                { label: [countryName], value: ranksAndBadges.countyRank },
                 { label: "By Age", value: ranksAndBadges.byAgeRank },
                 { label: "By Assessment", value: ranksAndBadges.byAssessment }
               ].map((item, i) => (

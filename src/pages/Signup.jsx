@@ -13,7 +13,7 @@ import { GoogleLogin } from '@react-oauth/google';
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status: isAuthenticated } = useSelector((state) => state.user);
+  const { status: isAuthenticated, loading } = useSelector((state) => state.user);
 
   useEffect(() => {
     dispatch(checkAndValidateToken());
@@ -124,7 +124,7 @@ const Signup = () => {
         </p>
       </div>
       <div className="w-full">
-        <SignupForm signupHandler={signupHandler} />
+        <SignupForm signupHandler={signupHandler} loading={loading} />
         {/* Social Login Section - Commented Out */}
         {/* <div className="text-center my-4 md:my-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">Or Continue With</p>
