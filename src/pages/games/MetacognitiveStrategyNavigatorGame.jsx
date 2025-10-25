@@ -413,9 +413,10 @@ const MetacognitiveStrategyNavigatorGame = () => {
 
   return (
     <div>
-      <Header unreadCount={3} />
+      {gameState === 'ready' && <Header unreadCount={3} />}
       <GameFramework
         gameTitle="Metacognitive Strategy Navigator"
+        gameShortDescription="Master the art of thinking about thinking! Choose optimal strategies, monitor your performance, and develop metacognitive awareness."
         gameDescription="Master the art of thinking about thinking! Choose optimal strategies, monitor your performance, and develop metacognitive awareness."
         category="Gameacy"
         gameState={gameState}

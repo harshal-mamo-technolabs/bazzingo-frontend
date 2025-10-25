@@ -315,12 +315,13 @@ const AnagramSolverGame = () => {
 
   return (
     <div>
-      <Header unreadCount={3} />
+      {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
         gameTitle="Anagram Solver"
+        gameShortDescription="Rearrange letters to form valid words. Challenge your vocabulary and word recognition skills!"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
               <div
                 className="flex items-center justify-between mb-4 cursor-pointer"

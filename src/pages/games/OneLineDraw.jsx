@@ -305,7 +305,7 @@ const OneLineDrawGame = () => {
 
   return (
     <div className="relative overflow-hidden min-h-screen">
-      <Header unreadCount={3}/>
+      {gameState === 'ready' && <Header unreadCount={3}/>}
       {/* Animated Background */}
       <div className="fixed inset-0 opacity-3 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 animate-pulse"></div>
@@ -339,8 +339,9 @@ const OneLineDrawGame = () => {
 
       <GameFramework
         gameTitle="✏️ One Line Draw"
+        gameShortDescription="Draw continuous lines without lifting your finger. Challenge your spatial reasoning and planning skills!"
         gameDescription={
-          <div className="mx-auto px-2 sm:px-4 lg:px-0 mb-0">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-3 sm:p-4 lg:p-6">
               <div
                 className="flex items-center justify-between mb-4 cursor-pointer"

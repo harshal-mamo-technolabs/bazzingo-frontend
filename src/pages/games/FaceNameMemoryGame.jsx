@@ -329,12 +329,13 @@ const FaceNameMemoryGame = () => {
         .shake { animation: shake 0.4s ease; }
       `}</style>
 
-            <Header unreadCount={3} />
+            {gameState === 'ready' && <Header unreadCount={3} />}
 
             <GameFramework
                 gameTitle="Face Name Memory"
+        gameShortDescription="Match faces with their names. Challenge your facial recognition and memory skills!"
                 gameDescription={
-                    <div className="mx-auto px-4 lg:px-0 mb-0">
+                    <div className="mx-auto px-1 mb-2">
                         <div className="bg-[#E8E8E8] rounded-lg p-6">
                             {/* Header with toggle icon */}
                             <div

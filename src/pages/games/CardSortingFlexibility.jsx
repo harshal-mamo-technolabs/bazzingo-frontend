@@ -404,11 +404,12 @@ const CardSortingGame = () => {
 
     return (
         <div>
-            <Header unreadCount={3} />
+            {gameState === 'ready' && <Header unreadCount={3} />}
             <GameFramework
                 gameTitle="Card Sorting Flexibility"
+        gameShortDescription="Sort cards based on changing rules. Challenge your cognitive flexibility and rule adaptation!"
                 gameDescription={
-                    <div className="mx-auto px-4 lg:px-0 mb-0">
+                    <div className="mx-auto px-1 mb-2">
                         <div className="bg-[#E8E8E8] rounded-lg p-6">
                             <div
                                 className="flex items-center justify-between mb-4 cursor-pointer"

@@ -241,12 +241,13 @@ const MathMindGame = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header unreadCount={2} />
+      {gameState === 'ready' && <Header unreadCount={2} />}
 
       <GameFramework
         gameTitle="🧮✨ MathMind Architect"
+        gameShortDescription="Master mathematical concepts through interactive challenges. Challenge your numerical reasoning and problem-solving!"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 md:p-6">
               {/* Header with toggle */}
               <div

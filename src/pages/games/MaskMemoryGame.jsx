@@ -242,15 +242,16 @@ const MaskMemoryGame = () => {
     setShowFeedback(false);
     setShowHint(false);
     setTotalResponseTime(0);
-    setGameState('playing');
   }, [difficulty]);
 
   const handleStart = () => {
     initializeGame();
+    setGameState('playing');
   };
 
   const handleReset = () => {
     initializeGame();
+    setGameState('ready');
   };
 
   const handleGameComplete = (payload) => {
@@ -308,12 +309,13 @@ const MaskMemoryGame = () => {
 
   return (
     <div>
-      <Header unreadCount={3} />
+      {gameState === 'ready' && <Header unreadCount={3} />}
       
       <GameFramework
         gameTitle="🎭 Mask Memory: Carnival Quest"
+        gameShortDescription="Test your visual memory by studying masked characters and then identifying them correctly. Challenge your recall abilities!"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
               <div
                 className="flex items-center justify-between mb-4 cursor-pointer"

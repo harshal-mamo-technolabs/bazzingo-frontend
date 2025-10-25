@@ -405,7 +405,7 @@ const StopSignalGame = () => {
 
     return (
         <div className="relative overflow-hidden">
-            <Header unreadCount={3} />
+            {gameState === 'ready' && <Header unreadCount={3} />}
 
             {/* Animated Background */}
             <div className="fixed inset-0 opacity-5 pointer-events-none">
@@ -440,8 +440,9 @@ const StopSignalGame = () => {
 
             <GameFramework
                 gameTitle="⚡ Stop Signal Reaction Game"
+        gameShortDescription="Control impulses and stop at the right time. Challenge your self-control and reaction inhibition!"
                 gameDescription={
-                    <div className="mx-auto px-4 lg:px-0 mb-0">
+                    <div className="mx-auto px-1 mb-2">
                         <div className="bg-[#E8E8E8] rounded-lg p-6">
                             <div
                                 className="flex items-center justify-between mb-4 cursor-pointer"

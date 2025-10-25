@@ -503,12 +503,13 @@ const TapChallengeGame = () => {
 
   return (
     <div>
-      <Header unreadCount={3} />
+      {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
         gameTitle="Tap Challenge"
+        gameShortDescription="Tap targets as fast as possible. Challenge your reaction time and hand-eye coordination!"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
               {/* Header with toggle icon */}
               <div

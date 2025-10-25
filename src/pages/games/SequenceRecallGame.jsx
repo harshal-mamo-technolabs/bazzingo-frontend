@@ -197,11 +197,12 @@ const SequenceRecallGame = () => {
 
   return (
     <div>
-      <Header unreadCount={3} />
+      {gameState === 'ready' && <Header unreadCount={3} />}
       <GameFramework
         gameTitle="Sequence Recall"
+        gameShortDescription="Remember and reproduce number sequences. Test your working memory and attention span!"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0 mt-8">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
               {/* Toggle Header */}
               <div

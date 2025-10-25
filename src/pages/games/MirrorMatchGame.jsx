@@ -730,12 +730,12 @@ const MirrorMatchGame = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header unreadCount={3} />
+      {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
         gameTitle="🪞✨ Mirror Match"
         gameDescription={
-          <div className="mx-auto px-4 lg:px-0 mb-0">
+          <div className="mx-auto px-1 mb-2">
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 sm:p-6">
               {/* Header with toggle */}
               <div
@@ -1025,6 +1025,7 @@ const MirrorMatchGame = () => {
         score={score}
         customStats={customStats}
         gameTitle="Mirror Match"
+        gameShortDescription="Match mirrored patterns and shapes. Challenge your visual perception and symmetry recognition!"
       />
        <style jsx>{`
        

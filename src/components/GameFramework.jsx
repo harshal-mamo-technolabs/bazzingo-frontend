@@ -6,6 +6,7 @@ import { submitGameScore } from '../services/gameService';
 const GameFramework = ({
   gameTitle,
   gameDescription,
+  gameShortDescription,
   category,
   onGameComplete,
   children,
@@ -170,22 +171,21 @@ const GameFramework = ({
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: 'Roboto, sans-serif' }}>
-      {/* Header */}
-      <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
-        <div className="flex items-center mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2 text-gray-600 cursor-pointer" onClick={() => window.history.back()} />
-          <h1 className="text-gray-900 font-medium lg:font-bold" style={{ fontSize: 'clamp(18px, 2vw, 20px)' }}>
-            {gameTitle}
-          </h1>
+      {/* Header - Only show when game is ready */}
+      {/* {gameState === 'ready' && (
+        <div className="mx-auto px-1 lg:px-12 py-4 lg:py-8">
+          <div className="flex items-center mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2 text-gray-600 cursor-pointer" onClick={() => window.history.back()} />
+            <h1 className="text-gray-900 font-medium lg:font-bold" style={{ fontSize: 'clamp(18px, 2vw, 20px)' }}>
+              {gameTitle}
+            </h1>
+          </div>
         </div>
-        <p className="text-gray-600 text-base" style={{ fontWeight: '400' }}>
-          {gameDescription}
-        </p>
-      </div>
+      )} */}
 
       {/* Game Container */}
-      <div className="mx-auto px-4 lg:px-12">
-        <div className="bg-[#E8E8E8] rounded-lg p-6">
+      <div className="mx-auto px-1 lg:px-2 mt-4">
+        <div className="bg-[#E8E8E8] rounded-lg p-2">
           {/* Game Controls */}
           <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
             <div className="flex items-center gap-4">
@@ -217,17 +217,6 @@ const GameFramework = ({
 
             {/* Control Buttons */}
             <div className="flex gap-2">
-              {gameState === 'ready' && (
-                <button
-                  onClick={handleStart}
-                  className="bg-[#FF6B3E] text-white px-4 py-2 rounded-lg hover:bg-[#e55a35] transition-colors flex items-center gap-2"
-                  style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                >
-                  <Play className="h-4 w-4" />
-                  Start Game
-                </button>
-              )}
-
               <button
                 onClick={handleReset}
                 className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
@@ -276,16 +265,17 @@ const GameFramework = ({
           </div>
 
           {/* Game Area */}
-          <div className={`bg-white rounded-lg ${modifiedPadding} min-h-[400px]`}>
+          <div className={`bg-white rounded-lg p-2 min-h-[400px]`}>
             {gameState === 'ready' && (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="text-6xl mb-4">🎮</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Ready to Play?
+                  {gameTitle}
                 </h3>
                 <p className="text-gray-600 mb-6" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {location.state?.fromDailyGame 
-                    ? `Daily Challenge: ${difficulty} mode` 
+                  {
+                  gameShortDescription 
+                    ? gameShortDescription
                     : 'Select your difficulty level and click "Start Game" to begin.'}
                 </p>
                 <button
@@ -337,6 +327,10 @@ const GameFramework = ({
           </div>
         </div>
       </div>
+
+      <p className="text-gray-600 text-base mx-auto px-1 lg:px-2 mt-4" style={{ fontWeight: '400' }}>
+                  {gameDescription}
+        </p>
     </div>
   );
 };
