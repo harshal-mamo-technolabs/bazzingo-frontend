@@ -73,14 +73,14 @@ function Hint({ text }) {
 
 function CurrencyAmount({ amount, suffix }) {
   return (
-    <div className="flex items-end gap-1">
+    <div className="flex items-end gap-1 flex-wrap">
       <span className="text-gray-900" style={{ fontSize: '28px', fontWeight: 700 }}>
         €
       </span>
       <span className="text-gray-900" style={{ fontSize: '44px', fontWeight: 800, lineHeight: 1 }}>
         {amount}
       </span>
-      <span className="text-gray-500" style={{ fontSize: '14px', fontWeight: 500 }}>
+      <span className="text-gray-500 flex-shrink-0" style={{ fontSize: '14px', fontWeight: 500 }}>
         {suffix}
       </span>
     </div>
@@ -171,7 +171,7 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
   const intervalCount = priceData?.intervalCount || 1;
 
   return (
-    <div className={`relative p-[1.5px] rounded-2xl bg-gradient-to-br from-[#FF6B3E] via-[#ffb199] to-[#ffd3c8] transition-transform duration-200 hover:-translate-y-1 ${hasPlan ? 'ring-2 ring-green-500 ring-opacity-50' : ''}`}>
+    <div className={`relative p-[1.5px] rounded-2xl bg-gradient-to-br from-[#FF6B3E] via-[#ffb199] to-[#ffd3c8] transition-transform duration-200 hover:-translate-y-1 max-w-[320px] mx-auto ${hasPlan ? 'ring-2 ring-green-500 ring-opacity-50' : ''}`}>
       <div className="relative rounded-2xl overflow-hidden h-full bg-white">
         {plan.name.includes('Gold') && (
           <div className="absolute -right-10 top-4 rotate-45 bg-[#FF6B3E] text-white text-xs px-10 py-1 font-semibold">
@@ -208,15 +208,13 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
               <CurrencyAmount amount={perMonth.toFixed(2)} suffix={priceSuffix} />
 
               {/* Secondary line explaining the actual billing period & total */}
-              {billing === 'monthly' ? (
-                <div className="text-gray-500 mt-1" style={{ fontSize: '12px' }}>
-                  Billed €{periodTotal.toFixed(2)} every {intervalCount} month{intervalCount > 1 ? 's' : ''}
-                </div>
-              ) : (
-                <div className="text-gray-500 mt-1" style={{ fontSize: '12px' }}>
-                  Billed €{periodTotal.toFixed(2)}/yr
-                </div>
-              )}
+              <div className="text-gray-500 mt-1 min-h-[16px]" style={{ fontSize: '12px' }}>
+                {billing === 'monthly' ? (
+                  <>Billed €{periodTotal.toFixed(2)} every {intervalCount} month{intervalCount > 1 ? 's' : ''}</>
+                ) : (
+                  <>Billed €{periodTotal.toFixed(2)}/yr</>
+                )}
+              </div>
             </>
           ) : (
             <div className="text-gray-500 mt-4" style={{ fontSize: '14px' }}>
@@ -862,7 +860,7 @@ function Payment() {
 
             <Toggle value={billing} onChange={setBilling} />
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className={`grid gap-6 ${plans.length === 1 ? 'justify-items-center md:grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
               {plans.map(plan => (
                 <PlanCard 
                   key={plan._id} 

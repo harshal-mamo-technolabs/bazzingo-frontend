@@ -95,7 +95,11 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
 
   const handleClose = () => {
     onClose()
-    navigate('/dashboard')
+    if (allGamesPlayed) {
+      navigate('/games')
+    } else {
+      navigate('/dashboard')
+    }
   }
 
   return (

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Info } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import { getGameStatistics } from "../../services/dashbaordService";
+import { getGameStatistics, getDailyGames } from "../../services/dashbaordService";
 import BazzingoLoader from "../Loading/BazzingoLoader";
 
 
@@ -164,7 +164,19 @@ const TopRank = () => {
     {/* Button */}
     <button 
       className="mt-4 w-full py-2 rounded-lg bg-[#ff5c33] hover:bg-[#ff3d0d] text-white text-xs font-medium shadow-md"
-      onClick={() => navigate('/games')}
+      onClick={async () => {
+        try {
+          const res = await getDailyGames();
+          const suggestion = res?.data?.suggestion;
+          const hasUnplayed = Array.isArray(suggestion?.games)
+            ? suggestion.games.some(g => !g.isPlayed)
+            : false;
+          navigate(hasUnplayed ? '/dashboard' : '/games');
+        } catch {
+          // On failure, default to dashboard to show daily card
+          navigate('/dashboard');
+        }
+      }}
     >
       <div className="flex justify-center items-center gap-2">
         Pushup your rank

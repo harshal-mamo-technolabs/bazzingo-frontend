@@ -9,6 +9,8 @@ import { countries } from "../utils/constant";
 import SelectMenu from "../components/Leaderboard/SelectMenu.jsx";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading, selectSubscriptionData } from '../app/subscriptionSlice';
+import InfoTooltip from "../components/InfoToolTip.jsx";
+import handleTooltipClick from "../utils/toolTipHandler.js";
 
 const ProgressBar = ({ percentage }) => (
   <div className="relative w-full lg:max-w-[150px] h-7 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
@@ -39,18 +41,20 @@ const Leadboard = () => {
   const unreadCount = 3;
 
   const [scope, setScope] = useState("global");
+  const [typeScope, setTypeScope] = useState("game"); // 'game' | 'assessment'
   const [country, setCountry] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [leaderboardData, setLeaderboardData] = useState({});
   const [loading, setLoading] = useState(false);
   const [dailyStreakData, setDailyStreakData] = useState(null);
-  const [streakLoading, setStreakLoading] = useState(false);
+  const [streakLoading, setStreakLoading] = useState(false); // eslint-disable-line no-unused-vars
+  const [showFilterTooltip, setShowFilterTooltip] = useState(false);
   
   // Redux subscription state
   const dispatch = useDispatch();
   const hasActiveSubscription = useSelector(selectHasActiveSubscription);
   const subscriptionInitialized = useSelector(selectSubscriptionInitialized);
-  const subscriptionLoading = useSelector(selectSubscriptionLoading);
+  const subscriptionLoading = useSelector(selectSubscriptionLoading); // eslint-disable-line no-unused-vars
   const subscriptionData = useSelector(selectSubscriptionData);
   const navigate = useNavigate();
 
@@ -67,7 +71,8 @@ const Leadboard = () => {
     async function fetchData() {
       try {
         setLoading(true);
-        const res = await getLeaderboard({ scope, country, ageGroup, page: 1, limit: 25 });
+        // Use right-side selection for dataset; left filters apply via country/ageGroup
+        const res = await getLeaderboard({ scope: typeScope, country, ageGroup, page: 1, limit: 25 });
         setLeaderboardData(res?.data || {});
       } catch (err) {
         console.error("Failed to load leaderboard:", err);
@@ -76,7 +81,7 @@ const Leadboard = () => {
       }
     }
     fetchData();
-  }, [scope, country, ageGroup]);
+  }, [typeScope, country, ageGroup]);
 
   useEffect(() => {
     const loadDailyStreak = async () => {
@@ -164,86 +169,108 @@ const Leadboard = () => {
         <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7">
           {/* Desktop Filters */}
           <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4 hidden md:block">
+            {/* Filter Header with Info Tooltip */}
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-700">Leaderboard Filters</h3>
+              <InfoTooltip
+                text={
+                  <>
+                    Top row: Choose audience (Global, Country, or Age group).<br/>
+                    Bottom row: Choose data type (Assessment or Game scores).<br/>
+                    Filters combine to show rankings for your selected audience and data type.
+                  </>
+                }
+                visible={showFilterTooltip}
+                onTrigger={() => handleTooltipClick(setShowFilterTooltip)}
+              />
+            </div>
+            
             <div className="flex items-center space-x-2">
-              {/* Global */}
-              <button
-                onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
-                className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                  scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                }`}
-              >
-                Global
-              </button>
+              {/* Left group: Global, Country, By Age */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
+                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                    scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                  }`}
+                >
+                  Global
+                </button>
 
-              {/* Country (custom dropdown) */}
-              <SelectMenu
-                options={countryOptions}
-                value={country}
-                onChange={(val) => {
-                  if (val) {
-                    setScope("country");
-                    setAgeGroup("");
-                  } else {
-                    if (!ageGroup) setScope("global");
-                  }
-                  setCountry(val);
-                }}
-                placeholder="Country"
-                searchable
-                clearable
-                align="left"
-                width="w-56"
-                maxHeightClass="max-h-80 md:max-h-96"   // cap height so it never covers the screen
-                buttonClassName={`${
-                  country
-                    ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
-                    : "text-gray-600 bg-white"
-                }`}
-              />
+                <SelectMenu
+                  options={countryOptions}
+                  value={country}
+                  onChange={(val) => {
+                    if (val) {
+                      setScope("country");
+                      setAgeGroup("");
+                    } else {
+                      if (!ageGroup) setScope("global");
+                    }
+                    setCountry(val);
+                  }}
+                  placeholder="Country"
+                  searchable
+                  clearable
+                  align="left"
+                  width="w-56"
+                  maxHeightClass="max-h-80 md:max-h-96"
+                  buttonClassName={`${
+                    country
+                      ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
+                      : "text-gray-600 bg-white"
+                  }`}
+                />
 
-              {/* Age group (custom dropdown) */}
-              <SelectMenu
-                options={ageOptions}
-                value={ageGroup}
-                onChange={(val) => {
-                  if (val) {
-                    setScope("age");
-                    setCountry("");
-                  } else {
-                    if (!country) setScope("global");
-                  }
-                  setAgeGroup(val);
-                }}
-                placeholder="By Age"
-                clearable
-                align="left"
-                width="w-40"
-                maxHeightClass="max-h-72"
-                buttonClassName={`${
-                  ageGroup
-                    ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
-                    : "text-gray-600 bg-white"
-                }`}
-              />
+                <SelectMenu
+                  options={ageOptions}
+                  value={ageGroup}
+                  onChange={(val) => {
+                    if (val) {
+                      setScope("age");
+                      setCountry("");
+                    } else {
+                      if (!country) setScope("global");
+                    }
+                    setAgeGroup(val);
+                  }}
+                  placeholder="By Age"
+                  clearable
+                  align="left"
+                  width="w-40"
+                  maxHeightClass="max-h-72"
+                  buttonClassName={`${
+                    ageGroup
+                      ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
+                      : "text-gray-600 bg-white"
+                  }`}
+                />
+              </div>
 
-              {/* Assessment / Game scopes */}
-              <button
-                onClick={() => { setScope("assessment"); setCountry(""); setAgeGroup(""); }}
-                className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                  scope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                }`}
-              >
-                By Assessment
-              </button>
+              {/* Vertical divider with equal spacing on both sides */}
+              <div className="flex items-center justify-center px-2">
+  <div className="w-px h-6 bg-gray-300" />
+</div>
+              {/* Right group: By Assessment, By Game */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => { setTypeScope("assessment"); }}
+                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                    typeScope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                  }`}
+                >
+                  By Assessment
+                </button>
 
-              <button
-                onClick={() => { setScope("game"); setCountry(""); setAgeGroup(""); }}
-                className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
-                  scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                }`}
-              >
-                By Game
-              </button>
+                <button
+                  onClick={() => { setTypeScope("game"); }}
+                  className={`px-4 py-1 rounded-lg text-[13px] font-medium shadow-sm ${
+                    typeScope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                  }`}
+                >
+                  By Game
+                </button>
+              </div>
             </div>
           </div>
 
@@ -284,7 +311,7 @@ const Leadboard = () => {
                     <LeaderboardTable 
                       data={filteredResults} 
                       currentUser={leaderboardData.currentUser}
-                      scope={scope}
+                      scope={typeScope}
                       loading={loading}
                       selectedCountry={country}
                       selectedAgeGroup={ageGroup}
@@ -352,92 +379,128 @@ const Leadboard = () => {
             <div className="order-2 lg:order-1 w-full lg:w-[750px]">
               {/* Mobile Filters */}
               <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4 md:hidden">
-                <div className="flex flex-col space-y-2">
-                  {/* Mobile filter buttons */}
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
-                        scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                      }`}
-                    >
-                      Global
-                    </button>
+                <style>
+                  {`
+                    .mobile-filter-grid > * {
+                      width: 100% !important;
+                      min-width: 0 !important;
+                      max-width: 100% !important;
+                    }
+                    .mobile-filter-grid .relative > div {
+                      width: 100% !important;
+                      display: block !important;
+                    }
+                    .mobile-filter-grid .relative > div > button {
+                      width: 100% !important;
+                      min-width: 0 !important;
+                      max-width: 100% !important;
+                    }
+                  `}
+                </style>
+                
+                {/* Filter Header with Info Tooltip */}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">Leaderboard Filters</h3>
+                  <InfoTooltip
+                    text={
+                      <>
+                        Top row: Choose audience (Global, Country, or Age group).<br/>
+                        Bottom row: Choose data type (Assessment or Game scores).<br/>
+                        Filters combine to show rankings for your selected audience and data type.
+                      </>
+                    }
+                    visible={showFilterTooltip}
+                    onTrigger={() => handleTooltipClick(setShowFilterTooltip)}
+                  />
+                </div>
 
-                    <button
-                      onClick={() => { setScope("assessment"); setCountry(""); setAgeGroup(""); }}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
-                        scope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
-                      }`}
-                    >
-                      Assessment
-                    </button>
+                {/* Top row: Global, Country, By Age - equal width */}
+                <div className="grid grid-cols-3 gap-1 w-full mobile-filter-grid">
+                  <button
+                    onClick={() => { setScope("global"); setCountry(""); setAgeGroup(""); }}
+                    className={`w-full h-9 px-2 py-1 rounded-lg text-xs font-medium shadow-sm truncate ${
+                      scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                    }`}
+                  >
+                    Global
+                  </button>
 
-                    <button
-                      onClick={() => { setScope("game"); setCountry(""); setAgeGroup(""); }}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
-                        scope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                  <div className="relative">
+                    <SelectMenu
+                      options={countryOptions}
+                      value={country}
+                      onChange={(val) => {
+                        if (val) {
+                          setScope("country");
+                          setAgeGroup("");
+                        } else {
+                          if (!ageGroup) setScope("global");
+                        }
+                        setCountry(val);
+                      }}
+                      placeholder="Country"
+                      searchable
+                      clearable
+                      align="left"
+                      width="w-full"
+                      maxHeightClass="max-h-60"
+                      buttonClassName={`${
+                        country
+                          ? "!w-full !min-w-full h-9 truncate border border-orange-500 text-orange-600 bg-[#F0E2DD] px-2 text-xs !max-w-none"
+                          : "!w-full !min-w-full h-9 truncate text-gray-600 bg-white px-2 text-xs !max-w-none"
                       }`}
-                    >
-                      Game
-                    </button>
+                    />
                   </div>
 
-                  {/* Mobile dropdowns */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1">
-                      <SelectMenu
-                        options={countryOptions}
-                        value={country}
-                        onChange={(val) => {
-                          if (val) {
-                            setScope("country");
-                            setAgeGroup("");
-                          } else {
-                            if (!ageGroup) setScope("global");
-                          }
-                          setCountry(val);
-                        }}
-                        placeholder="Country"
-                        searchable
-                        clearable
-                        align="left"
-                        width="w-full"
-                        maxHeightClass="max-h-60"
-                        buttonClassName={`${
-                          country
-                            ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
-                            : "text-gray-600 bg-white"
-                        }`}
-                      />
-                    </div>
-
-                    <div className="flex-1">
-                      <SelectMenu
-                        options={ageOptions}
-                        value={ageGroup}
-                        onChange={(val) => {
-                          if (val) {
-                            setScope("age");
-                            setCountry("");
-                          } else {
-                            if (!country) setScope("global");
-                          }
-                          setAgeGroup(val);
-                        }}
-                        placeholder="By Age"
-                        clearable
-                        align="left"
-                        width="w-full"
-                        maxHeightClass="max-h-60"
-                        buttonClassName={`${
-                          ageGroup
-                            ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]"
-                            : "text-gray-600 bg-white"
-                        }`}
-                      />
-                    </div>
+                  <div className="relative">
+                    <SelectMenu
+                      options={ageOptions}
+                      value={ageGroup}
+                      onChange={(val) => {
+                        if (val) {
+                          setScope("age");
+                          setCountry("");
+                        } else {
+                          if (!country) setScope("global");
+                        }
+                        setAgeGroup(val);
+                      }}
+                      placeholder="Age"
+                      clearable
+                      align="left"
+                      width="w-full"
+                      maxHeightClass="max-h-60"
+                      buttonClassName={`${
+                        ageGroup
+                          ? "!w-full !min-w-full h-9 truncate border border-orange-500 text-orange-600 bg-[#F0E2DD] px-2 text-xs !max-w-none"
+                          : "!w-full !min-w-full h-9 truncate text-gray-600 bg-white px-2 text-xs !max-w-none"
+                      }`}
+                    />
                   </div>
+                </div>
+
+                {/* Divider */}
+                <div className="h-px w-full bg-gray-300 my-3" />
+
+                {/* Bottom row: By Assessment, By Game - fill line */}
+                <div className="grid grid-cols-2 gap-2 w-full">
+                  <button
+                    onClick={() => { setTypeScope("assessment"); }}
+                    className={`w-full px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
+                      typeScope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                    }`}
+                  >
+                    Assessment
+                  </button>
+
+                  <button
+                    onClick={() => { setTypeScope("game"); }}
+                    className={`w-full px-3 py-1 rounded-lg text-xs font-medium shadow-sm ${
+                      typeScope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
+                    }`}
+                  >
+                    Game
+                  </button>
                 </div>
               </div>
 
@@ -474,7 +537,7 @@ const Leadboard = () => {
                   <LeaderboardTable 
                     data={filteredResults} 
                     currentUser={leaderboardData.currentUser}
-                    scope={scope}
+                    scope={typeScope}
                     loading={loading}
                     selectedCountry={country}
                     selectedAgeGroup={ageGroup}

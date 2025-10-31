@@ -109,18 +109,45 @@ const countryName = ranksAndBadges?.country
       {/* Web layout */}
       <div className="hidden lg:block">
         <div className="bg-[#EEEEEE] p-3 rounded-lg space-y-3">
-          {/* Leaderboard Rank */}
+          {/* Leaderboard Rank Game */}
           <div>
             <div className="flex items-center gap-2">
-              <img src="/solar_ranking-bold.png" className="mb-3 w-5 h-5" alt="Leaderboard Rank"/>
-              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Your Leaderboard Rank</h3>
+              <img src="/mingcute_game-2-fill.png" className="mb-3 w-5 h-5" alt="Game Leaderboard Rank"/>
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Rank Game</h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "Global", value: ranksAndBadges.globalRank },
-                { label: [countryName], value: ranksAndBadges.countyRank },
-                { label: "By Age", value: ranksAndBadges.byAgeRank },
-                { label: "By Assessment", value: ranksAndBadges.byAssessment }
+                { label: "Global", value: ranksAndBadges.gameGlobalRank },
+                { label: countryName, value: ranksAndBadges.gameCountryRank },
+                { label: "By Age", value: ranksAndBadges.gameAgeGroupRank }
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-2 rounded-md flex flex-col items-left justify-center py-1"
+                >
+                  <img
+                    src={leaderboardImages[item.label] || "/leaderboard/default.png"}
+                    alt={item.label}
+                    className="w-5 h-5 mb-0 object-contain"
+                  />
+                  <div className="text-[24px] font-bold">{item.value}</div>
+                  <div className="text-[11px] text-gray-500 text-left">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Leaderboard Rank Assessment */}
+          <div>
+            <div className="flex items-center gap-2">
+              <img src="/game-icons_brain.png" className="mb-3 w-5 h-5" alt="Assessment Leaderboard Rank"/>
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Rank Assessment</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Global", value: ranksAndBadges.assessmentGlobalRank },
+                { label: countryName, value: ranksAndBadges.assessmentCountryRank },
+                { label: "By Age", value: ranksAndBadges.assessmentAgeGroupRank }
               ].map((item, i) => (
                 <div
                   key={i}
@@ -188,24 +215,59 @@ const countryName = ranksAndBadges?.country
       {/* Mobile layout */}
       <div className="block lg:hidden">
         <div className="bg-[#EEEEEE] p-3 rounded-lg space-y-3">
-          {/* leaderboard rank */}
+          {/* Leaderboard Rank Game */}
           <div>
             <div className="flex items-center gap-2">
               <img
-                src="/solar_ranking-bold.png"
+                src="/mingcute_game-2-fill.png"
                 className="mb-3 w-5 h-5"
-                alt="Leaderboard Rank"
+                alt="Game Leaderboard Rank"
               />
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2">
-                Your Leaderboard Rank
+                Leaderboard Rank Game
               </h3>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "Global", value: ranksAndBadges.globalRank },
-                { label: [countryName], value: ranksAndBadges.countyRank },
-                { label: "By Age", value: ranksAndBadges.byAgeRank },
-                { label: "By Assessment", value: ranksAndBadges.byAssessment }
+                { label: "Global", value: ranksAndBadges.gameGlobalRank },
+                { label: countryName, value: ranksAndBadges.gameCountryRank },
+                { label: "By Age", value: ranksAndBadges.gameAgeGroupRank }
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-2 rounded-md flex flex-col items-left justify-center py-1"
+                >
+                  <img
+                    src={leaderboardImages[item.label] || "/leaderboard/default.png"}
+                    alt={item.label}
+                    className="w-5 h-5 mb-0 object-contain"
+                  />
+                  <div className="text-[24px] font-bold">{item.value}</div>
+                  <div className="text-[11px] text-gray-500 text-left">
+                    {item.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Leaderboard Rank Assessment */}
+          <div>
+            <div className="flex items-center gap-2">
+              <img
+                src="/game-icons_brain.png"
+                className="mb-3 w-5 h-5"
+                alt="Assessment Leaderboard Rank"
+              />
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">
+                Leaderboard Rank Assessment
+              </h3>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Global", value: ranksAndBadges.assessmentGlobalRank },
+                { label: countryName, value: ranksAndBadges.assessmentCountryRank },
+                { label: "By Age", value: ranksAndBadges.assessmentAgeGroupRank }
               ].map((item, i) => (
                 <div
                   key={i}

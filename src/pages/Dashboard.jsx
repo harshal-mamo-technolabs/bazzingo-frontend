@@ -138,13 +138,16 @@ const Dashboard = () => {
     [navigate]
   );
 
-  // 👇 open modal automatically once dailyGames is populated
-useEffect(() => {
-  if (dailyGames.length > 0 && !hasOpenedModal) {
-    setIsModalOpen(true);
-    setHasOpenedModal(true); // prevent opening again
-  }
-}, [dailyGames, hasOpenedModal]);
+  // Open modal automatically only if there is any game left to play
+  useEffect(() => {
+    if (dailyGames.length > 0 && !hasOpenedModal) {
+      const allPlayed = dailyGames.every(g => g.isPlayed);
+      if (!allPlayed) {
+        setIsModalOpen(true);
+      }
+      setHasOpenedModal(true); // prevent opening again
+    }
+  }, [dailyGames, hasOpenedModal]);
 
   const openAssessment = useCallback(async () => {
     try {
@@ -161,7 +164,9 @@ useEffect(() => {
       //   toast.success("You've completed today's quick assessment!");
       //   return;
       // }
-    } catch {}
+    } catch (err) {
+      console.error('Failed to check recent quick assessment activity:', err);
+    }
     
     // Fetch the latest assessment data for the modal
     try {
@@ -181,6 +186,7 @@ useEffect(() => {
         });
       }
     } catch (error) {
+      console.error('Failed to fetch quick assessment for modal:', error);
       // Fallback if fetch fails
       setSelectedAssessment({
         title: quickAssessmentTitle,
@@ -199,7 +205,9 @@ useEffect(() => {
         toast.success(`You've already completed today's ${assessmentData.title || 'assessment'}. Great job!`);
         return;
       }
-    } catch {}
+    } catch (err) {
+      console.error('Failed to verify assessment completion status:', err);
+    }
     
     // Open modal with assessment data
     setSelectedAssessment({
@@ -251,7 +259,7 @@ useEffect(() => {
                 } else {
                   setIsModalOpen(true);
                 }
-              } catch (e) {
+              } catch {
                 setIsModalOpen(true);
               }
             }} games={dailyGames} />
