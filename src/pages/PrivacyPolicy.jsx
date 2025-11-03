@@ -1,8 +1,10 @@
 import React from 'react';
 import { ArrowLeft, Bell, Menu } from 'lucide-react';
 import Header from '../components/Header';
+import { useNavigate } from 'react-router-dom';
 
 function PrivacyPolicy() {
+    const navigate = useNavigate();
     const unreadCount = 3;
 
     return (
@@ -15,7 +17,7 @@ function PrivacyPolicy() {
                 {/* Page Header */}
                 <div className="mx-auto px-4 lg:px-12 py-4">
                     <div className="flex items-center" style={{ marginBottom: '8px' }}>
-                        <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600" />
+                        <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600 cursor-pointer" onClick={() => navigate(-1)} />
                         <h2 className="text-gray-900 text-lg lg:text-xl" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>
                             <span className="lg:hidden" style={{ fontSize: '18px', fontWeight: '500' }}>Privacy Policy</span>
                             <span className="hidden lg:inline" style={{ fontSize: '20px', fontWeight: 'bold' }}>Privacy Policy</span>

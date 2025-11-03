@@ -1,9 +1,11 @@
 import React from 'react';
 import { ArrowLeft, Bell, Menu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
 function TermsOfUse() {
     const unreadCount = 3;
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
@@ -15,7 +17,7 @@ function TermsOfUse() {
                 {/* Page Header */}
                 <div className="mx-auto px-4 lg:px-12 pt-4">
                     <div className="flex items-center" style={{ marginBottom: '8px' }}>
-                        <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600" />
+                        <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600 cursor-pointer" onClick={() => navigate(-1)} />
                         <h2 className="text-gray-900 text-lg lg:text-xl" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>
                             <span className="lg:hidden" style={{ fontSize: '18px', fontWeight: '500' }}>Terms of Use</span>
                             <span className="hidden lg:inline" style={{ fontSize: '20px', fontWeight: 'bold' }}>Terms of Use</span>
