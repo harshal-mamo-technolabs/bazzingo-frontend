@@ -35,6 +35,9 @@ const Assessments = () => {
                 // Expecting: { data: { items: [...] } }
                 const items = response?.data?.items || [];
                 setAssessments(items);
+                
+                // Check for auto-start assessment after assessments are loaded
+                await checkAutoStartAssessment(items);
             } catch (error) {
                 console.error("Error fetching assessments:", error);
                 // Keep the empty array if API fails
@@ -197,6 +200,96 @@ const Assessments = () => {
     const handleCloseConfirmationModal = () => {
         setIsConfirmationModalOpen(false);
         setSelectedAssessmentForConfirmation(null);
+    };
+
+    // Check for auto-start assessment from payment success
+    const checkAutoStartAssessment = async (assessmentsList) => {
+        try {
+            const autoStartAssessmentId = localStorage.getItem('autoStartAssessmentId');
+            if (autoStartAssessmentId) {
+                console.log('🎯 [AUTO-START] Found assessment ID to auto-start:', autoStartAssessmentId);
+                
+                // Find the assessment in the list
+                let targetAssessment = assessmentsList.find(
+                    assessment => assessment._id === autoStartAssessmentId || assessment.id === autoStartAssessmentId
+                );
+                
+                // If not found in list, fetch assessment details from API
+                if (!targetAssessment) {
+                    console.log('🔍 [AUTO-START] Assessment not in list, fetching from API...');
+                    targetAssessment = await fetchAssessmentById(autoStartAssessmentId);
+                }
+                
+                if (targetAssessment) {
+                    console.log('✅ [AUTO-START] Found target assessment:', targetAssessment);
+                    
+                    // Clear the stored ID so it doesn't auto-start again
+                    localStorage.removeItem('autoStartAssessmentId');
+                    
+                    // Always assume purchased since user just completed payment
+                    // Auto-open the confirmation modal
+                    setTimeout(() => {
+                        setSelectedAssessmentForConfirmation(targetAssessment);
+                        setIsConfirmationModalOpen(true);
+                    }, 1000); // Small delay to ensure UI is ready
+                } else {
+                    console.log('❌ [AUTO-START] Assessment not found anywhere');
+                    // Clear the stored ID if assessment not found
+                    localStorage.removeItem('autoStartAssessmentId');
+                }
+            }
+        } catch (error) {
+            console.error('❌ [AUTO-START] Error checking auto-start assessment:', error);
+            // Clear the stored ID on error
+            localStorage.removeItem('autoStartAssessmentId');
+        }
+    };
+
+    // Fetch assessment by ID from API
+    const fetchAssessmentById = async (assessmentId) => {
+        try {
+            const userData = localStorage.getItem("user");
+            if (!userData) return null;
+
+            const parsedUserData = JSON.parse(userData);
+            const token = parsedUserData?.accessToken;
+            if (!token) return null;
+
+            const response = await fetch(`${API_CONNECTION_HOST_URL}/assessment/${assessmentId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Failed to fetch assessment:', response.status);
+                return null;
+            }
+
+            const data = await response.json();
+            console.log('📋 [AUTO-START] Fetched assessment from API:', data);
+
+            // Return assessment in expected format
+            if (data.status === 'success' && data.data) {
+                return {
+                    _id: data.data._id || assessmentId,
+                    id: data.data.id || assessmentId,
+                    title: data.data.title || 'Assessment',
+                    description: data.data.description || 'No description available',
+                    questions: data.data.questions || 0,
+                    isAssessmentPurchased: true, // Assume purchased since user just paid
+                    isAvailCertification: data.data.isAvailCertification || false,
+                    isAvailReport: data.data.isAvailReport || false
+                };
+            }
+
+            return null;
+        } catch (error) {
+            console.error('❌ [AUTO-START] Error fetching assessment by ID:', error);
+            return null;
+        }
     };
 
     // Show loading state if needed

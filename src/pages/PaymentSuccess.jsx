@@ -57,6 +57,48 @@ export default function PaymentSuccess() {
     setTimeout(() => setToast(null), 5000); // Auto-hide after 5 seconds
   };
 
+  // Get assessment ID from order or session
+  const getAssessmentId = async (orderId, sessionId) => {
+    try {
+      const token = getUserToken();
+      let apiUrl = '';
+      
+      if (orderId) {
+        apiUrl = `${API_CONNECTION_HOST_URL}/stripe/assessment-id?orderId=${orderId}`;
+      } else if (sessionId) {
+        apiUrl = `${API_CONNECTION_HOST_URL}/stripe/assessment-id?sessionId=${sessionId}`;
+      } else {
+        return null;
+      }
+
+      console.log('🔍 [PAYMENT SUCCESS] Getting assessment ID from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Assessment ID API failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('📋 [PAYMENT SUCCESS] Assessment ID response:', data);
+
+      if (data.status === 'success' && data.data?.found && data.data?.assessmentId) {
+        return data.data.assessmentId;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('❌ [PAYMENT SUCCESS] Assessment ID error:', error);
+      return null;
+    }
+  };
+
   // Handle session check API call
   const checkSession = async (sessionId) => {
     try {
@@ -82,8 +124,18 @@ export default function PaymentSuccess() {
         const { presentInOrder, presentInSubscription } = data.data;
         
         if (presentInOrder) {
-          showToast('Congratulations! Your assessment is unlocked successfully', 'success');
-          setTimeout(() => navigate('/assessments'), 2000);
+          // Try to get assessment ID for auto-start
+          const assessmentId = await getAssessmentId(null, sessionId);
+          if (assessmentId) {
+            // Store assessment ID and navigate to assessments with auto-start
+            localStorage.setItem('autoStartAssessmentId', assessmentId);
+            showToast('Congratulations! Your assessment is unlocked successfully', 'success');
+            setTimeout(() => navigate('/assessments'), 2000);
+          } else {
+            // Fallback to normal assessment page
+            showToast('Congratulations! Your assessment is unlocked successfully', 'success');
+            setTimeout(() => navigate('/assessments'), 2000);
+          }
         } else if (presentInSubscription) {
           showToast('Congratulations! Your new plan purchase successful', 'success');
           setTimeout(() => navigate('/dashboard'), 2000);
@@ -104,7 +156,7 @@ export default function PaymentSuccess() {
   };
 
   useEffect(() => {
-    const handlePaymentSuccess = () => {
+    const handlePaymentSuccess = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const orderId = urlParams.get('order_id');
       const sessionId = urlParams.get('session_id');
@@ -117,6 +169,12 @@ export default function PaymentSuccess() {
 
       // Case 1: order_id parameter - Assessment purchase
       if (orderId) {
+        // Try to get assessment ID for auto-start
+        const assessmentId = await getAssessmentId(orderId, null);
+        if (assessmentId) {
+          // Store assessment ID and navigate to assessments with auto-start
+          localStorage.setItem('autoStartAssessmentId', assessmentId);
+        }
         showToast('Congratulations! Your assessment is unlocked successfully', 'success');
         setTimeout(() => navigate('/assessments'), 2000);
         return;
