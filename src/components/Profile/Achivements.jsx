@@ -113,7 +113,7 @@ const countryName = ranksAndBadges?.country
           <div>
             <div className="flex items-center gap-2">
               <img src="/mingcute_game-2-fill.png" className="mb-3 w-5 h-5" alt="Game Leaderboard Rank"/>
-              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Rank Game</h3>
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Game Rank</h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -141,7 +141,7 @@ const countryName = ranksAndBadges?.country
           <div>
             <div className="flex items-center gap-2">
               <img src="/game-icons_brain.png" className="mb-3 w-5 h-5" alt="Assessment Leaderboard Rank"/>
-              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Rank Assessment</h3>
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Assessment Rank</h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -224,7 +224,7 @@ const countryName = ranksAndBadges?.country
                 alt="Game Leaderboard Rank"
               />
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2">
-                Leaderboard Rank Game
+                Leaderboard Game Rank
               </h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -260,7 +260,7 @@ const countryName = ranksAndBadges?.country
                 alt="Assessment Leaderboard Rank"
               />
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2">
-                Leaderboard Rank Assessment
+                Leaderboard Assessment Rank
               </h3>
             </div>
             <div className="grid grid-cols-3 gap-2">

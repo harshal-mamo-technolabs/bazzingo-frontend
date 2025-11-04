@@ -727,49 +727,74 @@ export default function VisualReasoningStaticAssessment() {
             </div>
 
             {/* Question + Options */}
-            <div className="border border-gray-200 rounded p-4 mb-6 flex flex-col flex-grow">
-              {currentQuestion.image ? (
-                <>
-                  <h5 className="text-base mb-2 font-semibold">Q{displayIndex + 1} - Solve the question by seeing the image</h5>
-                  <img src={currentQuestion.image} alt="question" className="w-full h-auto rounded mb-4" />
-                </>
-              ) : (
-                <>
-                  <h5 className="text-base mb-2 font-semibold">{currentQuestion.title}</h5>
-                  {/* <p className="text-[15px] mb-4">{currentQuestion.text}</p> */}
-                </>
-              )}
+            <div className="border border-gray-200 rounded p-4 mb-4 flex flex-col flex-grow">
+            {currentQuestion.image ? (
+  <>
+    <h5 className="text-base mb-2 font-semibold">
+      Q{displayIndex + 1} - Solve the question by seeing the image
+    </h5>
+    <img
+      src={currentQuestion.image}
+      alt="question"
+      className="rounded mb-4 mx-auto w-[150px] h-[150px] md:w-[200px] md:h-[200px] object-contain"
+    />
+  </>
+) : (
+  <>
+    <h5 className="text-base mb-2 font-semibold">{currentQuestion.title}</h5>
+  </>
+)}
+
 
               {/* Options */}
-              <div className="flex flex-col gap-2 mb-6">
-                {currentQuestion.options.map((option, idx) => (
-                  <label
-                    key={idx}
-                    className={`flex justify-between items-center p-2 border rounded cursor-pointer ${
-                      answers[currentQuestion.id] === idx ? 'border-orange-400' : 'border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        name={`question_${currentQuestion.id}`}
-                        checked={answers[currentQuestion.id] === idx}
-                        onChange={() => handleOptionSelect(option, idx)}
-                        className="h-4 w-4 text-orange-300 focus:ring-orange-300 accent-orange-300"
-                      />
-                      {currentQuestion.optionsType === 'image' ? (
-                        <img src={option} alt={`option-${idx}`} className="ml-2 w-20 h-20 object-contain rounded" />
-                      ) : (
-                        <span className="ml-2 text-[15px]">{option}</span>
-                      )}
-                    </div>
-                  </label>
-                ))}
-              </div>
+              <div
+  className={`mb-6 gap-2 ${
+    currentQuestion.optionsType === 'image'
+      ? 'grid grid-cols-2 gap-3' // 2 per row only for image options
+      : 'flex flex-col' // keep text layout same
+  }`}
+>
+  {currentQuestion.options.map((option, idx) => (
+    <label
+    key={idx}
+    className={`flex justify-between items-center ${
+      currentQuestion.optionsType === 'image' ? 'p-0' : 'p-2'
+    } border rounded cursor-pointer ${
+      answers[currentQuestion.id] === idx ? 'border-orange-400' : 'border-gray-300'
+    }`}
+  >
+  
+      <div
+        className={`flex items-center ${
+          currentQuestion.optionsType === 'image' ? 'justify-start w-full' : ''
+        }`}
+      >
+        <input
+          type="radio"
+          name={`question_${currentQuestion.id}`}
+          checked={answers[currentQuestion.id] === idx}
+          onChange={() => handleOptionSelect(option, idx)}
+          className="h-4 w-4 ml-2 text-orange-300 focus:ring-orange-300 accent-orange-300"
+        />
+
+        {currentQuestion.optionsType === 'image' ? (
+          <img
+            src={option}
+            alt={`option-${idx}`}
+            className="ml-2 rounded object-cover w-[40px] h-[40px] md:w-[70px] md:h-[70px]"
+          />
+        ) : (
+          <span className="ml-2 text-[15px]">{option}</span>
+        )}
+      </div>
+    </label>
+  ))}
+            </div>
+
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-auto">
+            <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-0">
               <button className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`} disabled={isSubmittingScore}>Exit & Save</button>
               <button
                 className={`px-4 py-2 w-full rounded-lg text-white ${isSubmittingScore ? 'bg-orange-300 cursor-wait' : 'bg-orange-500 hover:bg-orange-600'}`}

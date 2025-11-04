@@ -18,8 +18,8 @@ const NAV = [
     {path: '/assessments', label: 'Assessments', matchChildren: true},
     {path: '/statistics', label: 'Statistics', matchChildren: false},
     {path: '/leadboard', label: 'Leaderboard', matchChildren: false},
-    {path: '/pricing', label: 'Pricing', matchChildren: false},
-    {path: '/subscription', label: 'Subscription', matchChildren: false},
+    // {path: '/pricing', label: 'Pricing', matchChildren: false},
+    // {path: '/subscription', label: 'Subscription', matchChildren: false},
 ];
 
 const TEXT_BASE = {fontFamily: 'Roboto, sans-serif'};
@@ -223,14 +223,19 @@ export default function Header({unreadCount = 0}) {
                             >
                                   {userData?.avatar ? (
                   <img
-                    src={userData.avatar}
-                    alt="Profile"
-                    className="w-full h-full object-cover "
-                    onError={(e) => {
-                      e.target.src = "https://i.pravatar.cc/80";
-                      e.target.className = "w-full h-full object-cover bg-gray-300";
-                    }}
-                  />
+                  src={userData.avatar}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const parent = e.target.parentElement;
+                    parent.innerHTML = `
+                      <div class='w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg'>
+                        ${(userData?.name || 'A').charAt(0).toUpperCase()}
+                      </div>
+                    `;
+                  }}
+                />
+                
                 ) : (
                   <div className="w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg">
                     {userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'}
@@ -244,6 +249,8 @@ export default function Header({unreadCount = 0}) {
                                     onProfile={() => navigate('/profile')}
                                     onDashboard={() => navigate('/dashboard')}
                                     onStatistics={() => navigate('/statistics')}
+                                    onPricing={() => navigate('/pricing')}
+                                    onSubscription={() => navigate('/subscription')}
                                     onChangePassword={() => navigate('/update-password')}
                                     onNotificationPrefs={() => navigate('/notification-preferences')}
                                     onLogout={handleLogout}
@@ -370,6 +377,8 @@ const ProfileDropdown = memo(function ProfileDropdown({
                                                           onProfile,
                                                           onDashboard,
                                                           onStatistics,
+                                                          onPricing,
+                                                          onSubscription,
                                                           onChangePassword,
                                                           onNotificationPrefs,
                                                           onLogout,
@@ -414,6 +423,20 @@ const ProfileDropdown = memo(function ProfileDropdown({
                     style={TEXT_BASE}
                 >
                     📈 Statistics
+                </button>
+                <button
+                    onClick={onPricing}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    style={TEXT_BASE}
+                >
+                    💎 Pricing
+                </button>
+                <button
+                    onClick={onSubscription}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    style={TEXT_BASE}
+                >
+                    📋 Subscription
                 </button>
                 <button
                     onClick={onChangePassword}
