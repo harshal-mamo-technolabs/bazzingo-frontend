@@ -74,14 +74,60 @@ export default function Header({unreadCount = 0}) {
         [location.pathname]
     );
 
-     // Fetch user profile data
+     // Fetch user profile data with caching
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        // Check if we already have cached user data in localStorage
+        const cachedUserData = localStorage.getItem('cachedUserProfile');
+        const cacheTimestamp = localStorage.getItem('cachedUserProfileTimestamp');
+        const now = Date.now();
+        const cacheExpiry = 5 * 60 * 1000; // 5 minutes cache
+
+        // Use cached data if it exists and is not expired
+        if (cachedUserData && cacheTimestamp && (now - parseInt(cacheTimestamp)) < cacheExpiry) {
+          const parsedCachedData = JSON.parse(cachedUserData);
+          setUserData(parsedCachedData);
+          
+          // Preload the cached avatar image to ensure it's in browser cache
+          if (parsedCachedData.avatar) {
+            const img = new Image();
+            img.src = parsedCachedData.avatar;
+          }
+          return;
+        }
+
+        // Fetch fresh data if no cache or cache expired
         const response = await getUserProfile();
-        setUserData(response.data.user);
+        const userData = response.data.user;
+        
+        // Cache the user data
+        localStorage.setItem('cachedUserProfile', JSON.stringify(userData));
+        localStorage.setItem('cachedUserProfileTimestamp', now.toString());
+        
+        setUserData(userData);
+        
+        // Preload the avatar image to cache it
+        if (userData.avatar) {
+          const img = new Image();
+          img.src = userData.avatar;
+          img.onload = () => {
+            console.log('Profile avatar preloaded and cached');
+          };
+        }
       } catch (error) {
         console.error('Failed to fetch user profile:', error);
+        
+        // Fallback to cached data even if expired, if available
+        const cachedUserData = localStorage.getItem('cachedUserProfile');
+        if (cachedUserData) {
+          try {
+            const parsedCachedData = JSON.parse(cachedUserData);
+            setUserData(parsedCachedData);
+          } catch (parseError) {
+            console.error('Failed to parse cached user data:', parseError);
+          }
+        }
       }
     };
 
@@ -129,6 +175,10 @@ export default function Header({unreadCount = 0}) {
     }, [isNotificationOpen, isProfileOpen, isMobileMenuOpen]);
 
     const handleLogout = () => {
+        // Clear cached profile data on logout
+        localStorage.removeItem('cachedUserProfile');
+        localStorage.removeItem('cachedUserProfileTimestamp');
+        
         dispatch(logout());
         navigate('/login');
     };
@@ -225,11 +275,22 @@ export default function Header({unreadCount = 0}) {
                   <img
                   src={userData.avatar}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-full"
+                  style={{
+                    imageRendering: 'auto',
+                    backfaceVisibility: 'hidden',
+                    transform: 'translateZ(0)'
+                  }}
+                  loading="eager"
+                  decoding="async"
+                  onLoad={(e) => {
+                    // Cache the image in browser cache
+                    e.target.style.opacity = '1';
+                  }}
                   onError={(e) => {
                     const parent = e.target.parentElement;
                     parent.innerHTML = `
-                      <div class='w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg'>
+                      <div class='w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg rounded-full'>
                         ${(userData?.name || 'A').charAt(0).toUpperCase()}
                       </div>
                     `;
@@ -237,7 +298,7 @@ export default function Header({unreadCount = 0}) {
                 />
                 
                 ) : (
-                  <div className="w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg">
+                  <div className="w-full h-full bg-black text-white flex items-center justify-center font-medium text-lg rounded-full">
                     {userData?.name ? userData.name.charAt(0).toUpperCase() : 'A'}
                   </div>
                 )}
