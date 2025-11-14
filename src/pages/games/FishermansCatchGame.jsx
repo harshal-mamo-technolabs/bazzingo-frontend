@@ -2,23 +2,21 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { 
-  difficultySettings, 
-  getScenariosByDifficulty, 
-  calculateScore, 
-  generateFish, 
-  validateCatch,
-  fishTypes 
+import {
+  difficultySettings,
+  getScenariosByDifficulty,
+  calculateScore,
+  generateFish,
+  validateCatch
 } from '../../utils/games/FishermansCatch';
-import { 
-  Fish, 
-  Anchor, 
-  Waves, 
-  Target, 
-  CheckCircle, 
-  XCircle, 
-  Lightbulb, 
-  ChevronUp, 
+import {
+  Fish,
+  Waves,
+  Target,
+  CheckCircle,
+  XCircle,
+  Lightbulb,
+  ChevronUp,
   ChevronDown,
   Timer
 } from 'lucide-react';
@@ -27,18 +25,17 @@ const FishermansCatchGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(60);
+  const [timeRemaining, setTimeRemaining] = useState(160);
   const [currentScenario, setCurrentScenario] = useState(0);
   const [correctCatches, setCorrectCatches] = useState(0);
   const [wrongCatches, setWrongCatches] = useState(0);
-  const [totalCorrect, setTotalCorrect] = useState(0); // cumulative across scenarios
-  const [totalWrong, setTotalWrong] = useState(0);     // cumulative across scenarios
+  const [totalCorrect, setTotalCorrect] = useState(0);
+  const [totalWrong, setTotalWrong] = useState(0);
   const [lives, setLives] = useState(3);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [maxHints, setMaxHints] = useState(2);
   const [currentScenarios, setCurrentScenarios] = useState([]);
-  
-  // Game state
+
   const [fish, setFish] = useState([]);
   const [catchSequence, setCatchSequence] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -50,18 +47,16 @@ const FishermansCatchGame = () => {
   const [scenarioTimeRemaining, setScenarioTimeRemaining] = useState(0);
   const [isNetCasting, setIsNetCasting] = useState(false);
   const [netPosition, setNetPosition] = useState({ x: 0, y: 0 });
-  
+
   const gameAreaRef = useRef();
   const animationRef = useRef();
   const lastFishSpawnRef = useRef(0);
 
-  // Update score whenever catches change
   useEffect(() => {
     const newScore = calculateScore(difficulty, totalCorrect, totalWrong);
     setScore(newScore);
   }, [difficulty, totalCorrect, totalWrong]);
 
-  // End game immediately when score reaches 200
   useEffect(() => {
     if (gameState === 'playing' && score >= 200) {
       setGameState('finished');
@@ -69,12 +64,10 @@ const FishermansCatchGame = () => {
     }
   }, [score, gameState]);
 
-  // Animation loop for fish movement
   const animate = useCallback(() => {
     if (gameState !== 'playing') return;
     const currentTime = Date.now();
-    
-    // Move fish with clamping to container width
+
     setFish(prevFish => {
       const containerWidth = gameAreaRef.current?.clientWidth || 800;
       return prevFish
@@ -84,26 +77,24 @@ const FishermansCatchGame = () => {
         }))
         .filter(f => f.x > -40 && !f.caught);
     });
-    
-    // Spawn new fish more frequently if none visible
+
     const sinceLast = currentTime - lastFishSpawnRef.current;
-    const spawnInterval = 1200 + Math.random() * 2000; // faster spawn
+    const spawnInterval = 1200 + Math.random() * 2000;
     const needSpawn = sinceLast > spawnInterval;
-    
+
     if (needSpawn) {
       lastFishSpawnRef.current = currentTime;
       const currentScenarioData = currentScenarios[currentScenario];
       if (currentScenarioData) {
         const newFish = generateFish(currentScenarioData, currentTime, difficulty);
         setFish(prevFish => {
-          // Ensure at least one fish appears; spawn at right edge
           const containerWidth = gameAreaRef.current?.clientWidth || 800;
           const batch = newFish.slice(0, 3).map(f => ({ ...f, x: containerWidth + 40 }));
           return [...prevFish, ...batch];
         });
       }
     }
-    
+
     animationRef.current = requestAnimationFrame(animate);
   }, [gameState, currentScenario, currentScenarios, difficulty]);
 
@@ -115,7 +106,7 @@ const FishermansCatchGame = () => {
         cancelAnimationFrame(animationRef.current);
       }
     }
-    
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -123,40 +114,35 @@ const FishermansCatchGame = () => {
     };
   }, [animate, gameState]);
 
-  // Handle fish catching
   const handleFishClick = useCallback((clickedFish) => {
     if (gameState !== 'playing' || clickedFish.caught || isNetCasting) return;
-    
+
     const currentScenarioData = currentScenarios[currentScenario];
     if (!currentScenarioData) return;
-    
-    // Cast net animation
+
     setIsNetCasting(true);
     setNetPosition({ x: clickedFish.x, y: clickedFish.y });
-    
+
     setTimeout(() => {
       setIsNetCasting(false);
-      
-      // Mark fish as caught
-      setFish(prevFish => 
+
+      setFish(prevFish =>
         prevFish.map(f => f.id === clickedFish.id ? { ...f, caught: true } : f)
       );
-      
-      // Validate catch
+
       const validation = validateCatch(clickedFish, currentScenarioData, catchSequence);
-      
+
       if (validation.valid) {
         setCorrectCatches(prev => prev + 1);
         setTotalCorrect(prev => prev + 1);
         setCatchSequence(prev => [...prev, clickedFish]);
         setFeedbackType('success');
         setFeedbackMessage(validation.reason);
-        
-        // Check if scenario is complete
+
         const settings = difficultySettings[difficulty];
         if (correctCatches + 1 >= settings.catchesNeeded) {
           setTimeout(() => {
-            if (currentScenario + 1 >= currentScenarios.length) {
+            if (currentScenario + 1 >= 4) {
               setGameState('finished');
               setShowCompletionModal(true);
             } else {
@@ -169,7 +155,7 @@ const FishermansCatchGame = () => {
         setTotalWrong(prev => prev + 1);
         setFeedbackType('error');
         setFeedbackMessage(validation.reason);
-        
+
         if (clickedFish.isBad) {
           setLives(prev => {
             const newLives = prev - 1;
@@ -183,31 +169,43 @@ const FishermansCatchGame = () => {
           });
         }
       }
-      
+
       setShowFeedback(true);
       setTimeout(() => setShowFeedback(false), 2000);
-      
+
     }, 300);
   }, [gameState, currentScenario, currentScenarios, difficulty, catchSequence, correctCatches, isNetCasting]);
 
-  // Scenario timer
   useEffect(() => {
     let interval;
     if (gameState === 'playing' && scenarioTimeRemaining > 0) {
       interval = setInterval(() => {
         setScenarioTimeRemaining(prev => {
-          if (prev <= 1) {
-            nextScenario();
+          const newTime = prev - 1;
+          if (newTime <= 0) {
+            const nextIndex = currentScenario + 1;
+            if (nextIndex >= 4) {
+              setGameState('finished');
+              setShowCompletionModal(true);
+            } else {
+              setCurrentScenario(nextIndex);
+              setFish([]);
+              setCatchSequence([]);
+              setCorrectCatches(0);
+              setWrongCatches(0);
+              const settings = difficultySettings[difficulty];
+              setScenarioTimeRemaining(settings.scenarioTime);
+              setScenarioStartTime(Date.now());
+            }
             return 0;
           }
-          return prev - 1;
+          return newTime;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [gameState, scenarioTimeRemaining]);
+  }, [gameState, scenarioTimeRemaining, currentScenario, difficulty]);
 
-  // Main timer
   useEffect(() => {
     let interval;
     if (gameState === 'playing' && timeRemaining > 0) {
@@ -225,34 +223,29 @@ const FishermansCatchGame = () => {
     return () => clearInterval(interval);
   }, [gameState, timeRemaining]);
 
-  // Next scenario
   const nextScenario = () => {
-    if (currentScenario + 1 >= currentScenarios.length) {
+    const nextIndex = currentScenario + 1;
+    if (nextIndex >= 4) {
       setGameState('finished');
       setShowCompletionModal(true);
       return;
     }
-    
-    setCurrentScenario(prev => prev + 1);
+
+    const settings = difficultySettings[difficulty];
+    setCurrentScenario(nextIndex);
     setFish([]);
     setCatchSequence([]);
-    // Do NOT reset cumulative totals; only reset per-scenario counters for UI
     setCorrectCatches(0);
     setWrongCatches(0);
-    
-    const nextScenarioData = currentScenarios[currentScenario + 1];
-    if (nextScenarioData) {
-      setScenarioTimeRemaining(nextScenarioData.duration);
-      setScenarioStartTime(Date.now());
-    }
+    setScenarioTimeRemaining(settings.scenarioTime);
+    setScenarioStartTime(Date.now());
   };
 
-  // Use hint
   const useHint = () => {
     if (hintsUsed >= maxHints || gameState !== 'playing') return;
-    
+
     setHintsUsed(prev => prev + 1);
-    
+
     const currentScenarioData = currentScenarios[currentScenario];
     if (currentScenarioData) {
       let hintMessage = '';
@@ -263,7 +256,7 @@ const FishermansCatchGame = () => {
       } else {
         hintMessage = 'Read the instruction carefully and avoid sharks and junk!';
       }
-      
+
       setFeedbackType('hint');
       setFeedbackMessage(`💡 Hint: ${hintMessage}`);
       setShowFeedback(true);
@@ -271,19 +264,16 @@ const FishermansCatchGame = () => {
     }
   };
 
-  // Initialize game
   const initializeGame = useCallback(() => {
-    // Force 60 seconds total game time regardless of difficulty
-    const settings = { ...difficultySettings[difficulty], timeLimit: 60 };
+    const settings = difficultySettings[difficulty];
     const scenarios = getScenariosByDifficulty(difficulty);
-    
+
     setCurrentScenarios(scenarios);
     setScore(0);
     setTimeRemaining(settings.timeLimit);
     setCurrentScenario(0);
     setCorrectCatches(0);
     setWrongCatches(0);
-    // Keep cumulative totals intact on new game only
     setTotalCorrect(0);
     setTotalWrong(0);
     setLives(settings.lives);
@@ -292,9 +282,9 @@ const FishermansCatchGame = () => {
     setFish([]);
     setCatchSequence([]);
     setShowFeedback(false);
-    
+
     if (scenarios[0]) {
-      setScenarioTimeRemaining(scenarios[0].duration);
+      setScenarioTimeRemaining(settings.scenarioTime);
     }
   }, [difficulty]);
 
@@ -314,7 +304,7 @@ const FishermansCatchGame = () => {
 
   const customStats = {
     currentScenario: currentScenario + 1,
-    totalScenarios: currentScenarios.length,
+    totalScenarios: 4,
     correctCatches,
     wrongCatches,
     lives,
@@ -334,7 +324,6 @@ const FishermansCatchGame = () => {
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
-              {/* Header with toggle */}
               <div
                 className="flex items-center justify-between mb-4 cursor-pointer"
                 onClick={() => setShowInstructions(!showInstructions)}
@@ -349,7 +338,6 @@ const FishermansCatchGame = () => {
                 </span>
               </div>
 
-              {/* Toggle Content */}
               {showInstructions && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
@@ -410,9 +398,7 @@ const FishermansCatchGame = () => {
         onGameComplete={handleGameComplete}
         customStats={customStats}
       >
-        {/* Game Content */}
         <div className="flex flex-col items-center">
-          {/* Game Controls */}
           <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
             {gameState === 'playing' && (
               <button
@@ -431,7 +417,6 @@ const FishermansCatchGame = () => {
             )}
           </div>
 
-          {/* Game Stats */}
           <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -467,14 +452,13 @@ const FishermansCatchGame = () => {
             </div>
           </div>
 
-          {/* Current Scenario Instruction */}
           {currentScenarioData && (
             <div className="w-full max-w-4xl mb-6">
               <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Target className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Scenario {currentScenario + 1} - {difficulty} Level
+                    Scenario {currentScenario + 1} of 4 - {difficulty} Level
                   </span>
                 </div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -497,25 +481,20 @@ const FishermansCatchGame = () => {
             </div>
           )}
 
-          {/* Fishing Area */}
           <div className="relative w-full max-w-5xl h-96 bg-gradient-to-b from-blue-200 to-blue-400 rounded-lg overflow-hidden border-4 border-blue-300 mb-6">
-            {/* Water waves background */}
             <div className="absolute inset-0 opacity-10 pointer-events-none">
               <Waves className="h-full w-full text-blue-700" />
             </div>
-            
-            {/* Boat */}
+
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-4xl">
               🚣‍♂️
             </div>
-            
-            {/* Fishing Area */}
-            <div 
+
+            <div
               ref={gameAreaRef}
               className="relative w-full h-full cursor-crosshair"
               style={{ background: 'linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(29, 78, 216, 0.5))' }}
             >
-              {/* Fish */}
               {fish.map((fishItem) => (
                 <div
                   key={fishItem.id}
@@ -538,8 +517,7 @@ const FishermansCatchGame = () => {
                   </div>
                 </div>
               ))}
-              
-              {/* Net casting animation */}
+
               {isNetCasting && (
                 <div
                   className="absolute pointer-events-none animate-ping"
@@ -556,10 +534,9 @@ const FishermansCatchGame = () => {
             </div>
           </div>
 
-          {/* Feedback */}
           {showFeedback && (
             <div className={`w-full max-w-2xl text-center p-4 rounded-lg mb-4 ${
-              feedbackType === 'success' ? 'bg-green-100 text-green-800' : 
+              feedbackType === 'success' ? 'bg-green-100 text-green-800' :
               feedbackType === 'error' ? 'bg-red-100 text-red-800' :
               'bg-yellow-100 text-yellow-800'
             }`}>
@@ -578,7 +555,6 @@ const FishermansCatchGame = () => {
             </div>
           )}
 
-          {/* Instructions */}
           <div className="text-center max-w-3xl">
             <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
               Click on the fish swimming by to cast your net. Follow the scenario instructions carefully.
@@ -591,15 +567,15 @@ const FishermansCatchGame = () => {
               <div>⚠️ Dangerous Items</div>
             </div>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].catchesNeeded} catches needed | 
-              1:00 time limit |
+              {difficulty} Mode: {difficultySettings[difficulty].catchesNeeded} catches needed |
+              {difficultySettings[difficulty].timeLimit}s total time (4 scenarios × {difficultySettings[difficulty].scenarioTime}s each) |
               {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
               +{difficultySettings[difficulty].pointsPerCorrect}/{difficultySettings[difficulty].pointsPerWrong} points
             </div>
           </div>
         </div>
       </GameFramework>
-      
+
       <GameCompletionModal
         isOpen={showCompletionModal}
         onClose={() => setShowCompletionModal(false)}
