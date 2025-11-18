@@ -13,6 +13,7 @@ import AssessmentHighlightCard from "../components/Dashboard/AssessmentHighlight
 import AssessmentUpsellCard from "../components/Dashboard/AssessmentUpsellCard.jsx";
 import DashboardStatistics from "../components/Dashboard/DashboardStatistics.jsx";
 import { getDashboardData, getDailyGames, getRecentAssessmentActivity, getUserProfile, getQuickAssessment } from '../services/dashbaordService.js';
+import { isComponentVisible } from '../config/accessControl';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -242,7 +243,7 @@ const Dashboard = () => {
               totalGames={totalGames}
             />
             <AssessmentHighlightCard onAssessmentClick={openHighlightAssessment} />
-            <AssessmentUpsellCard />
+            {isComponentVisible('dashboardCertifiedCard') && <AssessmentUpsellCard />}
           </div>
 
           {/* Main Content */}

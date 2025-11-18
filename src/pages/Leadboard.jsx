@@ -11,6 +11,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading, selectSubscriptionData } from '../app/subscriptionSlice';
 import InfoTooltip from "../components/InfoToolTip.jsx";
 import handleTooltipClick from "../utils/toolTipHandler.js";
+import { isSubscriptionGateEnabled } from "../config/accessControl";
 
 const ProgressBar = ({ percentage }) => (
   <div className="relative w-full lg:max-w-[150px] h-7 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
@@ -57,6 +58,7 @@ const Leadboard = () => {
   const subscriptionLoading = useSelector(selectSubscriptionLoading); // eslint-disable-line no-unused-vars
   const subscriptionData = useSelector(selectSubscriptionData);
   const navigate = useNavigate();
+  const shouldEnforceLeaderboardGate = isSubscriptionGateEnabled("leaderboard");
 
   // Build dropdown options
   const countryOptions = countries.map(c => ({ key: c, label: c }));
@@ -151,19 +153,22 @@ const Leadboard = () => {
   const processedActivities = getProcessedActivities();
   const hasActivities = processedActivities.length > 0;
 
+  const subscriptionStatus = subscriptionData?.status;
+  const isTrialing = subscriptionStatus === "trialing";
+
   return (
     <MainLayout unreadCount={unreadCount}>
       <SubscriptionBlocker 
-        showBlocker={subscriptionInitialized && (
+        showBlocker={shouldEnforceLeaderboardGate && subscriptionInitialized && (
           // Block if no subscription OR currently on trial
-          !hasActiveSubscription || subscriptionData.status === 'trialing'
+          !hasActiveSubscription || isTrialing
         )}
-        title={subscriptionData.status === 'trialing' ? 'Leaderboard unavailable on trial' : 'Premium Leaderboard'}
-        message={subscriptionData.status === 'trialing'
+        title={isTrialing ? 'Leaderboard unavailable on trial' : 'Premium Leaderboard'}
+        message={isTrialing
           ? 'End your trial and activate the Silver Monthly plan to access Leaderboard rankings and compete with others.'
           : 'Please subscribe to Bazzingo plan to access leaderboard rankings and compete with other users'}
-        buttonText={subscriptionData.status === 'trialing' ? 'End Trial Now' : 'Subscribe Now'}
-        onSubscribe={subscriptionData.status === 'trialing' ? () => navigate('/subscription?action=end-trial&from=leaderboard') : undefined}
+        buttonText={isTrialing ? 'End Trial Now' : 'Subscribe Now'}
+        onSubscribe={isTrialing ? () => navigate('/subscription?action=end-trial&from=leaderboard') : undefined}
       >
         <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
         <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7">

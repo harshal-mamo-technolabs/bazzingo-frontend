@@ -5,6 +5,7 @@ import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBad
 import { getDailyAssessmentRecommendation } from '../../services/dashbaordService.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant.js';
+import { isComponentVisible } from '../../config/accessControl';
 
 const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuestions = 0 }) => {
   const navigate = useNavigate();
@@ -15,6 +16,8 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
   const [assessmentData, setAssessmentData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
+
+  const showUpsell = isComponentVisible('assessmentCompletionUpsell');
 
   // Fetch assessment recommendation when modal opens
   useEffect(() => {
@@ -267,16 +270,10 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
 
           <hr className="border-t border-gray-200 mx-5 mt-4 mb-3" />
 
-          {/* Always show purchase card */}
+          {/* Reserve space for purchase card and toggle visibility from config */}
           {!loading && assessmentData && (
             <>
-              <div className="px-5">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4"> 
-                  {getDescription(assessmentData.isAvailReport, assessmentData.isAvailCertification)}
-                </h3>
-              </div>
-
-              <div className="px-5 pb-5">
+              <div className={`px-5 pb-5 ${showUpsell ? '' : 'invisible'}`}>
                 <div className="bg-white border border-orange-300 rounded-lg overflow-hidden shadow-sm w-full">
                   {/* Header */}
                   <div className="bg-gradient-to-r from-orange-200 to-orange-100 px-4 py-2 

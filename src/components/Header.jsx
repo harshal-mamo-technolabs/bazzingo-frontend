@@ -8,19 +8,30 @@ import hamburgerIcon from '../../public/header/hamburger.png';
 import { getUserProfile } from '../services/dashbaordService';
 import NotificationDropdown from './NotificationDropdown';
 import notificationService from '../services/notificationService';
+import { isComponentVisible } from '../config/accessControl';
 
 /** ---------------------------
  *  Config & shared styles
  *  ------------------------- */
-const NAV = [
+const NAV_BASE = [
     {path: '/dashboard', label: 'Dashboard', matchChildren: false},
-    {path: '/games', label: 'Games', matchChildren: true},
+    {path: '/games', label: 'Brain Workout', matchChildren: true},
     {path: '/assessments', label: 'Assessments', matchChildren: true},
     {path: '/statistics', label: 'Statistics', matchChildren: false},
     {path: '/leadboard', label: 'Leaderboard', matchChildren: false},
     // {path: '/pricing', label: 'Pricing', matchChildren: false},
     // {path: '/subscription', label: 'Subscription', matchChildren: false},
 ];
+
+// Filter NAV based on visibility controls
+const getFilteredNav = () => {
+    return NAV_BASE.filter(item => {
+        if (item.path === '/assessments') {
+            return isComponentVisible('assessmentsNavItem');
+        }
+        return true;
+    });
+};
 
 const TEXT_BASE = {fontFamily: 'Roboto, sans-serif'};
 const NAV_BTN_STYLE = {...TEXT_BASE, fontSize: '14px', fontWeight: 500};
@@ -356,9 +367,10 @@ export default function Header({unreadCount = 0}) {
  *  Desktop Navigation
  *  ------------------------- */
 const DesktopNav = memo(function DesktopNav() {
+    const filteredNav = getFilteredNav();
     return (
         <div className="hidden lg:flex gap-7">
-            {NAV.map(({path, label, matchChildren}) => (
+            {filteredNav.map(({path, label, matchChildren}) => (
                 <NavLink
                     key={path}
                     to={path}
@@ -485,13 +497,15 @@ const ProfileDropdown = memo(function ProfileDropdown({
                 >
                     📈 Statistics
                 </button>
-                <button
-                    onClick={onPricing}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    style={TEXT_BASE}
-                >
-                    💎 Pricing
-                </button>
+                {isComponentVisible('premiumNavItem') && (
+                    <button
+                        onClick={onPricing}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        style={TEXT_BASE}
+                    >
+                        💎 Premium
+                    </button>
+                )}
                 <button
                     onClick={onSubscription}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -554,21 +568,23 @@ const MobileMenu = memo(function MobileMenu({
                     }`}
                     style={TEXT_BASE}
                 >
-                    🎮 Games
+                    🎮 Brain Workout
                 </button>
 
-                <button
-                    onClick={() => {
-                        onNavigate('/assessments');
-                        onClose();
-                    }}
-                    className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
-                        isActive('/assessments') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
-                    }`}
-                    style={TEXT_BASE}
-                >
-                    📝 Assessments
-                </button>
+                {isComponentVisible('assessmentsNavItem') && (
+                    <button
+                        onClick={() => {
+                            onNavigate('/assessments');
+                            onClose();
+                        }}
+                        className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
+                            isActive('/assessments') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                        }`}
+                        style={TEXT_BASE}
+                    >
+                        📝 Assessments
+                    </button>
+                )}
 
                 <button
                     onClick={() => {
@@ -596,18 +612,20 @@ const MobileMenu = memo(function MobileMenu({
                     🏆 Leaderboard
                 </button>
 
-                <button
-                    onClick={() => {
-                        onNavigate('/pricing');
-                        onClose();
-                    }}
-                    className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
-                        isActive('/pricing') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
-                    }`}
-                    style={TEXT_BASE}
-                >
-                    💎 Pricing
-                </button>
+                {isComponentVisible('premiumNavItem') && (
+                    <button
+                        onClick={() => {
+                            onNavigate('/pricing');
+                            onClose();
+                        }}
+                        className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
+                            isActive('/pricing') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                        }`}
+                        style={TEXT_BASE}
+                    >
+                        💎 Premium
+                    </button>
+                )}
 
                 <button
                     onClick={() => {

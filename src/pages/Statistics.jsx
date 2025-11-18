@@ -18,6 +18,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { API_CONNECTION_HOST_URL } from '../utils/constant.js';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading } from '../app/subscriptionSlice';
+import { isSubscriptionGateEnabled, isComponentVisible } from "../config/accessControl";
 
 
 const Statistics = () => {
@@ -32,6 +33,7 @@ const Statistics = () => {
   const hasActiveSubscription = useSelector(selectHasActiveSubscription);
   const subscriptionInitialized = useSelector(selectSubscriptionInitialized);
   const subscriptionLoading = useSelector(selectSubscriptionLoading);
+  const shouldEnforceStatisticsGate = isSubscriptionGateEnabled("statistics");
 
   // Fetch subscription status when component mounts
   useEffect(() => {
@@ -592,7 +594,7 @@ useEffect(() => {
   return (
     <MainLayout unreadCount={3}>
       <SubscriptionBlocker 
-        showBlocker={subscriptionInitialized && !hasActiveSubscription}
+        showBlocker={shouldEnforceStatisticsGate && subscriptionInitialized && !hasActiveSubscription}
         title="Premium Statistics"
         message="Please subscribe to Bazzingo plan to access detailed statistics and analytics"
         buttonText="Subscribe Now"
@@ -604,32 +606,39 @@ useEffect(() => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
 
               {/* Left - Category Tabs */}
-              <div className="flex flex-wrap justify-between gap-2 md:gap-2 w-full md:w-auto">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryClick(category)}
-                    className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-medium shadow-sm
-                  ${activeCategory === category
-                        ? 'border border-orange-500 text-orange-600 bg-[#F0E2DD]'
-                        : 'text-gray-600 bg-white'
-                      }`}
-                  >
-                    {category}
-                  </button>
-                ))}
+              <div className="w-full md:w-auto">
+                <div className="grid grid-cols-3 gap-2 w-full md:flex md:flex-wrap md:justify-between md:gap-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => handleCategoryClick(category)}
+                      className={`w-full md:w-auto px-4 py-2 rounded-lg text-xs md:text-sm font-medium shadow-sm
+                    ${activeCategory === category
+                          ? 'border border-orange-500 text-orange-600 bg-[#F0E2DD]'
+                          : 'text-gray-600 bg-white'
+                        }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Divider for mobile */}
+              <div className="h-px w-full bg-gray-300 md:hidden" />
 
               {/* Right - Dropdown */}
               <div className="w-full md:w-auto">
-              <TimeRangeDropdown
-                options={timeRanges}
-                value={selectedTimeRange}
-                onChange={setSelectedTimeRange}
-                align="right"
-                width="w-48" // tweak if you want a wider menu
-              />
-            </div>
+                <TimeRangeDropdown
+                  options={timeRanges}
+                  value={selectedTimeRange}
+                  onChange={setSelectedTimeRange}
+                  align="right"
+                  width="w-full md:w-48"
+                  className="w-full md:w-auto justify-between"
+                  fullWidth
+                />
+              </div>
 
             </div>
           </div>
@@ -994,14 +1003,18 @@ useEffect(() => {
 
               {/* Desktop layout - md and above */}
               <div className="hidden md:flex gap-4">
-                {slides.map((slide) => (
-                  <React.Fragment key={slide.key}>{slide.content}</React.Fragment>
-                ))}
+                <React.Fragment key={slides[0].key}>{slides[0].content}</React.Fragment>
+                {isComponentVisible('statisticsCertifiedCard') ? (
+                  <React.Fragment key={slides[1].key}>{slides[1].content}</React.Fragment>
+                ) : (
+                  // Empty placeholder to preserve layout width
+                  <div className="bg-transparent h-[160px] md:w-[260px] lg:w-[230px] 2xl:w-[350px]" />
+                )}
               </div>
 
               {/* Mobile layout - below md */}
               <div className="md:hidden w-full">
-                {slides[currentIndex].content}
+                {slides[0].content}
               </div>
             </div>
 

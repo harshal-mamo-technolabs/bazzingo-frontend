@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, MessageCircle, Mail, HelpCircle, BookOpen, Wrench, CreditCard } from 'lucide-react';
 import MainLayout from '../components/Layout/MainLayout';
-import PageHeader from '../components/tickets/PageHeader';
-import TicketForm from '../components/tickets/TicketForm';
-import TicketsTable from '../components/tickets/TicketsTable';
 import useHelpScout from '../hooks/useHelpScout';
 import { selectSubscriptionData } from '../app/subscriptionSlice';
 
-function App() {
+function ClientTicket() {
+    const navigate = useNavigate();
     const subscriptionData = useSelector(selectSubscriptionData);
     const beaconId = import.meta.env.VITE_HELPSCOUT_BEACON_ID;
 
@@ -33,52 +33,15 @@ function App() {
         customAttributes: helpScoutAttributes
     });
 
-    const [subject, setSubject] = useState('');
-    const [description, setDescription] = useState('');
-    const [issueTypes, setIssueTypes] = useState({
-        bug: false,
-        account: false,
-        billing: false,
-        gameIssue: false,
-        otherIssue: false
-    });
-
-    const handleIssueTypeChange = (type) => {
-        setIssueTypes(prev => ({
-            ...prev,
-            [type]: !prev[type]
-        }));
-    };
-
-    const handleSubmit = () => {};
-
-    const tickets = [
-        {
-            id: '#34251',
-            subject: 'Game not loading',
-            status: 'In Progress',
-            date: '20/05/2025',
-            statusClass: 'status--inprogress'
-        },
-        {
-            id: '#34212',
-            subject: 'Password issue',
-            status: 'Resolved',
-            date: '18/05/2025',
-            statusClass: 'status--resolved'
-        },
-        {
-            id: '#34212',
-            subject: 'Password issue',
-            status: 'Resolved',
-            date: '18/05/2025',
-            statusClass: 'status--resolved'
-        }
+    const helpResources = [
+        { label: 'Frequently Asked Questions', icon: HelpCircle, route: '/help-faqs' },
+        { label: 'Privacy Policy', icon: BookOpen, route: '/privacy-policy' },
+        { label: 'Terms of Use', icon: Wrench, route: '/terms-of-use' },
     ];
 
     return (
         <MainLayout>
-            <div className="bg-white min-h-screen" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
+            <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 <style>{`
                     iframe[src*="helpscout"],
                     iframe[src*="beacon"],
@@ -116,28 +79,114 @@ function App() {
                         pointer-events: auto !important;
                     }
                 `}</style>
-                
+
+                {/* Main Content */}
                 <main>
-                    <PageHeader />
-
-                    <div className="mx-auto px-4 lg:px-12 py-4 lg:py-4">
-                        <div className="flex flex-col lg:flex-row" style={{ gap: '24px' }}>
-                            <div className="w-full lg:flex-none" style={{ flex: '0 0 400px' }}>
-                                <TicketForm
-                                    subject={subject}
-                                    setSubject={setSubject}
-                                    description={description}
-                                    setDescription={setDescription}
-                                    issueTypes={issueTypes}
-                                    onIssueTypeChange={handleIssueTypeChange}
-                                    onSubmit={handleSubmit}
-                                />
-                            </div>
-
-                            <div className="pl-30 flex-1 hidden lg:block">
-                                <TicketsTable tickets={tickets} />
-                            </div>
+                    {/* Page Header */}
+                    <div className="mx-auto px-4 lg:px-12 py-4 lg:pb-6">
+                        <div className="flex items-center mb-3">
+                            <ArrowLeft 
+                                className="text-gray-600 cursor-pointer hover:text-gray-900 transition-colors" 
+                                style={{ height: '18px', width: '18px', marginRight: '12px' }} 
+                                onClick={() => navigate(-1)} 
+                            />
+                            <h1 className="text-gray-900" style={{ fontSize: '20px', fontWeight: 600 }}>
+                                Help & Support
+                            </h1>
                         </div>
+                    </div>
+
+                    {/* Content Container */}
+                    <div className="mx-auto px-4 lg:px-12 pb-8 max-w-4xl">
+                        {/* We're Here to Help Section */}
+                        <section className="mb-8">
+                            <h2 className="text-gray-900 mb-3" style={{ fontSize: '24px', fontWeight: 600 }}>
+                                We're Here to Help
+                            </h2>
+                            <p className="text-gray-600 mb-6" style={{ fontSize: '16px', fontWeight: 400, lineHeight: '1.5' }}>
+                                Get in touch with our support team. We're available to assist you with any questions or concerns.
+                            </p>
+
+                            {/* Support Options */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Live Chat Card */}
+                                <div className="border border-gray-300 rounded-lg p-6 bg-white hover:border-[#FF6B3E] transition-colors cursor-pointer">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-12 h-12 bg-[#FF6B3E] rounded-lg flex items-center justify-center">
+                                                <MessageCircle className="w-6 h-6 text-white" />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-gray-900 mb-2" style={{ fontSize: '18px', fontWeight: 600 }}>
+                                                Live Chat
+                                            </h3>
+                                            <p className="text-gray-600" style={{ fontSize: '14px', fontWeight: 400, lineHeight: '1.5' }}>
+                                                Chat with our support team in real-time. Click the chat widget in the bottom right corner to start a conversation.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Email Support Card */}
+                                <div className="border border-gray-300 rounded-lg p-6 bg-white hover:border-[#FF6B3E] transition-colors">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-12 h-12 bg-[#FF6B3E] rounded-lg flex items-center justify-center">
+                                                <Mail className="w-6 h-6 text-white" />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-gray-900 mb-2" style={{ fontSize: '18px', fontWeight: 600 }}>
+                                                Email Support
+                                            </h3>
+                                            <p className="text-gray-600 mb-2" style={{ fontSize: '14px', fontWeight: 400, lineHeight: '1.5' }}>
+                                                Send us an email and we'll get back to you as soon as possible.
+                                            </p>
+                                            <a 
+                                                href="mailto:support@bazzingo.net" 
+                                                className="text-[#FF6B3E] hover:text-[#e55a35] underline transition-colors"
+                                                style={{ fontSize: '14px', fontWeight: 500 }}
+                                            >
+                                                support@bazzingo.net
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Before You Contact Us Section */}
+                        <section>
+                            <h2 className="text-gray-900 mb-3" style={{ fontSize: '24px', fontWeight: 600 }}>
+                                Before You Contact Us
+                            </h2>
+                            <p className="text-gray-600 mb-6" style={{ fontSize: '16px', fontWeight: 400, lineHeight: '1.5' }}>
+                                You might find the answer you're looking for in our help resources:
+                            </p>
+
+                            {/* Help Resources Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {helpResources.map((resource, index) => {
+                                    const Icon = resource.icon;
+                                    return (
+                                        <div
+                                            key={index}
+                                            onClick={() => resource.route && navigate(resource.route)}
+                                            className="border border-gray-300 rounded-lg p-4 bg-white hover:bg-gray-50 hover:border-[#FF6B3E] transition-all cursor-pointer flex items-center gap-3"
+                                        >
+                                            <Icon className="w-5 h-5 text-[#FF6B3E] flex-shrink-0" />
+                                            <span 
+                                                className="text-gray-700 hover:text-[#FF6B3E] transition-colors"
+                                                style={{ fontSize: '15px', fontWeight: 400 }}
+                                            >
+                                                {resource.label}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
                     </div>
                 </main>
             </div>
@@ -145,4 +194,4 @@ function App() {
     );
 }
 
-export default App;
+export default ClientTicket;

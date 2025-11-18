@@ -8,6 +8,7 @@ import { toPng } from "html-to-image";
 import { useReactToPrint } from "react-to-print";
 import CertificateComponent from '../Certificate/CertificateComponent';
 import ReportComponent from '../Report/ReportComponent';
+import { isComponentVisible } from '../../config/accessControl';
 
 const AssessmentCompletionModal = ({ 
   isOpen, 
@@ -100,6 +101,9 @@ const AssessmentCompletionModal = ({
   const userName = scoreDataToUse?.userName || "User";
   const userAge = scoreDataToUse?.userAge || "";
   const totalScoreofAssessment = scoreDataToUse?.totalScore || "0";
+
+  // Visibility toggle for upsell section
+  const showUpsell = isComponentVisible('assessmentCompletionUpsell');
 
 
   const handleDownloadCertificate = async () => {
@@ -298,36 +302,38 @@ const AssessmentCompletionModal = ({
               )}
             </div>
           ) : (
-            <div className="bg-white border border-orange-300 rounded-lg overflow-hidden shadow-sm w-full">
-              <div className="bg-[#ffd9ce] w-full px-3 py-2">
-                <div className="flex items-center gap-3">
-                  <img src={BrainSilhouetteIcon} alt="General Cognitive test" className="w-10 h-10 rounded p-0" />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">General Cognitive test</p>
-                    <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
-                      Mini Test, 5-10 Question
-                    </span>
+            <div className={showUpsell ? "w-full" : "w-full invisible"}>
+              <div className="bg-white border border-orange-300 rounded-lg overflow-hidden shadow-sm w-full">
+                <div className="bg-[#ffd9ce] w-full px-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <img src={BrainSilhouetteIcon} alt="General Cognitive test" className="w-10 h-10 rounded p-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">General Cognitive test</p>
+                      <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
+                        Mini Test, 5-10 Question • Certified
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 flex flex-col gap-2">
+                  <div className="flex items-start gap-2 text-[13px] text-gray-700">
+                    <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5 mt-0.5" />
+                    <p className="text-xs">
+                      Get a certified result you can share on LinkedIn or with employers.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-xs text-gray-700">
+                      <p>Only</p>
+                      <p className="text-lg font-bold text-black">€0.99</p>
+                    </div>
+                    <button className="px-4 py-1.5 text-[13px] bg-[#FF6B3D] text-white rounded-md font-semibold">
+                      Start Certified Test
+                    </button>
                   </div>
                 </div>
               </div>
-
-              <div className="p-3 flex flex-col gap-2">
-                <div className="flex items-start gap-2 text-[13px] text-gray-700">
-                  <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5 mt-0.5" />
-                  <p className="text-xs">
-                    Get a certified result you can share on LinkedIn or with employers.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-xs text-gray-700">
-                    <p>Only</p>
-                    <p className="text-lg font-bold text-black">€0.99</p>
-                  </div>
-                  <button className="px-4 py-1.5 text-[13px] bg-[#FF6B3D] text-white rounded-md font-semibold">
-                    Start Certified Test
-                  </button>
-                </div>
-                </div>
             </div>
           )}
         </div>

@@ -20,6 +20,7 @@ const TimeRangeDropdown = ({
   align = "right",
   width = "w-44",
   buttonLabel, // optional: override visible label
+  fullWidth = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(
@@ -83,7 +84,7 @@ const TimeRangeDropdown = ({
   }, [value, options]);
 
   return (
-    <div className="relative inline-block text-left">
+    <div className={["relative inline-block text-left", fullWidth ? "w-full" : ""].join(" ")}>
       <button
         ref={buttonRef}
         type="button"
@@ -93,7 +94,8 @@ const TimeRangeDropdown = ({
         className={[
           "px-4 py-2 rounded-lg text-xs md:text-sm font-medium",
           "text-gray-700 bg-white border border-gray-300",
-          "flex items-center justify-between gap-2 min-w-[160px]",
+          "flex items-center justify-between gap-2",
+          fullWidth ? "w-full" : "min-w-[160px]",
           "shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200",
           className
         ].join(" ")}
