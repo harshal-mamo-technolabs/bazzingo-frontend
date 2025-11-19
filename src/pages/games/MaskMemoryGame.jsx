@@ -10,6 +10,8 @@ import {
   getHint,
   shuffleArray // (kept in case used elsewhere; safe to remove if truly unused)
 } from '../../utils/games/MaskMemory';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 import { 
   Eye, 
   Lightbulb, 
@@ -23,9 +25,35 @@ import {
   Star
 } from 'lucide-react';
 
+// Separate component for mask card to properly use hooks
+const MaskCard = ({ mask, index, getCardClass, getCardContent, handleCardClick }) => {
+  const maskTitle = mask ? useTranslateText(`${mask.name} mask`) : '';
+  
+  return (
+    <div
+      className={getCardClass(mask, index)}
+      onClick={() => handleCardClick(index)}
+      title={maskTitle}
+    >
+      <span className="select-none">
+        {getCardContent(mask, index)}
+      </span>
+    </div>
+  );
+};
+
 const MaskMemoryGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
+  
+  // Translated strings for dynamic messages
+  const correctFoundMaskText = useTranslateText("Correct! You found the {mask} mask!");
+  const wrongNotSpecialText = useTranslateText("Wrong! The {mask} mask is not one of the special masks.");
+  const alreadyFoundText = useTranslateText("You already found this special mask!");
+  const perfectMatchText = useTranslateText("Perfect match! You found the {mask} pair!");
+  const noMatchText = useTranslateText("No match! {mask1} and {mask2} don't match.");
+  const pointsEarnedText = useTranslateText("points earned!");
+  const maskText = useTranslateText("mask");
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(300);
   const [correctMatches, setCorrectMatches] = useState(0);
@@ -110,7 +138,7 @@ const MaskMemoryGame = () => {
         setSpecialMasksFound(prev => [...prev, card.id]);
         setCorrectMatches(prev => prev + 1);
         setFeedbackType('correct');
-        setFeedbackMessage(`Correct! You found the ${card.name} mask!`);
+        setFeedbackMessage(correctFoundMaskText.replace('{mask}', card.name));
         setShowFeedback(true);
         
         // Check if all special masks are found
@@ -133,11 +161,11 @@ const MaskMemoryGame = () => {
           return Math.max(0, newLives);
         });
         setFeedbackType('incorrect');
-        setFeedbackMessage(`Wrong! The ${card.name} mask is not one of the special masks.`);
+        setFeedbackMessage(wrongNotSpecialText.replace('{mask}', card.name));
         setShowFeedback(true);
       } else {
         setFeedbackType('incorrect');
-        setFeedbackMessage(`You already found this special mask!`);
+        setFeedbackMessage(alreadyFoundText);
         setShowFeedback(true);
       }
       
@@ -161,7 +189,7 @@ const MaskMemoryGame = () => {
           setCorrectMatches(prev => prev + 1);
           setMatchedPairs(prev => [...prev, card1.pairIndex]);
           setFeedbackType('correct');
-          setFeedbackMessage(`Perfect match! You found the ${card1.name} pair!`);
+          setFeedbackMessage(perfectMatchText.replace('{mask}', card1.name));
           
           // Mark cards as matched
           setMasks(prev => prev.map(m => 
@@ -189,7 +217,7 @@ const MaskMemoryGame = () => {
             return Math.max(0, newLives);
           });
           setFeedbackType('incorrect');
-          setFeedbackMessage(`No match! ${card1.name} and ${card2.name} don't match.`);
+          setFeedbackMessage(noMatchText.replace('{mask1}', card1.name).replace('{mask2}', card2.name));
           
           // Flip cards back after delay
           setTimeout(() => {
@@ -312,8 +340,8 @@ const MaskMemoryGame = () => {
       {gameState === 'ready' && <Header unreadCount={3} />}
       
       <GameFramework
-        gameTitle="🎭 Mask Memory: Carnival Quest"
-        gameShortDescription="Test your visual memory by studying masked characters and then identifying them correctly. Challenge your recall abilities!"
+        gameTitle={<TranslatedText text="🎭 Mask Memory: Carnival Quest" />}
+        gameShortDescription={<TranslatedText text="Test your visual memory by studying masked characters and then identifying them correctly. Challenge your recall abilities!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -322,7 +350,7 @@ const MaskMemoryGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Mask Memory: Carnival Quest
+                  <TranslatedText text="How to Play Mask Memory: Carnival Quest" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -335,42 +363,42 @@ const MaskMemoryGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎭 Objective
+                      🎭 <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Memorize carnival masks during preview, then find matching pairs or recall special masks after they're hidden (no shuffle).
+                      <TranslatedText text="Memorize carnival masks during preview, then find matching pairs or recall special masks after they're hidden (no shuffle)." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🧠 Memory Challenge
+                      🧠 <TranslatedText text="Memory Challenge" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Preview: Memorize mask positions</li>
-                      <li>• Recall: Cards flip face down but stay in the same place</li>
+                      <li>• <TranslatedText text="Preview: Memorize mask positions" /></li>
+                      <li>• <TranslatedText text="Recall: Cards flip face down but stay in the same place" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      📊 <TranslatedText text="Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: +25 points per match</li>
-                      <li>• Moderate: +40 points per match</li>
-                      <li>• Hard: +50 points per special mask</li>
+                      <li>• <TranslatedText text="Easy: +25 points per match" /></li>
+                      <li>• <TranslatedText text="Moderate: +40 points per match" /></li>
+                      <li>• <TranslatedText text="Hard: +50 points per special mask" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎯 Challenges
+                      🎯 <TranslatedText text="Challenges" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 pairs to match</li>
-                      <li>• Moderate: 5 pairs to match</li>
-                      <li>• Hard: 4 special masks to recall</li>
+                      <li>• <TranslatedText text="Easy: 8 pairs to match" /></li>
+                      <li>• <TranslatedText text="Moderate: 5 pairs to match" /></li>
+                      <li>• <TranslatedText text="Hard: 4 special masks to recall" /></li>
                     </ul>
                   </div>
                 </div>
@@ -405,7 +433,7 @@ const MaskMemoryGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
-                Hint ({maxHints - hintsUsed})
+                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
               </button>
             )}
           </div>
@@ -414,7 +442,7 @@ const MaskMemoryGame = () => {
           <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Phase
+                <TranslatedText text="Phase" />
               </div>
               <div className="text-lg font-semibold text-[#FF6B3E] capitalize" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {gamePhase}
@@ -422,7 +450,7 @@ const MaskMemoryGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
+                <TranslatedText text="Lives" />
               </div>
               <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {'❤️'.repeat(lives)}
@@ -430,7 +458,7 @@ const MaskMemoryGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {difficulty === 'Hard' ? 'Found' : 'Matches'}
+                {difficulty === 'Hard' ? <TranslatedText text="Found" /> : <TranslatedText text="Matches" />}
               </div>
               <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {difficulty === 'Hard' ? specialMasksFound.length : correctMatches}
@@ -438,7 +466,7 @@ const MaskMemoryGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {difficulty === 'Hard' ? 'Target' : 'Needed'}
+                {difficulty === 'Hard' ? <TranslatedText text="Target" /> : <TranslatedText text="Needed" />}
               </div>
               <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {difficulty === 'Hard' ? gameScenario?.specialMasks?.length || 0 : difficultySettings[difficulty].pairCount}
@@ -453,16 +481,16 @@ const MaskMemoryGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Eye className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Preview Phase - Memorize the Masks!
+                    <TranslatedText text="Preview Phase - Memorize the Masks!" />
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Study the carnival masks carefully
+                  <TranslatedText text="Study the carnival masks carefully" />
                 </h3>
                 <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   {difficulty === 'Hard' 
-                    ? 'Remember the positions of the highlighted special masks!'
-                    : 'Remember where each mask is located so you can find matching pairs!'
+                    ? <TranslatedText text="Remember the positions of the highlighted special masks!" />
+                    : <TranslatedText text="Remember where each mask is located so you can find matching pairs!" />
                   }
                 </p>
                 <div className="mt-2">
@@ -473,7 +501,7 @@ const MaskMemoryGame = () => {
                     />
                   </div>
                   <p className="text-sm text-blue-600 mt-1">
-                    {Math.ceil(previewTimeLeft / 1000)} seconds remaining
+                    {Math.ceil(previewTimeLeft / 1000)} <TranslatedText text="seconds remaining" />
                   </p>
                 </div>
               </div>
@@ -488,13 +516,13 @@ const MaskMemoryGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Target className="h-5 w-5 text-green-800" />
                   <span className="font-semibold text-green-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Recall Phase - Find the Masks!
+                    <TranslatedText text="Recall Phase - Find the Masks!" />
                   </span>
                 </div>
                 <p className="text-green-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   {difficulty === 'Hard' 
-                    ? 'Click on the masks you remember being highlighted as special!'
-                    : 'Click on masks to flip them and find matching pairs!'
+                    ? <TranslatedText text="Click on the masks you remember being highlighted as special!" />
+                    : <TranslatedText text="Click on masks to flip them and find matching pairs!" />
                   }
                 </p>
               </div>
@@ -508,11 +536,11 @@ const MaskMemoryGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-5 w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
+                    <TranslatedText text="Hint:" />
                   </span>
                 </div>
                 <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
+                  <TranslatedText text={hintMessage} />
                 </p>
               </div>
             </div>
@@ -530,12 +558,12 @@ const MaskMemoryGame = () => {
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-lg font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackMessage}
+                  <TranslatedText text={feedbackMessage} />
                 </div>
               </div>
               {feedbackType === 'correct' && (
                 <div className={`${feedbackType === 'correct' ? 'text-green-700' : 'text-red-700'} font-medium`}>
-                  +{difficultySettings[difficulty].pointsPerMatch} points earned!
+                  +{difficultySettings[difficulty].pointsPerMatch} <TranslatedText text="points earned!" />
                 </div>
               )}
             </div>
@@ -545,16 +573,14 @@ const MaskMemoryGame = () => {
           <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-300 mb-6">
             <div className={`grid ${getGridCols()} gap-3 max-w-lg mx-auto`}>
               {masks.map((mask, index) => (
-                <div
+                <MaskCard
                   key={mask ? mask.id : `empty-${index}`}
-                  className={getCardClass(mask, index)}
-                  onClick={() => handleCardClick(index)}
-                  title={mask ? `${mask.name} mask` : ''}
-                >
-                  <span className="select-none">
-                    {getCardContent(mask, index)}
-                  </span>
-                </div>
+                  mask={mask}
+                  index={index}
+                  getCardClass={getCardClass}
+                  getCardContent={getCardContent}
+                  handleCardClick={handleCardClick}
+                />
               ))}
             </div>
           </div>
@@ -563,16 +589,16 @@ const MaskMemoryGame = () => {
           <div className="text-center max-w-2xl mt-6">
             <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
               {difficulty === 'Hard' 
-                ? 'In Hard mode, memorize the special highlighted masks during preview, then click on them after they\'re hidden!'
-                : 'Memorize the mask positions during preview, then click on cards to flip them and find matching pairs!'
+                ? <TranslatedText text="In Hard mode, memorize the special highlighted masks during preview, then click on them after they're hidden!" />
+                : <TranslatedText text="Memorize the mask positions during preview, then click on cards to flip them and find matching pairs!" />
               }
             </p>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficulty === 'Hard' ? `${difficultySettings[difficulty].pairCount} special masks` : `${difficultySettings[difficulty].pairCount} pairs`} | 
+              <TranslatedText text={difficulty} /> <TranslatedText text="Mode:" /> {difficulty === 'Hard' ? <>{difficultySettings[difficulty].pairCount} <TranslatedText text="special masks" /></> : <>{difficultySettings[difficulty].pairCount} <TranslatedText text="pairs" /></>} | 
               {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              {difficultySettings[difficulty].pointsPerMatch} points per {difficulty === 'Hard' ? 'special mask' : 'match'}
+              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} <TranslatedText text="time limit" /> |
+              {difficultySettings[difficulty].lives} <TranslatedText text="lives" /> | {difficultySettings[difficulty].hints} <TranslatedText text="hints" /> |
+              {difficultySettings[difficulty].pointsPerMatch} <TranslatedText text="points per" /> {difficulty === 'Hard' ? <TranslatedText text="special mask" /> : <TranslatedText text="match" />}
             </div>
           </div>
         </div>

@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Info } from 'lucide-react';
+import TranslatedText from '../TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving License" }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -11,6 +13,10 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
       setTooltipFn(false);
     }, 3000);
   };
+
+  const tooltipText = useTranslateText(
+    `Begin with the ${category} test to unlock your full assessment experience.`
+  );
 
   if (!isOpen) return null;
 
@@ -70,7 +76,9 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-              <span className="text-sm font-medium">{content.title}</span>
+              <span className="text-sm font-medium">
+                <TranslatedText text={content.title} />
+              </span>
             </div>
             <div
               ref={iconRef}
@@ -80,7 +88,7 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
               <Info className="w-4 h-4 text-black" />
               {showTooltip && (
                 <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/80 backdrop-blur-md border border-white/30 rounded shadow-md">
-                  Begin with the {category} test to unlock your full assessment experience.
+                  {tooltipText}
                 </div>
               )}
             </div>
@@ -93,9 +101,11 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
               alt={`${category} Icon`}
               className="w-[80px] h-[80px] object-contain mb-3"
             />
-            <h2 className="text-lg font-bold">Start Your Journey with Confidence</h2>
+            <h2 className="text-lg font-bold">
+              <TranslatedText text="Start Your Journey with Confidence" />
+            </h2>
             <p className="text-sm text-gray-800 mt-2 px-2">
-              {content.description}
+              <TranslatedText text={content.description} />
             </p>
           </div>
 
@@ -104,7 +114,7 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
             className="w-full bg-[#00332e] hover:bg-[#00443e] text-white text-sm font-semibold py-2.5 rounded-md"
             onClick={onAssesmentClick}
           >
-            {content.buttonText}
+            <TranslatedText text={content.buttonText} />
           </button>
         </div>
       </div>

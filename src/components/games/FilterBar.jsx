@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import TranslatedText from '../TranslatedText.jsx';
 
 const FilterBar = ({
   categories,
@@ -9,7 +10,9 @@ const FilterBar = ({
   return (
     <div className="bg-[#F5F5F5] rounded-md p-2 flex flex-col gap-3
                     sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-      <span className="font-semibold shrink-0" style={{ color: 'black' }}>Categories</span>
+      <span className="font-semibold shrink-0" style={{ color: 'black' }}>
+        <TranslatedText text="Categories" />
+      </span>
       <span className="hidden sm:inline-block h-5 w-px bg-gray-300" />
       <div className="flex gap-2 overflow-x-auto whitespace-nowrap pr-1 sm:flex-wrap" style={{ scrollbarWidth: 'none' }}>
         {categories.map(c => (
@@ -27,7 +30,9 @@ const FilterBar = ({
               backgroundColor: activeCategory === c ? '#f0e2dd' : '#ffffff'
             }}
             onClick={() => onCategoryChange(c)}
-          >{c}</button>
+          >
+            <TranslatedText text={c} />
+          </button>
         ))}
       </div>
 

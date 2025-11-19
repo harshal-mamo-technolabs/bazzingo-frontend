@@ -1,11 +1,12 @@
 import React from 'react';
 import { getFlagByCountry } from '../../utils/CountryFlags';
+import TranslatedText from '../TranslatedText.jsx';
 
 const LeaderboardTable = ({ data = [], currentUser, scope, loading, selectedCountry, selectedAgeGroup }) => {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 p-4 text-center">
-        Loading leaderboard data...
+        <TranslatedText text="Loading leaderboard data..." />
       </div>
     );
   }
@@ -28,11 +29,11 @@ const LeaderboardTable = ({ data = [], currentUser, scope, loading, selectedCoun
       <table className="w-full text-[13px] text-gray-700 border-collapse">
         <thead className="bg-[#EEEEEE] text-[13px]">
           <tr className="border-b border-gray-300">
-            <th className="px-2 py-2 text-center font-semibold border border-gray-200 md:w-[80px]">Rank</th>
-            <th className="px-3 py-2 text-left font-semibold border border-gray-200 md:w-[230px]">Username</th>
-            <th className="px-3 py-2 text-center font-semibold border border-gray-200">Country</th>
+            <th className="px-2 py-2 text-center font-semibold border border-gray-200 md:w-[80px]"><TranslatedText text="Rank" /></th>
+            <th className="px-3 py-2 text-left font-semibold border border-gray-200 md:w-[230px]"><TranslatedText text="Username" /></th>
+            <th className="px-3 py-2 text-center font-semibold border border-gray-200"><TranslatedText text="Country" /></th>
             <th className="px-3 py-2 text-center font-semibold border border-gray-200">
-              {scope === "assessment" ? "Assessment Score" : "Game Score"}
+              {scope === "assessment" ? <TranslatedText text="Assessment Score" /> : <TranslatedText text="Game Score" />}
             </th>
           </tr>
         </thead>
@@ -40,11 +41,17 @@ const LeaderboardTable = ({ data = [], currentUser, scope, loading, selectedCoun
           {(!currentUser && (!data || data.length === 0)) && (
             <tr>
               <td colSpan={4} className="px-3 py-6 text-center text-gray-500">
-                {`No data is available for ${
-                  selectedCountry || selectedAgeGroup
-                    ? `the selected ${selectedCountry ? `country "${selectedCountry}"` : ""}${selectedCountry && selectedAgeGroup ? " and " : ""}${selectedAgeGroup ? `age group "${selectedAgeGroup}"` : ""}`
-                    : "the selected filters"
-                }.`}
+                {selectedCountry || selectedAgeGroup ? (
+                  <>
+                    <TranslatedText text="No data is available for the selected" />{' '}
+                    {selectedCountry && <><TranslatedText text="country" /> "{selectedCountry}"</>}
+                    {selectedCountry && selectedAgeGroup && ' '}
+                    {selectedAgeGroup && <><TranslatedText text="age group" /> "{selectedAgeGroup}"</>}
+                    .
+                  </>
+                ) : (
+                  <TranslatedText text="No data is available for the selected filters." />
+                )}
               </td>
             </tr>
           )}

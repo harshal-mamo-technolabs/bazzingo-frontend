@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, memo } from "react";
+import TranslatedText from "../TranslatedText.jsx";
 
 /**
  * A headless-style dropdown that looks consistent across browsers.
@@ -100,7 +101,9 @@ const TimeRangeDropdown = ({
           className
         ].join(" ")}
       >
-        <span className="truncate">{label}</span>
+        <span className="truncate">
+          <TranslatedText text={label} />
+        </span>
         <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
@@ -140,7 +143,7 @@ const TimeRangeDropdown = ({
                       isSelected && "font-semibold"
                     ].join(" ")}
                   >
-                    {opt.label}
+                    <TranslatedText text={opt.label} />
                   </button>
                 </li>
               );

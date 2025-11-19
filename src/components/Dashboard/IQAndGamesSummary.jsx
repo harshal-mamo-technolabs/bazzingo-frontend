@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import {BrainDuotoneIcon, DownloadCertificateIcon, PuzzlePiecesIcon} from "../../utils/dashboard-image.js";
+import TranslatedText from "../TranslatedText.jsx";
 
 const InfoDot = memo(({ title = "More info" }) => (
   <span
@@ -48,8 +49,12 @@ function IQAndGamesSummary({
         {/* Left: Primary Metric */}
         <div className="flex items-center gap-8">
           <StatItem
-            topLabel={`Your ${metricTitleShort}`}
-            bottomLabel="Score"
+            topLabel={
+              <TranslatedText
+                text={isDriving ? 'Your Driving Licence' : 'Your IQ'}
+              />
+            }
+            bottomLabel={<TranslatedText text="Score" />}
             value={primaryScore}
             infoTitle={`Your latest ${metricTitleShort} score`}
           />
@@ -88,8 +93,8 @@ function IQAndGamesSummary({
         {/* Right: Total Games */}
         <div className="flex items-center gap-4">
           <StatItem
-            topLabel="Total Game"
-            bottomLabel="Played"
+            topLabel={<TranslatedText text="Total Game" />}
+            bottomLabel={<TranslatedText text="Played" />}
             value={totalGames}
             infoTitle="Total games you have played"
           />
@@ -104,16 +109,20 @@ function IQAndGamesSummary({
         {/* Top Row */}
         <div className="flex justify-between items-center">
           {/* Primary Metric */}
-          <img src={BrainDuotoneIcon} alt="Metric" className="w-10 h-10 mb-1" />
+            <img src={BrainDuotoneIcon} alt="Metric" className="w-10 h-10 mb-1" />
           <div className="flex flex-col items-center">
-            <p className="text-xs text-gray-700 font-medium">{metricTitleLong}</p>
+            <p className="text-xs text-gray-700 font-medium">
+              <TranslatedText text={metricTitleLong} />
+            </p>
             <p className="text-2xl font-bold text-gray-900">{primaryScore}</p>
           </div>
 
           {/* Total Game Played */}
           <img src={PuzzlePiecesIcon} alt="Puzzle" className="w-10 h-10 mb-1" />
           <div className="flex flex-col items-center">
-            <p className="text-xs text-gray-700 font-medium text-center">Total Game Played</p>
+            <p className="text-xs text-gray-700 font-medium text-center">
+              <TranslatedText text="Total Game Played" />
+            </p>
             <p className="text-2xl font-bold text-gray-900">{totalGames}</p>
           </div>
         </div>

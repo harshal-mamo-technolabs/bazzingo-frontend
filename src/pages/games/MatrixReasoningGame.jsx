@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 import {
     Lightbulb,
     CheckCircle,
@@ -1334,6 +1336,12 @@ const MatrixCell = ({
 const MatrixReasoningGame = () => {
     const [gameState, setGameState] = useState('ready');
     const [difficulty, setDifficulty] = useState('Easy');
+    
+    // Translated strings for dynamic messages
+    const excellentPatternText = useTranslateText('Excellent! You found the correct pattern!');
+    const incorrectLivesText = useTranslateText('Incorrect! Lives remaining:');
+    const correctText = useTranslateText('Correct!');
+    const incorrectText = useTranslateText('Incorrect!');
     const [score, setScore] = useState(0);
     const [finalScore, setFinalScore] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState(300);
@@ -1404,6 +1412,17 @@ const MatrixReasoningGame = () => {
             totalQuestions: 4,
             lives: 1
         }
+    };
+    
+    // Translated difficulty descriptions
+    const easyDescription = useTranslateText('Simple shape and color patterns');
+    const moderateDescription = useTranslateText('Multi-attribute patterns with rotations');
+    const hardDescription = useTranslateText('Complex sequences and mathematical patterns');
+    
+    const getDifficultyDescription = (diff) => {
+        if (diff === 'Easy') return easyDescription;
+        if (diff === 'Moderate') return moderateDescription;
+        return hardDescription;
     };
 
     // Pattern generators by difficulty
@@ -1508,13 +1527,13 @@ const MatrixReasoningGame = () => {
             setScore(prev => Math.min(200, prev + pointsPerPuzzle));
             setCorrectAnswers(prev => prev + 1);
             setFeedbackType('correct');
-            setFeedbackMessage('Excellent! You found the correct pattern!');
+            setFeedbackMessage(excellentPatternText);
         } else {
             // Lose a life for wrong answer
             const newLives = lives - 1;
             setLives(newLives);
             setFeedbackType('incorrect');
-            setFeedbackMessage(`Incorrect! Lives remaining: ${newLives}`);
+            setFeedbackMessage(`${incorrectLivesText} ${newLives}`);
         }
 
         setShowFeedback(true);
@@ -1649,8 +1668,8 @@ const MatrixReasoningGame = () => {
             {gameState === 'ready' && <Header unreadCount={3} />}
 
             <GameFramework
-                gameTitle="Matrix Reasoning"
-        gameShortDescription="Complete visual patterns by finding the missing piece. Challenge your spatial reasoning and pattern recognition!"
+                gameTitle={<TranslatedText text="Matrix Reasoning" />}
+        gameShortDescription={<TranslatedText text="Complete visual patterns by finding the missing piece. Challenge your spatial reasoning and pattern recognition!" />}
                 gameDescription={
                     <div className="mx-auto px-1 mb-2">
                         <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -1660,7 +1679,7 @@ const MatrixReasoningGame = () => {
                                 onClick={() => setShowInstructions(!showInstructions)}
                             >
                                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    How to Play Matrix Reasoning
+                                    <TranslatedText text="How to Play Matrix Reasoning" />
                                 </h3>
                                 <span className="text-blue-900 text-xl">
                                     {showInstructions ? (
@@ -1675,44 +1694,44 @@ const MatrixReasoningGame = () => {
                             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showInstructions ? '' : 'hidden'}`}>
                                 <div className='bg-white p-3 rounded-lg'>
                                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🧩 Objective
+                                        🧩 <TranslatedText text="Objective" />
                                     </h4>
                                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Complete the pattern in a 3x3 matrix by finding the logic across rows and columns, then select the missing piece.
+                                        <TranslatedText text="Complete the pattern in a 3x3 matrix by finding the logic across rows and columns, then select the missing piece." />
                                     </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg'>
                                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🎯 Pattern Types
+                                        🎯 <TranslatedText text="Pattern Types" />
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong>Easy:</strong> Colors and simple shapes (8 questions)</li>
-                                        <li>• <strong>Moderate:</strong> Rotations and combinations (5 questions)</li>
-                                        <li>• <strong>Hard:</strong> Complex sequences and math (4 questions)</li>
+                                        <li>• <strong><TranslatedText text="Easy" />:</strong> <TranslatedText text="Colors and simple shapes (8 questions)" /></li>
+                                        <li>• <strong><TranslatedText text="Moderate" />:</strong> <TranslatedText text="Rotations and combinations (5 questions)" /></li>
+                                        <li>• <strong><TranslatedText text="Hard" />:</strong> <TranslatedText text="Complex sequences and math (4 questions)" /></li>
                                     </ul>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg'>
                                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        ❤️ Lives & Scoring (0-200)
+                                        ❤️ <TranslatedText text="Lives & Scoring (0-200)" />
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Easy: 3 lives, 25 pts per correct</li>
-                                        <li>• Moderate: 2 lives, 40 pts per correct</li>
-                                        <li>• Hard: 1 life, 50 pts per correct</li>
-                                        <li>• Wrong answers lose a life</li>
+                                        <li>• <TranslatedText text="Easy: 3 lives, 25 pts per correct" /></li>
+                                        <li>• <TranslatedText text="Moderate: 2 lives, 40 pts per correct" /></li>
+                                        <li>• <TranslatedText text="Hard: 1 life, 50 pts per correct" /></li>
+                                        <li>• <TranslatedText text="Wrong answers lose a life" /></li>
                                     </ul>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg'>
                                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        💡 Strategy
+                                        💡 <TranslatedText text="Strategy" />
                                     </h4>
                                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Look for row and column patterns</li>
-                                        <li>• Consider shape, color, size changes</li>
-                                        <li>• Use hints wisely for complex patterns</li>
+                                        <li>• <TranslatedText text="Look for row and column patterns" /></li>
+                                        <li>• <TranslatedText text="Consider shape, color, size changes" /></li>
+                                        <li>• <TranslatedText text="Use hints wisely for complex patterns" /></li>
                                     </ul>
                                 </div>
                             </div>
@@ -1739,7 +1758,7 @@ const MatrixReasoningGame = () => {
                         {gameState === 'playing' && (
                             <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-indigo-100 px-4 py-2 rounded-lg">
                                 <span className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    Progress: {totalQuestions}/{difficultySettings[difficulty].totalQuestions}
+                                    <TranslatedText text="Progress:" /> {totalQuestions}/{difficultySettings[difficulty].totalQuestions}
                                 </span>
                             </div>
                         )}
@@ -1749,7 +1768,7 @@ const MatrixReasoningGame = () => {
                             <div className="flex items-center gap-2 bg-gradient-to-r from-red-100 to-pink-100 px-4 py-2 rounded-lg">
                                 <Heart className="h-4 w-4 text-red-600" />
                                 <span className="text-sm font-medium text-red-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    Lives: {lives}/{maxLives}
+                                    <TranslatedText text="Lives:" /> {lives}/{maxLives}
                                 </span>
                             </div>
                         )}
@@ -1765,7 +1784,7 @@ const MatrixReasoningGame = () => {
                                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                             >
                                 <Lightbulb className="h-4 w-4 animate-bounce" />
-                                Hint ({maxHints - hintsUsed})
+                                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
                             </button>
                         )}
                     </div>
@@ -1776,10 +1795,10 @@ const MatrixReasoningGame = () => {
                             <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-xl border border-gray-200 mb-6">
                                 <div className="text-center mb-4">
                                     <h3 className="text-lg font-semibold text-gray-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        Complete the Pattern
+                                        <TranslatedText text="Complete the Pattern" />
                                     </h3>
                                     <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        Find the missing piece that completes the 3×3 matrix pattern
+                                        <TranslatedText text="Find the missing piece that completes the 3×3 matrix pattern" />
                                     </div>
                                 </div>
 
@@ -1815,12 +1834,11 @@ const MatrixReasoningGame = () => {
                                         <div className="flex items-center mb-2">
                                             <Eye className="h-5 w-5 text-amber-600 mr-2 animate-bounce" />
                                             <span className="font-semibold text-amber-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                                Pattern Hint
+                                                <TranslatedText text="Pattern Hint" />
                                             </span>
                                         </div>
                                         <p className="text-sm text-amber-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            Look carefully at how the patterns change across rows and columns.
-                                            The missing piece should follow the same logical progression.
+                                            <TranslatedText text="Look carefully at how the patterns change across rows and columns. The missing piece should follow the same logical progression." />
                                         </p>
                                     </div>
                                 )}
@@ -1828,7 +1846,7 @@ const MatrixReasoningGame = () => {
                                 {/* Answer Options */}
                                 <div className="space-y-4">
                                     <h4 className="text-center text-lg font-semibold text-gray-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        Choose the correct answer:
+                                        <TranslatedText text="Choose the correct answer:" />
                                     </h4>
 
                                     <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-sm sm:max-w-2xl mx-auto sm:grid-cols-4">
@@ -1860,7 +1878,7 @@ const MatrixReasoningGame = () => {
                                                             />
                                                         </div>
                                                         <div className="text-xs sm:text-sm font-medium text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                                            Option {String.fromCharCode(65 + index)}
+                                                            <TranslatedText text="Option" /> {String.fromCharCode(65 + index)}
                                                         </div>
                                                     </div>
 
@@ -1900,12 +1918,12 @@ const MatrixReasoningGame = () => {
                                         )}
                                         <div className={`text-xl font-bold ${feedbackType === 'correct' ? 'text-green-800' : 'text-red-800'
                                             }`} style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            {feedbackType === 'correct' ? 'Correct!' : 'Incorrect!'}
+                                            {feedbackType === 'correct' ? correctText : incorrectText}
                                         </div>
                                     </div>
                                     <div className={`text-lg ${feedbackType === 'correct' ? 'text-green-700' : 'text-red-700'
                                         }`} style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        {feedbackMessage}
+                                        <TranslatedText text={feedbackMessage} />
                                     </div>
                                 </div>
                             )}

@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getDailySuggestions } from '../../services/gameService'
 import BazzingoLoader from '../Loading/BazzingoLoader'
+import TranslatedText from '../TranslatedText.jsx'
 
 const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
   const navigate = useNavigate()
@@ -147,18 +148,18 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
 
         <div className="w-full text-center mt-2">
           <span className="inline-block bg-[#FF6947] text-white text-sm font-medium px-8 py-2 rounded-full">
-            Daily Game Complete
+            <TranslatedText text="Daily Game Complete" />
           </span>
         </div>
 
         <div className="w-full text-center mt-2">
           {score === 0 ? (
             <span className="text-center text-3xl font-bold italic text-[#208900]">
-              Just the Beginning!
+              <TranslatedText text="Just the Beginning!" />
             </span>
           ) : (
             <span className="text-center text-3xl font-bold italic text-[#208900]">
-              Nice Job!
+              <TranslatedText text="Nice Job!" />
             </span>
           )}
         </div>
@@ -166,7 +167,7 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
         <div className="mt-4 mx-5">
           <div className="bg-[#FFF4F2] border border-[#FF6947] rounded-lg p-4">
             <p className="text-center text-lg font-semibold text-gray-800">
-              Your Score
+              <TranslatedText text="Your Score" />
             </p>
             <p className="text-center text-5xl font-bold text-[#FF6947] mt-2">
               {score}
@@ -178,7 +179,7 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
 
         <div className="px-5">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Continue Your Daily Streak
+            <TranslatedText text="Continue Your Daily Streak" />
           </h3>
         </div>
 
@@ -186,7 +187,7 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
         <div className="px-5 space-y-3 mb-6 max-h-60 overflow-y-auto">
           {loading ? (
             <div className="py-8">
-              <BazzingoLoader message="Loading daily suggestions..." compact={true} />
+              <BazzingoLoader message={<TranslatedText text="Loading daily suggestions..." />} compact={true} />
             </div>
           ) : allGamesPlayed ? (
             <div className="py-8 text-center">
@@ -194,7 +195,7 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-3xl">🎉</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Daily Streak Complete!</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2"><TranslatedText text="Daily Streak Complete!" /></h3>
               </div>
             </div>
           ) : suggestions.length > 0 ? (
@@ -212,21 +213,21 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
                     />
                   </div>
                   <div>
-                    <h4 className="text-base font-semibold text-gray-800">{suggestion.gameId.name}</h4>
-                    <span className="text-xs text-gray-600 capitalize">{suggestion.difficulty}</span>
+                    <h4 className="text-base font-semibold text-gray-800"><TranslatedText text={suggestion.gameId.name}/></h4>
+                    <span className="text-xs text-gray-600 capitalize"><TranslatedText text={suggestion.difficulty}/></span>
                   </div>
                 </div>
-                <button
+                  <button
                   onClick={() => handlePlayGame(suggestion)}
                   className="bg-[#FF6947] text-white px-6 py-2 rounded-lg font-medium text-sm hover:bg-[#e55a3a] transition-colors"
                 >
-                  Play
+                  <TranslatedText text="Play" />
                 </button>
               </div>
             ))
           ) : (
             <div className="py-8">
-              <BazzingoLoader message="Loading daily suggestions..." compact={true} />
+              <BazzingoLoader message={<TranslatedText text="Loading daily suggestions..." />} compact={true} />
             </div>
           )}
         </div>

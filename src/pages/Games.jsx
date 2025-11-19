@@ -5,10 +5,12 @@ import GamesGrid from '../components/games/GamesGrid';
 import DailyGameModal from '../components/Dashboard/DailyGameModal.jsx';
 import { getAllGames } from '../services/gameService';
 import BazzingoLoader from "../components/Loading/BazzingoLoader";
+import TranslatedText from '../components/TranslatedText.jsx';
+import { useTranslateText } from '../hooks/useTranslate';
 
 const categories = [
   'All', 'Gameacy',
-  'Problem Solving', 'Critical Thinking', 'Logic', 'Memory', 
+  'Problem Solving', 'Critical Thinking', 'Logic', 'Memory',
 ];
 
 const pillConfig = {
@@ -114,12 +116,15 @@ export default function Games() {
     return games.filter(game => game.category === activeCategory);
   }, [activeCategory, games]);
 
+  const loadingMessage = useTranslateText('Loading games...');
+  const errorMessage = useTranslateText(error || 'Failed to load games');
+
   if (loading) {
     return (
       <MainLayout unreadCount={unread}>
         <div className="mx-auto px-4 lg:px-12 py-4">
           <div className="p-6">
-            <BazzingoLoader message="Loading games..." />
+            <BazzingoLoader message={loadingMessage} />
           </div>
         </div>
       </MainLayout>
@@ -130,7 +135,7 @@ export default function Games() {
     return (
       <MainLayout unreadCount={unread}>
         <div className="flex justify-center items-center min-h-screen">
-          <div className="text-lg text-red-600">{error}</div>
+          <div className="text-lg text-red-600">{errorMessage}</div>
         </div>
       </MainLayout>
     );

@@ -1,4 +1,6 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import TranslatedText from "../TranslatedText.jsx";
+import { useTranslateText } from "../../hooks/useTranslate";
 
 /**
  * Headless dropdown (no external CSS) with optional search.
@@ -20,7 +22,7 @@ function SelectMenu({
   options = [],
   value,
   onChange,
-  placeholder = "Select",
+  placeholder = "Select", // Can be string or React node
   searchable = false,
   clearable = false,
   align = "left",
@@ -35,6 +37,7 @@ function SelectMenu({
   const btnRef = useRef(null);
   const menuRef = useRef(null);
   const searchRef = useRef(null);
+  const searchPlaceholder = useTranslateText("Search...");
 
   const selected = useMemo(
     () => options.find(o => o.key === value),
@@ -119,9 +122,13 @@ function SelectMenu({
           "hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200",
           buttonClassName,
         ].join(" ")}
-        title={selected?.label || placeholder}
+        title={typeof placeholder === 'string' ? (selected?.label || placeholder) : (typeof selected?.label === 'string' ? selected.label : '')}
       >
-        <span className="truncate">{selected?.label || placeholder}</span>
+        {selected?.label ? (
+          <span className="truncate">{typeof selected.label === 'string' ? selected.label : selected.label}</span>
+        ) : (
+          <span className="truncate">{typeof placeholder === 'string' ? placeholder : placeholder}</span>
+        )}
         <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
@@ -145,7 +152,7 @@ function SelectMenu({
                 ref={searchRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search..."
+                placeholder={searchPlaceholder}
                 className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200"
               />
             </div>
@@ -159,13 +166,13 @@ function SelectMenu({
                   onClick={() => { onChange?.(""); setOpen(false); btnRef.current?.focus(); }}
                   className="w-full text-left px-3 py-2 text-xs md:text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  Clear filter
+                  <TranslatedText text="Clear filter" />
                 </button>
               </li>
             ) : null}
 
             {filtered.length === 0 ? (
-              <li className="px-3 py-2 text-xs md:text-sm text-gray-500">No results</li>
+              <li className="px-3 py-2 text-xs md:text-sm text-gray-500"><TranslatedText text="No results" /></li>
             ) : (
               filtered.map((opt, idx) => {
                 const isSelected = opt.key === value;

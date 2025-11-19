@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, Plus, Minus, Menu } from 'lucide-react';
 import Header from '../components/Header';
+import TranslatedText from '../components/TranslatedText.jsx';
 
 function HelpFAQs() {
     const navigate = useNavigate();
@@ -11,24 +12,24 @@ function HelpFAQs() {
 
     const faqs = [
         {
-            question: "How do I reset my password?",
-            answer: "Go to Settings > Update Password. Enter your current password and set a new one."
+            question: <TranslatedText text="How do I reset my password?" />,
+            answer: <TranslatedText text="Go to Settings > Update Password. Enter your current password and set a new one." />
         },
         {
-            question: "What are badges and how do I earn them?",
-            answer: "Badges are achievements you earn by completing specific tasks or reaching milestones in games. You can view your badges in your profile section."
+            question: <TranslatedText text="What are badges and how do I earn them?" />,
+            answer: <TranslatedText text="Badges are achievements you earn by completing specific tasks or reaching milestones in games. You can view your badges in your profile section." />
         },
         {
-            question: "Can I delete my account?",
-            answer: "Yes, you can delete your account by going to Settings > Account Settings > Delete Account. Please note that this action is irreversible."
+            question: <TranslatedText text="Can I delete my account?" />,
+            answer: <TranslatedText text="Yes, you can delete your account by going to Settings > Account Settings > Delete Account. Please note that this action is irreversible." />
         },
         {
-            question: "Why didn't I get a badge after a game?",
-            answer: "Badges are awarded based on specific criteria. Make sure you've met all the requirements for the badge. Some badges may take time to appear in your profile."
+            question: <TranslatedText text="Why didn't I get a badge after a game?" />,
+            answer: <TranslatedText text="Badges are awarded based on specific criteria. Make sure you've met all the requirements for the badge. Some badges may take time to appear in your profile." />
         },
         {
-            question: "How is the leaderboard rank calculated?",
-            answer: "The leaderboard rank is calculated based on your total points earned across all games, completion time, and accuracy. Rankings are updated in real-time."
+            question: <TranslatedText text="How is the leaderboard rank calculated?" />,
+            answer: <TranslatedText text="The leaderboard rank is calculated based on your total points earned across all games, completion time, and accuracy. Rankings are updated in real-time." />
         }
     ];
 
@@ -48,16 +49,16 @@ function HelpFAQs() {
                     <div className="flex items-center" style={{ marginBottom: '8px' }}>
                         <ArrowLeft style={{ height: '14px', width: '14px', marginRight: '8px' }} className="text-gray-600 cursor-pointer" onClick={() => navigate(-1)} />
                         <h2 className="text-gray-900 text-lg lg:text-xl" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>
-                            <span className="lg:hidden" style={{ fontSize: '18px', fontWeight: '500' }}>Help & FAQs</span>
-                            <span className="hidden lg:inline" style={{ fontSize: '20px', fontWeight: 'bold' }}>Help & FAQs</span>
+                            <span className="lg:hidden" style={{ fontSize: '18px', fontWeight: '500' }}><TranslatedText text="Help & FAQs" /></span>
+                            <span className="hidden lg:inline" style={{ fontSize: '20px', fontWeight: 'bold' }}><TranslatedText text="Help & FAQs" /></span>
                         </h2>
                     </div>
-                    <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400' }}>Find answers to the most common questions. Still need help? Raise a ticket.</p>
+                    <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400' }}><TranslatedText text="Find answers to the most common questions. Still need help? Raise a ticket." /></p>
                 </div>
 
                 {/* Content Container */}
                 <div className="px-4 lg:px-12 py-4 lg:py-1 max-w-xl">
-                    <h3 className="text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600' }}>FAQs</h3>
+                    <h3 className="text-gray-900 mb-4" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600' }}><TranslatedText text="FAQs" /></h3>
 
                     <div className="space-y-3">
                         {faqs.map((faq, i) => {
@@ -69,8 +70,8 @@ function HelpFAQs() {
                                         className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 focus:outline-none"
                                     >
                                         <span className="text-gray-900 text-sm lg:text-base" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', fontWeight: '400' }}>
-                                            <span className="lg:hidden" style={{ fontSize: '14px', fontWeight: '400' }}>{faq.question}</span>
-                                            <span className="hidden lg:inline" style={{ fontSize: '16px', fontWeight: '400' }}>{faq.question}</span>
+                                            <span className="lg:hidden" style={{ fontSize: '14px', fontWeight: '400' }}>{typeof faq.question === 'string' ? <TranslatedText text={faq.question} /> : faq.question}</span>
+                                            <span className="hidden lg:inline" style={{ fontSize: '16px', fontWeight: '400' }}>{typeof faq.question === 'string' ? <TranslatedText text={faq.question} /> : faq.question}</span>
                                         </span>
                                         {isOpen
                                             ? <Minus className="w-4 h-4 text-gray-600" />
@@ -82,8 +83,8 @@ function HelpFAQs() {
 
                                     {isOpen && (
                                         <div className="bg-gray-50 px-4 pb-4 pt-3 text-gray-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                            <span className="lg:hidden" style={{ fontSize: '14px' }}>{faq.answer}</span>
-                                            <span className="hidden lg:inline" style={{ fontSize: '16px' }}>{faq.answer}</span>
+                                            <span className="lg:hidden" style={{ fontSize: '14px' }}>{typeof faq.answer === 'string' ? <TranslatedText text={faq.answer} /> : faq.answer}</span>
+                                            <span className="hidden lg:inline" style={{ fontSize: '16px' }}>{typeof faq.answer === 'string' ? <TranslatedText text={faq.answer} /> : faq.answer}</span>
                                         </div>
                                     )}
                                 </div>

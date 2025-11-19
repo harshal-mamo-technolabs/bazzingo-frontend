@@ -1,4 +1,5 @@
 import React from 'react';
+import TranslatedText from '../TranslatedText.jsx';
 
 const SaveButton = ({ onSave, loading = false }) => {
   return (
@@ -16,7 +17,7 @@ const SaveButton = ({ onSave, loading = false }) => {
         padding: '20px 20px',
       }}
     >
-      {loading ? 'Saving...' : 'Save Preferences'}
+      {loading ? <TranslatedText text="Saving..." /> : <TranslatedText text="Save Preferences" />}
     </button>
   );
 };

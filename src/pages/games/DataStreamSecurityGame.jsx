@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 import {
     Lock,
     Unlock,
@@ -20,6 +22,12 @@ import {
 const DataStreamSecurityGame = () => {
     const [gameState, setGameState] = useState('ready');
     const [difficulty, setDifficulty] = useState('Easy');
+    
+    // Translated strings for dynamic messages
+    const securityLockBypassedText = useTranslateText('Security lock bypassed! Data stream authenticated.');
+    const accessDeniedText = useTranslateText('Access denied! Pattern sequence broken.');
+    const accessGrantedText = useTranslateText('ACCESS GRANTED');
+    const accessDeniedLabelText = useTranslateText('ACCESS DENIED');
     const [score, setScore] = useState(0);
     const [finalScore, setFinalScore] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState(120);
@@ -96,6 +104,17 @@ const DataStreamSecurityGame = () => {
             description: '5-step patterns, 10s study time, 4 locks, 50 points each'
         }
     };
+    
+    // Translated difficulty descriptions
+    const easyDescription = useTranslateText('5-step patterns, 15s study time, 8 locks, 25 points each');
+    const moderateDescription = useTranslateText('5-step patterns, 12s study time, 5 locks, 40 points each');
+    const hardDescription = useTranslateText('5-step patterns, 10s study time, 4 locks, 50 points each');
+    
+    const getDifficultyDescription = (diff) => {
+        if (diff === 'Easy') return easyDescription;
+        if (diff === 'Moderate') return moderateDescription;
+        return hardDescription;
+    };
 
     // Generate pattern sequence
     const generatePattern = useCallback((length) => {
@@ -162,7 +181,7 @@ const DataStreamSecurityGame = () => {
                 return newStreak;
             });
             setFeedbackType('correct');
-            setFeedbackMessage('Security lock bypassed! Data stream authenticated.');
+            setFeedbackMessage(securityLockBypassedText);
         } else {
             setStreak(0);
             setLives(prev => {
@@ -173,7 +192,7 @@ const DataStreamSecurityGame = () => {
                 return newLives;
             });
             setFeedbackType('incorrect');
-            setFeedbackMessage('Access denied! Pattern sequence broken.');
+            setFeedbackMessage(accessDeniedText);
         }
 
         setShowFeedback(true);
@@ -364,8 +383,8 @@ const DataStreamSecurityGame = () => {
             {gameState === 'ready' && <Header unreadCount={3} />}
 
             <GameFramework
-                gameTitle="Data Stream Security"
-        gameShortDescription="Protect data streams from cyber threats. Challenge your cybersecurity knowledge and strategic thinking!"
+                gameTitle={<TranslatedText text="Data Stream Security" />}
+        gameShortDescription={<TranslatedText text="Protect data streams from cyber threats. Challenge your cybersecurity knowledge and strategic thinking!" />}
                 gameDescription={
                     <div className="mx-auto px-1 mb-2">
                         <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -374,7 +393,7 @@ const DataStreamSecurityGame = () => {
                                 onClick={() => setShowInstructions(!showInstructions)}
                             >
                                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    How to Play Data Stream Security
+                                    <TranslatedText text="How to Play Data Stream Security" />
                                 </h3>
                                 <span className="text-blue-900 text-xl">
                                     {showInstructions
@@ -386,39 +405,39 @@ const DataStreamSecurityGame = () => {
                             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showInstructions ? '' : 'hidden'}`}>
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-cyan-500'>
                                     <h4 className="text-sm font-medium text-cyan-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🎯 Game Objective
+                                        🎯 <TranslatedText text="Game Objective" />
                                     </h4>
                                     <p className="text-sm text-cyan-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Memorize a sequence of colored symbols and predict the next elements to unlock security systems.
+                                        <TranslatedText text="Memorize a sequence of colored symbols and predict the next elements to unlock security systems." />
                                     </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-purple-500'>
                                     <h4 className="text-sm font-medium text-purple-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🌊 Learning Phase
+                                        🌊 <TranslatedText text="Learning Phase" />
                                     </h4>
                                     <p className="text-sm text-purple-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Carefully study the flowing data stream pattern. You'll have limited time to memorize the sequence.
+                                        <TranslatedText text="Carefully study the flowing data stream pattern. You'll have limited time to memorize the sequence." />
                                     </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-green-500'>
                                     <h4 className="text-sm font-medium text-green-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🔒 Unlocking Phase
+                                        🔒 <TranslatedText text="Unlocking Phase" />
                                     </h4>
                                     <p className="text-sm text-green-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Predict the next symbol in the sequence to bypass security locks. Each correct answer earns points based on difficulty.
+                                        <TranslatedText text="Predict the next symbol in the sequence to bypass security locks. Each correct answer earns points based on difficulty." />
                                     </p>
                                 </div>
 
                                 <div className='bg-white p-3 rounded-lg border-l-4 border-orange-500'>
                                     <h4 className="text-sm font-medium text-orange-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🏆 Scoring System
+                                        🏆 <TranslatedText text="Scoring System" />
                                     </h4>
                                     <ul className="text-sm text-orange-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong>Easy:</strong> 25 points per correct answer</li>
-                                        <li>• <strong>Moderate:</strong> 40 points per correct answer</li>
-                                        <li>• <strong>Hard:</strong> 50 points per correct answer</li>
+                                        <li>• <strong><TranslatedText text="Easy" />:</strong> <TranslatedText text="25 points per correct answer" /></li>
+                                        <li>• <strong><TranslatedText text="Moderate" />:</strong> <TranslatedText text="40 points per correct answer" /></li>
+                                        <li>• <strong><TranslatedText text="Hard" />:</strong> <TranslatedText text="50 points per correct answer" /></li>
                                     </ul>
                                 </div>
                             </div>
@@ -442,7 +461,7 @@ const DataStreamSecurityGame = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
                         <div className="text-center bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-3 border border-red-200">
                             <div className="text-sm text-red-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Security Lives
+                                <TranslatedText text="Security Lives" />
                             </div>
                             <div className="text-lg font-bold text-red-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 {'🔐'.repeat(lives)}
@@ -450,7 +469,7 @@ const DataStreamSecurityGame = () => {
                         </div>
                         <div className="text-center bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
                             <div className="text-sm text-green-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Unlock Streak
+                                <TranslatedText text="Unlock Streak" />
                             </div>
                             <div className="text-lg font-bold text-green-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 {streak} 🔓
@@ -458,7 +477,7 @@ const DataStreamSecurityGame = () => {
                         </div>
                         <div className="text-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
                             <div className="text-sm text-blue-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Bypassed
+                                <TranslatedText text="Bypassed" />
                             </div>
                             <div className="text-lg font-bold text-blue-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
                                 {correctUnlocks}/{totalLocks || difficultySettings[difficulty].lockCount}
@@ -466,10 +485,10 @@ const DataStreamSecurityGame = () => {
                         </div>
                         <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
                             <div className="text-sm text-purple-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Status
+                                <TranslatedText text="Status" />
                             </div>
                             <div className="text-lg font-bold text-purple-700 capitalize" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {currentPhase}
+                                <TranslatedText text={currentPhase} />
                             </div>
                         </div>
                     </div>
@@ -489,14 +508,14 @@ const DataStreamSecurityGame = () => {
                                     <div className="flex items-center justify-center gap-3 mb-4">
                                         <Eye className="h-6 w-6 text-cyan-600 glow-effect" />
                                         <h3 className="text-xl font-bold text-cyan-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            Data Stream Analysis - Learning Phase
+                                            <TranslatedText text="Data Stream Analysis - Learning Phase" />
                                         </h3>
                                         <Cpu className="h-6 w-6 text-cyan-600 glow-effect" />
                                     </div>
                                     <div className="flex items-center justify-center gap-2 text-cyan-700 mb-3">
                                         <Timer className="h-5 w-5" />
                                         <span className="font-bold text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            Scanning Time: {learningTimeLeft}s
+                                            <TranslatedText text="Scanning Time:" /> {learningTimeLeft}s
                                         </span>
                                     </div>
                                     <div className="h-3 bg-cyan-200 rounded-full overflow-hidden">
@@ -513,7 +532,7 @@ const DataStreamSecurityGame = () => {
                                 <div className="bg-black rounded-lg p-6 mb-6 min-h-[200px] relative overflow-hidden border-2 border-gray-700">
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-900/20 to-transparent"></div>
                                     <h4 className="text-green-400 text-center mb-4 font-mono text-lg">
-                                        &gt; ANALYZING DATA STREAM PATTERN &lt;
+                                        &gt; <TranslatedText text="ANALYZING DATA STREAM PATTERN" /> &lt;
                                     </h4>
                                     
                                     {/* Flowing Data Stream */}
@@ -553,7 +572,7 @@ const DataStreamSecurityGame = () => {
 
                                     {/* Pattern Display */}
                                     <div className="mt-8 text-center">
-                                        <div className="text-green-400 mb-2 font-mono">PATTERN SEQUENCE:</div>
+                                        <div className="text-green-400 mb-2 font-mono"><TranslatedText text="PATTERN SEQUENCE:" /></div>
                                         <div className="flex justify-center gap-4 flex-wrap">
                                             {patternSequence.map((item, index) => (
                                                 <motion.div
@@ -600,13 +619,13 @@ const DataStreamSecurityGame = () => {
                                     <div className="flex items-center justify-center gap-3 mb-4">
                                         <Lock className="h-6 w-6 text-purple-600 glow-effect" />
                                         <h3 className="text-xl font-bold text-purple-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            Security Lock #{currentLockIndex + 1}
+                                            <TranslatedText text="Security Lock" /> #{currentLockIndex + 1}
                                         </h3>
                                         <Brain className="h-6 w-6 text-purple-600 glow-effect" />
                                     </div>
                                     <div className="text-purple-700">
                                         <span className="font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            Lock {currentLockIndex + 1} of {totalLocks}
+                                            <TranslatedText text="Lock" /> {currentLockIndex + 1} <TranslatedText text="of" /> {totalLocks}
                                         </span>
                                     </div>
                                     <div className="h-3 bg-purple-200 rounded-full mt-3 overflow-hidden">
@@ -622,7 +641,7 @@ const DataStreamSecurityGame = () => {
                                 {/* Current Sequence Display */}
                                 <div className="bg-gray-900 rounded-lg p-6 mb-6 border-2 border-gray-700">
                                     <div className="text-green-400 text-center mb-4 font-mono">
-                                        CURRENT SEQUENCE:
+                                        <TranslatedText text="CURRENT SEQUENCE:" />
                                     </div>
                                     <div className="flex justify-center gap-3 mb-4">
                                         {currentLock.sequence.map((item, index) => (
@@ -647,7 +666,7 @@ const DataStreamSecurityGame = () => {
                                         </div>
                                     </div>
                                     <div className="text-yellow-400 text-center font-mono text-sm">
-                                        PREDICT NEXT ELEMENT TO UNLOCK SECURITY SYSTEM
+                                        <TranslatedText text="PREDICT NEXT ELEMENT TO UNLOCK SECURITY SYSTEM" />
                                     </div>
                                 </div>
 
@@ -692,7 +711,7 @@ const DataStreamSecurityGame = () => {
                                                     {option.symbol}
                                                 </div>
                                                 <div className="text-sm font-mono opacity-75">
-                                                    Option {String.fromCharCode(65 + index)}
+                                                    <TranslatedText text="Option" /> {String.fromCharCode(65 + index)}
                                                 </div>
                                                 {selectedAnswer !== null && (
                                                     <div className="mt-2 text-lg">
@@ -729,12 +748,12 @@ const DataStreamSecurityGame = () => {
                                         <XCircle className="h-8 w-8 text-red-400" />
                                     )}
                                     <div className="text-xl font-bold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        {feedbackType === 'correct' ? 'ACCESS GRANTED' : 'ACCESS DENIED'}
+                                        {feedbackType === 'correct' ? accessGrantedText : accessDeniedLabelText}
                                     </div>
                                     {feedbackType === 'correct' && <Zap className="h-8 w-8 text-yellow-400" />}
                                 </div>
                                 <div className="text-sm font-mono" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                    {feedbackMessage}
+                                    <TranslatedText text={feedbackMessage} />
                                 </div>
                             </motion.div>
                         )}
@@ -744,14 +763,14 @@ const DataStreamSecurityGame = () => {
                     <div className="text-center max-w-3xl mt-6">
                         <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                             {currentPhase === 'learning'
-                                ? 'Study the data stream pattern flowing across the screen. Memorize the sequence of colored symbols - you\'ll need to predict the next elements to unlock security systems!'
-                                : 'Based on the memorized pattern, select the correct next element to bypass the security lock. Wrong answers will cost you a life!'
+                                ? <TranslatedText text="Study the data stream pattern flowing across the screen. Memorize the sequence of colored symbols - you'll need to predict the next elements to unlock security systems!" />
+                                : <TranslatedText text="Based on the memorized pattern, select the correct next element to bypass the security lock. Wrong answers will cost you a life!" />
                             }
                         </p>
                         <div className="mt-3 text-xs text-gray-500 bg-gray-100 rounded-lg p-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            <strong>{difficulty} Mode:</strong> {difficultySettings[difficulty].description} | 
-                            {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:{String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit | 
-                            {difficultySettings[difficulty].lives} lives
+                            <strong><TranslatedText text={difficulty} /> <TranslatedText text="Mode:" /></strong> {getDifficultyDescription(difficulty)} | 
+                            {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:{String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} <TranslatedText text="time limit" /> | 
+                            {difficultySettings[difficulty].lives} <TranslatedText text="lives" />
                         </div>
                     </div>
                 </div>

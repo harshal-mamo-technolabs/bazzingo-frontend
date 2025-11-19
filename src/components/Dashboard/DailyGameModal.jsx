@@ -1,5 +1,6 @@
 import React from 'react';
 import DailyGameCard from '../games/DailyGameCard.jsx';
+import TranslatedText from '../TranslatedText.jsx';
 
 const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
   if (!isOpen) return null;
@@ -29,9 +30,11 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
           <div className="sticky top-0 bg-white px-6 py-4 rounded-t-2xl">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Daily Game</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  <TranslatedText text="Daily Game" />
+                </h2>
                 <p className="mt-3 text-sm font-medium text-gray-600">
-                  3&nbsp;Games Streak
+                  <TranslatedText text="3 Games Streak" />
                 </p>
               </div>
 
@@ -43,7 +46,7 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
                 "
                 onClick={onClose}
               >
-                Skip
+                <TranslatedText text="Skip" />
               </button>
             </div>
           </div>

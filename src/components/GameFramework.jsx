@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, Trophy } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { submitGameScore } from '../services/gameService';
+import TranslatedText from './TranslatedText.jsx';
 
 const GameFramework = ({
   gameTitle,
@@ -210,7 +211,7 @@ const GameFramework = ({
               {/* Daily Challenge Indicator */}
               {location.state?.fromDailyGame && (
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  Daily Challenge
+                  <TranslatedText text="Daily Challenge" />
                 </span>
               )}
             </div>
@@ -223,7 +224,7 @@ const GameFramework = ({
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <RotateCcw className="h-4 w-4" />
-                Reset
+                <TranslatedText text="Reset" />
               </button>
             </div>
           </div>
@@ -232,7 +233,7 @@ const GameFramework = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center bg-white rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Score
+                <TranslatedText text="Score" />
               </div>
               <div className="text-xl font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {Math.round(score)}/200
@@ -240,7 +241,7 @@ const GameFramework = ({
             </div>
             <div className="text-center bg-white rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Time
+                <TranslatedText text="Time" />
               </div>
               <div className={`text-xl font-semibold ${timeRemaining <= 10 ? 'text-red-600' : 'text-gray-900'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {formatTime(timeRemaining)}
@@ -248,18 +249,18 @@ const GameFramework = ({
             </div>
             <div className="text-center bg-white rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Category
+                <TranslatedText text="Category" />
               </div>
               <div className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {category}
+                <TranslatedText text={category} />
               </div>
             </div>
             <div className="text-center bg-white rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Status
+                <TranslatedText text="Status" />
               </div>
               <div className="text-lg font-semibold text-gray-900 capitalize" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {isSubmitting ? 'Submitting...' : gameState}
+                {isSubmitting ? <TranslatedText text="Submitting..." /> : <TranslatedText text={gameState} />}
               </div>
             </div>
           </div>
@@ -275,8 +276,8 @@ const GameFramework = ({
                 <p className="text-gray-600 mb-6" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   {
                   gameShortDescription 
-                    ? gameShortDescription
-                    : 'Select your difficulty level and click "Start Game" to begin.'}
+                    ? (typeof gameShortDescription === 'string' ? <TranslatedText text={gameShortDescription} /> : gameShortDescription)
+                    : <TranslatedText text='Select your difficulty level and click "Start Game" to begin.' />}
                 </p>
                 <button
                   onClick={handleStart}
@@ -284,7 +285,7 @@ const GameFramework = ({
                   style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                 >
                   <Play className="h-5 w-5" />
-                  Start Game
+                  <TranslatedText text="Start Game" />
                 </button>
               </div>
             )}
@@ -295,24 +296,24 @@ const GameFramework = ({
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <Trophy className="h-16 w-16 text-[#FF6B3E] mb-4" />
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Game Complete!
+                  <TranslatedText text="Game Complete!" />
                 </h3>
                 <div className="text-lg text-gray-600 mb-4" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Final Score: <span className="font-semibold text-[#FF6B3E]">{Math.round(score)}/200</span>
+                  <TranslatedText text="Final Score:" /> <span className="font-semibold text-[#FF6B3E]">{Math.round(score)}/200</span>
                 </div>
                 {isSubmitting && (
                   <div className="text-sm text-gray-600 mb-2">
-                    Submitting score...
+                    <TranslatedText text="Submitting score..." />
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                   <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-gray-600">Duration</div>
+                    <div className="text-gray-600"><TranslatedText text="Duration" /></div>
                     <div className="font-semibold">{endTime && startTime ? Math.floor((new Date(endTime) - new Date(startTime)) / 1000) : 0}s</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-gray-600">Difficulty</div>
-                    <div className="font-semibold">{difficulty}</div>
+                    <div className="text-gray-600"><TranslatedText text="Difficulty" /></div>
+                    <div className="font-semibold"><TranslatedText text={difficulty} /></div>
                   </div>
                 </div>
                 <button
@@ -320,7 +321,7 @@ const GameFramework = ({
                   className="bg-[#FF6B3E] text-white px-6 py-3 rounded-lg hover:bg-[#e55a35] transition-colors"
                   style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                 >
-                  Play Again
+                  <TranslatedText text="Play Again" />
                 </button>
               </div>
             )}

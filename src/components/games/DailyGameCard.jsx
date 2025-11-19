@@ -1,4 +1,5 @@
 import React from 'react';
+import TranslatedText from '../TranslatedText.jsx';
 
 const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
   if (isMobile) {
@@ -17,7 +18,7 @@ const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
               rounded-md shadow-md
             "
           >
-            COMPLETED
+            <TranslatedText text="COMPLETED" />
           </div>
         )}
 
@@ -31,7 +32,7 @@ const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
 
         <div className="flex-1 min-w-0">
           <h3 className="mb-1 text-sm sm:text-base font-semibold text-gray-900">
-            {game.title}
+            <TranslatedText text={game.title} />
           </h3>
           <button
             disabled={game.isPlayed}
@@ -43,7 +44,7 @@ const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
               }`}
             onClick={() => !game.isPlayed && onGameClick?.(game)}
           >
-            {game.isPlayed ? 'Play' : 'Play'}
+            <TranslatedText text="Play" />
           </button>
         </div>
       </div>
@@ -65,7 +66,7 @@ const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
             rounded-md shadow-md
           "
         >
-          COMPLETED
+          <TranslatedText text="COMPLETED" />
         </div>
       )}
 
@@ -77,7 +78,9 @@ const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
         />
       </div>
 
-      <h3 className="mb-2 text-base font-semibold text-gray-900">{game.title}</h3>
+      <h3 className="mb-2 text-base font-semibold text-gray-900">
+        <TranslatedText text={game.title} />
+      </h3>
 
       <button
         disabled={game.isPlayed}
@@ -89,7 +92,7 @@ const DailyGameCard = ({ game, isMobile = false, onGameClick }) => {
               : 'bg-[#FF6B3E] hover:bg-[#E55A35] text-white'
           }`}
       >
-        {game.isPlayed ? 'Play' : 'Play'}
+        <TranslatedText text="Play" />
       </button>
     </div>
   );

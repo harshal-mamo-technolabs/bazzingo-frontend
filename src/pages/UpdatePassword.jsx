@@ -7,11 +7,19 @@ import { updatePassword as updatePasswordService } from '../services/authService
 import { loading as loadingAction } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
 import MainLayout from '../components/Layout/MainLayout';
+import TranslatedText from '../components/TranslatedText.jsx';
+import { useTranslateText } from '../hooks/useTranslate';
 
 const UpdatePassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const unreadCount = 3;
+  const passwordsNotMatchText = useTranslateText("Passwords do not match");
+  const passwordUpdatedText = useTranslateText("Password updated successfully!");
+  const failedUpdateText = useTranslateText("Failed to update password. Please try again.");
+  const currentPasswordPlaceholder = useTranslateText("Enter Current Password");
+  const newPasswordPlaceholder = useTranslateText("Enter New Password");
+  const confirmPasswordPlaceholder = useTranslateText("Enter New Password");
 
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -29,7 +37,7 @@ const UpdatePassword = () => {
     e.preventDefault();
 
     if (formData.newPassword !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(passwordsNotMatchText);
       return;
     }
 
@@ -42,12 +50,12 @@ const UpdatePassword = () => {
       );
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
-        toast.success(response.message || "Password updated successfully!");
+        toast.success(response.message || passwordUpdatedText);
         navigate("/");
       }
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Failed to update password. Please try again.";
+        error?.response?.data?.message || failedUpdateText;
       toast.error(message);
     } finally {
       dispatch(loadingAction());
@@ -81,9 +89,9 @@ const UpdatePassword = () => {
                 className="text-gray-600 cursor-pointer"
                 onClick={() => navigate(-1)}
               />
-              <h2 className="text-gray-900" style={{ fontSize: '16px', fontWeight: '600' }}>Update Your Password</h2>
+              <h2 className="text-gray-900" style={{ fontSize: '16px', fontWeight: '600' }}><TranslatedText text="Update Your Password" /></h2>
             </div>
-            <p className="text-gray-600" style={{ fontSize: '11px' }}>Keep your account secure by updating your password regularly.</p>
+            <p className="text-gray-600" style={{ fontSize: '11px' }}><TranslatedText text="Keep your account secure by updating your password regularly." /></p>
           </div >
 
           {/* Form Container */}
@@ -93,12 +101,12 @@ const UpdatePassword = () => {
                 {/* Current Password */}
                 <div style={{ marginBottom: '16px' }}>
                   <label className="block text-gray-700" style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>
-                    Current Password
+                    <TranslatedText text="Current Password" />
                   </label>
                   <div className="relative">
                     <input
                       type={showPasswords.current ? 'text' : 'password'}
-                      placeholder="Enter Current Password"
+                      placeholder={currentPasswordPlaceholder}
                       value={formData.currentPassword}
                       onChange={(e) => handleInputChange('currentPassword', e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
@@ -122,12 +130,12 @@ const UpdatePassword = () => {
                 {/* New Password */}
                 <div style={{ marginBottom: '16px' }}>
                   <label className="block text-gray-700" style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>
-                    New Password
+                    <TranslatedText text="New Password" />
                   </label>
                   <div className="relative">
                     <input
                       type={showPasswords.new ? 'text' : 'password'}
-                      placeholder="Enter New Password"
+                      placeholder={newPasswordPlaceholder}
                       value={formData.newPassword}
                       onChange={(e) => handleInputChange('newPassword', e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
@@ -151,12 +159,12 @@ const UpdatePassword = () => {
                 {/* Confirm New Password */}
                 <div style={{ marginBottom: '16px' }}>
                   <label className="block text-gray-700" style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>
-                    Confirm New Password
+                    <TranslatedText text="Confirm New Password" />
                   </label>
                   <div className="relative">
                     <input
                       type={showPasswords.confirm ? 'text' : 'password'}
-                      placeholder="Enter New Password"
+                      placeholder={confirmPasswordPlaceholder}
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
@@ -181,11 +189,11 @@ const UpdatePassword = () => {
                 <div style={{ marginBottom: '20px' }}>
                   <div className="flex items-center" style={{ marginBottom: '4px' }}>
                     <span className="w-1 h-1 bg-gray-600 rounded-full mr-2"></span>
-                    <span className="text-gray-600" style={{ fontSize: '11px' }}>Use at least 8 characters</span>
+                    <span className="text-gray-600" style={{ fontSize: '11px' }}><TranslatedText text="Use at least 8 characters" /></span>
                   </div>
                   <div className="flex items-center">
                     <span className="w-1 h-1 bg-gray-600 rounded-full mr-2"></span>
-                    <span className="text-gray-600" style={{ fontSize: '11px' }}>Include a mix of letters, numbers, and symbols</span>
+                    <span className="text-gray-600" style={{ fontSize: '11px' }}><TranslatedText text="Include a mix of letters, numbers, and symbols" /></span>
                   </div>
                 </div>
 
@@ -195,7 +203,7 @@ const UpdatePassword = () => {
                   className="w-full bg-[#FF6B3E] text-white rounded-md hover:bg-[#e55a35] transition-colors"
                   style={{ fontSize: '12px', fontWeight: '600', height: '40px' }}
                 >
-                  Change Password
+                  <TranslatedText text="Change Password" />
                 </button>
               </form>
             </div>

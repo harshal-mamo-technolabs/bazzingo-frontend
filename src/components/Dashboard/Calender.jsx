@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { getStreak } from "../../services/dashbaordService"; // adjust path
 import BazzingoLoader from "../Loading/BazzingoLoader";
+import TranslatedText from "../TranslatedText.jsx";
 
 const Calender = () => {
   const [currentDate, setCurrentDate] = useState(dayjs());
@@ -73,8 +74,8 @@ const Calender = () => {
   if (loading) {
     return (
       <div className="w-full lg:w-[280px] flex-shrink-0">
-        <div className="bg-[#ffece6] rounded-lg p-3 shadow-sm border border-gray-100 h-full min-h-[320px] flex items-center justify-center">
-          <BazzingoLoader message="Loading streak..." />
+      <div className="bg-[#ffece6] rounded-lg p-3 shadow-sm border border-gray-100 h-full min-h-[320px] flex items-center justify-center">
+        <BazzingoLoader message="Loading streak..." />
         </div>
       </div>
     );
@@ -87,7 +88,9 @@ const Calender = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="flex justify-between items-center space-x-2">
-              <h3 className="text-md font-semibold text-gray-900">Current Streak</h3>
+              <h3 className="text-md font-semibold text-gray-900">
+                <TranslatedText text="Current Streak" />
+              </h3>
               <div
                 ref={iconRef}
                 className="relative cursor-pointer"
@@ -96,7 +99,7 @@ const Calender = () => {
                 <Info className="w-4 h-4 text-black" />
                 {showTooltip && (
                   <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                    Visualizes performance trends by date.
+                    <TranslatedText text="Visualizes performance trends by date." />
                   </div>
                 )}
               </div>

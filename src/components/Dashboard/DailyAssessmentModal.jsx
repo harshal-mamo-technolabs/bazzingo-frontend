@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import TranslatedText from '../TranslatedText.jsx';
 
 const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted = false }) => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted
                     fontWeight: '500'
                   }}
                 >
-                  Daily Quick Assessment
+                  <TranslatedText text="Daily Quick Assessment" />
                 </h2>
               </div>
               <button
@@ -50,7 +51,7 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted
                   fontWeight: '500'
                 }}
               >
-                Skip
+                <TranslatedText text="Skip" />
               </button>
             </div>
           </div>
@@ -63,7 +64,7 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted
               {/* ✅ Fixed ribbon - now properly positioned within the card */}
               {isCompleted && (
                 <div className="absolute right-[-26px] top-[23px] rotate-45 bg-gradient-to-r from-green-500 to-green-300 text-white font-semibold text-[10px] py-1 px-8 shadow-md z-10">
-                  COMPLETED
+                  <TranslatedText text="COMPLETED" />
                 </div>
               )}
 
@@ -109,7 +110,11 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted
                 }}
                 disabled={isCompleted}
               >
-                {isCompleted ? 'Completed' : 'Play'}
+                {isCompleted ? (
+                  <TranslatedText text="Completed" />
+                ) : (
+                  <TranslatedText text="Play" />
+                )}
               </button>
             </div>
           </div>

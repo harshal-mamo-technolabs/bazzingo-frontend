@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import InfoTooltip from "../InfoToolTip.jsx";
 import handleTooltipClick from "../../utils/toolTipHandler.js";
 import { getAllGames } from "../../services/gameService.js";
+import TranslatedText from "../TranslatedText.jsx";
 
 const RecommendationGameCarousel = ({showTooltipSuggest, setShowTooltipSuggest}) => {
     const [games, setGames] = useState([]);
@@ -61,7 +62,9 @@ const RecommendationGameCarousel = ({showTooltipSuggest, setShowTooltipSuggest})
         <>
           <div className="bg-[#fef3c7] rounded-lg p-3 shadow-sm border border-gray-100 w-full">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-normal text-gray-900">Suggest for You</h3>
+              <h3 className="text-sm font-normal text-gray-900">
+                <TranslatedText text="Suggest for You" />
+              </h3>
               <InfoTooltip
                   text="Personalized suggestions to help improve your performance."
                   visible={showTooltipSuggest}
@@ -87,12 +90,14 @@ const RecommendationGameCarousel = ({showTooltipSuggest, setShowTooltipSuggest})
                       />
                     </div>
                     <div className="text-xs font-semibold text-gray-800 mb-1">
-                      {game.name}
+                      <TranslatedText text={game.name} />
                       <span className={`ml-2 text-[10px] ${difficulty.class} px-2 py-[1px] rounded-full`}>
-                        {difficulty.label}
+                        <TranslatedText text={difficulty.label} />
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-500">{game.category}</p>
+                    <p className="text-[11px] text-gray-500">
+                      <TranslatedText text={game.category} />
+                    </p>
                   </div>
                 );
               })}

@@ -3,6 +3,7 @@ import { DocumentArrowDownIcon } from "@heroicons/react/24/outline";
 import { getSubmittedFullAssessments } from "../../services/dashbaordService";
 import dayjs from "dayjs";
 import AssessmentDownloader from "./AssessmentDownloader";
+import TranslatedText from "../TranslatedText.jsx";
 
 const FinishedCertificates = () => {
   const [assessments, setAssessments] = useState([]);
@@ -88,7 +89,7 @@ const FinishedCertificates = () => {
             className="text-[12px] text-orange-500 bg-gray-100 border border-orange-500 px-3 py-1 rounded-md flex items-center gap-1 disabled:opacity-50"
           >
             <DocumentArrowDownIcon className="w-3 h-3" /> 
-            {downloading === `certificate-${assessment._id}` ? 'Generating...' : 'Certificate'}
+            {downloading === `certificate-${assessment._id}` ? <TranslatedText text="Generating..." /> : <TranslatedText text="Certificate" />}
               </button>
         )}
         {assessment.canGenerateReport && (
@@ -98,7 +99,7 @@ const FinishedCertificates = () => {
             className="text-[12px] text-white bg-orange-500 px-3 py-1 rounded-md flex items-center gap-1 disabled:opacity-50"
           >
             <DocumentArrowDownIcon className="w-3 h-3" /> 
-            {downloading === `report-${assessment._id}` ? 'Generating...' : 'Reports'}
+            {downloading === `report-${assessment._id}` ? <TranslatedText text="Generating..." /> : <TranslatedText text="Reports" />}
               </button>
         )}
             </div>
@@ -135,7 +136,7 @@ const FinishedCertificates = () => {
             className="text-[12px] text-orange-500 bg-gray-100 border border-orange-500 px-1 py-1 rounded-sm flex items-center gap-1 disabled:opacity-50"
           >
             <DocumentArrowDownIcon className="w-3 h-3" /> 
-            {downloading === `certificate-${assessment._id}` ? 'Generating...' : 'Certificate'}
+            {downloading === `certificate-${assessment._id}` ? <TranslatedText text="Generating..." /> : <TranslatedText text="Certificate" />}
               </button>
         )}
         {assessment.canGenerateReport && (
@@ -145,7 +146,7 @@ const FinishedCertificates = () => {
             className="text-[12px] text-white bg-orange-500 px-1 py-1 rounded-sm flex items-center gap-1 disabled:opacity-50"
           >
             <DocumentArrowDownIcon className="w-3 h-3" /> 
-            {downloading === `report-${assessment._id}` ? 'Generating...' : 'Reports'}
+            {downloading === `report-${assessment._id}` ? <TranslatedText text="Generating..." /> : <TranslatedText text="Reports" />}
               </button>
         )}
       </div>
@@ -153,9 +154,9 @@ const FinishedCertificates = () => {
   );
 
   const renderEmptyState = () => (
-    <div className="text-center py-8">
+      <div className="text-center py-8">
       <div className="text-gray-500 text-sm">
-        You haven't submitted any assessment to get report and certificate
+        <TranslatedText text="You haven't submitted any assessment to get report and certificate" />
       </div>
     </div>
   );
@@ -166,11 +167,11 @@ const FinishedCertificates = () => {
         <div className="flex gap-2 mb-1">
           <img src="/fluent_certi.png"/>
           <h3 className="font-semibold text-gray-500 text-[11px]">
-            Finished certified assessments
+            <TranslatedText text="Finished certified assessments" />
           </h3>
         </div>
-        <div className="text-center py-4 text-gray-500 text-sm">
-          Loading...
+          <div className="text-center py-4 text-gray-500 text-sm">
+          <TranslatedText text="Loading..." />
         </div>
       </div>
     );
@@ -182,11 +183,11 @@ const FinishedCertificates = () => {
         <div className="flex gap-2 mb-1">
           <img src="/fluent_certi.png"/>
           <h3 className="font-semibold text-gray-500 text-[11px]">
-            Finished certified assessments
+            <TranslatedText text="Finished certified assessments" />
           </h3>
         </div>
         <div className="text-center py-4 text-red-500 text-sm">
-          Error loading assessments
+          <TranslatedText text="Error loading assessments" />
         </div>
       </div>
     );
@@ -199,7 +200,7 @@ const FinishedCertificates = () => {
           <div className="flex gap-2 mb-1">
             <img src="/fluent_certi.png"/>
             <h3 className="font-semibold text-gray-500 text-[11px]">
-              Finished certified assessments
+              <TranslatedText text="Finished certified assessments" />
             </h3>
           </div>
           <div className="space-y-1">
@@ -217,7 +218,7 @@ const FinishedCertificates = () => {
           <div className="flex gap-2 mb-1">
             <img src="/fluent_certi.png" />
             <h3 className="font-semibold text-gray-500 text-[11px]">
-              Finished certified assessments
+            <TranslatedText text="Finished certified assessments" />
             </h3>
           </div>
           <div className="space-y-1">

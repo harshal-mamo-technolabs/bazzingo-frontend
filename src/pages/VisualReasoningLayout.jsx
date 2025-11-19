@@ -288,7 +288,7 @@ const activities = [
 
             <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-auto">
               <button className="px-4 py-2 w-full bg-[#D8D8D8] text-gray-600 rounded-lg">
-                Exit & Save
+                Exit
               </button>
               <button
                 className="px-4 py-2 w-full bg-orange-500 text-white rounded-lg"

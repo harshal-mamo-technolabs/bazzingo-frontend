@@ -3,6 +3,8 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { countries } from '../../utils/constant';
 import { updateUserProfile } from '../../services/dashbaordService';
 import SelectMenu from '../Leaderboard/SelectMenu';
+import TranslatedText from '../TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
   // Available avatar images
@@ -27,6 +29,10 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
 
   const [currentAvatarIndex, setCurrentAvatarIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const namePlaceholder = useTranslateText("Enter your full name");
+  const agePlaceholder = useTranslateText("Enter your age");
+  const countryPlaceholder = useTranslateText("Select your country");
+  const saveErrorMsg = useTranslateText("Failed to update profile. Please try again.");
 
   // Prepare country options for SelectMenu
   const countryOptions = countries.map(country => ({ key: country, label: country }));
@@ -99,7 +105,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
     } catch (error) {
       console.error('Failed to update profile:', error);
       // You might want to show an error message to the user here
-      alert('Failed to update profile. Please try again.');
+      alert(saveErrorMsg);
     } finally {
       setLoading(false);
     }
@@ -122,13 +128,13 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
         {/* Modal Content */}
         <div className="relative p-3">
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            Edit Profile
+            <TranslatedText text="Edit Profile" />
           </h2>
 
           {/* Avatar Selection */}
           <div className="mb-8">
             <label className="block text-lg font-bold text-gray-800 mb-6 text-center" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              ✨ Choose Your Avatar ✨
+              ✨ <TranslatedText text="Choose Your Avatar" /> ✨
             </label>
 
             {/* Enhanced Avatar Slider */}
@@ -187,7 +193,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
             {/* Name Field */}
             <div>
               <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-                Full Name
+                <TranslatedText text="Full Name" />
               </label>
               <input
                 type="text"
@@ -195,7 +201,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 disabled={loading}
                 className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] disabled:opacity-50"
-                placeholder="Enter your full name"
+                placeholder={namePlaceholder}
               />
             </div>
 
@@ -204,7 +210,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
               {/* Age Field */}
               <div className="flex-1">
                 <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-                  Age
+                  <TranslatedText text="Age" />
                 </label>
                 <input
                   type="number"
@@ -212,7 +218,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                   onChange={(e) => handleInputChange('age', e.target.value)}
                   disabled={loading}
                   className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] disabled:opacity-50"
-                  placeholder="Enter your age"
+                  placeholder={agePlaceholder}
                   min="1"
                   max="120"
                 />
@@ -221,13 +227,13 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
               {/* Country Field */}
               <div className="flex-1">
                 <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-                  Country
+                  <TranslatedText text="Country" />
                 </label>
                 <SelectMenu
                   options={countryOptions}
                   value={formData.country}
                   onChange={(val) => handleInputChange('country', val)}
-                  placeholder="Select your country"
+                  placeholder={countryPlaceholder}
                   searchable
                   clearable
                   align="left"
@@ -245,14 +251,14 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                 disabled={loading}
                 className="flex-1 py-[10px] md:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors md:text-[16px] text-[12px] font-bold tracking-wide disabled:opacity-50"
               >
-                Cancel
+                <TranslatedText text="Cancel" />
               </button>
               <button
                 onClick={handleSave}
                 disabled={loading}
                 className="flex-1 py-[10px] md:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors md:text-[16px] text-[12px] font-bold tracking-wide disabled:opacity-50"
               >
-                {loading ? 'Saving...' : 'Save'}
+                {loading ? <TranslatedText text="Saving..." /> : <TranslatedText text="Save" />}
               </button>
             </div>
           </div>

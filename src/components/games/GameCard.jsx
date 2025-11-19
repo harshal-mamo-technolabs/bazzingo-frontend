@@ -1,4 +1,5 @@
 import React from 'react';
+import TranslatedText from '../TranslatedText.jsx';
 
 const GameCard = ({ game, pillConfig, onClick, activeCategory }) => {
   // Override featured styling if filtering by Problem Solving
@@ -36,7 +37,7 @@ const GameCard = ({ game, pillConfig, onClick, activeCategory }) => {
                 color: pillConfig.Trending.text
               }}
             >
-              #Trending
+              <TranslatedText text="#Trending" />
             </span>
           )}
           <img
@@ -63,7 +64,7 @@ const GameCard = ({ game, pillConfig, onClick, activeCategory }) => {
                     fontFamily: 'Roboto, sans-serif',
                     color: '#000000'
                   }}>
-                  {game.title}
+                  <TranslatedText text={game.title} />
                 </h3>
               </div>
               <p className="leading-tight overflow-hidden text-xs md:text-base"
@@ -87,7 +88,7 @@ const GameCard = ({ game, pillConfig, onClick, activeCategory }) => {
                     fontFamily: 'Roboto, sans-serif',
                     color: '#000000'
                   }}>
-                  {game.title}
+                  <TranslatedText text={game.title} />
                 </h4>
               </div>
               <p className="leading-tight text-[10px] md:text-sm"
@@ -96,7 +97,7 @@ const GameCard = ({ game, pillConfig, onClick, activeCategory }) => {
                   fontFamily: 'Roboto, sans-serif',
                   color: '#6B7280'
                 }}>
-                {game.category}
+                <TranslatedText text={game.category} />
               </p>
             </div>
           )}

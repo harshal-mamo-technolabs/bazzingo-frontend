@@ -8,6 +8,7 @@ import './index.css';
 import store from './app/store.js';
 import router from './routes.jsx';
 import { checkAndValidateToken } from './app/userSlice';
+import { I18nProvider } from './context/I18nContext.jsx';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -42,8 +43,10 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
       <GoogleOAuthProvider clientId={googleClientId}>
-        <RouterProvider router={router} />
-        <Toaster />
+        <I18nProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </I18nProvider>
       </GoogleOAuthProvider>
     </Provider>
   </StrictMode>

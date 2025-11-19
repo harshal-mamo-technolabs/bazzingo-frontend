@@ -5,6 +5,7 @@ import { ArrowLeft, MessageCircle, Mail, HelpCircle, BookOpen, Wrench, CreditCar
 import MainLayout from '../components/Layout/MainLayout';
 import useHelpScout from '../hooks/useHelpScout';
 import { selectSubscriptionData } from '../app/subscriptionSlice';
+import TranslatedText from '../components/TranslatedText.jsx';
 
 function ClientTicket() {
     const navigate = useNavigate();
@@ -34,9 +35,9 @@ function ClientTicket() {
     });
 
     const helpResources = [
-        { label: 'Frequently Asked Questions', icon: HelpCircle, route: '/help-faqs' },
-        { label: 'Privacy Policy', icon: BookOpen, route: '/privacy-policy' },
-        { label: 'Terms of Use', icon: Wrench, route: '/terms-of-use' },
+        { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
+        { label: <TranslatedText text="Privacy Policy" />, icon: BookOpen, route: '/privacy-policy' },
+        { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/terms-of-use' },
     ];
 
     return (
@@ -91,7 +92,7 @@ function ClientTicket() {
                                 onClick={() => navigate(-1)} 
                             />
                             <h1 className="text-gray-900" style={{ fontSize: '20px', fontWeight: 600 }}>
-                                Help & Support
+                                <TranslatedText text="Help & Support" />
                             </h1>
                         </div>
                     </div>
@@ -101,10 +102,10 @@ function ClientTicket() {
                         {/* We're Here to Help Section */}
                         <section className="mb-8">
                             <h2 className="text-gray-900 mb-3" style={{ fontSize: '24px', fontWeight: 600 }}>
-                                We're Here to Help
+                                <TranslatedText text="We're Here to Help" />
                             </h2>
                             <p className="text-gray-600 mb-6" style={{ fontSize: '16px', fontWeight: 400, lineHeight: '1.5' }}>
-                                Get in touch with our support team. We're available to assist you with any questions or concerns.
+                                <TranslatedText text="Get in touch with our support team. We're available to assist you with any questions or concerns." />
                             </p>
 
                             {/* Support Options */}
@@ -119,10 +120,10 @@ function ClientTicket() {
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="text-gray-900 mb-2" style={{ fontSize: '18px', fontWeight: 600 }}>
-                                                Live Chat
+                                                <TranslatedText text="Live Chat" />
                                             </h3>
                                             <p className="text-gray-600" style={{ fontSize: '14px', fontWeight: 400, lineHeight: '1.5' }}>
-                                                Chat with our support team in real-time. Click the chat widget in the bottom right corner to start a conversation.
+                                                <TranslatedText text="Chat with our support team in real-time. Click the chat widget in the bottom right corner to start a conversation." />
                                             </p>
                                         </div>
                                     </div>
@@ -138,10 +139,10 @@ function ClientTicket() {
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="text-gray-900 mb-2" style={{ fontSize: '18px', fontWeight: 600 }}>
-                                                Email Support
+                                                <TranslatedText text="Email Support" />
                                             </h3>
                                             <p className="text-gray-600 mb-2" style={{ fontSize: '14px', fontWeight: 400, lineHeight: '1.5' }}>
-                                                Send us an email and we'll get back to you as soon as possible.
+                                                <TranslatedText text="Send us an email and we'll get back to you as soon as possible." />
                                             </p>
                                             <a 
                                                 href="mailto:support@bazzingo.net" 
@@ -159,10 +160,10 @@ function ClientTicket() {
                         {/* Before You Contact Us Section */}
                         <section>
                             <h2 className="text-gray-900 mb-3" style={{ fontSize: '24px', fontWeight: 600 }}>
-                                Before You Contact Us
+                                <TranslatedText text="Before You Contact Us" />
                             </h2>
                             <p className="text-gray-600 mb-6" style={{ fontSize: '16px', fontWeight: 400, lineHeight: '1.5' }}>
-                                You might find the answer you're looking for in our help resources:
+                                <TranslatedText text="You might find the answer you're looking for in our help resources:" />
                             </p>
 
                             {/* Help Resources Grid */}
@@ -180,7 +181,7 @@ function ClientTicket() {
                                                 className="text-gray-700 hover:text-[#FF6B3E] transition-colors"
                                                 style={{ fontSize: '15px', fontWeight: 400 }}
                                             >
-                                                {resource.label}
+                                                {typeof resource.label === 'string' ? <TranslatedText text={resource.label} /> : resource.label}
                                             </span>
                                         </div>
                                     );

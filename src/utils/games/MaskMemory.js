@@ -6,6 +6,7 @@ export const difficultySettings = {
 };
 
 // Carnival mask types with emojis
+// Note: Mask names will be translated in the component using TranslatedText
 export const maskTypes = [
   { id: 'venetian', emoji: '🎭', name: 'Venetian', color: 'purple' },
   { id: 'comedy', emoji: '😄', name: 'Comedy', color: 'yellow' },
@@ -166,6 +167,8 @@ export const shuffleArray = (array) => {
 };
 
 // Get hint for the player
+// Note: These hint messages will be translated in the component
+// The component should use TranslatedText to wrap these messages
 export const getHint = (masks, flippedCards, difficulty) => {
   if (difficulty === 'Hard') {
     // Hint for special mask mode

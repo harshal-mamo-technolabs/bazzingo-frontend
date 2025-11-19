@@ -4,6 +4,7 @@ import Header from '../Header';
 import BazzingoLoader from "../Loading/BazzingoLoader";
 import AssessmentCompletionModal from './AssessmentCompletionModal.jsx';
 import MiniAssesmentCompletionModal from './MiniAssesmentCompletionModal.jsx';
+import TranslatedText from '../TranslatedText.jsx';
 import {
   DailyPuzzleIcon,
   DailyAssessmentIcon,
@@ -582,7 +583,7 @@ export default function VisualReasoningStaticAssessment() {
         <Header />
         <div className="mx-auto px-4 lg:px-12 py-8">
           <div className="p-6">
-            <BazzingoLoader message="Preparing your assessment..." />
+            <BazzingoLoader message={<TranslatedText text="Preparing your assessment..." />} />
           </div>
         </div>
       </>
@@ -601,7 +602,7 @@ export default function VisualReasoningStaticAssessment() {
           <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">
-      {isReviewPhase ? 'Review Questions' : assessmentMetadata.title}
+      {isReviewPhase ? <TranslatedText text="Review Questions" /> : assessmentMetadata.title}
     </h2>
               <span className="bg-black text-white text-sm px-3 py-1 rounded">
                 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}s
@@ -610,8 +611,8 @@ export default function VisualReasoningStaticAssessment() {
 
             <p className="text-[13px] mb-4">
     {isReviewPhase 
-      ? 'Review your unanswered questions.' 
-      : assessmentMetadata.description}
+      ? <TranslatedText text="Review your unanswered questions." /> 
+      : <TranslatedText text={assessmentMetadata.description} />}
   </p>
 
             <div className="flex-grow flex flex-col">
@@ -619,15 +620,19 @@ export default function VisualReasoningStaticAssessment() {
               <div className="block lg:hidden">
                 <div className="p-3 rounded text-[13px] cursor-default border mb-2 bg-[#FFE2D9] border-[#FF2738]">
                   {currentQuestion.image ? 
-                    `Q${displayIndex + 1} - Look at the image and solve question` : 
-                    currentQuestion.title}
+                    <>Q{displayIndex + 1} - <TranslatedText text="Look at the image and solve question" /></> : 
+                    currentQuestion.text ? (
+                      <>Q{displayIndex + 1} - <TranslatedText text={currentQuestion.text} /></>
+                    ) : (
+                      <TranslatedText text={currentQuestion.title} />
+                    )}
                 </div>
 
                 <button
                   onClick={() => setShowAllQuestions((s) => !s)}
                   className="text-sm mt-4 flex items-center gap-5 font-semibold"
                 >
-                  {isReviewPhase ? 'Review Questions' : 'More Questions'}
+                  {isReviewPhase ? <TranslatedText text="Review Questions" /> : <TranslatedText text="More Questions" />}
                   <svg
                     className={`w-4 h-4 transform transition-transform ${showAllQuestions ? "rotate-180" : "rotate-0"}`}
                     fill="none"
@@ -656,9 +661,17 @@ export default function VisualReasoningStaticAssessment() {
                                 : "bg-white border-transparent"
                             }`}
                           >
-                            {q.image ? `Q${globalIndex + 1} - Look at the image and solve question` : q.title}
+                            {q.image ? (
+                              <>Q{globalIndex + 1} - <TranslatedText text="Look at the image and solve question" /></>
+                            ) : (
+                              q.text ? (
+                                <>Q{globalIndex + 1} - <TranslatedText text={q.text} /></>
+                              ) : (
+                                <TranslatedText text={q.title} />
+                              )
+                            )}
                             {isUnansweredInReview && (
-                              <span className="ml-2 text-xs text-yellow-600">(Unanswered)</span>
+                              <span className="ml-2 text-xs text-yellow-600">(<TranslatedText text="Unanswered" />)</span>
                             )}
                           </div>
                         );
@@ -685,9 +698,17 @@ export default function VisualReasoningStaticAssessment() {
                             : "bg-white border-transparent"
                         }`}
                       >
-                        {q.image ? `Q${globalIndex + 1} - Look at the image and solve question` : q.title}
+                        {q.image ? (
+                          <>Q{globalIndex + 1} - <TranslatedText text="Look at the image and solve question" /></>
+                        ) : (
+                          q.text ? (
+                            <>Q{globalIndex + 1} - <TranslatedText text={q.text} /></>
+                          ) : (
+                            <TranslatedText text={q.title} />
+                          )
+                        )}
                         {isUnansweredInReview && (
-                          <span className="ml-2 text-xs text-yellow-600">(Unanswered)</span>
+                          <span className="ml-2 text-xs text-yellow-600">(<TranslatedText text="Unanswered" />)</span>
                         )}
                       </div>
                     );
@@ -719,7 +740,7 @@ export default function VisualReasoningStaticAssessment() {
               </div>
               <div className="flex justify-between mt-2">
                 <span className="text-[15px] font-semibold">
-                  {isReviewPhase ? 'Review ' : ''}Question {isReviewPhase ? Math.min(currentIndex + 1, unansweredQuestionsRef.current.length) : currentIndex + 1} of{' '}
+                  {isReviewPhase ? <TranslatedText text="Review " /> : ''}<TranslatedText text="Question" /> {isReviewPhase ? Math.min(currentIndex + 1, unansweredQuestionsRef.current.length) : currentIndex + 1} <TranslatedText text="of" />{' '}
                   {isReviewPhase ? unansweredQuestionsRef.current.length : questions.length}
                 </span>
                 <span className="text-[15px] font-semibold">{progressPercent}%</span>
@@ -731,7 +752,7 @@ export default function VisualReasoningStaticAssessment() {
             {currentQuestion.image ? (
   <>
     <h5 className="text-base mb-2 font-semibold">
-      Q{displayIndex + 1} - Solve the question by seeing the image
+      Q{displayIndex + 1} - <TranslatedText text="Solve the question by seeing the image" />
     </h5>
     <img
       src={currentQuestion.image}
@@ -741,7 +762,13 @@ export default function VisualReasoningStaticAssessment() {
   </>
 ) : (
   <>
-    <h5 className="text-base mb-2 font-semibold">{currentQuestion.title}</h5>
+    <h5 className="text-base mb-2 font-semibold">
+      {currentQuestion.text ? (
+        <>Q{displayIndex + 1} - <TranslatedText text={currentQuestion.text} /></>
+      ) : (
+        <TranslatedText text={currentQuestion.title} />
+      )}
+    </h5>
   </>
 )}
 
@@ -784,7 +811,7 @@ export default function VisualReasoningStaticAssessment() {
             className="ml-2 rounded object-cover w-[40px] h-[40px] md:w-[70px] md:h-[70px]"
           />
         ) : (
-          <span className="ml-2 text-[15px]">{option}</span>
+          <span className="ml-2 text-[15px]"><TranslatedText text={option} /></span>
         )}
       </div>
     </label>
@@ -795,7 +822,7 @@ export default function VisualReasoningStaticAssessment() {
 
             {/* Actions */}
             <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-0">
-              <button className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`} disabled={isSubmittingScore}>Exit & Save</button>
+              <button className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`} disabled={isSubmittingScore}><TranslatedText text="Exit" /></button>
               <button
                 className={`px-4 py-2 w-full rounded-lg text-white ${isSubmittingScore ? 'bg-orange-300 cursor-wait' : 'bg-orange-500 hover:bg-orange-600'}`}
                 disabled={isSubmittingScore}
@@ -818,13 +845,13 @@ export default function VisualReasoningStaticAssessment() {
                   ? (
                     <span className="inline-flex items-center justify-center gap-2">
                       <span className="inline-block w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
-                      Submitting...
+                      <TranslatedText text="Submitting..." />
                     </span>
                   ) : (
                     ((isReviewPhase && currentIndex >= unansweredQuestionsRef.current.length - 1) || 
                      (!isReviewPhase && currentIndex === questions.length - 1 && unansweredQuestionsRef.current.length === 0))
-                      ? 'Submit'
-                      : 'Continue'
+                      ? <TranslatedText text="Submit" />
+                      : <TranslatedText text="Continue" />
                   )}
               </button>
             </div>

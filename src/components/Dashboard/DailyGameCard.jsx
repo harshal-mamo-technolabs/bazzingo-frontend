@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import {OrangeHeadBrainIllustrationIcon, RoyalStarBadgeIcon} from "../../utils/dashboard-image.js";
+import TranslatedText from "../TranslatedText.jsx";
 
 const DailyGameCard = ({ onGameClick, games = [] }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -42,7 +43,9 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                <span className="text-sm font-normal">Daily Games Streak</span>
+                <span className="text-sm font-normal">
+                  <TranslatedText text="Daily Games Streak" />
+                </span>
               </div>
               {/* Tooltip Trigger */}
               <div
@@ -54,7 +57,7 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
                 {/* Tooltip Popup */}
                 {showTooltip && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      Play daily games to build your streak and unlock badges.
+                      <TranslatedText text="Play daily games to build your streak and unlock badges." />
                     </div>
                 )}
               </div>
@@ -70,10 +73,15 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
                   decoding="async"
               />
               <div>
-                <div className="text-sm font-semibold text-black">{current?.title || 'Daily Game'}</div>
+                <div className="text-sm font-semibold text-black">
+                  <TranslatedText text={current?.title || 'Daily Game'} />
+                </div>
                 <div className="mt-1">
                 <p className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
-                  <span className="text-[10px]">Daily Game Challenge</span>{current?.difficulty ? ` • ${current.difficulty}` : ''}
+                  <span className="text-[10px]">
+                    <TranslatedText text="Daily Game Challenge" />
+                  </span>
+                  {current?.difficulty ? ` • ${current.difficulty}` : ''}
                 </p>
                 </div>
               </div>
@@ -91,10 +99,15 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
                 />
               </div>
               <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
-                <div className="text-sm font-semibold text-black">{current?.title || 'Daily Game'}</div>
+                <div className="text-sm font-semibold text-black">
+                  <TranslatedText text={current?.title || 'Daily Game'} />
+                </div>
                 <div className="mt-1">
                 <p className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
-                  <span className="text-[10px] font-bold">Daily Game Challenge</span>{current?.difficulty ? ` • ${current.difficulty}` : ''}
+                  <span className="text-[10px] font-bold">
+                    <TranslatedText text="Daily Game Challenge" />
+                  </span>
+                  {current?.difficulty ? ` • ${current.difficulty}` : ''}
                 </p>
                 </div>
               </div>
@@ -119,7 +132,7 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
               <img src={RoyalStarBadgeIcon} className="mr-1" alt="Medal" loading="lazy" decoding="async" />
             </span>
               <span className="text-[12px] lg:text-[12px] font-medium text-black">
-              Get your achievement badges
+              <TranslatedText text="Get your achievement badges" />
             </span>
             </div>
 
@@ -128,7 +141,7 @@ const DailyGameCard = ({ onGameClick, games = [] }) => {
                 onClick={onGameClick}
                 className="w-full bg-[#00332e] hover:bg-[#00443e] text-white text-sm font-semibold py-2.5 rounded-md"
             >
-              Play Now
+              <TranslatedText text="Play Now" />
             </button>
           </div>
         </div>

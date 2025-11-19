@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { getWeeklyScores } from "../../services/dashbaordService";
+import { useI18n } from "../../context/I18nContext.jsx";
 
 const CustomTooltip = ({ active, payload, coordinate }) => {
   if (!active || !payload?.length) return null;
@@ -37,18 +38,10 @@ const CustomTooltip = ({ active, payload, coordinate }) => {
 };
 
 const ProgressChart = () => {
+  const { language } = useI18n();
   const [statsData, setStatsData] = useState([]);
   const [activePos, setActivePos] = useState(null);
-
-  const xLabels = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+  const [rawScores, setRawScores] = useState(null);
 
   useEffect(() => {
     const fetchScores = async () => {
@@ -56,31 +49,42 @@ const ProgressChart = () => {
         const res = await getWeeklyScores();
         // API shape: res.data.scores = { MONDAY: 0, TUESDAY: 0, ... }
         const scores = res?.data?.scores || {};
-
-        // Map API scores into chartData format
-        const orderedDays = [
-          "SUNDAY",
-          "MONDAY",
-          "TUESDAY",
-          "WEDNESDAY",
-          "THURSDAY",
-          "FRIDAY",
-          "SATURDAY",
-        ];
-
-        const chartReadyData = orderedDays.map((day, i) => ({
-          name: xLabels[i],
-          value: scores[day] ?? 0,
-        }));
-
-        setStatsData(chartReadyData);
+        setRawScores(scores);
       } catch (err) {
         console.error("Error loading weekly scores:", err);
+        setRawScores(null);
       }
     };
 
     fetchScores();
   }, []);
+
+  // Re-map chart data whenever scores or language change
+  useEffect(() => {
+    const scores = rawScores || {};
+
+    const labels =
+      language === "de"
+        ? ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
+        : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    const orderedDays = [
+      "SUNDAY",
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+    ];
+
+    const chartReadyData = orderedDays.map((day, i) => ({
+      name: labels[i],
+      value: scores[day] ?? 0,
+    }));
+
+    setStatsData(chartReadyData);
+  }, [rawScores, language]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

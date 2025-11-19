@@ -3,6 +3,8 @@ import { Info } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { getGameStatistics, getDailyGames } from "../../services/dashbaordService";
 import BazzingoLoader from "../Loading/BazzingoLoader";
+import TranslatedText from "../TranslatedText.jsx";
+import { useTranslateText } from "../../hooks/useTranslate";
 
 
 const TopRank = () => {
@@ -16,6 +18,9 @@ const TopRank = () => {
   const [brainIndex, setBrainIndex] = useState(0);
   const [scores, setScores] = useState([]);
   const [progressValues, setProgressValues] = useState([]);
+  const tooltipText = useTranslateText(
+    "This chart shows how your score improves over time based on your gameplay."
+  );
 
   useEffect(() => {
     const loadStats = async () => {
@@ -91,7 +96,7 @@ const TopRank = () => {
                             {/* Tooltip Popup */}
                             {showTooltip && (
                               <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                                This chart shows how your score improves over time based on your gameplay.
+                                {tooltipText}
                               </div>
                             )}
                           </div>
@@ -106,7 +111,9 @@ const TopRank = () => {
 
     {/* Center Text */}
     <div className="flex flex-col items-center justify-center leading-tight text-white">
-      <span className="text-[10px]">Your Rank</span>
+      <span className="text-[10px]">
+        <TranslatedText text="Your Rank" />
+      </span>
       <span className="text-3xl font-bold">{rank}</span>
     </div>
 
@@ -123,7 +130,9 @@ const TopRank = () => {
   <div className="p-4 pt-3">
     {/* Total Game Played */}
     <div className="flex justify-between items-center text-sm text-black font-medium mb-1">
-      <span>Total Game Played</span>
+      <span>
+        <TranslatedText text="Total Game Played" />
+      </span>
       <span className="text-orange-500 font-bold">{totalPlayed}</span>
     </div>
 
@@ -157,7 +166,9 @@ const TopRank = () => {
     {/* Brain Score Index */}
     <hr className="my-2 border-gray-300" />
     <div className="flex justify-between items-center text-xs font-semibold text-black">
-      <span>Brain Score Index</span>
+      <span>
+        <TranslatedText text="Brain Score Index" />
+      </span>
       <span>{brainIndex}</span>
     </div>
 
@@ -179,7 +190,7 @@ const TopRank = () => {
       }}
     >
       <div className="flex justify-center items-center gap-2">
-        Pushup your rank
+        <TranslatedText text="Pushup your rank" />
         <span className="text-lg leading-none">→</span>
       </div>
     </button>

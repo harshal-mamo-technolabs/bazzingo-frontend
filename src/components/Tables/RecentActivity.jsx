@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import { getDailyStreakStatus } from '../../services/dashbaordService';
+import TranslatedText from '../TranslatedText.jsx';
 
 // Progress bar (memoized to avoid unnecessary re-renders)
 const ProgressBar = memo(function ProgressBar({ percentage }) {
@@ -99,7 +100,9 @@ export default function RecentActivity() {
 
   return (
     <>
-      <h3 className="text-2xl font-semibold text-gray-900 mb-0">Recent Activity</h3>
+      <h3 className="text-2xl font-semibold text-gray-900 mb-0">
+        <TranslatedText text="Recent Activity" />
+      </h3>
 
       {/* Card container */}
       <div className="bg-white rounded-lg p-2 md:p-6 shadow-sm mt-3">
@@ -119,7 +122,7 @@ export default function RecentActivity() {
                     key={h}
                     className="text-center align-middle px-6 py-4 text-sm font-medium text-gray-600"
                   >
-                    {h}
+                    <TranslatedText text={h} />
                   </th>
                 ))}
               </tr>
@@ -134,7 +137,9 @@ export default function RecentActivity() {
                         <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center`}>
                           <img src={icon} alt={alt} className="w-10 h-10" />
                         </div>
-                        <span className="font-medium text-base text-gray-900">{row.label}</span>
+                        <span className="font-medium text-base text-gray-900">
+                          <TranslatedText text={row.label} />
+                        </span>
                       </div>
                     </td>
                     <td className="py-4 text-center px-6">
@@ -151,14 +156,16 @@ export default function RecentActivity() {
                       {row.statusType === 'completed' ? (
                         <div className="flex items-center space-x-2 justify-center text-green-600">
                           <img src="/task-complete-icon.svg" alt="Completed" className="w-5 h-5" />
-                          <span className="text-sm font-medium">Completed</span>
+                          <span className="text-sm font-medium">
+                            <TranslatedText text="Completed" />
+                          </span>
                         </div>
                       ) : (
                         <button
                           type="button"
                           className="bg-orange-50 text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                         >
-                          Pending
+                          <TranslatedText text="Pending" />
                         </button>
                       )}
                     </td>
@@ -183,7 +190,9 @@ export default function RecentActivity() {
                   <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center shrink-0`}>
                     <img src={icon} alt={alt} className="w-10 h-10" />
                   </div>
-                  <span className="text-[12px] font-medium text-gray-900 leading-tight">{row.label}</span>
+                  <span className="text-[12px] font-medium text-gray-900 leading-tight">
+                    <TranslatedText text={row.label} />
+                  </span>
                 </div>
 
                 {/* Progress bar */}
@@ -196,14 +205,16 @@ export default function RecentActivity() {
                   {row.statusType === 'completed' ? (
                     <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
                       <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                      <span>Completed</span>
+                      <span>
+                        <TranslatedText text="Completed" />
+                      </span>
                     </div>
                   ) : (
                     <button
                       type="button"
                       className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors"
                     >
-                      Pending
+                      <TranslatedText text="Pending" />
                     </button>
                   )}
                 </div>

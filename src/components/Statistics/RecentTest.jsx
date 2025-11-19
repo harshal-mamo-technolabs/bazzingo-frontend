@@ -2,6 +2,8 @@ import React,{useState, useRef, useEffect} from "react";
 import { Info } from "lucide-react";
 import { getRecentAssessmentActivity } from "../../services/dashbaordService";
 import BazzingoLoader from "../Loading/BazzingoLoader";
+import TranslatedText from "../TranslatedText.jsx";
+import { useTranslateText } from "../../hooks/useTranslate";
 
 const RecentTest = () =>{
   const [showTooltip, setShowTooltip] = useState(false);
@@ -15,6 +17,10 @@ const RecentTest = () =>{
     setTooltipFn(false);
   }, 3000); // auto close in 3 seconds
 };
+
+  const loaderMessage = useTranslateText("Loading recent tests...");
+  const noRecentMessage = useTranslateText("No recent tests found.");
+  const tooltipText = useTranslateText("View your most recent tests and scores at a glance.");
 
   useEffect(() => {
     const fetchRecent = async () => {
@@ -47,7 +53,7 @@ const RecentTest = () =>{
   if (loading) {
     return (
       <div className="lg:w-[420px] min-h-[220px] bg-[#EEEEEE] rounded-xl p-4 flex items-center justify-center">
-        <BazzingoLoader message="Loading recent tests..." compact />
+        <BazzingoLoader message={loaderMessage} compact />
       </div>
     );
   }
@@ -57,7 +63,9 @@ const RecentTest = () =>{
          {/* Middle Card - Recent Tests */}
 <div className="lg:w-[420px] min-h-[220px] bg-[#EEEEEE] rounded-xl p-4">
   <div className="flex items-center justify-between mb-4">
-    <h3 className="text-sm font-semibold text-gray-800">Recent Test</h3>
+    <h3 className="text-sm font-semibold text-gray-800">
+      <TranslatedText text="Recent Test" />
+    </h3>
      {/* Tooltip Trigger */}
                     <div
                       ref={iconRef}
@@ -69,24 +77,30 @@ const RecentTest = () =>{
                       {/* Tooltip Popup */}
                       {showTooltip && (
                         <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                           View your most recent tests and scores at a glance.
+                           {tooltipText}
                         </div>
                       )}
                     </div>
   </div>
   <div className="space-y-3">
     {loading && (
-      <div className="text-sm text-gray-600">Loading...</div>
+      <div className="text-sm text-gray-600">
+        <TranslatedText text="Loading..." />
+      </div>
     )}
     {!loading && items.length === 0 && (
-      <div className="text-sm text-gray-600">No recent tests found.</div>
+      <div className="text-sm text-gray-600">
+        {noRecentMessage}
+      </div>
     )}
     {!loading && items.map((item, i) => (
       <div key={i} className="flex justify-between items-center bg-white rounded-xl px-4 py-3">
         <div className="flex items-center gap-3">
           <img src={item.icon} alt="test" className="w-10 h-10 rounded" />
           <div>
-            <p className="text-sm font-medium text-gray-800 leading-none">{item.title}</p>
+            <p className="text-sm font-medium text-gray-800 leading-none">
+              <TranslatedText text={item.title} />
+            </p>
             <p className="text-xs text-gray-500">{item.date}</p>
           </div>
         </div>

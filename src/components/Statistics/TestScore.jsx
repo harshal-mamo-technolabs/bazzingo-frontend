@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getUserProgramScores } from '../../services/dashbaordService';
 import BazzingoLoader from '../Loading/BazzingoLoader';
+import TranslatedText from '../TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
   const [programData, setProgramData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const loadingMessage = useTranslateText('Fetching latest scores...');
+  const loadErrorMessage = useTranslateText('Failed to load scores');
 
   const fetchProgramData = async () => {
     try {
@@ -44,7 +49,7 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
   if (loading) {
     return (
       <div className="rounded-lg overflow-hidden h-[330px] flex items-center justify-center">
-        <BazzingoLoader message="Fetching latest scores..." />
+        <BazzingoLoader message={loadingMessage} />
       </div>
     );
   }
@@ -52,7 +57,7 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
   if (error) {
     return (
       <div className="rounded-lg overflow-hidden h-[330px] flex items-center justify-center">
-        <BazzingoLoader message="Failed to load scores" />
+        <BazzingoLoader message={loadErrorMessage} />
       </div>
     );
   }
@@ -80,7 +85,9 @@ const TestScore = ({ onIqDataLoaded, activeCategory = 'IQ Test' }) => {
   if (!categoryData) {
     return (
       <div className="flex justify-center items-center h-[100px]">
-        <div className="text-sm text-gray-500">No {activeCategory.toLowerCase()} data available</div>
+        <div className="text-sm text-gray-500">
+          <TranslatedText text={`No ${activeCategory.toLowerCase()} data available`} />
+        </div>
       </div>
     );
   }

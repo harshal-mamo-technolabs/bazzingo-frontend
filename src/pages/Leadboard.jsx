@@ -12,6 +12,7 @@ import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptio
 import InfoTooltip from "../components/InfoToolTip.jsx";
 import handleTooltipClick from "../utils/toolTipHandler.js";
 import { isSubscriptionGateEnabled } from "../config/accessControl";
+import TranslatedText from "../components/TranslatedText.jsx";
 
 const ProgressBar = ({ percentage }) => (
   <div className="relative w-full lg:max-w-[150px] h-7 bg-white border border-gray-200 rounded-[5px] overflow-hidden">
@@ -122,7 +123,7 @@ const Leadboard = () => {
 
       activities.push({
         type: 'game',
-        label: 'Daily Games',
+        label: <TranslatedText text="Daily Games" />,
         pct: completionPercentage,
         totalSuggested: game.totalSuggestedGames,
         totalSubmitted: game.totalSubmitedGames,
@@ -139,7 +140,7 @@ const Leadboard = () => {
 
       activities.push({
         type: 'assessment',
-        label: 'Daily Assessments',
+        label: <TranslatedText text="Daily Assessments" />,
         pct: completionPercentage,
         totalSuggested: assessment.totalSuggestedAssessments,
         totalSubmitted: assessment.totalSubmitedAssessments,
@@ -163,11 +164,11 @@ const Leadboard = () => {
           // Block if no subscription OR currently on trial
           !hasActiveSubscription || isTrialing
         )}
-        title={isTrialing ? 'Leaderboard unavailable on trial' : 'Premium Leaderboard'}
+        title={isTrialing ? <TranslatedText text="Leaderboard unavailable on trial" /> : <TranslatedText text="Premium Leaderboard" />}
         message={isTrialing
-          ? 'End your trial and activate the Silver Monthly plan to access Leaderboard rankings and compete with others.'
-          : 'Please subscribe to Bazzingo plan to access leaderboard rankings and compete with other users'}
-        buttonText={isTrialing ? 'End Trial Now' : 'Subscribe Now'}
+          ? <TranslatedText text="End your trial and activate the Silver Monthly plan to access Leaderboard rankings and compete with others." />
+          : <TranslatedText text="Please subscribe to Bazzingo plan to access leaderboard rankings and compete with other users" />}
+        buttonText={isTrialing ? <TranslatedText text="End Trial Now" /> : <TranslatedText text="Subscribe Now" />}
         onSubscribe={isTrialing ? () => navigate('/subscription?action=end-trial&from=leaderboard') : undefined}
       >
         <div className="bg-white min-h-screen" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -176,13 +177,13 @@ const Leadboard = () => {
           <div className="bg-[#EEEEEE] border border-gray-200 rounded-lg shadow-sm py-3 mb-4 px-4 hidden md:block">
             {/* Filter Header with Info Tooltip */}
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-700">Leaderboard Filters</h3>
+              <h3 className="text-sm font-medium text-gray-700"><TranslatedText text="Leaderboard Filters" /></h3>
               <InfoTooltip
                 text={
                   <>
-                    Top row: Choose audience (Global, Country, or Age group).<br/>
-                    Bottom row: Choose data type (Assessment or Game scores).<br/>
-                    Filters combine to show rankings for your selected audience and data type.
+                    <TranslatedText text="Top row: Choose audience (Global, Country, or Age group)." /><br/>
+                    <TranslatedText text="Bottom row: Choose data type (Assessment or Game scores)." /><br/>
+                    <TranslatedText text="Filters combine to show rankings for your selected audience and data type." />
                   </>
                 }
                 visible={showFilterTooltip}
@@ -199,7 +200,7 @@ const Leadboard = () => {
                     scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                   }`}
                 >
-                  Global
+                  <TranslatedText text="Global" />
                 </button>
 
                 <SelectMenu
@@ -214,7 +215,7 @@ const Leadboard = () => {
                     }
                     setCountry(val);
                   }}
-                  placeholder="Country"
+                  placeholder={<TranslatedText text="Country" />}
                   searchable
                   clearable
                   align="left"
@@ -239,7 +240,7 @@ const Leadboard = () => {
                     }
                     setAgeGroup(val);
                   }}
-                  placeholder="By Age"
+                  placeholder={<TranslatedText text="By Age" />}
                   clearable
                   align="left"
                   width="w-40"
@@ -264,7 +265,7 @@ const Leadboard = () => {
                     typeScope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                   }`}
                 >
-                  By Assessment
+                  <TranslatedText text="By Assessment" />
                 </button>
 
                 <button
@@ -273,7 +274,7 @@ const Leadboard = () => {
                     typeScope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                   }`}
                 >
-                  By Game
+                  <TranslatedText text="By Game" />
                 </button>
               </div>
             </div>
@@ -333,7 +334,7 @@ const Leadboard = () => {
 
                 {hasActivities && (
                   <div className="order-3 lg:order-2 bg-[#EEEEEE] rounded-lg p-2 md:p-3 shadow-sm h-[350px]">
-                    <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4">Recent Activity</h3>
+                    <h3 className="text-[18px] font-semibold text-gray-900 md:ml-1 md:mt-1 mb-4"><TranslatedText text="Recent Activity" /></h3>
                     <div className="space-y-4 mt-4">
                       {processedActivities.map((activity, idx) => {
                         const { icon, alt, iconBg } = staticIconMap[activity.type] || staticIconMap.game;
@@ -356,11 +357,11 @@ const Leadboard = () => {
                               {activity.statusType === 'completed' ? (
                                 <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
                                   <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                                  <span>Completed</span>
+                                  <span><TranslatedText text="Completed" /></span>
                                 </div>
                               ) : (
                                 <button className="bg-[#edd9c6] text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                                  Pending
+                                  <TranslatedText text="Pending" />
                                 </button>
                               )}
                             </div>
@@ -405,13 +406,13 @@ const Leadboard = () => {
                 
                 {/* Filter Header with Info Tooltip */}
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">Leaderboard Filters</h3>
+                  <h3 className="text-sm font-medium text-gray-700"><TranslatedText text="Leaderboard Filters" /></h3>
                   <InfoTooltip
                     text={
                       <>
-                        Top row: Choose audience (Global, Country, or Age group).<br/>
-                        Bottom row: Choose data type (Assessment or Game scores).<br/>
-                        Filters combine to show rankings for your selected audience and data type.
+                        <TranslatedText text="Top row: Choose audience (Global, Country, or Age group)." /><br/>
+                        <TranslatedText text="Bottom row: Choose data type (Assessment or Game scores)." /><br/>
+                        <TranslatedText text="Filters combine to show rankings for your selected audience and data type." />
                       </>
                     }
                     visible={showFilterTooltip}
@@ -427,7 +428,7 @@ const Leadboard = () => {
                       scope === "global" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                     }`}
                   >
-                    Global
+                    <TranslatedText text="Global" />
                   </button>
 
                   <div className="relative">
@@ -443,7 +444,7 @@ const Leadboard = () => {
                         }
                         setCountry(val);
                       }}
-                      placeholder="Country"
+                      placeholder={<TranslatedText text="Country" />}
                       searchable
                       clearable
                       align="left"
@@ -470,7 +471,7 @@ const Leadboard = () => {
                         }
                         setAgeGroup(val);
                       }}
-                      placeholder="Age"
+                      placeholder={<TranslatedText text="Age" />}
                       clearable
                       align="left"
                       width="w-full"
@@ -495,7 +496,7 @@ const Leadboard = () => {
                       typeScope === "assessment" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                     }`}
                   >
-                    Assessment
+                    <TranslatedText text="Assessment" />
                   </button>
 
                   <button
@@ -504,7 +505,7 @@ const Leadboard = () => {
                       typeScope === "game" ? "border border-orange-500 text-orange-600 bg-[#F0E2DD]" : "text-gray-600 bg-white"
                     }`}
                   >
-                    Game
+                    <TranslatedText text="Game" />
                   </button>
                 </div>
               </div>
@@ -554,7 +555,7 @@ const Leadboard = () => {
             {hasActivities && (
               <div className="order-3 lg:order-2 w-full lg:w-[350px]">
                 <div className="bg-[#EEEEEE] rounded-lg p-2 md:p-6 shadow-sm h-[350px]">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4"><TranslatedText text="Recent Activity" /></h3>
                   <div className="space-y-4 mt-4">
                     {processedActivities.map((activity, idx) => {
                       const { icon, alt, iconBg } = staticIconMap[activity.type] || staticIconMap.game;
@@ -577,11 +578,11 @@ const Leadboard = () => {
                             {activity.statusType === 'completed' ? (
                               <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
                                 <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
-                                <span>Completed</span>
+                                <span><TranslatedText text="Completed" /></span>
                               </div>
                             ) : (
                               <button className="bg-white text-orange-500 border border-orange-300 hover:bg-orange-100 px-4 py-[6px] rounded-md text-xs font-medium transition-colors">
-                                Pending
+                                <TranslatedText text="Pending" />
                               </button>
                             )}
                           </div>

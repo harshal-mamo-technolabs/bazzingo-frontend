@@ -6,9 +6,16 @@ import SaveButton from '../components/notifications/SaveButton';
 import usePushNotifications from '../hooks/usePushNotifications';
 import { updateUserPreferences } from '../services/dashbaordService';
 import toast from 'react-hot-toast';
+import TranslatedText from '../components/TranslatedText.jsx';
+import { useTranslateText } from '../hooks/useTranslate';
 
 function NotificationPreferences() {
   const { isSubscribed, subscribe, unsubscribe, loading } = usePushNotifications();
+  const savingText = useTranslateText('Saving preferences...');
+  const successText = useTranslateText('Preferences saved successfully!');
+  const errorTextPrefix = useTranslateText('Failed to save preferences:');
+  const tryAgainText = useTranslateText('Please try again');
+  const pushNotificationErrorText = useTranslateText('Failed to update push notifications');
 
   const [notifications, setNotifications] = useState({
     gameReminders: true,
@@ -39,7 +46,7 @@ function NotificationPreferences() {
         }
       } catch (e) {
         console.error(e);
-        toast.error('Failed to update push notifications');
+        toast.error(pushNotificationErrorText);
       }
     }
   };
@@ -80,9 +87,9 @@ function NotificationPreferences() {
     toast.promise(
       savePromise,
       {
-        loading: 'Saving preferences...',
-        success: 'Preferences saved successfully!',
-        error: (err) => `Failed to save preferences: ${err.message || 'Please try again'}`,
+        loading: savingText,
+        success: successText,
+        error: (err) => `${errorTextPrefix} ${err.message || tryAgainText}`,
       },
       {
         style: {
@@ -105,18 +112,18 @@ function NotificationPreferences() {
   }, [isSubscribed]);
 
   const emailNotifications = [
-    { key: 'gameReminders', label: 'Game reminders' },
-    { key: 'newAssessments', label: 'New assessments available' },
-    { key: 'achievementAlerts', label: 'Achievement and badge alerts' },
-    { key: 'weeklyPerformance', label: 'Weekly performance summary' },
+    { key: 'gameReminders', label: <TranslatedText text="Game reminders" /> },
+    { key: 'newAssessments', label: <TranslatedText text="New assessments available" /> },
+    { key: 'achievementAlerts', label: <TranslatedText text="Achievement and badge alerts" /> },
+    { key: 'weeklyPerformance', label: <TranslatedText text="Weekly performance summary" /> },
   ];
 
   const pushNotifications = [
-    { key: 'pushNotifications', label: 'Enable push notifications on this device' },
+    { key: 'pushNotifications', label: <TranslatedText text="Enable push notifications on this device" /> },
   ];
 
   const newsletterNotifications = [
-    { key: 'newsletter', label: 'Subscribe to Bazingo tips and news' },
+    { key: 'newsletter', label: <TranslatedText text="Subscribe to Bazingo tips and news" /> },
   ];
 
   return (
@@ -135,7 +142,7 @@ function NotificationPreferences() {
             <div className="max-w-[600px]">
               {/* Email Notifications Section */}
               <NotificationSection
-                title="Email Notifications"
+                title={<TranslatedText text="Email Notifications" />}
                 notifications={emailNotifications}
                 notificationStates={notifications}
                 onToggle={handleToggle}
@@ -143,7 +150,7 @@ function NotificationPreferences() {
 
               {/* Push Notifications Section */}
               <NotificationSection
-                title="Push Notifications"
+                title={<TranslatedText text="Push Notifications" />}
                 notifications={pushNotifications}
                 notificationStates={notifications}
                 onToggle={handleToggle}
@@ -151,7 +158,7 @@ function NotificationPreferences() {
 
               {/* Newsletter Section */}
               <NotificationSection
-                title="Newsletter"
+                title={<TranslatedText text="Newsletter" />}
                 notifications={newsletterNotifications}
                 notificationStates={notifications}
                 onToggle={handleToggle}

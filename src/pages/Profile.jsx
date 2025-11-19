@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { getUserProfile } from "../services/dashbaordService";
 import MainLayout from "../components/Layout/MainLayout";
+import TranslatedText from "../components/TranslatedText.jsx";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -22,13 +23,13 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
 
   const settings = [
-    { label: 'Notification Preference', icon: BellIcon, route: '/notification-preferences' },
-    { label: 'Update Password', icon: LockClosedIcon, route: '/update-password' },
-    { label: 'Ticket Raising System', icon: TicketIcon, route: '/client-ticket' },
-    { label: 'Help', icon: QuestionMarkCircleIcon, route: '/help-faqs' },
-    { label: 'Faq', icon: ChatBubbleBottomCenterTextIcon, route: '/help-faqs' },
-    { label: 'Terms of use', icon: DocumentTextIcon, route: '/terms-of-use' },
-    { label: 'Privacy Policy', icon: ShieldCheckIcon, route: '/privacy-policy' },
+    { label: <TranslatedText text="Notification Preference" />, icon: BellIcon, route: '/notification-preferences' },
+    { label: <TranslatedText text="Update Password" />, icon: LockClosedIcon, route: '/update-password' },
+    { label: <TranslatedText text="Ticket Raising System" />, icon: TicketIcon, route: '/client-ticket' },
+    { label: <TranslatedText text="Help" />, icon: QuestionMarkCircleIcon, route: '/help-faqs' },
+    { label: <TranslatedText text="Faq" />, icon: ChatBubbleBottomCenterTextIcon, route: '/help-faqs' },
+    { label: <TranslatedText text="Terms of use" />, icon: DocumentTextIcon, route: '/terms-of-use' },
+    { label: <TranslatedText text="Privacy Policy" />, icon: ShieldCheckIcon, route: '/privacy-policy' },
   ];
   const unreadCount = 3;
 
@@ -59,7 +60,7 @@ const Profile = () => {
     return (
       <MainLayout unreadCount={unreadCount}>
         <div className="bg-white min-h-screen flex items-center justify-center">
-          <div className="text-gray-600">Loading profile...</div>
+          <div className="text-gray-600"><TranslatedText text="Loading profile..." /></div>
         </div>
       </MainLayout>
     );
@@ -75,7 +76,7 @@ const Profile = () => {
             <div className="w-full lg:w-[600px] flex flex-col">
               <div className="order-1 lg:order-none space-y-2.5">
                 {/* Profile Info */}
-                <h3 className="font-semibold text-[15px] mb-2">Profile Information</h3>
+                <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Profile Information" /></h3>
                 <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
@@ -91,10 +92,10 @@ const Profile = () => {
                         {userData?.name || "Alex Johnson"}
                       </h2>
                       <div className="flex gap-2">
-                        <p className="text-[13px] text-gray-500">Age: {userData?.age || 25}</p>
+                        <p className="text-[13px] text-gray-500"><TranslatedText text="Age" />: {userData?.age || 25}</p>
                         {userData?.stripeCustomerId && (
                           <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
-                            Premium
+                            <TranslatedText text="Premium" />
                           </span>
                         )}
                       </div>
@@ -104,21 +105,21 @@ const Profile = () => {
                     onClick={() => setIsEditModalOpen(true)}
                     className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md"
                   >
-                    Edit Profile
+                    <TranslatedText text="Edit Profile" />
                   </button>
                 </div>
               </div>
 
               <div className="order-2 lg:order-none space-y-2.5">
                 {/* Certificates */}
-                <h3 className="font-semibold text-[15px] mb-2 mt-2">Certificate</h3>
+                <h3 className="font-semibold text-[15px] mb-2 mt-2"><TranslatedText text="Certificate" /></h3>
                 <FinishedCertificates />
               </div>
 
               <div className="order-4 lg:order-none p-1 space-y-2">
                 {/* Settings */}
                 <div className="p-1 space-y-2">
-                  <h3 className="font-semibold text-[15px] mb-2">Settings</h3>
+                  <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Settings" /></h3>
                   {settings.map(({ label, icon: Icon, route }, i) => (
                     <div
                       key={i}
@@ -138,7 +139,7 @@ const Profile = () => {
 
             {/* Right Column */}
             <div className="w-full order-3 lg:order-none lg:w-[550px]">
-              <h3 className="font-semibold text-[16px] mb-2">Achievements</h3>
+              <h3 className="font-semibold text-[16px] mb-2"><TranslatedText text="Achievements" /></h3>
               <Achievements />
             </div>
 
@@ -150,7 +151,7 @@ const Profile = () => {
 
           {/* Profile */}
           <div className="space-y-2.5">
-            <h3 className="font-semibold text-[15px] mb-2">Profile Information</h3>
+            <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Profile Information" /></h3>
             <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
@@ -166,10 +167,10 @@ const Profile = () => {
                     {userData?.name || "Alex Johnson"}
                   </h2>
                   <div className="flex gap-2">
-                    <p className="text-[13px] text-gray-500">Age: {userData?.age || 25}</p>
+                    <p className="text-[13px] text-gray-500"><TranslatedText text="Age" />: {userData?.age || 25}</p>
                     {userData?.stripeCustomerId && (
                       <span className="text-[10px] text-white bg-orange-500 px-2 py-0.5 rounded-md mt-1 inline-block">
-                        Premium
+                        <TranslatedText text="Premium" />
                       </span>
                     )}
                   </div>
@@ -179,26 +180,26 @@ const Profile = () => {
                 onClick={() => setIsEditModalOpen(true)}
                 className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md"
               >
-                Edit Profile
+                <TranslatedText text="Edit Profile" />
               </button>
             </div>
           </div>
 
           {/* Certificate */}
           <div className="space-y-2.5">
-            <h3 className="font-semibold text-[15px] mb-2">Certificate</h3>
+            <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Certificate" /></h3>
             <FinishedCertificates />
           </div>
 
           {/* Achievements */}
           <div className="space-y-2.5">
-            <h3 className="font-semibold text-[16px] mb-2">Achievements</h3>
+            <h3 className="font-semibold text-[16px] mb-2"><TranslatedText text="Achievements" /></h3>
             <Achievements />
           </div>
 
           {/* Settings */}
           <div className="space-y-2.5">
-            <h3 className="font-semibold text-[15px] mb-2">Settings</h3>
+            <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Settings" /></h3>
             {settings.map(({ label, icon: Icon, route }, i) => (
               <div
                 key={i}

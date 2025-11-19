@@ -19,13 +19,16 @@ import { API_CONNECTION_HOST_URL } from '../utils/constant.js';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading } from '../app/subscriptionSlice';
 import { isSubscriptionGateEnabled, isComponentVisible } from "../config/accessControl";
+import TranslatedText from "../components/TranslatedText.jsx";
+import { useTranslateText } from "../hooks/useTranslate";
+import { useI18n } from "../context/I18nContext.jsx";
 
 
 const Statistics = () => {
   const [statsData, setStatsData] = useState([700, 800, 600, 950, 1250, 1100, 1300]);
-  const xLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const [showChart, setShowChart] = useState(false);
   const navigate = useNavigate();
+  const { language } = useI18n();
   const [randomGame, setRandomGame] = useState(null);
   
   // Redux subscription state
@@ -34,6 +37,27 @@ const Statistics = () => {
   const subscriptionInitialized = useSelector(selectSubscriptionInitialized);
   const subscriptionLoading = useSelector(selectSubscriptionLoading);
   const shouldEnforceStatisticsGate = isSubscriptionGateEnabled("statistics");
+
+  // Translated static strings for this page
+  const tPremiumTitle = useTranslateText("Premium Statistics");
+  const tPremiumMessage = useTranslateText("Please subscribe to Bazzingo plan to access detailed statistics and analytics");
+  const tPremiumButton = useTranslateText("Subscribe Now");
+
+  const tUserProgressOverview = useTranslateText("User Progress Overview");
+  const tUserProgressTooltip = useTranslateText("This chart shows how your visual breakdown of your cognitive skill scores across key areas.");
+  const tLoadingAssessmentData = useTranslateText("Loading assessment data...");
+  const tNoDataAvailable = useTranslateText("No data available");
+  const tTakeAssessment = useTranslateText("Take Assessment");
+
+  const tRankTooltip = useTranslateText("Summary of your rank and performance stats.");
+  const tLoadingScoreBars = useTranslateText("Loading score bars...");
+  const tTotalGamePlayed = useTranslateText("Total Game Played");
+  const tBrainScoreIndex = useTranslateText("Brain Score Index");
+  const tPushupYourRank = useTranslateText("Pushup your rank");
+
+  const tProgressOverTime = useTranslateText("Progress Over Time");
+  const tProgressTooltip = useTranslateText("This chart shows how your score improves over time based on your gameplay.");
+
 
   // Fetch subscription status when component mounts
   useEffect(() => {
@@ -140,7 +164,10 @@ useEffect(() => {
 
   // Transform data into Recharts format
   const chartData = statsData.map((value, index) => ({
-    name: xLabels[index],
+    name:
+      (language === "de"
+        ? ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
+        : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])[index],
     value,
   }));
 
@@ -338,14 +365,14 @@ useEffect(() => {
                 />
                 <div>
                   <p className="text-[14px] font-semibold text-gray-800">
-                    {randomGame.name}
+                    <TranslatedText text={randomGame.name} />
                   </p>
-                  <p className="text-[14px] text-gray-500">{randomGame.category}</p>
+                  <p className="text-[14px] text-gray-500"><TranslatedText text={randomGame.category} /></p>
                 </div>
               </div>
               {/* <p className="text-[13px] text-gray-500">Improve your {randomGame.category.toLowerCase()} skills</p> */}
               <button className="mt-1 mb-5 w-full py-1.5 text-[12px] rounded-md bg-[#FF6B3D] text-white font-semibold">
-                Play Now
+                <TranslatedText text="Play Now" />
               </button>
             </>
           ) : (
@@ -595,9 +622,9 @@ useEffect(() => {
     <MainLayout unreadCount={3}>
       <SubscriptionBlocker 
         showBlocker={shouldEnforceStatisticsGate && subscriptionInitialized && !hasActiveSubscription}
-        title="Premium Statistics"
-        message="Please subscribe to Bazzingo plan to access detailed statistics and analytics"
-        buttonText="Subscribe Now"
+        title={tPremiumTitle}
+        message={tPremiumMessage}
+        buttonText={tPremiumButton}
       >
         <div className="bg-gray-50 min-h-screen">
           <main className="mx-auto px-4 lg:px-12 py-4 lg:py-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -618,7 +645,7 @@ useEffect(() => {
                           : 'text-gray-600 bg-white'
                         }`}
                     >
-                      {category}
+                      <TranslatedText text={category} />
                     </button>
                   ))}
                 </div>
@@ -649,7 +676,9 @@ useEffect(() => {
 
             <div className="xl:w-[500px] 2xl:w-[550px] lg:w-[290px] bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-gray-800">User Progress Overview</h3>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  {tUserProgressOverview}
+                </h3>
                 {/* Tooltip Trigger */}
                 <div
                   ref={iconRef}
@@ -661,7 +690,7 @@ useEffect(() => {
                   {/* Tooltip Popup */}
                   {showTooltip1 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      This chart shows how your Visual breakdown of your cognitive skill scores across key areas.
+                      {tUserProgressTooltip}
                     </div>
                   )}
                 </div>
@@ -671,16 +700,18 @@ useEffect(() => {
               <div className="w-full">
                 {isLoadingStats ? (
                   <div className="flex items-center justify-center h-[250px]">
-                    <BazzingoLoader message="Loading assessment data..." compact />
+                    <BazzingoLoader message={tLoadingAssessmentData} compact />
                   </div>
                 ) : !hasDataForCurrentCategory() ? (
                   <div className="flex items-center justify-center h-[250px] flex-col">
-                    <div className="text-gray-500 text-sm mb-4">No data available</div>
+                    <div className="text-gray-500 text-sm mb-4">
+                      {tNoDataAvailable}
+                    </div>
                     <button 
                       onClick={() => navigate("/assessments")}
                       className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm"
                     >
-                      Take Assessment
+                      <TranslatedText text="Take Assessment" />
                     </button>
                   </div>
                 ) : (
@@ -748,7 +779,7 @@ useEffect(() => {
                     {/* Tooltip Popup */}
                     {showTooltip2 && (
                       <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                        Summary of your rank and performance stats.
+                        {tRankTooltip}
                       </div>
                     )}
                   </div>
@@ -778,7 +809,7 @@ useEffect(() => {
               <div className="p-4 pt-3">
                 {/* Total Game Played */}
                 <div className="flex justify-between items-center text-sm text-black font-medium mb-1">
-                  <span>Total Game Played</span>
+                  <span>{tTotalGamePlayed}</span>
                   <span className="text-orange-500 font-bold">{totalPlayed}</span>
                 </div>
 
@@ -786,13 +817,15 @@ useEffect(() => {
                 {/* Score Bars with loader */}
                 {statsLoading ? (
                   <div className="flex items-center justify-center h-[160px]">
-                    <BazzingoLoader message="Loading score bars..." compact />
+                    <BazzingoLoader message={tLoadingScoreBars} compact />
                   </div>
                 ) : (
                   (scores.slice(0, 6)).map((score, index) => (
                     <div key={index} className="flex items-center mb-2 gap-2 w-full">
                       {/* Label */}
-                      <span className="text-[11px] text-gray-800 w-[80px]">{score.label}</span>
+                      <span className="text-[11px] text-gray-800 w-[80px]">
+                        <TranslatedText text={score.label} />
+                      </span>
 
                       {/* Progress Bar */}
                       <div className="flex-1 h-2 bg-gray-300 rounded-full overflow-hidden">
@@ -818,7 +851,7 @@ useEffect(() => {
                 {/* Brain Score Index */}
                 <hr className="my-2 border-gray-300" />
                 <div className="flex justify-between items-center text-xs font-semibold text-black">
-                  <span>Brain Score Index</span>
+                  <span>{tBrainScoreIndex}</span>
                   <span>{brainIndex}</span>
                 </div>
 
@@ -828,7 +861,7 @@ useEffect(() => {
                   onClick={() => navigate('/games')}
                 >
                   <div className="flex justify-center items-center gap-2">
-                    Pushup your rank
+                    {tPushupYourRank}
                     <span className="text-lg leading-none">→</span>
                   </div>
                 </button>
@@ -839,7 +872,9 @@ useEffect(() => {
             {/* Right Card - Already Implemented Chart */}
             <div className="flex-1 bg-[#EEEEEE] rounded-lg p-4 shadow-sm border border-gray-200 h-[330px]">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-gray-800">Progress Over Time</h3>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  {tProgressOverTime}
+                </h3>
                 {/* Tooltip Trigger */}
                 <div
                   ref={iconRef}
@@ -851,7 +886,7 @@ useEffect(() => {
                   {/* Tooltip Popup */}
                   {showTooltip3 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-transparent border border-gray-300 rounded shadow-lg">
-                      This chart shows how your score improves over time based on your gameplay.
+                      {tProgressTooltip}
                     </div>
                   )}
                 </div>
@@ -920,7 +955,7 @@ useEffect(() => {
               {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-900">
-                  Certified {activeCategory} Score
+                  <TranslatedText text={`Certified ${activeCategory} Score`} />
                 </h3>
 
                 {/* Show on md+ */}
@@ -935,7 +970,7 @@ useEffect(() => {
                   {/* Tooltip Popup */}
                   {showTooltip4 && (
                     <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                      Shows certified {activeCategory.toLowerCase()} score and recent trend by date.
+                      <TranslatedText text={`Shows certified ${activeCategory.toLowerCase()} score and recent trend by date.`} />
                     </div>
                   )}
                 </div>
@@ -943,7 +978,14 @@ useEffect(() => {
                 {/* Show only on mobile */}
                 <div className="block md:hidden w-[40%] md:w-auto">
                   <button className="w-full md:w-auto px-4 py-1.5 rounded-lg text-[11px] md:text-sm font-medium text-gray-400 bg-white border border-gray-300 flex items-center justify-center md:justify-start space-x-1">
-                    <span>Last 7 Days</span>
+                    <span>
+                      <TranslatedText
+                        text={
+                          (timeRanges.find(tr => tr.key === selectedTimeRange)?.label) ||
+                          "Last 7 Days"
+                        }
+                      />
+                    </span>
                     <svg
                       className="w-4 h-4 ml-1 text-gray-500"
                       fill="none"
@@ -980,7 +1022,7 @@ useEffect(() => {
             <div className="flex-1 h-[220px] bg-[#EEEEEE] rounded-xl p-4 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-gray-800">
-                  Suggest for You
+                  <TranslatedText text="Suggest for You" />
                 </h3>
                 <button>
                   {/* Tooltip Trigger */}
@@ -994,7 +1036,7 @@ useEffect(() => {
                     {/* Tooltip Popup */}
                     {showTooltip6 && (
                       <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                        Personalized suggestions to help improve your performance.
+                        <TranslatedText text="Personalized suggestions to help improve your performance." />
                       </div>
                     )}
                   </div>

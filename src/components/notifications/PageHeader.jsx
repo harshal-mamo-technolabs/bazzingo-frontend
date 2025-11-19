@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import TranslatedText from '../TranslatedText.jsx';
 
-const PageHeader = ({ title = "Notification Preference", subtitle }) => {
+const PageHeader = ({ title, subtitle }) => {
   const navigate = useNavigate();
 
   return (
@@ -24,7 +25,7 @@ const PageHeader = ({ title = "Notification Preference", subtitle }) => {
             fontSize: 'clamp(18px, 2vw, 20px)',
           }}
         >
-          {title}
+          {title || <TranslatedText text="Notification Preference" />}
         </h2>
       </div>
       <p
@@ -34,8 +35,7 @@ const PageHeader = ({ title = "Notification Preference", subtitle }) => {
           fontWeight: '400',
         }}
       >
-        {subtitle ||
-          'Manage how and when you receive updates from Bazingo. Stay in the loop without the noise.'}
+        {subtitle ? (typeof subtitle === 'string' ? <TranslatedText text={subtitle} /> : subtitle) : <TranslatedText text="Manage how and when you receive updates from Bazingo. Stay in the loop without the noise." />}
       </p>
     </div>
   );

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Info } from "lucide-react";
 import { getRanksAndBadges } from "../../services/dashbaordService"; // Adjust path as needed
+import TranslatedText from "../TranslatedText.jsx";
+import InfoTooltip from "../InfoToolTip.jsx";
+import handleTooltipClick from "../../utils/toolTipHandler.js";
 
 const Achievements = () => {
   const [ranksAndBadges, setRanksAndBadges] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showTooltips, setShowTooltips] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,7 +72,7 @@ const countryName = ranksAndBadges?.country
     "Engagement Achievement Badges": "/gravity-ui_target-dart.png",
   };
 
-  // Map API category names to UI category names
+  // Map API category names to UI category names (keep as strings for sectionImages lookup)
   const categoryMapping = {
     "game-achievement": "Game Achievement Badges",
     "assessment-achievement": "Assessment Achievement Badges",
@@ -77,21 +80,37 @@ const countryName = ranksAndBadges?.country
     "engagement": "Engagement Achievement Badges"
   };
 
+  // Tooltip content for each badge category
+  const getTooltipText = (categoryTitle) => {
+    if (categoryTitle === "Game Achievement Badges") {
+      return "Earn badges by playing games and achieving milestones in your gaming journey.";
+    } else if (categoryTitle === "Assessment Achievement Badges") {
+      return "Complete assessments and demonstrate your cognitive abilities to unlock these badges.";
+    } else if (categoryTitle === "Progress & Stats Achievement Badges") {
+      return "Track your progress and reach new heights to earn these achievement badges.";
+    } else if (categoryTitle === "Engagement Achievement Badges") {
+      return "Stay active and engaged with the platform to unlock these special badges.";
+    }
+    return "Complete activities to earn achievement badges.";
+  };
+
   if (loading) {
-    return <div className="p-4 text-center">Loading achievements...</div>;
+    return <div className="p-4 text-center"><TranslatedText text="Loading achievements..." /></div>;
   }
 
   if (error) {
-    return <div className="p-4 text-center text-red-500">{error}</div>;
+    return <div className="p-4 text-center text-red-500"><TranslatedText text="Failed to load achievements data" /></div>;
   }
 
   if (!ranksAndBadges) {
-    return <div className="p-4 text-center">No achievements data available</div>;
+    return <div className="p-4 text-center"><TranslatedText text="No achievements data available" /></div>;
   }
 
   // Prepare sections data from API response
-  const sections = Object.entries(ranksAndBadges.badge || {}).map(([category, badges]) => ({
-    title: categoryMapping[category] || category,
+  const sections = Object.entries(ranksAndBadges.badge || {}).map(([category, badges]) => {
+    const categoryTitle = categoryMapping[category] || category;
+    return {
+    title: categoryTitle,
     items: badges.map(badge => ({
       title: badge.title,
       isUnlocked: badge.isUnlocked,
@@ -101,8 +120,14 @@ const countryName = ranksAndBadges?.country
         : "/LockedBadge.png"
     })),
     earned: badges.filter(badge => badge.isUnlocked).length,
-    total: badges.length
-  }));
+    total: badges.length,
+    titleComponent: categoryTitle === "Game Achievement Badges" ? <TranslatedText text="Game Achievement Badges" /> :
+                     categoryTitle === "Assessment Achievement Badges" ? <TranslatedText text="Assessment Achievement Badges" /> :
+                     categoryTitle === "Progress & Stats Achievement Badges" ? <TranslatedText text="Progress & Stats Achievement Badges" /> :
+                     categoryTitle === "Engagement Achievement Badges" ? <TranslatedText text="Engagement Achievement Badges" /> :
+                     categoryTitle
+  };
+  });
 
   return (
     <>
@@ -113,25 +138,27 @@ const countryName = ranksAndBadges?.country
           <div>
             <div className="flex items-center gap-2">
               <img src="/mingcute_game-2-fill.png" className="mb-3 w-5 h-5" alt="Game Leaderboard Rank"/>
-              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Game Rank</h3>
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2"><TranslatedText text="Leaderboard Game Rank" /></h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "Global", value: ranksAndBadges.gameGlobalRank },
+                { label: <TranslatedText text="Global" />, value: ranksAndBadges.gameGlobalRank },
                 { label: countryName, value: ranksAndBadges.gameCountryRank },
-                { label: "By Age", value: ranksAndBadges.gameAgeGroupRank }
+                { label: <TranslatedText text="By Age" />, value: ranksAndBadges.gameAgeGroupRank }
               ].map((item, i) => (
                 <div
                   key={i}
                   className="bg-white p-2 rounded-md flex flex-col items-left justify-center py-1"
                 >
                   <img
-                    src={leaderboardImages[item.label] || "/leaderboard/default.png"}
-                    alt={item.label}
+                    src={leaderboardImages[typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')] || "/leaderboard/default.png"}
+                    alt={typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')}
                     className="w-5 h-5 mb-0 object-contain"
                   />
                   <div className="text-[24px] font-bold">{item.value}</div>
-                  <div className="text-[11px] text-gray-500 text-left">{item.label}</div>
+                  <div className="text-[11px] text-gray-500 text-left">
+                    {typeof item.label === 'string' ? item.label : item.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -141,25 +168,27 @@ const countryName = ranksAndBadges?.country
           <div>
             <div className="flex items-center gap-2">
               <img src="/game-icons_brain.png" className="mb-3 w-5 h-5" alt="Assessment Leaderboard Rank"/>
-              <h3 className="text-[11px] text-gray-500 font-semibold mb-2">Leaderboard Assessment Rank</h3>
+              <h3 className="text-[11px] text-gray-500 font-semibold mb-2"><TranslatedText text="Leaderboard Assessment Rank" /></h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "Global", value: ranksAndBadges.assessmentGlobalRank },
+                { label: <TranslatedText text="Global" />, value: ranksAndBadges.assessmentGlobalRank },
                 { label: countryName, value: ranksAndBadges.assessmentCountryRank },
-                { label: "By Age", value: ranksAndBadges.assessmentAgeGroupRank }
+                { label: <TranslatedText text="By Age" />, value: ranksAndBadges.assessmentAgeGroupRank }
               ].map((item, i) => (
                 <div
                   key={i}
                   className="bg-white p-2 rounded-md flex flex-col items-left justify-center py-1"
                 >
                   <img
-                    src={leaderboardImages[item.label] || "/leaderboard/default.png"}
-                    alt={item.label}
+                    src={leaderboardImages[typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')] || "/leaderboard/default.png"}
+                    alt={typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')}
                     className="w-5 h-5 mb-0 object-contain"
                   />
                   <div className="text-[24px] font-bold">{item.value}</div>
-                  <div className="text-[11px] text-gray-500 text-left">{item.label}</div>
+                  <div className="text-[11px] text-gray-500 text-left">
+                    {typeof item.label === 'string' ? item.label : item.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -176,10 +205,16 @@ const countryName = ranksAndBadges?.country
                     className="w-5 h-5"
                   />
                   <h4 className="text-[12px] text-gray-500 font-semibold">
-                    {section.title} ({section.earned}/{section.total})
+                    {section.titleComponent || section.title} ({section.earned}/{section.total})
                   </h4>
                 </div>
-                <Info className="w-3.5 h-3.5 text-gray-600" />
+                <InfoTooltip
+                  text={<TranslatedText text={getTooltipText(section.title)} />}
+                  visible={showTooltips[section.title] || false}
+                  onTrigger={() => handleTooltipClick((show) => {
+                    setShowTooltips(prev => ({ ...prev, [section.title]: show }));
+                  })}
+                />
               </div>
 
               <div className="flex flex-wrap gap-3">
@@ -202,7 +237,7 @@ const countryName = ranksAndBadges?.country
                         badge.title.length > 12 ? "text-[9px]" : ""
                       }`}
                     >
-                      {badge.title}
+                      <TranslatedText text={badge.title} />
                     </span>
                   </div>
                 ))}
@@ -224,27 +259,27 @@ const countryName = ranksAndBadges?.country
                 alt="Game Leaderboard Rank"
               />
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2">
-                Leaderboard Game Rank
+                <TranslatedText text="Leaderboard Game Rank" />
               </h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "Global", value: ranksAndBadges.gameGlobalRank },
+                { label: <TranslatedText text="Global" />, value: ranksAndBadges.gameGlobalRank },
                 { label: countryName, value: ranksAndBadges.gameCountryRank },
-                { label: "By Age", value: ranksAndBadges.gameAgeGroupRank }
+                { label: <TranslatedText text="By Age" />, value: ranksAndBadges.gameAgeGroupRank }
               ].map((item, i) => (
                 <div
                   key={i}
                   className="bg-white p-2 rounded-md flex flex-col items-left justify-center py-1"
                 >
                   <img
-                    src={leaderboardImages[item.label] || "/leaderboard/default.png"}
-                    alt={item.label}
+                    src={leaderboardImages[typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')] || "/leaderboard/default.png"}
+                    alt={typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')}
                     className="w-5 h-5 mb-0 object-contain"
                   />
                   <div className="text-[24px] font-bold">{item.value}</div>
                   <div className="text-[11px] text-gray-500 text-left">
-                    {item.label}
+                    {typeof item.label === 'string' ? item.label : item.label}
                   </div>
                 </div>
               ))}
@@ -260,27 +295,27 @@ const countryName = ranksAndBadges?.country
                 alt="Assessment Leaderboard Rank"
               />
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2">
-                Leaderboard Assessment Rank
+                <TranslatedText text="Leaderboard Assessment Rank" />
               </h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "Global", value: ranksAndBadges.assessmentGlobalRank },
+                { label: <TranslatedText text="Global" />, value: ranksAndBadges.assessmentGlobalRank },
                 { label: countryName, value: ranksAndBadges.assessmentCountryRank },
-                { label: "By Age", value: ranksAndBadges.assessmentAgeGroupRank }
+                { label: <TranslatedText text="By Age" />, value: ranksAndBadges.assessmentAgeGroupRank }
               ].map((item, i) => (
                 <div
                   key={i}
                   className="bg-white p-2 rounded-md flex flex-col items-left justify-center py-1"
                 >
                   <img
-                    src={leaderboardImages[item.label] || "/leaderboard/default.png"}
-                    alt={item.label}
+                    src={leaderboardImages[typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')] || "/leaderboard/default.png"}
+                    alt={typeof item.label === 'string' ? item.label : (item.label?.props?.text || 'Global')}
                     className="w-5 h-5 mb-0 object-contain"
                   />
                   <div className="text-[24px] font-bold">{item.value}</div>
                   <div className="text-[11px] text-gray-500 text-left">
-                    {item.label}
+                    {typeof item.label === 'string' ? item.label : item.label}
                   </div>
                 </div>
               ))}
@@ -298,10 +333,16 @@ const countryName = ranksAndBadges?.country
                     className="w-5 h-5"
                   />
                   <h4 className="text-[12px] text-gray-500 font-semibold">
-                    {section.title} ({section.earned}/{section.total})
+                    {section.titleComponent || section.title} ({section.earned}/{section.total})
                   </h4>
                 </div>
-                <Info className="w-3.5 h-3.5 text-gray-600" />
+                <InfoTooltip
+                  text={<TranslatedText text={getTooltipText(section.title)} />}
+                  visible={showTooltips[section.title] || false}
+                  onTrigger={() => handleTooltipClick((show) => {
+                    setShowTooltips(prev => ({ ...prev, [section.title]: show }));
+                  })}
+                />
               </div>
 
               <div className="flex flex-wrap gap-3">
@@ -324,7 +365,7 @@ const countryName = ranksAndBadges?.country
                         badge.title.length > 12 ? "text-[9px]" : ""
                       }`}
                     >
-                      {badge.title}
+                      <TranslatedText text={badge.title} />
                     </span>
                   </div>
                 ))}

@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
+import TranslatedText from "../TranslatedText.jsx";
 
 const DailyAssessmentCard = ({ onAssessmentClick, title, description, isCompleted=false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -22,7 +23,7 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
       {/* ✅ Completed ribbon */}
       {isCompleted && (
         <div className="absolute right-[-18px] top-[12px] rotate-45 bg-gradient-to-r from-green-500 to-green-300 text-white font-semibold text-[10px] py-1 px-8 rounded-md shadow-md z-10">
-          COMPLETED
+          <TranslatedText text="COMPLETED" />
         </div>
       )}
 
@@ -31,7 +32,9 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-            <span className="text-sm font-normal">Daily Quick Assessment</span>
+            <span className="text-sm font-normal">
+              <TranslatedText text="Daily Quick Assessment" />
+            </span>
           </div>
 
           {/* Tooltip Trigger */}
@@ -47,7 +50,7 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
             {/* Tooltip Popup */}
             {showTooltip && (
               <div className="absolute top-6 right-0 z-50 w-[180px] p-2 text-xs text-black bg-white/20 backdrop-blur-md border border-white/30 rounded shadow-md">
-                Quick daily test to boost memory and collect badges.
+                <TranslatedText text="Quick daily test to boost memory and collect badges." />
               </div>
             )}
           </div>
@@ -63,10 +66,12 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
             decoding="async"
           />
           <div>
-            <div className="text-sm font-semibold text-black">{title}</div>
+            <div className="text-sm font-semibold text-black">
+              <TranslatedText text={title} />
+            </div>
             <div className="mt-1">
               <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs font-medium px-3 py-1 rounded-md inline-block">
-                Mini Test, 5–10 Question
+                <TranslatedText text="Mini Test, 5–10 Question" />
               </span>
             </div>
           </div>
@@ -83,11 +88,13 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
               decoding="async"
             />
           </div>
-          <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
-            <div className="text-sm font-semibold text-black">{title}</div>
+            <div className="bg-[#f5f5f5] rounded-b-lg px-2 py-0">
+            <div className="text-sm font-semibold text-black">
+              <TranslatedText text={title} />
+            </div>
             <div className="mt-1">
               <span className="bg-gray-300 border-1 border-gray-400 text-gray-800 text-xs mb-3 font-medium px-2 py-[3px] rounded-md inline-block">
-                Mini Test, 5–10 Question
+                <TranslatedText text="Mini Test, 5–10 Question" />
               </span>
             </div>
           </div>
@@ -97,7 +104,9 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
           <span className="mr-1 lg:inline">
             <img src="/medal-gold.png" className="mr-1" alt="Medal" loading="lazy" decoding="async" />
           </span>
-          <span className="text-[12px] lg:text-[12px] font-medium text-black">Get your achievement badges</span>
+          <span className="text-[12px] lg:text-[12px] font-medium text-black">
+            <TranslatedText text="Get your achievement badges" />
+          </span>
         </div>
 
         {/* ✅ Disabled button if completed */}
@@ -111,7 +120,11 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
           disabled={isCompleted}
           type="button"
         >
-          {isCompleted ? 'Completed' : 'Play Now'}
+          {isCompleted ? (
+            <TranslatedText text="Completed" />
+          ) : (
+            <TranslatedText text="Play Now" />
+          )}
         </button>
       </div>
     </div>

@@ -9,6 +9,8 @@ import { getUserProfile } from '../services/dashbaordService';
 import NotificationDropdown from './NotificationDropdown';
 import notificationService from '../services/notificationService';
 import { isComponentVisible } from '../config/accessControl';
+import { useI18n } from '../context/I18nContext.jsx';
+import TranslatedText from './TranslatedText.jsx';
 
 /** ---------------------------
  *  Config & shared styles
@@ -54,6 +56,7 @@ export default function Header({unreadCount = 0}) {
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
+    const { language, setLanguage } = useI18n();
 
     // Fetch notifications on component mount
     useEffect(() => {
@@ -229,6 +232,31 @@ export default function Header({unreadCount = 0}) {
 
                     {/* Right: Actions */}
                     <div className="flex items-center" style={{gap: '14px'}}>
+                        {/* Language switcher (desktop) */}
+                        <div className="hidden lg:flex items-center gap-1 mr-1 select-none">
+                            <button
+                                type="button"
+                                onClick={() => setLanguage('en')}
+                                className={`px-2 py-1 rounded text-xs font-medium border ${
+                                    language === 'en'
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                }`}
+                            >
+                                EN
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setLanguage('de')}
+                                className={`px-2 py-1 rounded text-xs font-medium border ${
+                                    language === 'de'
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                }`}
+                            >
+                                DE
+                            </button>
+                        </div>
                         {/* Notifications (desktop) */}
                         <div className="relative hidden lg:block" ref={notificationRef}>
                             <button
@@ -343,16 +371,18 @@ export default function Header({unreadCount = 0}) {
                             </button>
 
                             {isMobileMenuOpen && (
-                                <MobileMenu
-                                    isActive={isActiveNavItem}
-                                    onClose={() => setIsMobileMenuOpen(false)}
-                                    onNavigate={navigate}
-                                    onOpenNotifications={() => {
-                                        setIsMobileMenuOpen(false);
-                                        setIsNotificationOpen(true);
-                                    }}
-                                    notificationCount={notificationCount}
-                                />
+                              <MobileMenu
+                                isActive={isActiveNavItem}
+                                onClose={() => setIsMobileMenuOpen(false)}
+                                onNavigate={navigate}
+                                onOpenNotifications={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setIsNotificationOpen(true);
+                                }}
+                                notificationCount={notificationCount}
+                                language={language}
+                                setLanguage={setLanguage}
+                              />
                             )}
                         </div>
                     </div>
@@ -367,25 +397,25 @@ export default function Header({unreadCount = 0}) {
  *  Desktop Navigation
  *  ------------------------- */
 const DesktopNav = memo(function DesktopNav() {
-    const filteredNav = getFilteredNav();
-    return (
-        <div className="hidden lg:flex gap-7">
-            {filteredNav.map(({path, label, matchChildren}) => (
-                <NavLink
-                    key={path}
-                    to={path}
-                    end={!matchChildren} // exact for everything except Games
-                    className={({isActive}) =>
-                        `hover:text-orange-500 transition-colors ${isActive ? 'text-[#FF6B3E]' : ''}`
-                    }
-                    style={NAV_BTN_STYLE}
-                    title={label}
-                >
-                    {label}
-                </NavLink>
-            ))}
-        </div>
-    );
+  const filteredNav = getFilteredNav();
+  return (
+    <div className="hidden lg:flex gap-7">
+      {filteredNav.map(({ path, label, matchChildren }) => (
+        <NavLink
+          key={path}
+          to={path}
+          end={!matchChildren} // exact for everything except Games
+          className={({ isActive }) =>
+            `hover:text-orange-500 transition-colors ${isActive ? 'text-[#FF6B3E]' : ''}`
+          }
+          style={NAV_BTN_STYLE}
+          title={label}
+        >
+          <TranslatedText text={label} />
+        </NavLink>
+      ))}
+    </div>
+  );
 });
 
 /** ---------------------------
@@ -399,7 +429,7 @@ const NotificationsDropdown = memo(function NotificationsDropdown({notifications
         >
             <div className="p-4 border-b border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-900" style={TEXT_BASE}>
-                    Notifications
+                    <TranslatedText text="Notifications" />
                 </h3>
             </div>
 
@@ -435,7 +465,7 @@ const NotificationsDropdown = memo(function NotificationsDropdown({notifications
                     className="w-full text-center text-sm text-[#FF6B3E] hover:text-[#e55a35] font-medium transition-colors"
                     style={TEXT_BASE}
                 >
-                    View All Notifications
+                    <TranslatedText text="View All Notifications" />
                 </button>
             </div>
         </div>
@@ -481,21 +511,21 @@ const ProfileDropdown = memo(function ProfileDropdown({
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    👤 My Profile
+                    👤 <TranslatedText text="My Profile" />
                 </button>
                 <button
                     onClick={onDashboard}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    📊 Dashboard
+                    📊 <TranslatedText text="Dashboard" />
                 </button>
                 <button
                     onClick={onStatistics}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    📈 Statistics
+                    📈 <TranslatedText text="Statistics" />
                 </button>
                 {isComponentVisible('premiumNavItem') && (
                     <button
@@ -503,7 +533,7 @@ const ProfileDropdown = memo(function ProfileDropdown({
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         style={TEXT_BASE}
                     >
-                        💎 Premium
+                        💎 <TranslatedText text="Premium" />
                     </button>
                 )}
                 <button
@@ -511,21 +541,21 @@ const ProfileDropdown = memo(function ProfileDropdown({
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    📋 Subscription
+                    📋 <TranslatedText text="Subscription" />
                 </button>
                 <button
                     onClick={onChangePassword}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    🔒 Change Password
+                    🔒 <TranslatedText text="Change Password" />
                 </button>
                 <button
                     onClick={onNotificationPrefs}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    🔔 Notifications
+                    🔔 <TranslatedText text="Notifications" />
                 </button>
             </div>
 
@@ -535,7 +565,7 @@ const ProfileDropdown = memo(function ProfileDropdown({
                     className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    🚪 Sign Out
+                    🚪 <TranslatedText text="Sign Out" />
                 </button>
             </div>
         </div>
@@ -551,12 +581,45 @@ const MobileMenu = memo(function MobileMenu({
                                                 onClose,
                                                 onOpenNotifications,
                                                 notificationCount,
+                                                language,
+                                                setLanguage,
                                             }) {
     return (
         <div
             role="menu"
             className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
         >
+            {/* Language switcher (mobile) */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                <span className="text-sm font-medium text-gray-900" style={TEXT_BASE}>
+                    <TranslatedText text="Menu" />
+                </span>
+                <div className="flex items-center gap-1 select-none">
+                    <button
+                        type="button"
+                        onClick={() => setLanguage && setLanguage('en')}
+                        className={`px-2 py-1 rounded text-xs font-medium border ${
+                            language === 'en'
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                        }`}
+                    >
+                        EN
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setLanguage && setLanguage('de')}
+                        className={`px-2 py-1 rounded text-xs font-medium border ${
+                            language === 'de'
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                        }`}
+                    >
+                        DE
+                    </button>
+                </div>
+            </div>
+
             <div className="py-2">
                 <button
                     onClick={() => {
@@ -568,7 +631,7 @@ const MobileMenu = memo(function MobileMenu({
                     }`}
                     style={TEXT_BASE}
                 >
-                    🎮 Brain Workout
+                    🎮 <TranslatedText text="Brain Workout" />
                 </button>
 
                 {isComponentVisible('assessmentsNavItem') && (
@@ -582,7 +645,7 @@ const MobileMenu = memo(function MobileMenu({
                         }`}
                         style={TEXT_BASE}
                     >
-                        📝 Assessments
+                        📝 <TranslatedText text="Assessments" />
                     </button>
                 )}
 
@@ -596,7 +659,7 @@ const MobileMenu = memo(function MobileMenu({
                     }`}
                     style={TEXT_BASE}
                 >
-                    📊 Statistics
+                    📊 <TranslatedText text="Statistics" />
                 </button>
 
                 <button
@@ -609,7 +672,7 @@ const MobileMenu = memo(function MobileMenu({
                     }`}
                     style={TEXT_BASE}
                 >
-                    🏆 Leaderboard
+                    🏆 <TranslatedText text="Leaderboard" />
                 </button>
 
                 {isComponentVisible('premiumNavItem') && (
@@ -623,7 +686,7 @@ const MobileMenu = memo(function MobileMenu({
                         }`}
                         style={TEXT_BASE}
                     >
-                        💎 Premium
+                        💎 <TranslatedText text="Premium" />
                     </button>
                 )}
 
@@ -637,7 +700,7 @@ const MobileMenu = memo(function MobileMenu({
                     }`}
                     style={TEXT_BASE}
                 >
-                    📋 Subscription
+                    📋 <TranslatedText text="Subscription" />
                 </button>
             </div>
 
@@ -650,7 +713,7 @@ const MobileMenu = memo(function MobileMenu({
                     className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    👤 Profile
+                    👤 <TranslatedText text="Profile" />
                 </button>
 
                 <button
@@ -661,7 +724,7 @@ const MobileMenu = memo(function MobileMenu({
                     className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    📈 Dashboard
+                    📈 <TranslatedText text="Dashboard" />
                 </button>
 
                 <button
@@ -669,7 +732,7 @@ const MobileMenu = memo(function MobileMenu({
                     className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors relative"
                     style={TEXT_BASE}
                 >
-                    🔔 Notifications
+                    🔔 <TranslatedText text="Notifications" />
                     {notificationCount > 0 && (
                         <span
                             className="absolute right-4 top-1/2 -translate-y-1/2 bg-[#FF6B3E] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -688,7 +751,7 @@ const MobileMenu = memo(function MobileMenu({
                     className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
                     style={TEXT_BASE}
                 >
-                    🚪 Sign Out
+                    🚪 <TranslatedText text="Sign Out" />
                 </button>
             </div>
         </div>
