@@ -47,6 +47,12 @@ const BorderlineBrainsGame = () => {
     setScore(newScore);
   }, [difficulty, correctAnswers, wrongAnswers]);
 
+  // Game completion handler - FROM PREVIOUS CODE
+  const handleGameCompletion = useCallback(() => {
+    setGameState('finished');
+    setShowCompletionModal(true);
+  }, []);
+
   // Clue discovery
   const handleClueDiscovery = useCallback((clueType) => {
     if (!discoveredClues.includes(clueType)) {
@@ -54,7 +60,7 @@ const BorderlineBrainsGame = () => {
     }
   }, [discoveredClues]);
 
-  // Country selection
+  // Country selection - UPDATED WITH COMPLETION HANDLER
   const handleCountrySelect = useCallback((countryName) => {
     if (gameState !== 'playing' || showFeedback || !currentScenarios[currentScenario]) return;
 
@@ -81,7 +87,7 @@ const BorderlineBrainsGame = () => {
 
       setTimeout(() => {
         if (currentScenario + 1 >= currentScenarios.length) {
-          setGameState('finished');
+          handleGameCompletion(); // Use completion handler when all scenarios completed
         } else {
           setCurrentScenario(prev => prev + 1);
           setSelectedCountry(null);
@@ -101,7 +107,7 @@ const BorderlineBrainsGame = () => {
         const newLives = prev - 1;
         if (newLives <= 0) {
           setTimeout(() => {
-            setGameState('finished');
+            handleGameCompletion(); // Use completion handler when lives run out
           }, 2000);
         }
         return Math.max(0, newLives);
@@ -114,7 +120,7 @@ const BorderlineBrainsGame = () => {
         }
       }, 2500);
     }
-  }, [gameState, showFeedback, currentScenario, scenarioStartTime, lives, currentScenarios]);
+  }, [gameState, showFeedback, currentScenario, scenarioStartTime, lives, currentScenarios, handleGameCompletion]);
 
   // Hints (now non-revealing)
   const useHint = () => {
@@ -134,22 +140,21 @@ const BorderlineBrainsGame = () => {
       };
       setHintMessage(friendly[hintClue] || 'Study the available clues carefully.');
     } else {
-      setHintMessage('You have seen all clues. Combine them to decide the traveler’s country.');
+      setHintMessage('You have seen all clues. Combine them to decide the traveler\'s country.');
     }
 
     setShowHint(true);
     setTimeout(() => setShowHint(false), 4000);
   };
 
-  // Timer
+  // Timer - UPDATED WITH COMPLETION HANDLER
   useEffect(() => {
     let interval;
     if (gameState === 'playing' && timeRemaining > 0) {
       interval = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
-            setGameState('finished');
-            setShowCompletionModal(true);
+            handleGameCompletion(); // Use completion handler when timer ends
             return 0;
           }
           return prev - 1;
@@ -157,9 +162,9 @@ const BorderlineBrainsGame = () => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [gameState, timeRemaining]);
+  }, [gameState, timeRemaining, handleGameCompletion]);
 
-  // Init
+  // Init - UPDATED TO RESET MODAL
   const initializeGame = useCallback(() => {
     const settings = difficultySettings[difficulty];
     const scenarios = getScenariosByDifficulty(difficulty);
@@ -181,6 +186,7 @@ const BorderlineBrainsGame = () => {
     setDiscoveredClues([]);
     setShowFeedback(false);
     setShowHint(false);
+    setShowCompletionModal(false); // Reset modal on new game
   }, [difficulty]);
 
   const handleStart = () => {
@@ -191,6 +197,7 @@ const BorderlineBrainsGame = () => {
 
   const handleReset = () => {
     initializeGame();
+    setGameState('ready');
   };
 
   const handleGameComplete = (payload) => {
@@ -315,9 +322,10 @@ const BorderlineBrainsGame = () => {
                       📊 Scoring
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: +25 correct, -10 wrong</li>
-                      <li>• Moderate: +40 correct, -20 wrong</li>
-                      <li>• Hard: +50 correct, -25 wrong</li>
+                      <li>• Easy: +25 per correct answer</li>
+                      <li>• Moderate: +40 per correct answer</li>
+                      <li>• Hard: +50 per correct answer</li>
+                      <li>• No penalty for wrong answers</li>
                     </ul>
                   </div>
 
@@ -370,16 +378,15 @@ const BorderlineBrainsGame = () => {
 
           {/* Game Stats */}
           <div className="flex justify-center mb-6 w-full">
-  <div className="text-center bg-gray-50 rounded-lg p-3 w-40">
-    <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-      Lives
-    </div>
-    <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-      {'❤️'.repeat(lives)}
-    </div>
-  </div>
-</div>
-
+            <div className="text-center bg-gray-50 rounded-lg p-3 w-40">
+              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                Lives
+              </div>
+              <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                {'❤️'.repeat(lives)}
+              </div>
+            </div>
+          </div>
 
           {/* Scenario Header */}
           {currentScenarioData && (
@@ -438,41 +445,39 @@ const BorderlineBrainsGame = () => {
                 </div>
 
                 {/* Clue Investigation */}
-                {/* Clue Investigation — centered two options */}
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 justify-items-center">
-  {Object.entries(currentScenarioData.traveler.clues)
-    .filter(([clueType]) => ALLOWED_CLUE_TYPES.includes(clueType))
-    .map(([clueType, clue]) => {
-      const isDiscovered = discoveredClues.includes(clueType);
-      return (
-        <button
-          key={clueType}
-          onClick={() => handleClueDiscovery(clueType)}
-          disabled={showFeedback}
-          className={`w-full max-w-[280px] p-4 rounded border transition-all duration-300 hover:scale-[1.02] ${
-            isDiscovered
-              ? 'bg-blue-100 border-blue-300 text-blue-800'
-              : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
-          }`}
-          style={{ fontFamily: 'Roboto, sans-serif' }}
-        >
-          <div className="flex items-center justify-center gap-2 mb-2">
-            {getClueIcon(clueType)}
-            <span className="capitalize font-medium text-sm">{clueType}</span>
-          </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 justify-items-center">
+                  {Object.entries(currentScenarioData.traveler.clues)
+                    .filter(([clueType]) => ALLOWED_CLUE_TYPES.includes(clueType))
+                    .map(([clueType, clue]) => {
+                      const isDiscovered = discoveredClues.includes(clueType);
+                      return (
+                        <button
+                          key={clueType}
+                          onClick={() => handleClueDiscovery(clueType)}
+                          disabled={showFeedback}
+                          className={`w-full max-w-[280px] p-4 rounded border transition-all duration-300 hover:scale-[1.02] ${
+                            isDiscovered
+                              ? 'bg-blue-100 border-blue-300 text-blue-800'
+                              : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          style={{ fontFamily: 'Roboto, sans-serif' }}
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-2">
+                            {getClueIcon(clueType)}
+                            <span className="capitalize font-medium text-sm">{clueType}</span>
+                          </div>
 
-          {isDiscovered ? (
-            <div className="mt-2 flex items-center justify-center reveal">
-              {renderClueBody(clueType, clue)}
-            </div>
-          ) : (
-            <div className="text-xs mt-2 text-gray-500">Click to examine</div>
-          )}
-        </button>
-      );
-    })}
-</div>
-
+                          {isDiscovered ? (
+                            <div className="mt-2 flex items-center justify-center reveal">
+                              {renderClueBody(clueType, clue)}
+                            </div>
+                          ) : (
+                            <div className="text-xs mt-2 text-gray-500">Click to examine</div>
+                          )}
+                        </button>
+                      );
+                    })}
+                </div>
 
                 {/* Country Selection */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -543,14 +548,6 @@ const BorderlineBrainsGame = () => {
                   +{difficultySettings[difficulty].pointsPerQuestion} points earned!
                 </div>
               )}
-              {feedbackType === 'incorrect' && (
-                <div className="text-red-700 font-medium mb-2">
-                  -{difficultySettings[difficulty].penalty} points lost
-                </div>
-              )}
-              {feedbackType === 'correct' && currentScenario + 1 < currentScenarios.length && (
-                <p className="text-green-700 font-medium">Processing next traveler...</p>
-              )}
               {feedbackType === 'incorrect' && lives > 1 && (
                 <p className="text-red-700 font-medium">Lives remaining: {lives - 1}</p>
               )}
@@ -567,11 +564,21 @@ const BorderlineBrainsGame = () => {
               {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
               {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
               {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              +{difficultySettings[difficulty].pointsPerQuestion}/-{difficultySettings[difficulty].penalty} points
+              +{difficultySettings[difficulty].pointsPerQuestion} points per correct answer
             </div>
           </div>
         </div>
       </GameFramework>
+      
+      {/* Game Completion Modal - ADD THIS */}
+      <GameCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        score={score}
+        customStats={customStats}
+        gameTitle="Borderline Brains"
+      />
+      
       {/* Local animation styles */}
       <style>{`
         .reveal { animation: popIn 260ms ease-out; }
@@ -582,11 +589,6 @@ const BorderlineBrainsGame = () => {
         @keyframes shakeX { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px);} 30%, 50%, 70% { transform: translateX(-6px);} 40%, 60% { transform: translateX(6px);} }
         @keyframes confettiFall { from { transform: translateY(0) rotate(0deg); opacity: 1; } to { transform: translateY(120px) rotate(240deg); opacity: 0; } }
       `}</style>
-      <GameCompletionModal
-        isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
-        score={score}
-      />
     </div>
   );
 };

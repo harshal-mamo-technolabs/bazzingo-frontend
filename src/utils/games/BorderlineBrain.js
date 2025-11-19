@@ -319,6 +319,6 @@ export const getScenariosByDifficulty = (difficulty) => {
 export const calculateScore = (difficulty, correctAnswers, wrongAnswers) => {
   const settings = difficultySettings[difficulty];
   const positiveScore = correctAnswers * settings.pointsPerQuestion;
-  const negativeScore = wrongAnswers * settings.penalty;
-  return Math.max(0, positiveScore - negativeScore);
+  // Remove negative scoring - only count correct answers
+  return positiveScore;
 };

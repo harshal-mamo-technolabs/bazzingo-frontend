@@ -121,42 +121,43 @@ const MemoryTownBuilderGame = () => {
   }, [gameState, gamePhase, studyTimeRemaining]);
 
   // Check for round progression and game completion
-  useEffect(() => {
-    if (gameState === 'playing' && levelData) {
-      const settings = difficultySettings[difficulty];
+  // Check for round progression and game completion - ENHANCED LOGIC
+useEffect(() => {
+  if (gameState === 'playing' && levelData) {
+    const settings = difficultySettings[difficulty];
 
-      // Check if out of turns
-      if (currentTurn >= maxTurns) {
+    // Check if out of turns
+    if (currentTurn >= maxTurns) {
+      setGameState('finished');
+      setShowCompletionModal(true);
+      return;
+    }
+    
+    // Check round progression based on difficulty
+    if (difficulty === 'Easy' || difficulty === 'Moderate') {
+      const round1Length = settings.objectives.round1.length;
+      const totalObjectives = round1Length + settings.objectives.round2.length;
+      
+      // Check if all round 1 objectives are complete
+      const round1Indices = Array.from({length: round1Length}, (_, i) => i);
+      const round1Complete = round1Indices.every(index => completedObjectives.includes(index));
+      
+      if (currentRound === 1 && round1Complete) {
+        setCurrentRound(2);
+      } else if (currentRound === 2 && completedObjectives.length >= totalObjectives) {
         setGameState('finished');
         setShowCompletionModal(true);
-        return;
       }
-      
-      // Check round progression based on difficulty
-      if (difficulty === 'Easy' || difficulty === 'Moderate') {
-        const round1Length = settings.objectives.round1.length;
-        const totalObjectives = round1Length + settings.objectives.round2.length;
-        
-        // Check if all round 1 objectives are complete
-        const round1Indices = Array.from({length: round1Length}, (_, i) => i);
-        const round1Complete = round1Indices.every(index => completedObjectives.includes(index));
-        
-        if (currentRound === 1 && round1Complete) {
-          setCurrentRound(2);
-        } else if (currentRound === 2 && completedObjectives.length >= totalObjectives) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        }
-      } else if (difficulty === 'Hard') {
-        // Hard mode: all objectives in round 1
-        const totalObjectives = settings.objectives.round1.length;
-        if (completedObjectives.length >= totalObjectives) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        }
+    } else if (difficulty === 'Hard') {
+      // Hard mode: all objectives in round 1 (no round 2)
+      const totalObjectives = settings.objectives.round1.length;
+      if (completedObjectives.length >= totalObjectives) {
+        setGameState('finished');
+        setShowCompletionModal(true);
       }
     }
-  }, [currentTurn, maxTurns, completedObjectives, gameState, difficulty, currentRound, levelData]);
+  }
+}, [currentTurn, maxTurns, completedObjectives, gameState, difficulty, currentRound, levelData]);
 
   // Initialize game
   const initializeGame = useCallback(() => {
@@ -318,17 +319,17 @@ const MemoryTownBuilderGame = () => {
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      <Trophy className="h-4 w-4" />
-                      📊 Scoring
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25pts × 8 placements</li>
-                      <li>• Moderate: 40pts × 5 placements</li>
-                      <li>• Hard: 50pts × 4 placements</li>
-                      <li>• Maximum score: 200 points</li>
-                    </ul>
-                  </div>
+  <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
+    <Trophy className="h-4 w-4" />
+    📊 Scoring
+  </h4>
+  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
+    <li>• Easy: 25pts × 8 placements</li>
+    <li>• Moderate: 40pts × 5 placements</li>
+    <li>• Hard: 50pts × 4 placements</li>
+    <li>• Maximum score: 200 points</li>
+  </ul>
+</div>
                 </div>
               )}
             </div>

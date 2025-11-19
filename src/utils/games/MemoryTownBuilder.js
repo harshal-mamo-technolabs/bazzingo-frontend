@@ -48,26 +48,23 @@ export const difficultySettings = {
     }
   },
   Hard: {
-    // Match Moderate rules but reduce study time and overall time
-    timeLimit: 100, // a bit tighter than Moderate
+    timeLimit: 100,
     maxTurns: 7,
-    pointsPerPlacement: 40,
+    pointsPerPlacement: 50, // 50 points per correct placement
     pointsPerObjective: 0,
     hints: 2,
-    gridSize: 5,
-    studyTime: 8, // less time to memorize than Moderate
-    targetCount: 5,
+    gridSize: 6,
+    studyTime: 8,
+    targetCount: 4, // 4 total buildings for 200 max (50 x 4 = 200)
     targetFrequency: 1,
     objectives: {
       round1: [
         { type: 'placeBuilding', value: 'library', text: "Place the Library correctly" },
-        { type: 'placeBuilding', value: 'park', text: "Place the Park correctly" },
-        { type: 'placeBuilding', value: 'school', text: "Place the School correctly" }
-      ],
-      round2: [
         { type: 'placeBuilding', value: 'hospital', text: "Place the Hospital correctly" },
-        { type: 'placeBuilding', value: 'store', text: "Place the Store correctly" }
-      ]
+        { type: 'placeBuilding', value: 'school', text: "Place the School correctly" },
+        { type: 'placeBuilding', value: 'park', text: "Place the Park correctly" }
+      ],
+      round2: [] // No round 2 objectives for Hard mode
     }
   }
 };
@@ -233,22 +230,10 @@ export const calculateScore = (difficulty, correctPlacements) => {
   return Math.min(200, Math.max(0, score));
 };
 
-// Check objectives with proper round support
+// Check objectives with proper round support - USING PREVIOUS LOGIC
 export const checkObjectives = (playerGrid, targetGrid, difficulty, negativeZones, currentRound) => {
   const settings = difficultySettings[difficulty];
   const completed = [];
-
-  // Count correct placements by building type
-  const correctBuildings = {};
-  
-  for (let row = 0; row < playerGrid.length; row++) {
-    for (let col = 0; col < playerGrid[row].length; col++) {
-      if (targetGrid[row][col] !== 'empty' && playerGrid[row][col] === targetGrid[row][col]) {
-        const building = targetGrid[row][col];
-        correctBuildings[building] = (correctBuildings[building] || 0) + 1;
-      }
-    }
-  }
 
   // Check both rounds of objectives
   const allObjectives = [...settings.objectives.round1, ...settings.objectives.round2];
@@ -258,24 +243,44 @@ export const checkObjectives = (playerGrid, targetGrid, difficulty, negativeZone
 
     switch (objective.type) {
       case 'placeBuilding':
-        // Check if this specific building instance is placed correctly
-        let foundInstances = 0;
-        let requiredInstances = 0;
-        
-        // Count required instances in target grid
-        for (let row = 0; row < targetGrid.length; row++) {
-          for (let col = 0; col < targetGrid[row].length; col++) {
-            if (targetGrid[row][col] === objective.value) {
-              requiredInstances++;
-              if (playerGrid[row][col] === objective.value) {
-                foundInstances++;
+        // For "second library" or "second park" objectives, we need to track specific instances
+        if (objective.text.includes('second')) {
+          // Count how many of this building type are placed correctly
+          let correctCount = 0;
+          let targetCount = 0;
+          
+          // First, count how many of this building exist in target grid
+          for (let row = 0; row < targetGrid.length; row++) {
+            for (let col = 0; col < targetGrid[row].length; col++) {
+              if (targetGrid[row][col] === objective.value) {
+                targetCount++;
               }
             }
           }
+          
+          // Now count how many are correctly placed
+          for (let row = 0; row < targetGrid.length; row++) {
+            for (let col = 0; col < targetGrid[row].length; col++) {
+              if (targetGrid[row][col] === objective.value && playerGrid[row][col] === objective.value) {
+                correctCount++;
+              }
+            }
+          }
+          
+          // For "second" objectives, we need at least 2 correct placements
+          isComplete = correctCount >= 2;
+        } else {
+          // For regular objectives, check if at least one instance is placed correctly
+          for (let row = 0; row < targetGrid.length; row++) {
+            for (let col = 0; col < targetGrid[row].length; col++) {
+              if (targetGrid[row][col] === objective.value && playerGrid[row][col] === objective.value) {
+                isComplete = true;
+                break;
+              }
+            }
+            if (isComplete) break;
+          }
         }
-        
-        // For this specific objective, we need at least one correct placement
-        isComplete = foundInstances > 0;
         break;
         
       default:
