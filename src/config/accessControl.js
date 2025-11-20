@@ -29,6 +29,7 @@ export const VISIBILITY_CONTROLS = {
    */
   assessmentsNavItem: true,
   premiumNavItem: false,
+  subscriptionNavItem: false,
   dashboardCertifiedCard: false,  
   statisticsCertifiedCard: false,  
   assessmentCompletionUpsell: false, 

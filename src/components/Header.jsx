@@ -536,13 +536,15 @@ const ProfileDropdown = memo(function ProfileDropdown({
                         💎 <TranslatedText text="Premium" />
                     </button>
                 )}
-                <button
-                    onClick={onSubscription}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    style={TEXT_BASE}
-                >
-                    📋 <TranslatedText text="Subscription" />
-                </button>
+                {isComponentVisible('subscriptionNavItem') && (
+                    <button
+                        onClick={onSubscription}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        style={TEXT_BASE}
+                    >
+                        📋 <TranslatedText text="Subscription" />
+                    </button>
+                )}
                 <button
                     onClick={onChangePassword}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -690,18 +692,20 @@ const MobileMenu = memo(function MobileMenu({
                     </button>
                 )}
 
-                <button
-                    onClick={() => {
-                        onNavigate('/subscription');
-                        onClose();
-                    }}
-                    className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
-                        isActive('/subscription') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
-                    }`}
-                    style={TEXT_BASE}
-                >
-                    📋 <TranslatedText text="Subscription" />
-                </button>
+                {isComponentVisible('subscriptionNavItem') && (
+                    <button
+                        onClick={() => {
+                            onNavigate('/subscription');
+                            onClose();
+                        }}
+                        className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
+                            isActive('/subscription') ? 'text-orange-500 bg-orange-50' : 'text-gray-700'
+                        }`}
+                        style={TEXT_BASE}
+                    >
+                        📋 <TranslatedText text="Subscription" />
+                    </button>
+                )}
             </div>
 
             <div className="border-t border-gray-100 py-2">
