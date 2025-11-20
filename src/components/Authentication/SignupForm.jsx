@@ -2,6 +2,8 @@ import { Input, Button, PasswordInput } from '../Form';
 import { useForm } from "react-hook-form";
 import { countries } from '../../utils/constant';
 import { Globe, ChevronDown } from 'lucide-react';
+import TranslatedText from '../TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 export default function SignupForm({ signupHandler, loading = false }) {
   const {
@@ -12,6 +14,19 @@ export default function SignupForm({ signupHandler, loading = false }) {
   } = useForm();
 
   const selectedCountry = watch("country");
+  
+  // Translated strings for validation messages
+  const fullNameRequiredText = useTranslateText('Full name is required');
+  const nameMinLengthText = useTranslateText('Name must be at least 2 characters long');
+  const emailRequiredText = useTranslateText('Email is required');
+  const invalidEmailFormatText = useTranslateText('Invalid email format');
+  const passwordRequiredText = useTranslateText('Password is required');
+  const passwordMinLengthText = useTranslateText('Password must be at least 8 characters long');
+  const ageRequiredText = useTranslateText('Age is required');
+  const ageMinText = useTranslateText('You must be at least 13 years old');
+  const ageMaxText = useTranslateText('Please enter a valid age');
+  const countryRequiredText = useTranslateText('Country is required');
+  const selectCountryPlaceholder = useTranslateText('Select your country');
 
   return (
     <form onSubmit={handleSubmit(signupHandler)} className="flex flex-col gap-5 md:gap-6">
@@ -19,60 +34,60 @@ export default function SignupForm({ signupHandler, loading = false }) {
         {/* Name Field */}
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            Full Name
+            <TranslatedText text="Full Name" />
           </label>
           <Input
             type="text"
-            placeholder="Enter your full name"
+            placeholder={useTranslateText('Enter your full name')}
             className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
             {...register("name", {
-              required: "Full name is required",
+              required: fullNameRequiredText,
               minLength: {
                 value: 2,
-                message: "Name must be at least 2 characters long",
+                message: nameMinLengthText,
               },
             })}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          {errors.name && <p className="text-red-500 text-sm mt-1"><TranslatedText text={errors.name.message} /></p>}
         </div>
 
         {/* Email Field */}
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            Email address
+            <TranslatedText text="Email address" />
           </label>
           <Input
             type="email"
-            placeholder="Enter email address"
+            placeholder={useTranslateText('Enter email address')}
             className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
             {...register("email", {
-              required: "Email is required",
+              required: emailRequiredText,
               pattern: {
                 value: /^\S+@\S+\.\S+$/,
-                message: "Invalid email format",
+                message: invalidEmailFormatText,
               },
             })}
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+          {errors.email && <p className="text-red-500 text-sm mt-1"><TranslatedText text={errors.email.message} /></p>}
         </div>
 
         {/* Password Field */}
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            Password
+            <TranslatedText text="Password" />
           </label>
           <PasswordInput
-            placeholder="Enter password"
+            placeholder={useTranslateText('Enter password')}
             className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
             {...register("password", {
-              required: "Password is required",
+              required: passwordRequiredText,
               minLength: {
                 value: 8,
-                message: "Password must be at least 8 characters long",
+                message: passwordMinLengthText,
               },
             })}
           />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+          {errors.password && <p className="text-red-500 text-sm mt-1"><TranslatedText text={errors.password.message} /></p>}
         </div>
 
         {/* Age + Country Fields */}
@@ -80,25 +95,25 @@ export default function SignupForm({ signupHandler, loading = false }) {
           {/* Age Field */}
           <div className="flex-1">
             <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-              Age
+              <TranslatedText text="Age" />
             </label>
             <Input
               type="number"
-              placeholder="Enter your age"
+              placeholder={useTranslateText('Enter your age')}
               className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
               {...register("age", {
-                required: "Age is required",
-                min: { value: 13, message: "You must be at least 13 years old" },
-                max: { value: 120, message: "Please enter a valid age" },
+                required: ageRequiredText,
+                min: { value: 13, message: ageMinText },
+                max: { value: 120, message: ageMaxText },
               })}
             />
-            {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age.message}</p>}
+            {errors.age && <p className="text-red-500 text-sm mt-1"><TranslatedText text={errors.age.message} /></p>}
           </div>
 
           {/* Country Select */}
           <div className="flex-1">
             <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-              Country
+              <TranslatedText text="Country" />
             </label>
             <div className="relative">
               <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -107,13 +122,13 @@ export default function SignupForm({ signupHandler, loading = false }) {
                   }`}
                 defaultValue=""
                 {...register("country", {
-                  required: "Country is required",
+                  required: countryRequiredText,
                 })}
                 style={{
                   color: selectedCountry ? '#1F2937' : '#9CA3AF'
                 }}
               >
-                <option value="" disabled hidden style={{ color: '#9CA3AF' }}>Select your country</option>
+                <option value="" disabled hidden style={{ color: '#9CA3AF' }}>{selectCountryPlaceholder}</option>
                 {countries.map((country) => (
                   <option key={country} value={country} style={{ color: '#1F2937' }}>
                     {country}
@@ -122,7 +137,7 @@ export default function SignupForm({ signupHandler, loading = false }) {
               </select>
               <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country.message}</p>}
+            {errors.country && <p className="text-red-500 text-sm mt-1"><TranslatedText text={errors.country.message} /></p>}
           </div>
         </div>
       </div>
@@ -135,7 +150,7 @@ export default function SignupForm({ signupHandler, loading = false }) {
           loading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        {loading ? 'SIGNING UP...' : 'SIGNUP'}
+        {loading ? <TranslatedText text="SIGNING UP..." /> : <TranslatedText text="SIGNUP" />}
       </Button>
     </form>
   );

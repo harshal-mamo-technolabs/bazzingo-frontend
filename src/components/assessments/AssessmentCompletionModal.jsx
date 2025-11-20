@@ -9,6 +9,7 @@ import { useReactToPrint } from "react-to-print";
 import CertificateComponent from '../Certificate/CertificateComponent';
 import ReportComponent from '../Report/ReportComponent';
 import { isComponentVisible } from '../../config/accessControl';
+import TranslatedText from '../TranslatedText.jsx';
 
 const AssessmentCompletionModal = ({ 
   isOpen, 
@@ -225,19 +226,21 @@ const AssessmentCompletionModal = ({
 
         <div className="w-full text-center mt-2">
           <span className="inline-block bg-[#FF6947] text-white text-sm font-medium px-8 py-1 rounded-full">
-            Assessment Complete
+            <TranslatedText text="Assessment Complete" />
           </span>
         </div>
 
         <div className="w-full text-center mt-1">
           <h2 id="acm-title" className="text-center text-3xl font-bold italic text-[#208900]">
-            Well Done!
+            <TranslatedText text="Well Done!" />
           </h2>
         </div>
 
         <div className="mt-3 mx-5">
           <div className="bg-[#FFF4F2] border border-[#FF6947] rounded-lg p-2">
-            <p className="text-center text-lg font-semibold text-gray-800">Your Score</p>
+            <p className="text-center text-lg font-semibold text-gray-800">
+              <TranslatedText text="Your Score" />
+            </p>
             <p className="text-center text-4xl font-bold text-[#FF6947]">{score}/{totalQuestions}</p>
           </div>
         </div>
@@ -245,7 +248,9 @@ const AssessmentCompletionModal = ({
         <hr className="border-t border-gray-200 mx-5 mt-4 mb-3" />
 
         <div className="px-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Suggested for You</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <TranslatedText text="Suggested for You" />
+          </h3>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-5">
@@ -257,9 +262,11 @@ const AssessmentCompletionModal = ({
                     <div className="flex items-center gap-3">
                       <img src={CertificateLightIcon} alt="Certificate" className="w-10 h-10 rounded p-0" />
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Download Certificate</p>
+                        <p className="text-sm font-semibold text-gray-800">
+                          <TranslatedText text="Download Certificate" />
+                        </p>
                         <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
-                          Your certified result is available
+                          <TranslatedText text="Your certified result is available" />
                         </span>
                       </div>
                     </div>
@@ -270,7 +277,9 @@ const AssessmentCompletionModal = ({
                       onClick={handleDownloadCertificate}
                       disabled={downloading === "certificate"}
                     >
-                      {downloading === "certificate" ? "Generating..." : "Download"}
+                      {downloading === "certificate"
+                        ? <TranslatedText text="Generating..." />
+                        : <TranslatedText text="Download" />}
                     </button>
                   </div>
                 </div>
@@ -282,9 +291,11 @@ const AssessmentCompletionModal = ({
                     <div className="flex items-center gap-3">
                       <img src={BrainSilhouetteIcon} alt="Report" className="w-10 h-10 rounded p-0" />
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Download Report</p>
+                        <p className="text-sm font-semibold text-gray-800">
+                          <TranslatedText text="Download Report" />
+                        </p>
                         <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
-                          Detailed performance report is available
+                          <TranslatedText text="Detailed performance report is available" />
                         </span>
                       </div>
                     </div>
@@ -295,7 +306,9 @@ const AssessmentCompletionModal = ({
                       onClick={handleDownloadReport}
                       disabled={downloading === "report"}
                     >
-                      {downloading === "report" ? "Generating..." : "Download"}
+                      {downloading === "report"
+                        ? <TranslatedText text="Generating..." />
+                        : <TranslatedText text="Download" />}
                     </button>
                   </div>
                 </div>
@@ -308,9 +321,11 @@ const AssessmentCompletionModal = ({
                   <div className="flex items-center gap-3">
                     <img src={BrainSilhouetteIcon} alt="General Cognitive test" className="w-10 h-10 rounded p-0" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">General Cognitive test</p>
+                      <p className="text-sm font-semibold text-gray-800">
+                        <TranslatedText text="General Cognitive test" />
+                      </p>
                       <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-2 py-[2px] rounded-md inline-block mt-1">
-                        Mini Test, 5-10 Question • Certified
+                        <TranslatedText text="Mini Test, 5-10 Question • Certified" />
                       </span>
                     </div>
                   </div>
@@ -320,16 +335,18 @@ const AssessmentCompletionModal = ({
                   <div className="flex items-start gap-2 text-[13px] text-gray-700">
                     <img src={CertificateLightIcon} alt="Certification" className="w-5 h-5 mt-0.5" />
                     <p className="text-xs">
-                      Get a certified result you can share on LinkedIn or with employers.
+                      <TranslatedText text="Get a certified result you can share on LinkedIn or with employers." />
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="text-xs text-gray-700">
-                      <p>Only</p>
+                      <p>
+                        <TranslatedText text="Only" />
+                      </p>
                       <p className="text-lg font-bold text-black">€0.99</p>
                     </div>
                     <button className="px-4 py-1.5 text-[13px] bg-[#FF6B3D] text-white rounded-md font-semibold">
-                      Start Certified Test
+                      <TranslatedText text="Start Certified Test" />
                     </button>
                   </div>
                 </div>

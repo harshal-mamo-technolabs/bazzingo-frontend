@@ -1,5 +1,6 @@
 import React from 'react';
 import { BazzingoHeadImage } from "../../../public/assessment";
+import TranslatedText from '../TranslatedText.jsx';
 
 const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingAssessmentId }) => {
   // Format the API data to match the expected structure
@@ -22,7 +23,7 @@ const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingA
       {assessment?.isAssessmentPurchased && (
         <div className="absolute -top-2 -right-2 z-10">
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg border-2 border-white">
-            ✓ Purchased
+            ✓ <TranslatedText text="Purchased" />
           </div>
         </div>
       )}
@@ -43,16 +44,16 @@ const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingA
           className="text-[#ff6c40]"
           style={{ fontSize: '22px', fontWeight: 600, lineHeight: 1.2 }}
         >
-          {formattedAssessment.title}
+          <TranslatedText text={formattedAssessment.title} />
         </h3>
       </div>
 
       <p className="text-black mb-2" style={{ fontSize: '14px', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-        {formattedAssessment.questions} Question{formattedAssessment.questions !== 1 ? 's' : ''}
+        <TranslatedText text={`${formattedAssessment.questions} Question${formattedAssessment.questions !== 1 ? 's' : ''}`} />
       </p>
 
       <p className="text-gray-600 mb-4" style={{ fontSize: '14px', fontWeight: '400', lineHeight: '1.4', fontFamily: 'Roboto, sans-serif', color: '#6B7280' }}>
-        {formattedAssessment.description}
+        <TranslatedText text={formattedAssessment.description} />
       </p>
 
       <button
@@ -69,10 +70,10 @@ const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingA
         {isProcessing ? (
           <span className="inline-flex items-center justify-center">
             <span className="inline-block w-4 h-4 mr-2 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
-            Processing...
+            <TranslatedText text="Processing..." />
           </span>
         ) : (
-          'Start Certified Test'
+          <TranslatedText text="Start Certified Test" />
         )}
       </button>
     </div>

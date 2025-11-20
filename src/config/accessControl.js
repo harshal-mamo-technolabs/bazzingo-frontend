@@ -27,12 +27,19 @@ export const VISIBILITY_CONTROLS = {
   /**
    * Individual visibility controls.
    */
-  assessmentsNavItem: false,
+  assessmentsNavItem: true,
   premiumNavItem: false,
-  dashboardCertifiedCard: false,   // Top-right payment/"Start Certified Test" card on Dashboard
-  statisticsCertifiedCard: false,  // Bottom-right certified card on Statistics page
-  assessmentCompletionUpsell: false, // Payment upsell in assessment completion modals
+  dashboardCertifiedCard: false,  
+  statisticsCertifiedCard: false,  
+  assessmentCompletionUpsell: false, 
 };
+
+export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
+  assessmentPaymentsEnabled: false,
+};
+
+export const isAssessmentPaymentEnabled = () =>
+  Boolean(ASSESSMENT_BEHAVIOUR_CONTROLS.assessmentPaymentsEnabled);
 
 
 export const isComponentVisible = (component) =>

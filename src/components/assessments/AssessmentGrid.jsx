@@ -1,11 +1,12 @@
 import React from 'react';
 import AssessmentCard from './AssessmentCard';
+import TranslatedText from '../TranslatedText.jsx';
 
 const AssessmentGrid = ({ assessments, onAssessmentClick, onStartCertifiedTest, processingAssessmentId }) => {
   return (
     <div className="lg:bg-[#E8E8E8] lg:rounded-lg lg:p-6">
       <h2 className="text-black font-semibold mb-6 hidden lg:block" style={{ fontSize: '16px' }}>
-        Assessments
+        <TranslatedText text="Assessments" />
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">

@@ -6,9 +6,15 @@ import toast from "react-hot-toast";
 import { forgotPassword as forgotPasswordService } from '../services/authService';
 import { loading as loadingAction } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
+import TranslatedText from '../components/TranslatedText.jsx';
+import { useTranslateText } from '../hooks/useTranslate';
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
+  
+  // Translated strings for toast messages
+  const passwordResetLinkSentText = useTranslateText("If the email is registered, a password reset link has been sent.");
+  const errorOccurredText = useTranslateText("An error occurred. Please try again later.");
 
   const forgotPasswordHandler = async (formData) => {
     try {
@@ -16,11 +22,11 @@ const ForgotPassword = () => {
       const response = await forgotPasswordService(formData.email);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
-        toast.success(response.message || "If the email is registered, a password reset link has been sent.");
+        toast.success(response.message || passwordResetLinkSentText);
       }
     } catch (error) {
       const message =
-        error?.response?.data?.message || "An error occurred. Please try again later.";
+        error?.response?.data?.message || errorOccurredText;
       toast.error(message);
     } finally {
       dispatch(loadingAction());
@@ -55,18 +61,18 @@ const ForgotPassword = () => {
   return (
     <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-puzzle-bear.png">
       <div className="text-center">
-        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Forgot Password</h1>
+        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800"><TranslatedText text="Forgot Password" /></h1>
         <p className="md:text-lg text-[16px] text-gray-500 mt-4 mb-4 md:mb-0 max-w-md">
-          Don't worry! Resetting your password is easy. Just type in the email you registered to Bazzingo
+          <TranslatedText text="Don't worry! Resetting your password is easy. Just type in the email you registered to Bazzingo" />
         </p>
       </div>
       <div className="w-full">
         <ForgetPasswordEmailInputForm forgotPasswordHandler={forgotPasswordHandler} />
         <div className="text-center mt-6">
           <p className="text-[14px] md:text-[16px] text-gray-600">
-            Did you remembered your password?{' '}
+            <TranslatedText text="Did you remembered your password?" />{' '}
             <a href="/login" className="text-orange-500 font-medium">
-              Try Sign in
+              <TranslatedText text="Try Sign in" />
             </a>
           </p>
         </div>

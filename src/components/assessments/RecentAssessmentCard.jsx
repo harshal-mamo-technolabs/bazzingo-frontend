@@ -1,5 +1,6 @@
 import React from 'react';
 import {CarIcon, MessageIcon} from "../../../public/assessment";
+import TranslatedText from '../TranslatedText.jsx';
 
 const RecentAssessmentCard = ({ assessment }) => {
   return (
@@ -18,7 +19,7 @@ const RecentAssessmentCard = ({ assessment }) => {
 
         <div>
           <h3 className="text-black self-start" style={{ fontSize: '16px', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
-            {assessment.title}
+          <TranslatedText text={assessment.title} />
           </h3>
 
           <span
@@ -30,7 +31,7 @@ const RecentAssessmentCard = ({ assessment }) => {
               text-[#118C24] font-bold text-[12px] leading-none
             "
           >
-            {assessment.status}
+          <TranslatedText text={assessment.status} />
           </span>
         </div>
       </div>

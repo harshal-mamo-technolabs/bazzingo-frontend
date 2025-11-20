@@ -11,6 +11,8 @@ import AssessmentStartConfirmationModal from '../components/assessments/Assessme
 import { getAllAssessment ,getRecentAssessmentActivity } from '../services/dashbaordService';
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
 import { loadStripe } from '@stripe/stripe-js';
+import { isAssessmentPaymentEnabled } from '../config/accessControl';
+import TranslatedText from '../components/TranslatedText.jsx';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -25,6 +27,7 @@ const Assessments = () => {
     const [selectedAssessmentForPurchase, setSelectedAssessmentForPurchase] = useState(null);
     const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
     const [selectedAssessmentForConfirmation, setSelectedAssessmentForConfirmation] = useState(null);
+    const assessmentPaymentsEnabled = isAssessmentPaymentEnabled();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -95,6 +98,20 @@ const Assessments = () => {
     };
 
     const handleStartCertifiedTest = async (assessment) => {
+        // When payment flow is disabled from accessControl,
+        // we still want the "start test" confirmation modal
+        // for already-purchased assessments, but skip any
+        // purchase / Stripe flow for unpaid ones.
+        if (!assessmentPaymentsEnabled) {
+            if (assessment?.isAssessmentPurchased) {
+                setSelectedAssessmentForConfirmation(assessment);
+                setIsConfirmationModalOpen(true);
+            } else {
+                handleDirectStart(assessment);
+            }
+            return;
+        }
+
         // If already purchased, show confirmation modal
         if (assessment?.isAssessmentPurchased) {
             setSelectedAssessmentForConfirmation(assessment);
@@ -299,7 +316,7 @@ const Assessments = () => {
                 <div style={{fontFamily: 'Roboto, sans-serif', fontSize: '12px'}}>
                     <div className="mx-auto px-4 lg:px-12 py-4 lg:py-8">
                         <div className="p-6">
-                            <BazzingoLoader message="Loading assessments..." />
+                            <BazzingoLoader message={<TranslatedText text="Loading assessments..." />} />
                         </div>
                     </div>
                 </div>

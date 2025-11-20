@@ -1,5 +1,7 @@
 import { Input, Button, PasswordInput } from '../Form';
 import { useForm } from "react-hook-form";
+import TranslatedText from '../TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 export default function LoginForm({ loginHandler, loading = false }) {
   const {
@@ -7,47 +9,52 @@ export default function LoginForm({ loginHandler, loading = false }) {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  
+  // Translated strings for validation messages
+  const emailRequiredText = useTranslateText('Email is required');
+  const invalidEmailFormatText = useTranslateText('Invalid email format');
+  const passwordRequiredText = useTranslateText('Password is required');
 
   return (
     <form onSubmit={handleSubmit(loginHandler)} className="flex flex-col gap-5 md:gap-6">
       <div className="flex flex-col gap-3 md:gap-4">
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            Email address
+            <TranslatedText text="Email address" />
           </label>
           <Input
             type="email"
-            placeholder="Enter email address"
+            placeholder={useTranslateText('Enter email address')}
             className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
             {...register("email", {
-              required: "Email is required",
+              required: emailRequiredText,
               pattern: {
                 value: /^\S+@\S+\.\S+$/,
-                message: "Invalid email format",
+                message: invalidEmailFormatText,
               },
             })}
           />
           {errors.email && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.email.message}
+              <TranslatedText text={errors.email.message} />
             </p>
           )}
         </div>
 
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            Password
+            <TranslatedText text="Password" />
           </label>
           <PasswordInput
-            placeholder="Enter password"
+            placeholder={useTranslateText('Enter password')}
             className="w-full px-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
             {...register("password", {
-              required: "Password is required",
+              required: passwordRequiredText,
             })}
           />
           {errors.password && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.password.message}
+              <TranslatedText text={errors.password.message} />
             </p>
           )}
         </div>
@@ -55,7 +62,7 @@ export default function LoginForm({ loginHandler, loading = false }) {
 
       <div className="text-right">
         <a href="/forgot-password" className="block text-xs md:text-sm font-medium text-gray-800 mb-1 underline">
-          Forgot password?
+          <TranslatedText text="Forgot password?" />
         </a>
       </div>
 
@@ -66,7 +73,7 @@ export default function LoginForm({ loginHandler, loading = false }) {
           loading ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
-        {loading ? 'SIGNING IN...' : 'SIGNIN'}
+        {loading ? <TranslatedText text="SIGNING IN..." /> : <TranslatedText text="SIGNIN" />}
       </Button>
     </form>
   )

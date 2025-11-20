@@ -1,9 +1,11 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { useI18n } from '../../context/I18nContext';
 
 const AuthLayout = ({ children, illustration, responsiveIllustration }) => {
    const location = useLocation();
   const path = location.pathname;
+  const { language, setLanguage } = useI18n();
 
   // Determine background color based on the current path
   let bgColor = '#ffffff'; // default
@@ -18,6 +20,32 @@ const AuthLayout = ({ children, illustration, responsiveIllustration }) => {
 
   return (
     <div className="relative w-screen h-screen bg-white overflow-hidden">
+      {/* Language Switcher - Top Right */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-1 select-none">
+        <button
+          type="button"
+          onClick={() => setLanguage('en')}
+          className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
+            language === 'en'
+              ? 'bg-black text-white border-black'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+          }`}
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          onClick={() => setLanguage('de')}
+          className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
+            language === 'de'
+              ? 'bg-black text-white border-black'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+          }`}
+        >
+          DE
+        </button>
+      </div>
+      
       {/* Responsive Image: only for small screens */}
       <div className="absolute top-0 left-0 w-full h-[360px] lg:hidden z-0 flex justify-center" style={{ backgroundColor: bgColor }}>
       <img

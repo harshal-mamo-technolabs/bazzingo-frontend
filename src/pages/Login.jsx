@@ -10,11 +10,18 @@ import { GoogleLogin } from '@react-oauth/google';
 import { login as loginService } from '../services/authService';
 import { login as loginAction, loading as loadingAction, checkAndValidateToken } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS, getTokenExpiry } from '../utils/constant';
+import TranslatedText from '../components/TranslatedText.jsx';
+import { useTranslateText } from '../hooks/useTranslate';
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { status: isAuthenticated, loading } = useSelector((state) => state.user);
+  
+  // Translated strings for toast messages
+  const loggedInSuccessText = useTranslateText('Logged in successfully!');
+  const loginFailedText = useTranslateText('Login failed, please try again later.');
+  const googleLoginFailedText = useTranslateText('Google login failed, please try again later.');
 
   useEffect(() => {
     dispatch(checkAndValidateToken());
@@ -45,12 +52,12 @@ const Login = () => {
 
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));
-        toast.success("Logged in successfully!");
+        toast.success(loggedInSuccessText);
         navigate("/dashboard");
       }
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Login failed, please try again later.";
+        error?.response?.data?.message || loginFailedText;
       toast.error(message);
     } finally {
       dispatch(loadingAction());
@@ -75,12 +82,12 @@ const Login = () => {
 
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));
-        toast.success("Logged in successfully!");
+        toast.success(loggedInSuccessText);
         navigate("/dashboard");
       }
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Google login failed, please try again later.";
+        error?.response?.data?.message || googleLoginFailedText;
       toast.error(message);
     } finally {
       dispatch(loadingAction());
@@ -119,9 +126,9 @@ const Login = () => {
   return (
     <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-bulb.png">
       <div className="text-center">
-        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Welcome Back</h1>
+        <h1 className="md:text-5xl text-[32px] font-bold text-gray-800"><TranslatedText text="Welcome Back" /></h1>
         <p className="md:text-lg text-[16px] text-gray-500 mt-2 md:mb-0 mb-2">
-          Please sign-in to your account and start the adventure
+          <TranslatedText text="Please sign-in to your account and start the adventure" />
         </p>
       </div>
 
@@ -161,9 +168,9 @@ const Login = () => {
         </div> */}
         <div className="text-center mt-3 md:mt-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">
-            Don't have an account?{' '}
+            <TranslatedText text="Don't have an account?" />{' '}
             <a href="/signup" className="text-orange-500 font-medium">
-              Signup
+              <TranslatedText text="Signup" />
             </a>
           </p>
         </div>

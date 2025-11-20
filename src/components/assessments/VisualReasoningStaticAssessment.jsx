@@ -602,7 +602,7 @@ export default function VisualReasoningStaticAssessment() {
           <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">
-      {isReviewPhase ? <TranslatedText text="Review Questions" /> : assessmentMetadata.title}
+      {isReviewPhase ? <TranslatedText text="Review Questions" /> : <TranslatedText text={assessmentMetadata.title} />}
     </h2>
               <span className="bg-black text-white text-sm px-3 py-1 rounded">
                 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}s

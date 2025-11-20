@@ -4,19 +4,19 @@ const STORAGE_KEY = 'bazzingo.lang';
 const SUPPORTED_LANGS = ['en', 'de'];
 
 export const  I18nContext = createContext({
-  language: 'en',
+  language: 'de',
   setLanguage: () => {},
 });
 
 export function I18nProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
-    if (typeof window === 'undefined') return 'en';
+    if (typeof window === 'undefined') return 'de';
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored && SUPPORTED_LANGS.includes(stored)) {
       return stored;
     }
-    const browserLang = (navigator.language || 'en').toLowerCase();
-    return browserLang.startsWith('de') ? 'de' : 'en';
+    const browserLang = (navigator.language || 'de').toLowerCase();
+    return browserLang.startsWith('en') ? 'en' : 'de';
   });
 
   useEffect(() => {
