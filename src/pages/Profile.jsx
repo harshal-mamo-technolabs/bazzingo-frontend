@@ -80,7 +80,7 @@ const Profile = () => {
                 <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
-                      src={`/portal/${userData?.avatar}` || "https://i.pravatar.cc/80"}
+                      src={`/${userData?.avatar}` || "https://i.pravatar.cc/80"}
                       alt="Avatar"
                       className="w-12 h-12 rounded-full object-cover"
                       onError={(e) => {
