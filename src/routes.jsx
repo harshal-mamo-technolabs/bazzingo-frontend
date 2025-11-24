@@ -68,7 +68,7 @@ const router = createBrowserRouter([
         element: <PrivacyPolicy />,
     },
     {
-        path: "/terms-of-use",
+        path: "/agb",
         element: <TermsOfUse />,
     },
     {
