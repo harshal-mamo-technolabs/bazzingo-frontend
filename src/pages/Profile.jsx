@@ -25,11 +25,11 @@ const Profile = () => {
   const settings = [
     { label: <TranslatedText text="Notification Preference" />, icon: BellIcon, route: '/notification-preferences' },
     { label: <TranslatedText text="Update Password" />, icon: LockClosedIcon, route: '/update-password' },
-    { label: <TranslatedText text="Ticket Raising System" />, icon: TicketIcon, route: '/client-ticket' },
+    // { label: <TranslatedText text="Ticket Raising System" />, icon: TicketIcon, route: '/client-ticket' },
     { label: <TranslatedText text="Help" />, icon: QuestionMarkCircleIcon, route: '/help-faqs' },
-    { label: <TranslatedText text="Faq" />, icon: ChatBubbleBottomCenterTextIcon, route: '/help-faqs' },
-    { label: <TranslatedText text="Terms of use" />, icon: DocumentTextIcon, route: '/terms-of-use' },
-    { label: <TranslatedText text="Privacy Policy" />, icon: ShieldCheckIcon, route: '/privacy-policy' },
+    // { label: <TranslatedText text="Faq" />, icon: ChatBubbleBottomCenterTextIcon, route: '/help-faqs' },
+    { label: <TranslatedText text="AGB" />, icon: DocumentTextIcon, route: '/agb' },
+    { label: <TranslatedText text="Impressum" />, icon: ShieldCheckIcon, route: '/impressum' },
   ];
   const unreadCount = 3;
 
@@ -80,7 +80,7 @@ const Profile = () => {
                 <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
-                      src={userData?.avatar || "https://i.pravatar.cc/80"}
+                      src={`/portal/${userData?.avatar}` || "https://i.pravatar.cc/80"}
                       alt="Avatar"
                       className="w-12 h-12 rounded-full object-cover"
                       onError={(e) => {
@@ -155,7 +155,7 @@ const Profile = () => {
             <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src={userData?.avatar || "https://i.pravatar.cc/80"}
+                  src={`/portal/${userData?.avatar}` || "https://i.pravatar.cc/80"}
                   alt="Avatar"
                   className="w-12 h-12 rounded-full object-cover"
                   onError={(e) => {

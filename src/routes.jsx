@@ -64,7 +64,7 @@ const router = createBrowserRouter([
         element: <NotificationPreferences />,
     },
     {
-        path: "/privacy-policy",
+        path: "/impressum",
         element: <PrivacyPolicy />,
     },
     {

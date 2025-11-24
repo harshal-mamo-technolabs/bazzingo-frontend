@@ -36,8 +36,8 @@ function ClientTicket() {
 
     const helpResources = [
         { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
-        { label: <TranslatedText text="Privacy Policy" />, icon: BookOpen, route: '/privacy-policy' },
-        { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/terms-of-use' },
+        { label: <TranslatedText text="Impressum" />, icon: BookOpen, route: '/impressum' },
+        { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/agb' },
     ];
 
     return (
