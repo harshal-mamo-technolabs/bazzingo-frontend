@@ -32,79 +32,132 @@ function TermsOfUse() {
                     <div className="max-w-[800px]">
                         {/* Section 1 */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="1. Scope" /></h3>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="1. General Provisions, Scope, and Contracting Parties" /></h3>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="These General Terms and Conditions (hereinafter: &quot;GTC&quot;) form part of every contract between Comparo Media d.o.o. (hereinafter: &quot;Provider&quot;) and the user of the services provided by the Provider. The GTC also apply to the legal successors of both the Provider and the user." />
+                                <TranslatedText text="These General Terms and Conditions comprehensively govern the use of all content provided by the provider via the digital platform &quot;Bazingo.&quot; The following provisions apply to all users who access the digital services offered through their mobile device." />
                             </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The Provider offers the user, in return for payment, the possibility to access and use the digital content offered on the website via their mobile device (mobile phone). These GTC govern all provisions related to the use of these services." />
-                            </p>
-                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="These GTC apply exclusively to users residing in Germany." />
+                                <TranslatedText text="These GTC apply exclusively to consumers with their habitual residence in the Federal Republic of Germany. Deviating general terms and conditions of the user do not apply; their inclusion is expressly rejected." />
                             </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="The services of the Provider are provided exclusively on the basis of these GTC. By using the services, the user acknowledges these GTC as binding." />
+                                <TranslatedText text="The provider is a company based in the European Union, whose complete details are listed in the platform's legal notice (&quot;Impressum&quot;). The legal notice forms an integral part of the contractual relationship." />
                             </p>
                         </div>
 
                         {/* Section 2 */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="2. Conclusion of Contract" /></h3>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="2. Subject Matter of the Contract" /></h3>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The presentation of the services on the Provider's website does not constitute a binding offer, but rather an invitation to the user to submit an offer." />
-                            </p>
-                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The contract is concluded once the user activates the displayed confirmation or play button on their mobile device, and the Provider then sets up access to the service." />
-                            </p>
-                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="After successful activation, the user can access and use all offered content via their mobile device." />
-                            </p>
-                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The prices communicated to the user apply. These include statutory VAT, apply to the specified period, and refer exclusively to the usage rights of the Provider's services. Any connection or data charges incurred by the user's mobile network operator are not included in the prices." />
-                            </p>
-                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The fee becomes due immediately upon conclusion of the contract without deduction. Billing is carried out on behalf of the Provider via the user's mobile network operator as part of the regular mobile bill." />
+                                <TranslatedText text="The provider offers digital content — in particular audiovisual, multimedia, or other electronic content — which can be accessed via the user's mobile device. The specific functionality of the content may vary depending on technical design and is subject to ongoing updates, extensions, or adjustments by the provider." />
                             </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="The user receives a simple, non-transferable, time-limited (for the duration of the contract), and geographically unrestricted right to use the provided services." />
+                                <TranslatedText text="Use of the provided content is exclusively online; permanent storage, distribution, or reproduction by the user is not permitted." />
                             </p>
                         </div>
 
                         {/* Section 3 */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="3. Payment Terms" /></h3>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="3. Conclusion of the Contract" /></h3>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The prices communicated to the user, including statutory VAT, apply. These prices apply to the respective billing or usage period. Possible connection charges by the mobile network operator are not included." />
+                                <TranslatedText text="A contract is concluded once the user clicks the displayed confirmation or activation button on their device and the provider technically enables access." />
                             </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="The usage fee becomes due immediately upon conclusion of the contract and is collected on behalf of the Provider via the user's mobile network operator." />
+                                <TranslatedText text="Billing is carried out exclusively through the respective mobile network operator, who collects the fee payable by the user on behalf of the provider. Any telecommunications charges of the mobile network operator are not part of the services provided by the provider." />
                             </p>
                         </div>
 
                         {/* Section 4 */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="4. Usage Rights" /></h3>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="4. Provision of Access" /></h3>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="After successful activation, the user receives time-limited access to all content available on the platform for a clearly defined period. This usage period ends automatically upon expiration of the agreed duration, without requiring any termination." />
+                            </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="The user receives a simple, non-exclusive, non-transferable right to use the Provider's services, limited to the duration of the contract. Forwarding or distributing the content to third parties is not permitted." />
+                                <TranslatedText text="Access can be restored at any time thereafter by reactivation. There is expressly no subscription or automatic renewal." />
                             </p>
                         </div>
 
                         {/* Section 5 */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="5. Availability" /></h3>
-                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
-                                <TranslatedText text="The Provider guarantees an average availability of the services of 99.5% per year. If this availability is not met, the user may request an appropriate reduction. The reduction is limited to the amount the user had to pay for the period of reduced availability." />
-                            </p>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="5. Scope of Usage Rights" /></h3>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="The Provider aligns its offering with common technical standards but cannot guarantee that all mobile devices available on the market support the services without errors." />
+                                <TranslatedText text="The provider grants the user a simple, non-transferable, revocable right, valid only for the duration of each usage period, to use the provided content within the functionalities of the platform." />
                             </p>
                         </div>
 
                         {/* Section 6 */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="6. Limitation of Liability / Release from Liability" /></h3>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="6. Technical Requirements and Availability" /></h3>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Use of the service requires a suitable mobile device and a stable internet or mobile data connection. The provider does not guarantee full compatibility with all devices or all network operators." />
+                            </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="For damages not resulting from injury to life, body, or health, the Provider is liable only in cases of intentional or grossly negligent conduct by the Provider, its employees, or vicarious agents. This also applies to damages resulting from breaches of duties during contract negotiations or from unlawful acts." />
+                                <TranslatedText text="The provider ensures an average technical availability of 99.5% on an annual basis." />
+                            </p>
+                        </div>
+
+                        {/* Section 7 */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="7. Limitation of Liability" /></h3>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
+                                <TranslatedText text="For damages not resulting from injury to life, body, or health, the provider is liable only in cases of intentional or grossly negligent conduct. Any further liability is excluded." />
+                            </p>
+                        </div>
+
+                        {/* Section 8 */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="8. Cancellation Policy" /></h3>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
+                                <TranslatedText text="Consumers have the right to withdraw from the contract at any time and receive a full refund. To exercise the right of withdrawal, a brief notification to the contact details listed in the legal notice is sufficient." />
+                            </p>
+                        </div>
+
+                        {/* Section 9 */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="9. Privacy Policy" /></h3>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Controller:" />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="The company named in the legal notice." />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Data processed:" />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Mobile phone number, IP address, technical device information, activation data, log data, billing data." />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Purposes:" />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Provision of services, billing, security, fraud prevention, legal obligations." />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Legal bases:" />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Art. 6(1)(b), (c), and (f) GDPR." />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Storage period:" />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Only as long as necessary or legally required." />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5', marginBottom: '12px' }}>
+                                <TranslatedText text="Data subject rights:" />
+                            </p>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
+                                <TranslatedText text="Right of access, rectification, erasure, restriction of processing, data portability, and objection." />
+                            </p>
+                        </div>
+
+                        {/* Section 10 */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <h3 className="text-gray-900" style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}><TranslatedText text="10. Final Provisions" /></h3>
+                            <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
+                                <TranslatedText text="Should individual provisions of these GTC be invalid, the validity of the remaining provisions shall remain unaffected. The law of the Federal Republic of Germany applies." />
                             </p>
                         </div>
                     </div>

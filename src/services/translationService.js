@@ -32,6 +32,26 @@ function getAuthHeaders() {
   }
 }
 
+// -------- Static translation dictionary (overrides API translations) --------
+
+const staticTranslations = {
+  'de': {
+    'Help': 'Hilfe',
+  },
+};
+
+
+function getStaticTranslation(text, targetLang) {
+  if (!text || !targetLang || targetLang === 'en') {
+    return null;
+  }
+  const langDict = staticTranslations[targetLang];
+  if (langDict && langDict.hasOwnProperty(text)) {
+    return langDict[text];
+  }
+  return null;
+}
+
 // -------- Batching layer (to avoid per-line API calls) --------
 
 // pending promises per (targetLang|text) so same text isn't requested twice
@@ -77,58 +97,84 @@ async function flushBatch(langKey) {
   const texts = items.map((i) => i.text);
   const sourceLang = items[0]?.sourceLang || 'en';
 
-  let translations = [...texts];
-
-  try {
-    console.log('[translationService] Translating batch:', {
-      count: texts.length,
-      targetLang: langKey,
-      endpoint: API_ENDPOINT,
-    });
-
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        q: texts,
-        source: sourceLang,
-        target: langKey,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      console.error('[translationService] Failed to translate batch', {
-        status: response.status,
-        statusText: response.statusText,
-        endpoint: API_ENDPOINT,
-        error: errorText,
-      });
-      // fall through, translations stay as original texts
+  // Check for static translations first
+  const textsToTranslate = [];
+  const staticTranslationIndices = new Map();
+  
+  texts.forEach((text, index) => {
+    const staticTranslation = getStaticTranslation(text, langKey);
+    if (staticTranslation !== null) {
+      staticTranslationIndices.set(index, staticTranslation);
     } else {
-      const payload = await response.json().catch((err) => {
-        console.error('[translationService] Failed to parse batch response', err);
-        return {};
+      textsToTranslate.push({ text, index });
+    }
+  });
+
+  let translations = [...texts];
+  
+  // Apply static translations
+  staticTranslationIndices.forEach((translation, index) => {
+    translations[index] = translation;
+  });
+
+  // Only make API call if there are texts to translate
+  if (textsToTranslate.length > 0) {
+    try {
+      const textsForAPI = textsToTranslate.map(item => item.text);
+      
+      console.log('[translationService] Translating batch:', {
+        count: textsForAPI.length,
+        targetLang: langKey,
+        endpoint: API_ENDPOINT,
       });
 
-      const translatedArray =
-        payload?.data?.translatedTexts ||
-        payload?.data?.translations ||
-        payload?.translatedTexts ||
-        payload?.texts;
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          q: textsForAPI,
+          source: sourceLang,
+          target: langKey,
+        }),
+      });
 
-      if (Array.isArray(translatedArray) && translatedArray.length === texts.length) {
-        translations = translatedArray;
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        console.error('[translationService] Failed to translate batch', {
+          status: response.status,
+          statusText: response.statusText,
+          endpoint: API_ENDPOINT,
+          error: errorText,
+        });
+        // fall through, translations stay as original texts
       } else {
-        console.warn('[translationService] Unexpected batch response format', payload);
+        const payload = await response.json().catch((err) => {
+          console.error('[translationService] Failed to parse batch response', err);
+          return {};
+        });
+
+        const translatedArray =
+          payload?.data?.translatedTexts ||
+          payload?.data?.translations ||
+          payload?.translatedTexts ||
+          payload?.texts;
+
+        if (Array.isArray(translatedArray) && translatedArray.length === textsForAPI.length) {
+          // Apply API translations to the correct indices
+          textsToTranslate.forEach((item, apiIndex) => {
+            translations[item.index] = translatedArray[apiIndex];
+          });
+        } else {
+          console.warn('[translationService] Unexpected batch response format', payload);
+        }
       }
+    } catch (err) {
+      console.error('[translationService] Error while translating batch', {
+        error: err,
+        endpoint: API_ENDPOINT,
+        sampleText: String(textsForAPI[0] || '').substring(0, 50),
+      });
     }
-  } catch (err) {
-    console.error('[translationService] Error while translating batch', {
-      error: err,
-      endpoint: API_ENDPOINT,
-      sampleText: String(texts[0] || '').substring(0, 50),
-    });
   }
 
   // Resolve all queued promises
@@ -172,6 +218,12 @@ export function translateText(text, targetLang, sourceLang = 'en') {
   // For now we only support translating from English
   if (sourceLang !== 'en') {
     return Promise.resolve(text);
+  }
+
+  // Check for static translation first
+  const staticTranslation = getStaticTranslation(text, targetLang);
+  if (staticTranslation !== null) {
+    return Promise.resolve(staticTranslation);
   }
 
   const key = `${targetLang}|${text}`;
