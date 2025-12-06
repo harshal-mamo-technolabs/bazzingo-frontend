@@ -44,6 +44,17 @@ const AuthLayout = ({ children, illustration, responsiveIllustration }) => {
         >
           DE
         </button>
+        <button
+          type="button"
+          onClick={() => setLanguage('ro')}
+          className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
+            language === 'ro'
+              ? 'bg-black text-white border-black'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+          }`}
+        >
+          RO
+        </button>
       </div>
       
       {/* Responsive Image: only for small screens */}

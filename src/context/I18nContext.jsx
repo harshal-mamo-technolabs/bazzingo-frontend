@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'bazzingo.lang';
-const SUPPORTED_LANGS = ['en', 'de'];
+const SUPPORTED_LANGS = ['en', 'de', 'ro'];
 
 export const  I18nContext = createContext({
   language: 'de',
@@ -16,7 +16,9 @@ export function I18nProvider({ children }) {
       return stored;
     }
     const browserLang = (navigator.language || 'de').toLowerCase();
-    return browserLang.startsWith('en') ? 'en' : 'de';
+    if (browserLang.startsWith('en')) return 'en';
+    if (browserLang.startsWith('ro')) return 'ro';
+    return 'de';
   });
 
   useEffect(() => {
