@@ -3,6 +3,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { Brain } from 'lucide-react';
 import { calculateCertificateValues, generateCertificateId, generateReportUrl } from '../../utils/certificationUtils';
 import { generateDomainScores } from '../../utils/reportUtils';
+import TranslatedText from '../TranslatedText.jsx';
 
 
 /**
@@ -98,25 +99,25 @@ const CertificateComponent = forwardRef(({
           {/* Main Title */}
           <div className="text-center mb-16">
             <div className="text-5xl font-bold text-[#1e3a8a] tracking-wide mb-2">
-              CERTIFICATE OF
+              <TranslatedText text="CERTIFICATE OF" />
             </div>
             <div className="text-5xl font-bold text-[#1e3a8a] tracking-wide">
-              {mainCategory === 'iq-test' ? 'IQ ACHIEVEMENT' : 
-               mainCategory === 'driving-license' ? 'DRIVING LICENSE ACHIEVEMENT' :
-               mainCategory === 'logic' ? 'LOGIC ACHIEVEMENT' : 'ACHIEVEMENT'}
+              {mainCategory === 'iq-test' ? <TranslatedText text="IQ ACHIEVEMENT" /> : 
+               mainCategory === 'driving-license' ? <TranslatedText text="DRIVING LICENSE ACHIEVEMENT" /> :
+               mainCategory === 'logic' ? <TranslatedText text="LOGIC ACHIEVEMENT" /> : <TranslatedText text="ACHIEVEMENT" />}
             </div>
           </div>
 
           {/* Certificate Content */}
           <div className="text-center flex-grow flex flex-col justify-center">
-            <div className="text-xl text-gray-700 mb-6">This certifies that</div>
+            <div className="text-xl text-gray-700 mb-6"><TranslatedText text="This certifies that" /></div>
             
             <div className="text-6xl font-bold text-[#1e3a8a] mb-8">{userName}</div>
             
             <div className="text-xl text-gray-700 mb-6">
-              has achieved a {mainCategory === 'iq-test' ? 'IQ' : 
-                              mainCategory === 'driving-license' ? 'Driving License' :
-                              mainCategory === 'logic' ? 'Logic' : 'Assessment'} score of
+              <TranslatedText text="has achieved a" /> {mainCategory === 'iq-test' ? <TranslatedText text="IQ" /> : 
+                              mainCategory === 'driving-license' ? <TranslatedText text="Driving License" /> :
+                              mainCategory === 'logic' ? <TranslatedText text="Logic" /> : <TranslatedText text="Assessment" />} <TranslatedText text="score of" />
             </div>
             
             <div className="text-9xl font-bold text-[#f97316] mb-4">{displayScore}</div>
@@ -160,10 +161,9 @@ const CertificateComponent = forwardRef(({
                 level="M" 
               />
               <div className="text-sm text-gray-700 max-w-[300px]">
-                <div className="font-medium mb-2">Certificate ID {certificateId}</div>
+                <div className="font-medium mb-2"><TranslatedText text="Certificate ID" /> {certificateId}</div>
                 <div className="text-gray-600 leading-relaxed text-xs">
-                  This score is based on a normative sample with a mean of 
-                  100 and a standard deviation of 15.
+                  <TranslatedText text="This score is based on a normative sample with a mean of 100 and a standard deviation of 15." />
                 </div>
               </div>
             </div>
