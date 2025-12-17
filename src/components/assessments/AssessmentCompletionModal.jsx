@@ -5,7 +5,7 @@ import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBad
 import axios from 'axios';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant';
 import { toPng } from "html-to-image";
-import { useReactToPrint } from "react-to-print";
+import { jsPDF } from 'jspdf';
 import CertificateComponent from '../Certificate/CertificateComponent';
 import ReportComponent from '../Report/ReportComponent';
 import { isComponentVisible } from '../../config/accessControl';
@@ -124,16 +124,78 @@ const AssessmentCompletionModal = ({
     }
   };
 
-  // Report functions
-  const handleDownloadReport = useReactToPrint({
-    contentRef: reportRef,
-    documentTitle: `${assessmentName}-Report-${assessmentId}`,
-    onBeforeGetContent: () => {
-      setDownloading("report");
-      return Promise.resolve();
-    },
-    onAfterPrint: () => setDownloading("")
-  });
+  // Report download - uses html-to-image + jsPDF for proper PDF generation on all devices
+  const handleDownloadReport = async () => {
+    if (!reportRef.current) return;
+    
+    setDownloading("report");
+    
+    try {
+      // Wait for any pending renders
+      await new Promise(r => setTimeout(r, 300));
+      
+      // Generate image from the report using html-to-image
+      const dataUrl = await toPng(reportRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Create image element to get dimensions
+      const img = new Image();
+      img.src = dataUrl;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      // A4 width in mm, but custom height to fit all content
+      const pdfWidth = 210;
+      const margin = 10;
+      const contentWidth = pdfWidth - (margin * 2);
+      
+      // Calculate height based on image aspect ratio
+      const imgAspectRatio = img.width / img.height;
+      const scaledImgHeight = contentWidth / imgAspectRatio;
+      const pdfHeight = scaledImgHeight + (margin * 2);
+      
+      // Create PDF with custom height to fit all content on one page
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight] // Custom page size
+      });
+      
+      // Add the full image - no page breaks, no cut content
+      pdf.addImage(dataUrl, 'PNG', margin, margin, contentWidth, scaledImgHeight);
+      
+      // Download the PDF
+      pdf.save(`Report-${assessmentId}.pdf`);
+      
+    } catch (error) {
+      console.error("Error generating report PDF:", error);
+      
+      // Fallback: Download as PNG image
+      try {
+        const dataUrl = await toPng(reportRef.current, {
+          cacheBust: true,
+          pixelRatio: 2,
+          backgroundColor: '#ffffff'
+        });
+        
+        const link = document.createElement('a');
+        link.download = `Report-${assessmentId}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+        alert("Unable to generate report. Please try again or use a different browser.");
+      }
+    } finally {
+      setDownloading("");
+    }
+  };
 
 
   // Keyboard and focus management
@@ -366,7 +428,7 @@ const AssessmentCompletionModal = ({
       </div>
 
       {/* Hidden certificate and report elements for download */}
-      <div style={{ position: 'fixed', left: '-10000px', top: 0, width: '1000px', zIndex: -1 }}>
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '850px', opacity: 0, pointerEvents: 'none', backgroundColor: '#fff' }}>
         <CertificateComponent
           ref={certificateRef}
           scoreData={scoreDataToUse}

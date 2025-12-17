@@ -1,5 +1,6 @@
 import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 import CertificateComponent from '../Certificate/CertificateComponent.jsx';
 import ReportComponent from '../Report/ReportComponent.jsx';
 
@@ -24,6 +25,7 @@ const AssessmentDownloader = forwardRef(({ assessment, onDownloadStart, onDownlo
       link.click();
     } catch (error) {
       console.error("Error generating certificate:", error);
+      alert("Failed to generate certificate. Please try again.");
     } finally {
       onDownloadEnd();
     }
@@ -33,78 +35,69 @@ const AssessmentDownloader = forwardRef(({ assessment, onDownloadStart, onDownlo
     if (!reportRef.current) return;
     
     onDownloadStart(`report-${assessment._id}`);
+    
     try {
-      // Create a new window with the report content
-      const printWindow = window.open('', '_blank');
-      const reportContent = reportRef.current.outerHTML;
+      // Wait for any pending renders
+      await new Promise(r => setTimeout(r, 300));
       
-      // Get all CSS from the current page
-      const styles = Array.from(document.styleSheets)
-        .map(styleSheet => {
-          try {
-            return Array.from(styleSheet.cssRules)
-              .map(rule => rule.cssText)
-              .join('\n');
-          } catch (e) {
-            // Handle cross-origin stylesheets
-            const link = styleSheet.ownerNode;
-            if (link && link.href) {
-              return `@import url("${link.href}");`;
-            }
-            return '';
-          }
-        })
-        .join('\n');
+      // Generate image from the report using html-to-image
+      const dataUrl = await toPng(reportRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
       
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>${assessment.assessmentName} Report</title>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              ${styles}
-              
-              /* Additional print-specific styles */
-              @media print {
-                body { 
-                  margin: 0; 
-                  padding: 0; 
-                  -webkit-print-color-adjust: exact;
-                  color-adjust: exact;
-                }
-                .print\\:shadow-none { box-shadow: none !important; }
-                .print\\:w-\\[210mm\\] { width: 210mm !important; }
-                .print\\:min-h-\\[297mm\\] { min-height: 297mm !important; }
-              }
-              
-              /* Ensure proper styling */
-              body {
-                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                line-height: 1.5;
-                color: #000;
-                background: #fff;
-              }
-            </style>
-          </head>
-          <body>
-            ${reportContent}
-          </body>
-        </html>
-      `);
+      // Create image element to get dimensions
+      const img = new Image();
+      img.src = dataUrl;
       
-      printWindow.document.close();
-      printWindow.focus();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
       
-      // Wait for content and styles to load then print
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 1000);
+      // A4 width in mm, but custom height to fit all content
+      const pdfWidth = 210;
+      const margin = 10;
+      const contentWidth = pdfWidth - (margin * 2);
+      
+      // Calculate height based on image aspect ratio
+      const imgAspectRatio = img.width / img.height;
+      const scaledImgHeight = contentWidth / imgAspectRatio;
+      const pdfHeight = scaledImgHeight + (margin * 2);
+      
+      // Create PDF with custom height to fit all content on one page
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight] // Custom page size
+      });
+      
+      // Add the full image - no page breaks, no cut content
+      pdf.addImage(dataUrl, 'PNG', margin, margin, contentWidth, scaledImgHeight);
+      
+      // Download the PDF
+      pdf.save(`Report-${assessment.assessmentId || assessment._id}.pdf`);
       
     } catch (error) {
-      console.error("Error generating report:", error);
+      console.error("Error generating report PDF:", error);
+      
+      // Fallback: Download as PNG image
+      try {
+        const dataUrl = await toPng(reportRef.current, {
+          cacheBust: true,
+          pixelRatio: 2,
+          backgroundColor: '#ffffff'
+        });
+        
+        const link = document.createElement('a');
+        link.download = `Report-${assessment.assessmentId || assessment._id}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+        alert("Unable to generate report. Please try again or use a different browser.");
+      }
     } finally {
       onDownloadEnd();
     }
@@ -117,13 +110,18 @@ const AssessmentDownloader = forwardRef(({ assessment, onDownloadStart, onDownlo
   }));
 
   return (
-    <div style={{ 
-      position: 'fixed', 
-      left: '-10000px', 
-      top: 0, 
-      width: '1000px', 
-      zIndex: -1 
-    }}>
+    <div 
+      className="pdf-render-container"
+      style={{ 
+        position: 'absolute', 
+        left: '-9999px', 
+        top: '-9999px', 
+        width: '850px', 
+        opacity: 0,
+        pointerEvents: 'none',
+        backgroundColor: '#fff'
+      }}
+    >
       <CertificateComponent
         ref={certificateRef}
         scoreData={{
