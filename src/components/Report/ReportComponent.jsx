@@ -9,7 +9,9 @@ import {
   getDefaultDomains,
   generateRadarData,
   sortDomainsByPerformance,
-  generateRecommendedActivities
+  generateRecommendedActivities,
+  isQuickAssessment,
+  getMaxDomainScore
 } from '../../utils/reportUtils.jsx';
 import { bandFromTotal } from '../../utils/certificationUtils.jsx';
 
@@ -29,15 +31,24 @@ const ReportComponent = forwardRef(({
   className = "",
   style = {}
 }, ref) => {
-  const stats = calculateReportStats(scoreData, totalQuestions);
+  // Determine assessment type (quick = 10 questions, full = 30 questions)
+  const questionCount = totalQuestions || 30;
+  const isQuick = isQuickAssessment(questionCount);
+  
+  const stats = calculateReportStats(scoreData, questionCount);
   const band = bandFromTotal(stats.total);
-  const domainScores = generateDomainScores(scoreData);
+  const domainScores = generateDomainScores(scoreData, questionCount);
   const domains = domainScores.length > 0 ? domainScores : getDefaultDomains();
-  const radarData = generateRadarData(domains, scoreData);
+  const domainCount = domains.length || 5;
+  const maxDomainScore = getMaxDomainScore(questionCount, domainCount);
+  const radarData = generateRadarData(domains, scoreData, questionCount);
   const sortedDomains = sortDomainsByPerformance(domains, scoreData);
   const recommendations = generateRecommendedActivities(sortedDomains);
   
   const dateStr = scoreData?.date ? dayjs(scoreData.date).format("DD MMM, YYYY") : dayjs().format("DD MMM, YYYY");
+  
+  // Calculate radar chart domain based on max possible score
+  const radarMaxDomain = maxDomainScore;
 
   return (
     <div 
@@ -51,6 +62,7 @@ const ReportComponent = forwardRef(({
           <div className="text-xl font-semibold">{assessmentName} Report</div>
           <div className="text-sm text-gray-600">
             Assessment Type: {mainCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+            {isQuick && <span className="ml-2 text-orange-500">(Quick Assessment)</span>}
           </div>
         </div>
         <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-10" />
@@ -92,20 +104,24 @@ const ReportComponent = forwardRef(({
               </defs>
               <PolarGrid />
               <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-              <PolarRadiusAxis angle={30} domain={[0, 30]} tick={{ fontSize: 10 }} />
+              <PolarRadiusAxis angle={30} domain={[0, radarMaxDomain]} tick={{ fontSize: 10 }} />
               <Radar dataKey="value" stroke="#f97316" strokeWidth={2} fill="url(#reportRadar)" fillOpacity={1} />
             </RadarChart>
           </div>
           <div className="border rounded p-4 flex flex-col gap-2 text-sm">
             <div className="flex items-center justify-between">
               <span>Total Score</span>
-              <span className="font-semibold">{stats.total} / 150</span>
+              <span className="font-semibold">{stats.total} / {stats.maxScore}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Correct Answers</span>
               <span className="font-semibold">
-                {Math.round(stats.total / 5)} / 30
+                {stats.correctAnswers} / {stats.questionCount}
               </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Accuracy</span>
+              <span className="font-semibold">{stats.accuracy}%</span>
             </div>
             {/* Category-specific scores */}
             {programScores && programScores !== null && Object.keys(programScores).length > 0 && (
@@ -134,14 +150,15 @@ const ReportComponent = forwardRef(({
         </div>
 
         {/* Domain Scores Grid */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+        <div className={`mt-6 grid grid-cols-1 gap-3 text-xs ${domains.length <= 5 ? 'md:grid-cols-5' : 'md:grid-cols-3'}`}>
           {domains.map(d => {
             const sc = scoreData?.byCategory?.[d.key] || 0;
-            const { level } = generateInsightsAndTips(d.key, sc, mainCategory);
+            const domainMax = d.maxScore || maxDomainScore;
+            const { level } = generateInsightsAndTips(d.key, sc, mainCategory, domainMax);
             return (
               <div key={d.key} className="border rounded p-3">
                 <div className="font-medium">{d.label}</div>
-                <div className="text-gray-600">{sc} / 30</div>
+                <div className="text-gray-600">{sc} / {domainMax}</div>
                 <div className="text-[11px] mt-1 inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">
                   {level}
                 </div>
@@ -157,12 +174,13 @@ const ReportComponent = forwardRef(({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 cognitive-breakdown-grid">
           {domains.map(d => {
             const sc = scoreData?.byCategory?.[d.key] || 0;
-            const { level, insights, tips } = generateInsightsAndTips(d.key, sc, mainCategory);
+            const domainMax = d.maxScore || maxDomainScore;
+            const { level, insights, tips } = generateInsightsAndTips(d.key, sc, mainCategory, domainMax);
             return (
               <div key={d.key} className="border rounded p-4 break-inside-avoid cognitive-item">
                 <div className="flex items-center justify-between mb-1">
                   <div className="font-medium">{d.label}</div>
-                  <div className="text-sm">{sc} / 30</div>
+                  <div className="text-sm">{sc} / {domainMax}</div>
                 </div>
                 <div className="text-xs text-gray-600 mb-2">{getDomainDescription(d.key, mainCategory)}</div>
                 <div className="text-[11px] mb-2 inline-block px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">
@@ -185,14 +203,18 @@ const ReportComponent = forwardRef(({
       {/* Final Score Summary */}
       <div className="p-6 pt-0">
         <div className="font-semibold mb-2">Final Score Summary</div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="border rounded p-4">
             <div className="text-gray-500">Total Score</div>
-            <div className="text-lg font-semibold">{stats.total} / 150</div>
+            <div className="text-lg font-semibold">{stats.total} / {stats.maxScore}</div>
           </div>
           <div className="border rounded p-4">
             <div className="text-gray-500">Correct Answers</div>
-            <div className="text-lg font-semibold">{Math.round(stats.total / 5)} / 30</div>
+            <div className="text-lg font-semibold">{stats.correctAnswers} / {stats.questionCount}</div>
+          </div>
+          <div className="border rounded p-4">
+            <div className="text-gray-500">Accuracy</div>
+            <div className="text-lg font-semibold">{stats.accuracy}%</div>
           </div>
         </div>
         

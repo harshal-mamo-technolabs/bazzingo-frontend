@@ -38,22 +38,36 @@ export const getDomainDescription = (key, category) => {
   return "";
 };
 
+// Get performance level based on score and max possible score
+export const getPerformanceLevel = (score, maxScore = 30) => {
+  const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
+  
+  if (percentage >= 83) return "High";           // 83%+ (e.g., 25/30 or 8.3/10)
+  if (percentage >= 70) return "Above Average";  // 70-82%
+  if (percentage >= 50) return "Average";        // 50-69%
+  if (percentage >= 33) return "Below Average";  // 33-49%
+  return "Needs Improvement";                    // <33%
+};
+
 // Generate insights and tips based on domain performance
-export const generateInsightsAndTips = (domain, score, category) => {
-  const level = getLevel(score);
+export const generateInsightsAndTips = (domain, score, category, maxDomainScore = 30) => {
+  const level = getPerformanceLevel(score, maxDomainScore);
   const insights = [];
   const tips = [];
+  
+  // Calculate percentage for consistent thresholds
+  const percentage = maxDomainScore > 0 ? (score / maxDomainScore) * 100 : 0;
 
-  if(score >= 25){
+  if(percentage >= 83){
       insights.push("Consistently accurate on advanced items.");
       tips.push("Maintain skills with weekly advanced challenges.");
-  } else if(score >= 21){
+  } else if(percentage >= 70){
       insights.push("Strong performance with minor slips on complex items.");
       tips.push("Add timed practice to boost speed under pressure.");
-  } else if(score >= 15){
+  } else if(percentage >= 50){
       insights.push("Solid fundamentals; opportunities on multi-step questions.");
       tips.push("Practice mixed-difficulty sets; review error patterns.");
-  } else if(score >= 10){
+  } else if(percentage >= 33){
       insights.push("Struggles appeared on layered logic or extended working memory.");
       tips.push("Daily 10–15 min drills; scaffolded difficulty.");
   } else {
@@ -97,23 +111,48 @@ export const generateInsightsAndTips = (domain, score, category) => {
 // Calculate report statistics
 export const calculateReportStats = (scoreData, totalQuestions) => {
   const total = scoreData?.totalScore || 0;
-  const accuracy = totalQuestions ? Math.round((total / totalQuestions) * 100) : 0;
-  const correctAnswers = totalQuestions ? Math.round(total / 5) : 0;
+  const questionCount = totalQuestions || 30; // Default to 30 if not provided
+  const pointsPerQuestion = 5; // Each question is worth 5 points
+  const maxScore = questionCount * pointsPerQuestion;
+  const accuracy = maxScore ? Math.round((total / maxScore) * 100) : 0;
+  const correctAnswers = Math.round(total / pointsPerQuestion);
 
   return {
     total,
     accuracy,
-    correctAnswers
+    correctAnswers,
+    maxScore,
+    questionCount,
+    pointsPerQuestion
   };
 };
 
+// Determine if this is a quick assessment (10 questions) or full assessment (30 questions)
+export const isQuickAssessment = (totalQuestions) => {
+  return totalQuestions && totalQuestions <= 10;
+};
+
+// Get max score per domain based on assessment type
+export const getMaxDomainScore = (totalQuestions, domainCount = 5) => {
+  const questionCount = totalQuestions || 30;
+  const pointsPerQuestion = 5;
+  // For 30 questions with 5 domains: 6 questions per domain × 5 points = 30 max per domain
+  // For 10 questions with 5 domains: 2 questions per domain × 5 points = 10 max per domain
+  // If questions aren't evenly distributed, use proportional calculation
+  return Math.round((questionCount / domainCount) * pointsPerQuestion);
+};
+
 // Generate domain scores array
-export const generateDomainScores = (scoreData) => {
+export const generateDomainScores = (scoreData, totalQuestions = 30) => {
   if (scoreData?.byCategory) {
+    const domainCount = Object.keys(scoreData.byCategory).length || 5;
+    const maxDomainScore = getMaxDomainScore(totalQuestions, domainCount);
+    
     return Object.entries(scoreData.byCategory).map(([key, value]) => ({
       key,
       label: key.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-      score: value
+      score: value,
+      maxScore: maxDomainScore
     }));
   }
   return [];
@@ -129,10 +168,13 @@ export const getDefaultDomains = () => [
 ];
 
 // Generate radar chart data
-export const generateRadarData = (domains, scoreData) => {
+export const generateRadarData = (domains, scoreData, totalQuestions = 30) => {
+  const maxDomainScore = domains[0]?.maxScore || getMaxDomainScore(totalQuestions, domains.length || 5);
+  
   return domains.map(d => ({ 
     subject: d.label, 
-    value: scoreData?.byCategory?.[d.key] || 0 
+    value: scoreData?.byCategory?.[d.key] || 0,
+    maxValue: maxDomainScore
   }));
 };
 
