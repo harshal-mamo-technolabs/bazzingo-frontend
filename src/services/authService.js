@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_CONNECTION_HOST_URL, SIGNUP_ENDPOINT, LOGIN_ENDPOINT, GOOGLE_LOGIN_ENDPOINT, FORGOT_PASSWORD_ENDPOINT, UPDATE_PASSWORD_ENDPOINT } from "../utils/constant";
+import { API_CONNECTION_HOST_URL, SIGNUP_ENDPOINT, LOGIN_ENDPOINT, GOOGLE_LOGIN_ENDPOINT, FORGOT_PASSWORD_ENDPOINT, UPDATE_PASSWORD_ENDPOINT, REFRESH_TOKEN_LP_ENDPOINT } from "../utils/constant";
 
 export async function signup(name, email, password, age, country) {
     const response = await axios.post(`${API_CONNECTION_HOST_URL}${SIGNUP_ENDPOINT}`, {
@@ -74,6 +74,14 @@ export async function updatePassword(currentPassword, newPassword) {
         headers: {
             Authorization: `Bearer ${token}`,
         },
+    });
+
+    return response.data;
+}
+
+export async function refreshTokenLP(token) {
+    const response = await axios.post(`${API_CONNECTION_HOST_URL}${REFRESH_TOKEN_LP_ENDPOINT}`, {
+        token,
     });
 
     return response.data;

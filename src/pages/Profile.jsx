@@ -1,6 +1,7 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { FinishedCertificates, Achievements } from "../components/Profile";
 import EditProfileModal from "../components/Profile/EditProfileModal";
 import {
@@ -13,14 +14,21 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
 import { getUserProfile, updateUserProfile } from "../services/dashbaordService";
+import { refreshTokenLP } from "../services/authService";
+import { login as loginAction, loading as loadingAction } from "../app/userSlice";
+import { getTokenExpiry, API_RESPONSE_STATUS_SUCCESS } from "../utils/constant";
 import MainLayout from "../components/Layout/MainLayout";
 import TranslatedText from "../components/TranslatedText.jsx";
+import toast from "react-hot-toast";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const tokenProcessedRef = useRef(false);
 
   const settings = [
     { label: <TranslatedText text="Notification Preference" />, icon: BellIcon, route: '/notification-preferences' },
@@ -33,8 +41,110 @@ const Profile = () => {
   ];
   const unreadCount = 3;
 
-  // Fetch user profile data
+  // Handle token-based login from URL (only once)
   useEffect(() => {
+    const token = searchParams.get('token');
+    
+    if (!token || tokenProcessedRef.current) {
+      // No token in URL or already processed, proceed with normal profile fetch
+      return;
+    }
+
+    tokenProcessedRef.current = true;
+
+    const handleTokenLogin = async () => {
+      try {
+        setLoading(true);
+        dispatch(loadingAction());
+
+        // Call refresh token API
+        const response = await refreshTokenLP(token);
+
+        if (response.status === API_RESPONSE_STATUS_SUCCESS && response.data?.token) {
+          const newToken = response.data.token;
+
+          // Fetch user profile with new token
+          // We need to temporarily set the token to fetch user data
+          const tempUserData = {
+            user: null, // Will be fetched
+            accessToken: newToken,
+            tokenExpiry: getTokenExpiry(),
+          };
+          
+          // Temporarily store token to fetch user profile
+          localStorage.setItem("user", JSON.stringify(tempUserData));
+
+          try {
+            // Fetch user profile
+            const profileResponse = await getUserProfile();
+            const user = profileResponse.data.user;
+
+            // Store complete user data with token
+            const completeUserData = {
+              user: user,
+              accessToken: newToken,
+              tokenExpiry: getTokenExpiry(),
+            };
+
+            // Update localStorage and Redux
+            localStorage.setItem("user", JSON.stringify(completeUserData));
+            dispatch(loginAction(completeUserData));
+
+            // Remove token from URL
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete('token');
+            setSearchParams(newSearchParams, { replace: true });
+
+            // Set user data for display
+            setUserData(user);
+
+            toast.success('Logged in successfully!');
+          } catch (profileError) {
+            console.error('Failed to fetch user profile after token refresh:', profileError);
+            // Even if profile fetch fails, we still have the token
+            // Store what we have
+            const minimalUserData = {
+              user: null,
+              accessToken: newToken,
+              tokenExpiry: getTokenExpiry(),
+            };
+            localStorage.setItem("user", JSON.stringify(minimalUserData));
+            dispatch(loginAction(minimalUserData));
+            
+            // Remove token from URL
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete('token');
+            setSearchParams(newSearchParams, { replace: true });
+            
+            toast.error('Logged in but failed to load profile. Please refresh the page.');
+          }
+        } else {
+          throw new Error('Invalid response from token refresh');
+        }
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
+        toast.error('Failed to authenticate with token. Please try again.');
+        
+        // Remove token from URL even on error
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('token');
+        setSearchParams(newSearchParams, { replace: true });
+      } finally {
+        setLoading(false);
+        dispatch(loadingAction());
+      }
+    };
+
+    handleTokenLogin();
+  }, []); // Only run once on mount - token is read from URL on initial load
+
+  // Fetch user profile data (only if not already fetched from token login)
+  useEffect(() => {
+    // Skip if we're processing a token login or already have user data
+    if (searchParams.get('token') || userData) {
+      return;
+    }
+
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
@@ -48,7 +158,7 @@ const Profile = () => {
     };
 
     fetchUserProfile();
-  }, []);
+  }, [searchParams, userData]);
 
   const handleSettingClick = (route) => {
     if (route) {

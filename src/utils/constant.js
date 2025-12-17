@@ -30,6 +30,7 @@ export const LOGIN_ENDPOINT = "/auth/login";
 export const GOOGLE_LOGIN_ENDPOINT = "/auth/google-login";
 export const FORGOT_PASSWORD_ENDPOINT = "/auth/forgot-password";
 export const UPDATE_PASSWORD_ENDPOINT = "/auth/reset-password";
+export const REFRESH_TOKEN_LP_ENDPOINT = "/auth/refresh-token-lp";
 
 export const API_RESPONSE_STATUS_SUCCESS = 'success';
 export const API_RESPONSE_STATUS_ERROR = 'error';
