@@ -12,7 +12,7 @@ import {
   DocumentTextIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
-import { getUserProfile } from "../services/dashbaordService";
+import { getUserProfile, updateUserProfile } from "../services/dashbaordService";
 import MainLayout from "../components/Layout/MainLayout";
 import TranslatedText from "../components/TranslatedText.jsx";
 
@@ -79,14 +79,28 @@ const Profile = () => {
                 <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Profile Information" /></h3>
                 <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    {userData?.avatar ? (
                     <img
-                      src={`${userData?.avatar}` || "https://i.pravatar.cc/80"}
+                      src={userData.avatar}
                       alt="Avatar"
                       className="w-12 h-12 rounded-full object-cover"
                       onError={(e) => {
-                        e.target.src = "https://i.pravatar.cc/80";
+                        // If image fails to load, show initials
+                        e.target.style.display = 'none';
+                        const parent = e.target.parentElement;
+                        if (parent && !parent.querySelector('.avatar-fallback')) {
+                          const fallback = document.createElement('div');
+                          fallback.className = 'avatar-fallback w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg';
+                          fallback.textContent = (userData?.name || 'A').charAt(0).toUpperCase();
+                          parent.appendChild(fallback);
+                        }
                       }}
                     />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg">
+                      {(userData?.name || 'A').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                     <div>
                       <h2 className="text-[15px] font-normal text-gray-800">
                         {userData?.name || "Alex Johnson"}
@@ -154,14 +168,28 @@ const Profile = () => {
             <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Profile Information" /></h3>
             <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img
-                  src={`/portal/${userData?.avatar}` || "https://i.pravatar.cc/80"}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full object-cover"
-                  onError={(e) => {
-                    e.target.src = "https://i.pravatar.cc/80";
-                  }}
-                />
+                {userData?.avatar ? (
+                    <img
+                      src={userData.avatar}
+                      alt="Avatar"
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        // If image fails to load, show initials
+                        e.target.style.display = 'none';
+                        const parent = e.target.parentElement;
+                        if (parent && !parent.querySelector('.avatar-fallback')) {
+                          const fallback = document.createElement('div');
+                          fallback.className = 'avatar-fallback w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg';
+                          fallback.textContent = (userData?.name || 'A').charAt(0).toUpperCase();
+                          parent.appendChild(fallback);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg">
+                      {(userData?.name || 'A').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 <div>
                   <h2 className="text-[15px] font-normal text-gray-800">
                     {userData?.name || "Alex Johnson"}

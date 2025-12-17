@@ -466,7 +466,7 @@ export default function VisualReasoningStaticAssessment() {
       // Set the complete score data including fullScoreData
       const finalScoreData = {
         score: actualScore,
-        totalQuestions: outOf,
+        totalQuestions: outOf, // This is max score (e.g., 150) for display in modal
         totalScore: actualScore,
         fullScoreData: scoreDataFromResponse,
         scoreId: scoreId // Add scoreId to fetch detailed results

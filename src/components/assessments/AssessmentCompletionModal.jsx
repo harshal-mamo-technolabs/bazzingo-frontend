@@ -446,7 +446,7 @@ const AssessmentCompletionModal = ({
           userName={userName}
           userAge={userAge}
           mainCategory={mainCategory}
-          totalQuestions={totalQuestions}
+          totalQuestions={totalQuestions > 50 ? Math.round(totalQuestions / 5) : totalQuestions}
           programScores={programScores}
         />
       </div>
