@@ -17,6 +17,7 @@
     "@stripe/stripe-js": "^7.9.0",
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.10.0",
+    "canvas-confetti": "^1.9.4",
     "chart.js": "^4.5.0",
     "chartjs-plugin-datalabels": "^2.2.0",
     "dayjs": "^1.11.13",

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ChevronRight } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ChevronRight, Sparkles, Award, Download, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { FinishedCertificates, Achievements } from "../components/Profile";
@@ -7,9 +7,7 @@ import EditProfileModal from "../components/Profile/EditProfileModal";
 import {
   BellIcon,
   LockClosedIcon,
-  TicketIcon,
   QuestionMarkCircleIcon,
-  ChatBubbleBottomCenterTextIcon,
   DocumentTextIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
@@ -20,15 +18,433 @@ import { getTokenExpiry, API_RESPONSE_STATUS_SUCCESS } from "../utils/constant";
 import MainLayout from "../components/Layout/MainLayout";
 import TranslatedText from "../components/TranslatedText.jsx";
 import toast from "react-hot-toast";
+import confetti from "canvas-confetti";
+import { useI18n } from "../context/I18nContext.jsx";
+
+// Premium Celebration Modal Component
+const CelebrationModal = ({ isOpen, onClose, userName }) => {
+  const [step, setStep] = useState(0);
+  
+  useEffect(() => {
+    if (isOpen) {
+      // Staggered reveal animation
+      const timers = [
+        setTimeout(() => setStep(1), 100),
+        setTimeout(() => setStep(2), 400),
+        setTimeout(() => setStep(3), 700),
+        setTimeout(() => setStep(4), 1000),
+      ];
+      return () => timers.forEach(clearTimeout);
+    } else {
+      setStep(0);
+    }
+  }, [isOpen]);
+  
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center perspective-1000">
+      {/* Premium dark backdrop with blur */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/80 to-black/70 backdrop-blur-md celebration-backdrop"
+        onClick={onClose}
+      />
+      
+      {/* Ambient light effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/20 rounded-full blur-[100px] celebration-glow" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-amber-400/15 rounded-full blur-[80px] celebration-glow-delayed" />
+      </div>
+      
+      {/* Modal Card */}
+      <div className={`relative max-w-lg w-full mx-6 celebration-card ${step >= 1 ? 'celebration-card-visible' : ''}`}>
+        {/* Glass card */}
+        <div className="relative bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden">
+          
+          {/* Top accent line */}
+          <div className="h-1 bg-gradient-to-r from-orange-400 via-amber-500 to-orange-400" />
+          
+          {/* Close button */}
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-300 z-10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="px-8 pt-10 pb-8">
+            {/* Award Badge */}
+            <div className={`relative mb-8 celebration-badge ${step >= 2 ? 'celebration-badge-visible' : ''}`}>
+              {/* Outer ring */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-28 h-28 rounded-full border-2 border-orange-200 celebration-ring" />
+              </div>
+              {/* Inner glow */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-amber-50 rounded-full blur-sm" />
+              </div>
+              {/* Badge */}
+              <div className="relative w-24 h-24 mx-auto">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full shadow-lg shadow-orange-500/30" />
+                <div className="absolute inset-1 bg-gradient-to-br from-orange-400 to-amber-400 rounded-full flex items-center justify-center">
+                  <Award className="w-10 h-10 text-white drop-shadow-sm" />
+                </div>
+                {/* Shine effect */}
+                <div className="absolute inset-0 rounded-full overflow-hidden">
+                  <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/30 to-transparent rotate-45 celebration-shine" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Title */}
+            <div className={`text-center mb-3 celebration-text ${step >= 3 ? 'celebration-text-visible' : ''}`}>
+              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">
+                <TranslatedText text="Achievement Unlocked" />
+              </p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                <TranslatedText text="Congratulations" />, {userName || 'Champion'}!
+              </h2>
+            </div>
+            
+            {/* Description */}
+            <div className={`text-center mb-8 celebration-text ${step >= 3 ? 'celebration-text-visible' : ''}`} style={{ transitionDelay: '100ms' }}>
+              <p className="text-gray-600 leading-relaxed">
+                <TranslatedText text="Your official certificate and detailed report are ready. Download them to showcase your achievement." />
+              </p>
+            </div>
+            
+            {/* Documents Preview */}
+            <div className={`flex justify-center gap-6 mb-8 celebration-docs ${step >= 4 ? 'celebration-docs-visible' : ''}`}>
+              <div className="text-center group cursor-pointer">
+                <div className="w-16 h-20 mx-auto bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-200 flex items-center justify-center mb-2 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-orange-200/50 transition-all duration-300">
+                  <Award className="w-8 h-8 text-orange-500" />
+                </div>
+                <p className="text-xs font-medium text-gray-700"><TranslatedText text="Certificate" /></p>
+              </div>
+              <div className="text-center group cursor-pointer">
+                <div className="w-16 h-20 mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 flex items-center justify-center mb-2 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-blue-200/50 transition-all duration-300">
+                  <DocumentTextIcon className="w-8 h-8 text-blue-500" />
+                </div>
+                <p className="text-xs font-medium text-gray-700"><TranslatedText text="Report" /></p>
+              </div>
+            </div>
+            
+            {/* Action Button */}
+            <div className={`celebration-button ${step >= 4 ? 'celebration-button-visible' : ''}`}>
+              <button
+                onClick={onClose}
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-4 px-6 rounded-xl font-semibold shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 hover:from-orange-600 hover:to-amber-600 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-3"
+              >
+                <Download className="w-5 h-5" />
+                <TranslatedText text="View & Download" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Premium CSS Animations */}
+      <style>{`
+        .perspective-1000 { perspective: 1000px; }
+        
+        .celebration-backdrop {
+          animation: backdropFade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .celebration-glow {
+          animation: glowPulse 4s ease-in-out infinite;
+        }
+        
+        .celebration-glow-delayed {
+          animation: glowPulse 4s ease-in-out infinite;
+          animation-delay: 2s;
+        }
+        
+        .celebration-card {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .celebration-card-visible {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        
+        .celebration-badge {
+          opacity: 0;
+          transform: scale(0.5);
+          transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .celebration-badge-visible {
+          opacity: 1;
+          transform: scale(1);
+        }
+        
+        .celebration-ring {
+          animation: ringExpand 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        
+        .celebration-shine {
+          animation: shine 3s ease-in-out infinite;
+        }
+        
+        .celebration-text {
+          opacity: 0;
+          transform: translateY(15px);
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .celebration-text-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .celebration-docs {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .celebration-docs-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .celebration-button {
+          opacity: 0;
+          transform: translateY(15px);
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .celebration-button-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        @keyframes backdropFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        @keyframes ringExpand {
+          0% { transform: scale(0.8); opacity: 1; }
+          100% { transform: scale(1.3); opacity: 0; }
+        }
+        
+        @keyframes shine {
+          0% { transform: translateX(-200%) rotate(45deg); }
+          30%, 100% { transform: translateX(200%) rotate(45deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// Premium Token Login Loading Component
+const TokenLoginLoader = () => (
+  <div className="fixed inset-0 z-[90] flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-orange-50/30">
+    {/* Subtle background pattern */}
+    <div className="absolute inset-0 opacity-30">
+      <div className="absolute inset-0" style={{ 
+        backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(226 232 240) 1px, transparent 0)',
+        backgroundSize: '32px 32px'
+      }} />
+    </div>
+    
+    {/* Ambient glow */}
+    <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-400/10 rounded-full blur-[120px]" />
+    
+    <div className="relative text-center px-6">
+      {/* Logo/Icon with elegant animation */}
+      <div className="relative mb-10">
+        <div className="relative w-20 h-20 mx-auto">
+          {/* Outer rotating ring */}
+          <div className="absolute inset-0 border-2 border-orange-200 rounded-full loader-ring" />
+          {/* Progress arc */}
+          <svg className="absolute inset-0 w-full h-full -rotate-90">
+            <circle 
+              cx="40" cy="40" r="38" 
+              fill="none" 
+              stroke="url(#loader-gradient)" 
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray="240"
+              className="loader-progress"
+            />
+            <defs>
+              <linearGradient id="loader-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#f97316" />
+                <stop offset="100%" stopColor="#fbbf24" />
+              </linearGradient>
+            </defs>
+          </svg>
+          {/* Center icon */}
+          <div className="absolute inset-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <Award className="w-7 h-7 text-white" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Text content */}
+      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        <TranslatedText text="Preparing Your Achievement" />
+      </h2>
+      <p className="text-gray-500 text-sm mb-8 max-w-xs mx-auto">
+        <TranslatedText text="We're verifying your credentials and loading your certificates..." />
+      </p>
+      
+      {/* Elegant progress indicator */}
+      <div className="flex justify-center gap-2">
+        {[0, 1, 2].map((i) => (
+          <div 
+            key={i}
+            className="w-2 h-2 rounded-full bg-orange-400 loader-dot"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </div>
+    </div>
+    
+    <style>{`
+      .loader-ring {
+        animation: ringRotate 3s linear infinite;
+      }
+      
+      .loader-progress {
+        animation: progressDash 2s ease-in-out infinite;
+      }
+      
+      .loader-dot {
+        animation: dotPulse 1.4s ease-in-out infinite;
+      }
+      
+      @keyframes ringRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      @keyframes progressDash {
+        0% { stroke-dashoffset: 240; }
+        50% { stroke-dashoffset: 60; }
+        100% { stroke-dashoffset: 240; }
+      }
+      
+      @keyframes dotPulse {
+        0%, 80%, 100% { 
+          transform: scale(0.6);
+          opacity: 0.4;
+        }
+        40% { 
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+    `}</style>
+  </div>
+);
 
 const Profile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { setLanguage } = useI18n();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isTokenLogin, setIsTokenLogin] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [highlightCertificates, setHighlightCertificates] = useState(false);
   const tokenProcessedRef = useRef(false);
+  const certificateRef = useRef(null);
+  const certificateMobileRef = useRef(null);
+  
+  // Fire elegant golden celebration
+  const fireCelebration = useCallback(() => {
+    // Check if we're on mobile
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
+    // Elegant gold/amber color palette
+    const colors = ['#f59e0b', '#fbbf24', '#fcd34d', '#fef3c7', '#ffffff'];
+    
+    // Mobile-optimized settings
+    const baseConfig = {
+      colors,
+      shapes: ['circle'],
+      zIndex: 9999, // Higher z-index for mobile
+      disableForReducedMotion: false,
+    };
+    
+    // Initial burst - elegant center bloom
+    // Reduce particle count on mobile for better performance
+    confetti({
+      ...baseConfig,
+      particleCount: isMobile ? 50 : 80,
+      spread: isMobile ? 80 : 100,
+      origin: { y: 0.5, x: 0.5 },
+      scalar: isMobile ? 0.8 : 1,
+      gravity: 0.8,
+      drift: 0,
+      ticks: isMobile ? 200 : 300,
+    });
+    
+    // Delayed side shimmers
+    setTimeout(() => {
+      // Left shimmer
+      confetti({
+        ...baseConfig,
+        particleCount: isMobile ? 25 : 40,
+        angle: 60,
+        spread: isMobile ? 45 : 55,
+        origin: { x: 0, y: 0.6 },
+        scalar: isMobile ? 0.6 : 0.8,
+        gravity: 0.6,
+        ticks: isMobile ? 150 : 250,
+      });
+      // Right shimmer
+      confetti({
+        ...baseConfig,
+        particleCount: isMobile ? 25 : 40,
+        angle: 120,
+        spread: isMobile ? 45 : 55,
+        origin: { x: 1, y: 0.6 },
+        scalar: isMobile ? 0.6 : 0.8,
+        gravity: 0.6,
+        ticks: isMobile ? 150 : 250,
+      });
+    }, 300);
+    
+    // Gentle falling sparkles
+    setTimeout(() => {
+      confetti({
+        ...baseConfig,
+        particleCount: isMobile ? 20 : 30,
+        spread: isMobile ? 150 : 180,
+        origin: { y: 0, x: 0.5 },
+        colors: ['#fbbf24', '#fcd34d', '#ffffff'],
+        scalar: isMobile ? 0.5 : 0.6,
+        gravity: 0.4,
+        drift: 1,
+        ticks: isMobile ? 250 : 400,
+      });
+    }, 600);
+  }, []);
+  
+  // Scroll to certificate section
+  const scrollToCertificates = useCallback(() => {
+    setTimeout(() => {
+      const ref = window.innerWidth >= 1024 ? certificateRef : certificateMobileRef;
+      if (ref.current) {
+        ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 500);
+  }, []);
 
   const settings = [
     { label: <TranslatedText text="Notification Preference" />, icon: BellIcon, route: '/notification-preferences' },
@@ -44,13 +460,29 @@ const Profile = () => {
   // Handle token-based login from URL (only once)
   useEffect(() => {
     const token = searchParams.get('token');
+    const langParam = searchParams.get('lang');
+    
+    // Handle language parameter first (even if no token)
+    if (langParam) {
+      const validLanguages = ['en', 'de', 'ro'];
+      if (validLanguages.includes(langParam.toLowerCase())) {
+        setLanguage(langParam.toLowerCase());
+      }
+    }
     
     if (!token || tokenProcessedRef.current) {
       // No token in URL or already processed, proceed with normal profile fetch
+      // But still remove lang parameter if present
+      if (langParam) {
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('lang');
+        setSearchParams(newSearchParams, { replace: true });
+      }
       return;
     }
 
     tokenProcessedRef.current = true;
+    setIsTokenLogin(true);
 
     const handleTokenLogin = async () => {
       try {
@@ -90,15 +522,50 @@ const Profile = () => {
             localStorage.setItem("user", JSON.stringify(completeUserData));
             dispatch(loginAction(completeUserData));
 
-            // Remove token from URL
+            // Remove token and lang from URL
             const newSearchParams = new URLSearchParams(searchParams);
             newSearchParams.delete('token');
+            newSearchParams.delete('lang');
             setSearchParams(newSearchParams, { replace: true });
 
             // Set user data for display
             setUserData(user);
 
-            toast.success('Logged in successfully!');
+            // 🎉 Trigger celebration!
+            setLoading(false);
+            setIsTokenLogin(false);
+            
+            // Small delay to ensure DOM is ready, especially on mobile
+            setTimeout(() => {
+              // Fire confetti
+              try {
+                fireCelebration();
+              } catch (error) {
+                console.error('Confetti error:', error);
+                // Fallback: try again after a short delay
+                setTimeout(() => {
+                  try {
+                    fireCelebration();
+                  } catch (retryError) {
+                    console.error('Confetti retry error:', retryError);
+                  }
+                }, 200);
+              }
+            }, 100);
+            
+            // Show celebration modal
+            setShowCelebration(true);
+            
+            // Highlight certificates section
+            setHighlightCertificates(true);
+            
+            // Scroll to certificates after modal closes or after a delay
+            scrollToCertificates();
+            
+            // Remove highlight after 10 seconds
+            setTimeout(() => setHighlightCertificates(false), 10000);
+            
+            toast.success('Welcome! Your documents are ready to download.');
           } catch (profileError) {
             console.error('Failed to fetch user profile after token refresh:', profileError);
             // Even if profile fetch fails, we still have the token
@@ -116,6 +583,7 @@ const Profile = () => {
             newSearchParams.delete('token');
             setSearchParams(newSearchParams, { replace: true });
             
+            setIsTokenLogin(false);
             toast.error('Logged in but failed to load profile. Please refresh the page.');
           }
         } else {
@@ -129,6 +597,7 @@ const Profile = () => {
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('token');
         setSearchParams(newSearchParams, { replace: true });
+        setIsTokenLogin(false);
       } finally {
         setLoading(false);
         dispatch(loadingAction());
@@ -165,6 +634,11 @@ const Profile = () => {
       navigate(route);
     }
   };
+
+  // Show special loader for token login
+  if (loading && isTokenLogin) {
+    return <TokenLoginLoader />;
+  }
 
   if (loading) {
     return (
@@ -234,10 +708,36 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="order-2 lg:order-none space-y-2.5">
+              <div 
+                ref={certificateRef}
+                className={`order-2 lg:order-none space-y-2.5 transition-all duration-300 ease-out rounded-2xl relative ${
+                  highlightCertificates 
+                    ? 'bg-gradient-to-br from-orange-50/80 to-amber-50/60 lg:p-4 lg:-m-4 p-2 -m-2 shadow-xl shadow-orange-100/50' 
+                    : ''
+                }`}
+              >
+                {/* Subtle glow effect */}
+                {highlightCertificates && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-400/10 via-amber-400/10 to-orange-400/10 certificate-glow pointer-events-none" />
+                )}
+                
                 {/* Certificates */}
-                <h3 className="font-semibold text-[15px] mb-2 mt-2"><TranslatedText text="Certificate" /></h3>
-                <FinishedCertificates />
+                <h3 className={`font-semibold text-[15px] mb-2 mt-2 transition-all duration-200 flex items-center gap-2 relative ${
+                  highlightCertificates ? 'text-orange-600' : ''
+                }`}>
+                  {highlightCertificates && (
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full">
+                      <Award className="w-3.5 h-3.5 text-white" />
+                    </span>
+                  )}
+                  <TranslatedText text="Certificate" />
+                  {highlightCertificates && (
+                    <span className="text-xs font-normal text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">
+                      <TranslatedText text="Ready" />
+                    </span>
+                  )}
+                </h3>
+                <FinishedCertificates highlight={highlightCertificates} />
               </div>
 
               <div className="order-4 lg:order-none p-1 space-y-2">
@@ -324,9 +824,35 @@ const Profile = () => {
           </div>
 
           {/* Certificate */}
-          <div className="space-y-2.5">
-            <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Certificate" /></h3>
-            <FinishedCertificates />
+          <div 
+            ref={certificateMobileRef}
+            className={`space-y-2.5 transition-all duration-300 ease-out rounded-2xl relative ${
+              highlightCertificates 
+                ? 'bg-gradient-to-br from-orange-50/80 to-amber-50/60 p-2 -m-2 shadow-xl shadow-orange-100/50' 
+                : ''
+            }`}
+          >
+            {/* Subtle glow effect */}
+            {highlightCertificates && (
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-400/10 via-amber-400/10 to-orange-400/10 certificate-glow pointer-events-none" />
+            )}
+            
+            <h3 className={`font-semibold text-[15px] mb-2 transition-all duration-200 flex items-center gap-2 relative ${
+              highlightCertificates ? 'text-orange-600' : ''
+            }`}>
+              {highlightCertificates && (
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full">
+                  <Award className="w-3.5 h-3.5 text-white" />
+                </span>
+              )}
+              <TranslatedText text="Certificate" />
+              {highlightCertificates && (
+                <span className="text-xs font-normal text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">
+                  <TranslatedText text="Ready" />
+                </span>
+              )}
+            </h3>
+            <FinishedCertificates highlight={highlightCertificates} />
           </div>
 
           {/* Achievements */}
@@ -372,6 +898,27 @@ const Profile = () => {
           }
         }}
       />
+      
+      {/* Celebration Modal for Token Login */}
+      <CelebrationModal 
+        isOpen={showCelebration} 
+        onClose={() => {
+          setShowCelebration(false);
+          scrollToCertificates();
+        }}
+        userName={userData?.name}
+      />
+      
+      {/* Global styles for animations */}
+      <style>{`
+        @keyframes certificateGlow {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.8; }
+        }
+        .certificate-glow {
+          animation: certificateGlow 2s ease-in-out infinite;
+        }
+      `}</style>
     </MainLayout>
   );
 };
