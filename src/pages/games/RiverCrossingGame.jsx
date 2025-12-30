@@ -4,6 +4,8 @@ import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
 import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/RiverCrossing';
 import { Waves, Lightbulb, CheckCircle, XCircle, ArrowRight, Users, ChevronUp, ChevronDown, Navigation } from 'lucide-react';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const RiverCrossingGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -179,8 +181,8 @@ const RiverCrossingGame = () => {
       {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
-        gameTitle="River Crossing Challenge"
-        gameShortDescription="Help villagers, animals, or goods cross a river on a raft following specific rules and constraints."
+        gameTitle={<TranslatedText text="River Crossing Challenge" />}
+        gameShortDescription={<TranslatedText text="Help villagers, animals, or goods cross a river on a raft following specific rules and constraints." />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -190,7 +192,7 @@ const RiverCrossingGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play River Crossing Challenge
+                  <TranslatedText text="How to Play River Crossing Challenge" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -204,43 +206,43 @@ const RiverCrossingGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🚤 Objective
+                      🚤 <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Help villagers, animals, or goods cross a river on a raft following specific rules and constraints.
+                      <TranslatedText text="Help villagers, animals, or goods cross a river on a raft following specific rules and constraints." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🧩 Strategy
+                      🧩 <TranslatedText text="Strategy" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Read the crossing rules carefully</li>
-                      <li>• Plan your moves step by step</li>
-                      <li>• Choose who crosses first wisely</li>
+                      <li>• <TranslatedText text="Read the crossing rules carefully" /></li>
+                      <li>• <TranslatedText text="Plan your moves step by step" /></li>
+                      <li>• <TranslatedText text="Choose who crosses first wisely" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      📊 <TranslatedText text="Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25 points per correct answer</li>
-                      <li>• Medium: 40 points per correct answer</li>
-                      <li>• Hard: 50 points per correct answer</li>
+                      <li>• <TranslatedText text="Easy: 25 points per correct answer" /></li>
+                      <li>• <TranslatedText text="Medium: 40 points per correct answer" /></li>
+                      <li>• <TranslatedText text="Hard: 50 points per correct answer" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📝 Questions
+                      📝 <TranslatedText text="Questions" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 different puzzles</li>
-                      <li>• Medium: 5 different puzzles</li>
-                      <li>• Hard: 4 different puzzles</li>
+                      <li>• <TranslatedText text="Easy: 8 different puzzles" /></li>
+                      <li>• <TranslatedText text="Medium: 5 different puzzles" /></li>
+                      <li>• <TranslatedText text="Hard: 4 different puzzles" /></li>
                     </ul>
                   </div>
                 </div>
@@ -275,7 +277,7 @@ const RiverCrossingGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
-                Hint ({maxHints - hintsUsed})
+                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
               </button>
             )}
           </div>
@@ -284,7 +286,7 @@ const RiverCrossingGame = () => {
           <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Puzzle
+                <TranslatedText text="Puzzle" />
               </div>
               <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
@@ -292,7 +294,7 @@ const RiverCrossingGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
+                <TranslatedText text="Lives" />
               </div>
               <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {'❤️'.repeat(lives)}
@@ -300,7 +302,7 @@ const RiverCrossingGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Streak
+                <TranslatedText text="Streak" />
               </div>
               <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {streak}
@@ -308,7 +310,7 @@ const RiverCrossingGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Solved
+                <TranslatedText text="Solved" />
               </div>
               <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {solvedScenarios}
@@ -323,14 +325,14 @@ const RiverCrossingGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Waves className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    River Crossing #{currentScenario + 1} - {difficulty} Level
+                    <TranslatedText text={`River Crossing #${currentScenario + 1} - ${difficulty} Level`} />
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {currentScenarioData.question}
+                  <TranslatedText text={currentScenarioData.question} />
                 </h3>
                 <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {currentScenarioData.description}
+                  <TranslatedText text={currentScenarioData.description} />
                 </p>
               </div>
             </div>
@@ -343,12 +345,12 @@ const RiverCrossingGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Navigation className="h-5 w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Crossing Rules:
+                    <TranslatedText text="Crossing Rules:" />
                   </span>
                 </div>
                 <ul className="text-yellow-700 text-sm space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                   {currentScenarioData.rules.map((rule, index) => (
-                    <li key={index}>• {rule}</li>
+                    <li key={index}>• <TranslatedText text={rule} /></li>
                   ))}
                 </ul>
               </div>
@@ -362,11 +364,11 @@ const RiverCrossingGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-5 w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
+                    <TranslatedText text="Hint:" />
                   </span>
                 </div>
                 <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
+                  <TranslatedText text={hintMessage} />
                 </p>
               </div>
             </div>
@@ -380,14 +382,14 @@ const RiverCrossingGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div className="bg-green-100 rounded-lg p-4">
                     <h4 className="text-center font-semibold text-green-800 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🏠 Starting Side
+                      🏠 <TranslatedText text="Starting Side" />
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
                       {currentScenarioData.characters.map((character) => (
                         <div key={character.id} className="text-center bg-white rounded-lg p-3">
                           <div className="text-3xl mb-1">{character.emoji}</div>
                           <div className="text-xs font-medium text-gray-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            {character.name}
+                            <TranslatedText text={character.name} />
                           </div>
                         </div>
                       ))}
@@ -398,20 +400,20 @@ const RiverCrossingGame = () => {
                   <div className="bg-blue-300 rounded-lg p-4 flex flex-col items-center justify-center">
                     <Waves className="h-12 w-12 text-blue-600 mb-2" />
                     <h4 className="text-center font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🌊 River
+                      🌊 <TranslatedText text="River" />
                     </h4>
                     <div className="text-center text-blue-700 text-sm mt-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      Only {currentScenarioData.raftCapacity || 2} can cross at once
+                      <TranslatedText text={`Only ${currentScenarioData.raftCapacity || 2} can cross at once`} />
                     </div>
                   </div>
 
                   {/* Right Side - Destination */}
                   <div className="bg-purple-100 rounded-lg p-4">
                     <h4 className="text-center font-semibold text-purple-800 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎯 Destination
+                      🎯 <TranslatedText text="Destination" />
                     </h4>
                     <div className="text-center text-gray-500 text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      Everyone needs to get here safely
+                      <TranslatedText text="Everyone needs to get here safely" />
                     </div>
                   </div>
                 </div>
@@ -424,7 +426,7 @@ const RiverCrossingGame = () => {
             <div className="w-full max-w-4xl mb-6">
               <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
                 <h4 className="text-center font-semibold text-gray-800 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Who should cross the river first?
+                  <TranslatedText text="Who should cross the river first?" />
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {currentScenarioData.moves.map((move) => (
@@ -441,8 +443,8 @@ const RiverCrossingGame = () => {
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">{move.emoji}</div>
                         <div>
-                          <div className="font-medium text-gray-900">{move.description}</div>
-                          <div className="text-sm text-gray-600">{move.reasoning}</div>
+                          <div className="font-medium text-gray-900"><TranslatedText text={move.description} /></div>
+                          <div className="text-sm text-gray-600"><TranslatedText text={move.reasoning} /></div>
                         </div>
                         <ArrowRight className="h-4 w-4 text-gray-400 ml-auto" />
                       </div>
@@ -465,25 +467,25 @@ const RiverCrossingGame = () => {
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Great Strategy!' : 'Wrong Move!'}
+                  {feedbackType === 'correct' ? <TranslatedText text="Great Strategy!" /> : <TranslatedText text="Wrong Move!" />}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {currentScenarioData.explanation}
+                <TranslatedText text={currentScenarioData.explanation} />
               </div>
               {feedbackType === 'correct' && (
                 <div className="text-green-700 font-medium mb-2">
-                  +{difficultySettings[difficulty].pointsPerQuestion} points earned!
+                  <TranslatedText text={`+${difficultySettings[difficulty].pointsPerQuestion} points earned!`} />
                 </div>
               )}
               {feedbackType === 'correct' && currentScenario + 1 < currentScenarios.length && (
                 <p className="text-green-700 font-medium">
-                  Moving to next puzzle...
+                  <TranslatedText text="Moving to next puzzle..." />
                 </p>
               )}
               {feedbackType === 'incorrect' && lives > 1 && (
                 <p className="text-red-700 font-medium">
-                  Lives remaining: {lives - 1}
+                  <TranslatedText text={`Lives remaining: ${lives - 1}`} />
                 </p>
               )}
             </div>
@@ -492,9 +494,9 @@ const RiverCrossingGame = () => {
           {/* Instructions */}
           <div className="text-center max-w-2xl mt-6">
             <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Read the crossing rules carefully and choose the best first move.
-              Consider what happens when certain characters are left alone together.
-              Use hints wisely when you're stuck on a tricky puzzle.
+              <TranslatedText text="Read the crossing rules carefully and choose the best first move." />{' '}
+              <TranslatedText text="Consider what happens when certain characters are left alone together." />{' '}
+              <TranslatedText text="Use hints wisely when you're stuck on a tricky puzzle." />
             </p>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
               {difficulty} Mode: {difficultySettings[difficulty].questionCount} puzzles | 

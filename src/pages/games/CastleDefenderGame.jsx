@@ -24,6 +24,8 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 /**
  * NOTE: This updated component:
@@ -370,6 +372,15 @@ const CastleDefenderGame = () => {
 
   const currentScenarioData = currentScenarios[currentTurn] || currentScenarios[0];
 
+  // Translation hooks for dynamic content
+  const translateNorthGate = useTranslateText('North Gate');
+  const translateSouthGate = useTranslateText('South Gate');
+  const translateEastGate = useTranslateText('East Gate');
+  const translateWestGate = useTranslateText('West Gate');
+  const translateKeep = useTranslateText('Keep');
+  const translateWall = useTranslateText('Wall');
+  const translateRowCol = useTranslateText('Row {row}, Col {col}');
+
   // NEW: Clear, labeled gate content
   const getGateLabel = (cell) => {
     switch (cell) {
@@ -414,13 +425,13 @@ const CastleDefenderGame = () => {
   // NEW: Titles that name the gates clearly
   const getCellTitle = (row, col) => {
     const cell = castleMap[row]?.[col];
-    if (cell === 'gate_north') return 'North Gate';
-    if (cell === 'gate_south') return 'South Gate';
-    if (cell === 'gate_east')  return 'East Gate';
-    if (cell === 'gate_west')  return 'West Gate';
-    if (cell === 'keep') return 'Keep';
-    if (cell === 'wall') return 'Wall';
-    return `Row ${row + 1}, Col ${col + 1}`;
+    if (cell === 'gate_north') return translateNorthGate;
+    if (cell === 'gate_south') return translateSouthGate;
+    if (cell === 'gate_east')  return translateEastGate;
+    if (cell === 'gate_west')  return translateWestGate;
+    if (cell === 'keep') return translateKeep;
+    if (cell === 'wall') return translateWall;
+    return translateRowCol.replace('{row}', row + 1).replace('{col}', col + 1);
   };
 
   const getCellClass = (row, col) => {
@@ -495,8 +506,8 @@ const CastleDefenderGame = () => {
       {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
-        gameTitle="🏰 Castle Defender: Logic Siege"
-        gameShortDescription="Defend your castle from invaders. Challenge your strategic planning and resource management skills!"
+        gameTitle={<TranslatedText text="🏰 Castle Defender: Logic Siege" />}
+        gameShortDescription={<TranslatedText text="Defend your castle from invaders. Challenge your strategic planning and resource management skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -505,7 +516,7 @@ const CastleDefenderGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Castle Defender
+                  <TranslatedText text="How to Play Castle Defender" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions ? <ChevronUp className="h-5 w-5 text-blue-900" /> : <ChevronDown className="h-5 w-5 text-blue-900" />}
@@ -516,44 +527,44 @@ const CastleDefenderGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🏰 Objective
+                      🏰 <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Defend your castle by strategically placing guards to block enemy paths to the central keep.
+                      <TranslatedText text="Defend your castle by strategically placing guards to block enemy paths to the central keep." />
                     </p>
                   </div>
 
                   <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      ⚔️ Gameplay
+                      ⚔️ <TranslatedText text="Gameplay" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Place guards on the castle map</li>
-                      <li>• Block enemy paths to the keep</li>
-                      <li>• Each turn has limited guards</li>
-                      <li>• Use hints when stuck</li>
+                      <li>• <TranslatedText text="Place guards on the castle map" /></li>
+                      <li>• <TranslatedText text="Block enemy paths to the keep" /></li>
+                      <li>• <TranslatedText text="Each turn has limited guards" /></li>
+                      <li>• <TranslatedText text="Use hints when stuck" /></li>
                     </ul>
                   </div>
 
                   <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      📊 <TranslatedText text="Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: +25 points per success (no penalties)</li>
-                      <li>• Moderate: +40 points per success</li>
-                      <li>• Hard: +50 points per success</li>
+                      <li>• <TranslatedText text="Easy: +25 points per success (no penalties)" /></li>
+                      <li>• <TranslatedText text="Moderate: +40 points per success" /></li>
+                      <li>• <TranslatedText text="Hard: +50 points per success" /></li>
                     </ul>
                   </div>
 
                   <div className="bg-white p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🛡️ Turns
+                      🛡️ <TranslatedText text="Turns" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 turns</li>
-                      <li>• Moderate: 5 turns</li>
-                      <li>• Hard: 4 turns</li>
+                      <li>• <TranslatedText text="Easy: 8 turns" /></li>
+                      <li>• <TranslatedText text="Moderate: 5 turns" /></li>
+                      <li>• <TranslatedText text="Hard: 4 turns" /></li>
                     </ul>
                   </div>
                 </div>
@@ -578,7 +589,7 @@ const CastleDefenderGame = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Turn
+                <TranslatedText text="Turn" />
               </div>
               <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {currentTurn + 1}/{difficultySettings[difficulty].turnCount}
@@ -586,7 +597,7 @@ const CastleDefenderGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
+                <TranslatedText text="Lives" />
               </div>
               <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {'❤️'.repeat(lives)}
@@ -594,7 +605,7 @@ const CastleDefenderGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Guards Left
+                <TranslatedText text="Guards Left" />
               </div>
               <div className="text-lg font-semibold text-blue-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {guardsBudget}
@@ -602,7 +613,7 @@ const CastleDefenderGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Defenses
+                <TranslatedText text="Defenses" />
               </div>
               <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {successfulDefenses}
@@ -617,14 +628,14 @@ const CastleDefenderGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Shield className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Turn {currentTurn + 1} - {difficulty} Level
+                    <TranslatedText text={`Turn ${currentTurn + 1} - ${difficulty} Level`} />
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {currentScenarioData.description}
+                  <TranslatedText text={currentScenarioData.description} />
                 </h3>
                 <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {currentScenarioData.briefing}
+                  <TranslatedText text={currentScenarioData.briefing} />
                 </p>
               </div>
             </div>
@@ -637,11 +648,11 @@ const CastleDefenderGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Enemies Moving...
+                    <TranslatedText text="Enemies Moving..." />
                   </span>
                 </div>
                 <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Watch as enemies attempt to reach your keep!
+                  <TranslatedText text="Watch as enemies attempt to reach your keep!" />
                 </p>
               </div>
             </div>
@@ -657,22 +668,22 @@ const CastleDefenderGame = () => {
               <div className="flex items-center justify-center gap-2 mb-2">
                 {turnResult.success ? <CheckCircle className="h-6 w-6 text-green-600" /> : <XCircle className="h-6 w-6 text-red-600" />}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {turnResult.success ? 'Victory!' : 'Breach!'}
+                  {turnResult.success ? <TranslatedText text="Victory!" /> : <TranslatedText text="Breach!" />}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                 {turnResult.success
-                  ? `All ${turnResult.blockedCount} enemies blocked successfully!`
-                  : `${turnResult.breachedCount} enemies reached the keep! ${turnResult.blockedCount} blocked.`}
+                  ? <TranslatedText text={`All ${turnResult.blockedCount} enemies blocked successfully!`} />
+                  : <TranslatedText text={`${turnResult.breachedCount} enemies reached the keep! ${turnResult.blockedCount} blocked.`} />}
               </div>
               {turnResult.success && (
                 <div className="text-green-700 font-medium mb-2">
-                  +{difficultySettings[difficulty].pointsPerSuccess} points earned!
+                  <TranslatedText text={`+${difficultySettings[difficulty].pointsPerSuccess} points earned!`} />
                 </div>
               )}
               {!turnResult.success && difficulty !== 'Easy' && (
                 <div className="text-red-700 font-medium mb-2">
-                  -{turnResult.breachedCount * difficultySettings[difficulty].penaltyPerBreach} points penalty
+                  <TranslatedText text={`-${turnResult.breachedCount * difficultySettings[difficulty].penaltyPerBreach} points penalty`} />
                 </div>
               )}
             </div>
@@ -697,7 +708,7 @@ const CastleDefenderGame = () => {
                     style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                   >
                     <span className="text-lg">{guardType.emoji}</span>
-                    {guardType.name} (Cost: {guardType.cost})
+                    <TranslatedText text={guardType.name} /> (<TranslatedText text="Cost:" /> {guardType.cost})
                   </button>
                 ))}
 
@@ -713,7 +724,7 @@ const CastleDefenderGame = () => {
                   style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                 >
                   <Lightbulb className="h-4 w-4" />
-                  Hint ({hintsUsed}/{maxHints})
+                  <TranslatedText text="Hint" /> ({hintsUsed}/{maxHints})
                 </button>
 
                 {/* Path Preview Toggle */}
@@ -730,7 +741,7 @@ const CastleDefenderGame = () => {
                   style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                 >
                   <Eye className="h-4 w-4" />
-                  Preview Paths
+                  <TranslatedText text="Preview Paths" />
                 </button>
               </div>
             </div>
@@ -777,17 +788,17 @@ const CastleDefenderGame = () => {
             <div className="w-full max-w-4xl mb-6">
               <div className="bg-red-100 border border-red-300 rounded-lg p-4">
                 <h4 className="font-semibold text-red-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Incoming Enemies:
+                  <TranslatedText text="Incoming Enemies:" />
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {currentScenarioData.enemies.map((enemy, index) => (
                     <div key={index} className="text-center bg-white rounded-lg p-2">
                       <div className="text-2xl mb-1">{enemy.emoji}</div>
                       <div className="text-xs text-red-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        {enemy.name}
+                        <TranslatedText text={enemy.name} />
                       </div>
                       <div className="text-xs text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        {enemy.spawnName}
+                        <TranslatedText text={enemy.spawnName} />
                       </div>
                     </div>
                   ))}
@@ -804,7 +815,7 @@ const CastleDefenderGame = () => {
               style={{ fontFamily: 'Roboto, sans-serif' }}
             >
               <Swords className="h-5 w-5 inline mr-2" />
-              Execute Defense!
+              <TranslatedText text="Execute Defense!" />
             </button>
           )}
 
@@ -812,7 +823,7 @@ const CastleDefenderGame = () => {
           {(isExecutingTurn || isAnimating) && (
             <div className="text-center p-4">
               <div className="text-lg font-semibold text-gray-800 mb-2">
-                {isAnimating ? 'Enemies Moving...' : 'Executing Turn...'}
+                {isAnimating ? <TranslatedText text="Enemies Moving..." /> : <TranslatedText text="Executing Turn..." />}
               </div>
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
             </div>

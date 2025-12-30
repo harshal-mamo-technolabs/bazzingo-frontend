@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
+import { I18nContext } from '../../context/I18nContext';
+import { staticTranslations } from '../../data/staticTranslations';
 import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/EmotionDecoder';
 import { 
   Play, 
@@ -17,6 +21,18 @@ import {
 } from 'lucide-react';
 
 const EmotionDecoderGame = () => {
+  const { language } = useContext(I18nContext);
+  
+  // Helper function for dynamic translations (synchronous lookup)
+  const translateText = (text) => {
+    if (!text || language === 'en') return text;
+    const langDict = staticTranslations[language];
+    if (langDict && langDict[text]) {
+      return langDict[text];
+    }
+    return text; // Fallback to English if not found
+  };
+
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
@@ -338,8 +354,8 @@ const EmotionDecoderGame = () => {
       {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
-        gameTitle="Emotion Decoder"
-        gameShortDescription="Decode emotions from facial expressions. Challenge your emotional intelligence and recognition skills!"
+        gameTitle={<TranslatedText text="Emotion Decoder" />}
+        gameShortDescription={<TranslatedText text="Decode emotions from facial expressions. Challenge your emotional intelligence and recognition skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -349,7 +365,7 @@ const EmotionDecoderGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Emotion Decoder
+                  <TranslatedText text="How to Play Emotion Decoder" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -363,43 +379,43 @@ const EmotionDecoderGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎭 Objective
+                      <TranslatedText text="🎭 Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Watch emotional journeys and deduce what triggered the character's expressions and feelings.
+                      <TranslatedText text="Watch emotional journeys and deduce what triggered the character's expressions and feelings." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      👀 Observation
+                      <TranslatedText text="👀 Observation" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Watch 3-5 second emotional transitions</li>
-                      <li>• Use timeline to review key moments</li>
-                      <li>• Tag important emotional phases</li>
+                      <li>• <TranslatedText text="Watch 3-5 second emotional transitions" /></li>
+                      <li>• <TranslatedText text="Use timeline to review key moments" /></li>
+                      <li>• <TranslatedText text="Tag important emotional phases" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      <TranslatedText text="📊 Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25 points per correct answer</li>
-                      <li>• Moderate: 40 points per correct answer</li>
-                      <li>• Hard: 50 points per correct answer</li>
+                      <li>• <TranslatedText text="Easy: 25 points per correct answer" /></li>
+                      <li>• <TranslatedText text="Moderate: 40 points per correct answer" /></li>
+                      <li>• <TranslatedText text="Hard: 50 points per correct answer" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📝 Scenarios
+                      <TranslatedText text="📝 Scenarios" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 single character emotions</li>
-                      <li>• Moderate: 5 complex emotional journeys</li>
-                      <li>• Hard: 4 group dynamics scenarios</li>
+                      <li>• <TranslatedText text="Easy: 8 single character emotions" /></li>
+                      <li>• <TranslatedText text="Moderate: 5 complex emotional journeys" /></li>
+                      <li>• <TranslatedText text="Hard: 4 group dynamics scenarios" /></li>
                     </ul>
                   </div>
                 </div>
@@ -407,7 +423,7 @@ const EmotionDecoderGame = () => {
             </div>
           </div>
         }
-        category="Problem Solving"
+        category={<TranslatedText text="Problem Solving" />}
         gameState={gameState}
         setGameState={setGameState}
         score={score}
@@ -430,7 +446,7 @@ const EmotionDecoderGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif' }}
               >
                 <Play className="h-5 w-5" />
-                Watch Emotion
+                <TranslatedText text="Watch Emotion" />
               </button>
             )}
             
@@ -441,7 +457,7 @@ const EmotionDecoderGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif' }}
               >
                 <RotateCcw className="h-4 w-4" />
-                Replay
+                <TranslatedText text="Replay" />
               </button>
             )}
 
@@ -456,7 +472,7 @@ const EmotionDecoderGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
-                Hint ({maxHints - hintsUsed})
+                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
               </button>
             )}
           </div>
@@ -465,7 +481,7 @@ const EmotionDecoderGame = () => {
           <div className="grid grid-rows-2 gap-4 mb-6 w-full max-w-2xl">
           <div className="text-center bg-gray-50 rounded-lg p-3">
             <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              Scenario
+              <TranslatedText text="Scenario" />
             </div>
             <div className="text-lg font-semibold text-[#F97316]" style={{ fontFamily: 'Roboto, sans-serif' }}>
               {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
@@ -473,7 +489,7 @@ const EmotionDecoderGame = () => {
           </div>
           <div className="text-center bg-gray-50 rounded-lg p-3">
             <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              Lives
+              <TranslatedText text="Lives" />
             </div>
             <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
               {'❤️'.repeat(lives)}
@@ -488,14 +504,14 @@ const EmotionDecoderGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Brain className="h-5 w-5 text-orange-800" />
                   <span className="font-semibold text-orange-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {currentScenarioData.type === 'single' ? 'Single Character' : 'Group Dynamics'} - {difficulty} Level
+                    {currentScenarioData.type === 'single' ? translateText('Single Character') : translateText('Group Dynamics')} - {difficulty} <TranslatedText text="Level" />
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-orange-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Decode the Emotional Journey
+                  <TranslatedText text="Decode the Emotional Journey" />
                 </h3>
                 <p className="text-orange-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Watch the character's emotional expressions and determine what triggered this emotional response.
+                  <TranslatedText text="Watch the character's emotional expressions and determine what triggered this emotional response." />
                 </p>
               </div>
             </div>
@@ -508,11 +524,11 @@ const EmotionDecoderGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-5 w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
+                    <TranslatedText text="Hint" />:
                   </span>
                 </div>
                 <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
+                  <TranslatedText text={hintMessage} />
                 </p>
               </div>
             </div>
@@ -533,7 +549,7 @@ const EmotionDecoderGame = () => {
                     </h3>
                     {(isAnimationPlaying || animationCompleted) && (
                       <p className="text-gray-600 italic" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        {getCurrentEmotionDescription()}
+                        <TranslatedText text={getCurrentEmotionDescription()} />
                       </p>
                     )}
                   </div>
@@ -550,7 +566,7 @@ const EmotionDecoderGame = () => {
                         </h4>
                         {(isAnimationPlaying || animationCompleted) && (
                           <p className="text-sm text-gray-600 italic" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            {getCurrentEmotionDescription(index)}
+                            <TranslatedText text={getCurrentEmotionDescription(index)} />
                           </p>
                         )}
                       </div>
@@ -563,7 +579,7 @@ const EmotionDecoderGame = () => {
                   <div className="mt-6 flex items-center gap-2 text-orange-600">
                     <Clock className="h-4 w-4 animate-spin" />
                     <span className="text-sm font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      Emotion in progress...
+                      <TranslatedText text="Emotion in progress..." />
                     </span>
                   </div>
                 )}
@@ -575,7 +591,7 @@ const EmotionDecoderGame = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <Eye className="h-4 w-4 text-gray-600" />
                     <span className="text-sm font-medium text-gray-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      Review Timeline
+                      <TranslatedText text="Review Timeline" />
                     </span>
                   </div>
                   <div className="relative">
@@ -593,8 +609,8 @@ const EmotionDecoderGame = () => {
                     />
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    <span>Start</span>
-                    <span>End</span>
+                    <span><TranslatedText text="Start" /></span>
+                    <span><TranslatedText text="End" /></span>
                   </div>
                 </div>
               )}
@@ -606,7 +622,7 @@ const EmotionDecoderGame = () => {
             <div className="w-full max-w-4xl mb-6">
               <div className="mb-4 text-center">
                 <h4 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  What triggered this emotional response?
+                  <TranslatedText text="What triggered this emotional response?" />
                 </h4>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -626,7 +642,7 @@ const EmotionDecoderGame = () => {
         {String.fromCharCode(65 + index)}
       </div>
       <div className="text-gray-800">
-        {choice}
+        <TranslatedText text={choice} />
       </div>
     </div>
                 </button>
@@ -647,25 +663,25 @@ const EmotionDecoderGame = () => {
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Excellent Reading!' : 'Not Quite Right'}
+                  {feedbackType === 'correct' ? <TranslatedText text="Excellent Reading!" /> : <TranslatedText text="Not Quite Right" />}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {currentScenarioData.explanation}
+                <TranslatedText text={currentScenarioData.explanation} />
               </div>
               {feedbackType === 'correct' && (
                 <div className="text-green-700 font-medium mb-2">
-                  +{difficultySettings[difficulty].pointsPerQuestion} points earned!
+                  +{difficultySettings[difficulty].pointsPerQuestion} <TranslatedText text="points earned!" />
                 </div>
               )}
               {feedbackType === 'correct' && currentScenario + 1 < currentScenarios.length && (
                 <p className="text-green-700 font-medium">
-                  Next emotional scenario loading...
+                  <TranslatedText text="Next emotional scenario loading..." />
                 </p>
               )}
               {feedbackType === 'incorrect' && lives > 1 && (
                 <p className="text-red-700 font-medium">
-                  Lives remaining: {lives - 1}
+                  <TranslatedText text="Lives remaining" />: {lives - 1}
                 </p>
               )}
             </div>
@@ -674,15 +690,14 @@ const EmotionDecoderGame = () => {
           {/* Instructions */}
           <div className="text-center max-w-2xl mt-6">
             <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Watch the character's emotional journey carefully. Use the timeline to review key moments and tag important emotions. 
-              Choose the trigger that best matches the emotional progression you observed.
+              <TranslatedText text="Watch the character's emotional journey carefully. Use the timeline to review key moments and tag important emotions. Choose the trigger that best matches the emotional progression you observed." />
             </p>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].questionCount} scenarios | 
+              {difficulty} <TranslatedText text="Mode" />: {difficultySettings[difficulty].questionCount} <TranslatedText text="scenarios" /> | 
               {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              {difficultySettings[difficulty].pointsPerQuestion} points per correct answer
+              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} <TranslatedText text="time limit" /> |
+              {difficultySettings[difficulty].lives} <TranslatedText text="lives" /> | {difficultySettings[difficulty].hints} <TranslatedText text="hints" /> |
+              {difficultySettings[difficulty].pointsPerQuestion} <TranslatedText text="points per correct answer" />
             </div>
           </div>
         </div>

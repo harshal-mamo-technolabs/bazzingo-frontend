@@ -1,10 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
+import { I18nContext } from '../../context/I18nContext';
+import { staticTranslations } from '../../data/staticTranslations';
 import { Carrot as Mirror, Lightbulb, CheckCircle, XCircle, RotateCw, ChevronUp, ChevronDown, Target, Heart, Zap } from 'lucide-react';
 
 const MirrorMatchGame = () => {
+  const { language } = useContext(I18nContext);
+  
+  // Helper function for dynamic translations (synchronous lookup)
+  const translateText = (text) => {
+    if (!text || language === 'en') return text;
+    const langDict = staticTranslations[language];
+    if (langDict && langDict[text]) {
+      return langDict[text];
+    }
+    return text; // Fallback to English if not found
+  };
+
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
@@ -403,55 +419,55 @@ const MirrorMatchGame = () => {
         id: 'vertical-mirror',
         grid: mirrorVertical(randomPattern.grid),
         isCorrect: false,
-        type: 'Vertical Mirror'
+        type: translateText('Vertical Mirror')
       },
       {
         id: 'original',
         grid: randomPattern.grid,
         isCorrect: false,
-        type: 'Original Pattern'
+        type: translateText('Original Pattern')
       },
       {
         id: 'rotated-90',
         grid: rotate90(randomPattern.grid),
         isCorrect: false,
-        type: '90° Rotation'
+        type: translateText('90° Rotation')
       },
       {
         id: 'rotated-180',
         grid: rotate90(rotate90(randomPattern.grid)),
         isCorrect: false,
-        type: '180° Rotation'
+        type: translateText('180° Rotation')
       },
       {
         id: 'rotated-270',
         grid: rotate90(rotate90(rotate90(randomPattern.grid))),
         isCorrect: false,
-        type: '270° Rotation'
+        type: translateText('270° Rotation')
       },
       {
         id: 'rotated-mirror',
         grid: rotate90(correctMirror),
         isCorrect: false,
-        type: 'Rotated Mirror'
+        type: translateText('Rotated Mirror')
       },
       {
         id: 'diagonal-flip',
         grid: randomPattern.grid[0].map((_, colIndex) => randomPattern.grid.map(row => row[colIndex])),
         isCorrect: false,
-        type: 'Diagonal Flip'
+        type: translateText('Diagonal Flip')
       },
       {
         id: 'variation-1',
         grid: generateRandomVariation(randomPattern.grid),
         isCorrect: false,
-        type: 'Similar Pattern'
+        type: translateText('Similar Pattern')
       },
       {
         id: 'variation-2',
         grid: generateRandomVariation(correctMirror),
         isCorrect: false,
-        type: 'Mirror Variation'
+        type: translateText('Mirror Variation')
       }
     ];
 
@@ -468,10 +484,10 @@ const MirrorMatchGame = () => {
       if (!gridsAreEqual(newVariation, correctMirror) && 
           !validWrongOptions.some(opt => gridsAreEqual(opt.grid, newVariation))) {
         validWrongOptions.push({
-          id: `variation-${validWrongOptions.length}`,
-          grid: newVariation,
-          isCorrect: false,
-          type: 'Pattern Variation'
+        id: `variation-${validWrongOptions.length}`,
+        grid: newVariation,
+        isCorrect: false,
+        type: translateText('Pattern Variation')
         });
       }
     }
@@ -482,7 +498,7 @@ const MirrorMatchGame = () => {
 
     // Add correct option
     const allOptions = [
-      { id: 'correct-mirror', grid: correctMirror, isCorrect: true, type: 'Horizontal Mirror' },
+      { id: 'correct-mirror', grid: correctMirror, isCorrect: true, type: translateText('Horizontal Mirror') },
       ...selectedWrong
     ].sort(() => Math.random() - 0.5);
 
@@ -575,11 +591,11 @@ const MirrorMatchGame = () => {
     setHintsUsed(prev => prev + 1);
     
     const hintMessages = [
-      "Look for the horizontal mirror reflection - imagine folding the pattern along a vertical line.",
-      "Each filled cell on the left should appear on the right side at the same height.",
-      "The correct mirror will have the exact opposite left-right arrangement of the original pattern.",
-      "Focus on the edges - they should be perfectly mirrored horizontally.",
-      "Ignore rotations and vertical flips - only horizontal mirroring is correct."
+      translateText("Look for the horizontal mirror reflection - imagine folding the pattern along a vertical line."),
+      translateText("Each filled cell on the left should appear on the right side at the same height."),
+      translateText("The correct mirror will have the exact opposite left-right arrangement of the original pattern."),
+      translateText("Focus on the edges - they should be perfectly mirrored horizontally."),
+      translateText("Ignore rotations and vertical flips - only horizontal mirroring is correct.")
     ];
 
     setHintMessage(hintMessages[hintsUsed % hintMessages.length]);
@@ -733,7 +749,7 @@ const MirrorMatchGame = () => {
       {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
-        gameTitle="🪞✨ Mirror Match"
+        gameTitle={<TranslatedText text="🪞✨ Mirror Match" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 sm:p-6">
@@ -743,7 +759,7 @@ const MirrorMatchGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-base sm:text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Mirror Match
+                  <TranslatedText text="How to Play Mirror Match" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -758,48 +774,48 @@ const MirrorMatchGame = () => {
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Target className="h-4 w-4" />
-                      🎯 Objective
+                      <TranslatedText text="🎯 Objective" />
                     </h4>
                     <p className="text-xs sm:text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Identify the correct horizontal mirror reflection of the given pattern.
+                      <TranslatedText text="Identify the correct horizontal mirror reflection of the given pattern." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Mirror className="h-4 w-4" />
-                      🪞 Mirror Logic
+                      <TranslatedText text="🪞 Mirror Logic" />
                     </h4>
                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Horizontal reflection only</li>
-                      <li>• Left becomes right</li>
-                      <li>• Vertical position stays same</li>
+                      <li>• <TranslatedText text="Horizontal reflection only" /></li>
+                      <li>• <TranslatedText text="Left becomes right" /></li>
+                      <li>• <TranslatedText text="Vertical position stays same" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Zap className="h-4 w-4" />
-                      📊 Scoring
+                      <TranslatedText text="📊 Scoring" />
                     </h4>
                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25 points × 8 patterns</li>
-                      <li>• Moderate: 40 points × 5 patterns</li>
-                      <li>• Hard: 50 points × 4 patterns</li>
-                      <li>• Wrong answer = -1 life</li>
+                      <li>• <TranslatedText text="Easy: 25 points × 8 patterns" /></li>
+                      <li>• <TranslatedText text="Moderate: 40 points × 5 patterns" /></li>
+                      <li>• <TranslatedText text="Hard: 50 points × 4 patterns" /></li>
+                      <li>• <TranslatedText text="Wrong answer = -1 life" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Lightbulb className="h-4 w-4" />
-                      💡 Strategy
+                      <TranslatedText text="💡 Strategy" />
                     </h4>
                     <ul className="text-xs sm:text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Visualize folding vertically</li>
-                      <li>• Check edge patterns first</li>
-                      <li>• Use hints for complex patterns</li>
-                      <li>• Focus on accuracy over speed</li>
+                      <li>• <TranslatedText text="Visualize folding vertically" /></li>
+                      <li>• <TranslatedText text="Check edge patterns first" /></li>
+                      <li>• <TranslatedText text="Use hints for complex patterns" /></li>
+                      <li>• <TranslatedText text="Focus on accuracy over speed" /></li>
                     </ul>
                   </div>
                 </div>
@@ -807,7 +823,7 @@ const MirrorMatchGame = () => {
             </div>
           </div>
         }
-        category="Logic"
+        category={<TranslatedText text="Logic" />}
         gameState={gameState}
         setGameState={setGameState}
         score={score}
@@ -835,7 +851,7 @@ const MirrorMatchGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Hint</span> ({maxHints - hintsUsed})
+                <span className="hidden sm:inline"><TranslatedText text="Hint" /></span> ({maxHints - hintsUsed})
               </button>
             )}
           </div>
@@ -844,7 +860,7 @@ const MirrorMatchGame = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6 w-full max-w-2xl">
             <div className="text-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 sm:p-3 border border-blue-200">
               <div className="text-xs sm:text-sm text-blue-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Level
+                <TranslatedText text="Level" />
               </div>
               <div className="text-base sm:text-lg font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {currentLevel}
@@ -852,7 +868,7 @@ const MirrorMatchGame = () => {
             </div>
             <div className="text-center bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-2 sm:p-3 border border-red-200">
               <div className="text-xs sm:text-sm text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
+                <TranslatedText text="Lives" />
               </div>
               <div className="text-base sm:text-lg font-semibold text-red-800 flex justify-center items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {Array.from({ length: lives }, (_, i) => (
@@ -863,7 +879,7 @@ const MirrorMatchGame = () => {
             </div>
             <div className="text-center bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-2 sm:p-3 border border-green-200">
               <div className="text-xs sm:text-sm text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Progress
+                <TranslatedText text="Progress" />
               </div>
               <div className="text-base sm:text-lg font-semibold text-green-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {solvedPatterns}/{difficultySettings[difficulty].totalPatterns}
@@ -871,7 +887,7 @@ const MirrorMatchGame = () => {
             </div>
             <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-2 sm:p-3 border border-purple-200">
               <div className="text-xs sm:text-sm text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Success Rate
+                <TranslatedText text="Success Rate" />
               </div>
               <div className="text-base sm:text-lg font-semibold text-purple-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {totalAttempts > 0 ? Math.round((solvedPatterns / totalAttempts) * 100) : 0}%
@@ -886,11 +902,11 @@ const MirrorMatchGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Mirror className="h-4 w-4 sm:h-5 sm:w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800 text-sm sm:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {originalPattern.name} - Pattern {solvedPatterns + 1} of {difficultySettings[difficulty].totalPatterns}
+                    {translateText(originalPattern.name)} - <TranslatedText text="Pattern" /> {solvedPatterns + 1} <TranslatedText text="of" /> {difficultySettings[difficulty].totalPatterns}
                   </span>
                 </div>
                 <p className="text-blue-700 text-xs sm:text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Find the correct horizontal mirror reflection of this pattern
+                  <TranslatedText text="Find the correct horizontal mirror reflection of this pattern" />
                 </p>
               </div>
             </div>
@@ -900,7 +916,7 @@ const MirrorMatchGame = () => {
           {originalPattern && (
             <div className="mb-6 sm:mb-8 text-center">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Original Pattern:
+                <TranslatedText text="Original Pattern" />:
               </h3>
               <div className="inline-block">
                 {renderGrid(originalPattern.grid, originalPattern, 'large')}
@@ -912,15 +928,15 @@ const MirrorMatchGame = () => {
           {originalPattern && (
             <div className="mb-6 sm:mb-8 text-center">
               <div className="flex items-center justify-center gap-4 sm:gap-8 mb-4">
-                <div className="text-slate-700 font-bold text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>SOURCE</div>
+                <div className="text-slate-700 font-bold text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}><TranslatedText text="SOURCE" /></div>
                 <div className="flex flex-col items-center">
                   <div className="w-12 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full shadow-lg animate-pulse"></div>
                   <div className="text-slate-800 font-bold text-xs sm:text-sm mt-1 px-2 sm:px-3 py-1 bg-slate-200 rounded-full animate-bounce" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    ⟷ MIRROR AXIS
+                    ⟷ <TranslatedText text="MIRROR AXIS" />
                   </div>
                   <div className="w-12 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full shadow-lg mt-1 animate-pulse"></div>
                 </div>
-                <div className="text-slate-700 font-bold text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>REFLECTION</div>
+                <div className="text-slate-700 font-bold text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}><TranslatedText text="REFLECTION" /></div>
               </div>
             </div>
           )}
@@ -932,11 +948,11 @@ const MirrorMatchGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 animate-pulse" />
                   <span className="font-semibold text-yellow-800 text-sm sm:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
+                    <TranslatedText text="Hint" />:
                   </span>
                 </div>
                 <p className="text-yellow-700 text-xs sm:text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
+                  <TranslatedText text={hintMessage} />
                 </p>
               </div>
             </div>
@@ -968,7 +984,7 @@ const MirrorMatchGame = () => {
                     </div>
                     <div className="bg-white rounded-xl p-2 sm:p-3 shadow-lg border-2 border-gray-200 group-hover:border-blue-300 transition-all duration-300">
                       <div className="font-bold text-gray-800 text-sm sm:text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        Option {index + 1}
+                        <TranslatedText text="Option" /> {index + 1}
                       </div>
                     </div>
                   </div>
@@ -991,13 +1007,13 @@ const MirrorMatchGame = () => {
                   <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 animate-pulse" />
                 )}
                 <div className="text-lg sm:text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Perfect Match!' : 'Incorrect!'}
+                  {feedbackType === 'correct' ? <TranslatedText text="Perfect Match!" /> : <TranslatedText text="Incorrect!" />}
                 </div>
               </div>
               <div className="text-xs sm:text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
                 {feedbackType === 'correct'
-                  ? `Excellent! You earned ${difficultySettings[difficulty].pointsPerPattern} points! (${solvedPatterns}/${difficultySettings[difficulty].totalPatterns} patterns completed)`
-                  : `That was a ${selectedOption.type}. Look for the horizontal mirror reflection. Lives remaining: ${lives}`
+                  ? <>{translateText('Excellent! You earned')} {difficultySettings[difficulty].pointsPerPattern} {translateText('points!')} ({solvedPatterns}/{difficultySettings[difficulty].totalPatterns} {translateText('patterns completed')})</>
+                  : <>{translateText('That was a')} {translateText(selectedOption.type)}. {translateText('Look for the horizontal mirror reflection. Lives remaining:')} {lives}</>
                 }
               </div>
             </div>
@@ -1006,14 +1022,13 @@ const MirrorMatchGame = () => {
           {/* Instructions */}
           <div className="text-center max-w-2xl mt-4 sm:mt-6">
             <p className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Study the original pattern and identify its horizontal mirror reflection.
-              Imagine folding the pattern along a vertical line - the correct option shows what the folded pattern would look like.
+              <TranslatedText text="Study the original pattern and identify its horizontal mirror reflection. Imagine folding the pattern along a vertical line - the correct option shows what the folded pattern would look like." />
             </p>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              {difficultySettings[difficulty].pointsPerPattern} points per pattern
+              {difficulty} <TranslatedText text="Mode" />: {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
+              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} <TranslatedText text="time limit" /> |
+              {difficultySettings[difficulty].lives} <TranslatedText text="lives" /> | {difficultySettings[difficulty].hints} <TranslatedText text="hints" /> |
+              {difficultySettings[difficulty].pointsPerPattern} <TranslatedText text="points per pattern" />
             </div>
           </div>
         </div>
@@ -1024,8 +1039,8 @@ const MirrorMatchGame = () => {
         onClose={() => setShowCompletionModal(false)}
         score={score}
         customStats={customStats}
-        gameTitle="Mirror Match"
-        gameShortDescription="Match mirrored patterns and shapes. Challenge your visual perception and symmetry recognition!"
+        gameTitle={<TranslatedText text="Mirror Match" />}
+        gameShortDescription={<TranslatedText text="Match mirrored patterns and shapes. Challenge your visual perception and symmetry recognition!" />}
       />
        <style jsx>{`
        

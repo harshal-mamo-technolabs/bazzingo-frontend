@@ -4,6 +4,7 @@ import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
 import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/BorderlineBrain';
 import { Eye, Lightbulb, CheckCircle, XCircle, Plane, ChevronUp, ChevronDown, Flag, UtensilsCrossed, Shirt, Coins } from 'lucide-react';
+import TranslatedText from '../../components/TranslatedText.jsx';
 
 const BorderlineBrainsGame = () => {
   const [gameState, setGameState] = useState('ready');
@@ -133,7 +134,7 @@ const BorderlineBrainsGame = () => {
     if (undiscoveredClues.length > 0) {
       const hintClue = undiscoveredClues[0];
       setDiscoveredClues(prev => [...prev, hintClue]);
-      // Generic, non-leaking hint text:
+      // Generic, non-leaking hint text (will be translated):
       const friendly = {
         food: 'Traditional foods can point to a culture—look for ingredients & styles.',
         clothing: 'Patterns and garments often tie to regions—inspect attire details.'
@@ -279,8 +280,8 @@ const BorderlineBrainsGame = () => {
     <div>
       {gameState === 'ready' && <Header unreadCount={3} />}
       <GameFramework
-        gameTitle="🌍 Borderline Brains"
-        gameShortDescription="Navigate through complex brain pathways. Challenge your spatial reasoning and problem-solving skills!"
+        gameTitle={<TranslatedText text="🌍 Borderline Brains" />}
+        gameShortDescription={<TranslatedText text="Navigate through complex brain pathways. Challenge your spatial reasoning and problem-solving skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -289,7 +290,7 @@ const BorderlineBrainsGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Borderline Brains
+                  <TranslatedText text="How to Play Borderline Brains" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions ? <ChevronUp className="h-5 w-5 text-blue-900" /> : <ChevronDown className="h-5 w-5 text-blue-900" />}
@@ -300,43 +301,43 @@ const BorderlineBrainsGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🛂 Objective
+                      🛂 <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      You're a customs officer! Examine travelers' belongings to identify their country of origin from visual clues.
+                      <TranslatedText text="You're a customs officer! Examine travelers' belongings to identify their country of origin from visual clues." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🔍 Investigation
+                      🔍 <TranslatedText text="Investigation" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Check for traditional food evidence</li>
-                      <li>• Inspect clothing and cultural items</li>
+                      <li>• <TranslatedText text="Check for traditional food evidence" /></li>
+                      <li>• <TranslatedText text="Inspect clothing and cultural items" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      📊 <TranslatedText text="Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: +25 per correct answer</li>
-                      <li>• Moderate: +40 per correct answer</li>
-                      <li>• Hard: +50 per correct answer</li>
-                      <li>• No penalty for wrong answers</li>
+                      <li>• <TranslatedText text="Easy: +25 per correct answer" /></li>
+                      <li>• <TranslatedText text="Moderate: +40 per correct answer" /></li>
+                      <li>• <TranslatedText text="Hard: +50 per correct answer" /></li>
+                      <li>• <TranslatedText text="No penalty for wrong answers" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      ✈️ Travelers
+                      ✈️ <TranslatedText text="Travelers" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 travelers to process</li>
-                      <li>• Moderate: 5 travelers to process</li>
-                      <li>• Hard: 4 travelers to process</li>
+                      <li>• <TranslatedText text="Easy: 8 travelers to process" /></li>
+                      <li>• <TranslatedText text="Moderate: 5 travelers to process" /></li>
+                      <li>• <TranslatedText text="Hard: 4 travelers to process" /></li>
                     </ul>
                   </div>
                 </div>
@@ -371,7 +372,7 @@ const BorderlineBrainsGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
-                Hint ({maxHints - hintsUsed})
+                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
               </button>
             )}
           </div>
@@ -380,7 +381,7 @@ const BorderlineBrainsGame = () => {
           <div className="flex justify-center mb-6 w-full">
             <div className="text-center bg-gray-50 rounded-lg p-3 w-40">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
+                <TranslatedText text="Lives" />
               </div>
               <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {'❤️'.repeat(lives)}
@@ -395,14 +396,14 @@ const BorderlineBrainsGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Plane className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Customs Control - Traveler #{currentScenario + 1} ({difficulty} Level)
+                    <TranslatedText text={`Customs Control - Traveler #${currentScenario + 1} (${difficulty} Level)`} />
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Where is this traveler from?
+                  <TranslatedText text="Where is this traveler from?" />
                 </h3>
                 <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Examine their belongings for clues about their country of origin. Look for cultural evidence!
+                  <TranslatedText text="Examine their belongings for clues about their country of origin. Look for cultural evidence!" />
                 </p>
                 {/* Time progress bar */}
                 <div className="mt-4 h-2 w-full bg-blue-200 rounded-full">
@@ -419,11 +420,11 @@ const BorderlineBrainsGame = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-5 w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Customs Hint:
+                    <TranslatedText text="Customs Hint:" />
                   </span>
                 </div>
                 <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
+                  <TranslatedText text={hintMessage} />
                 </p>
               </div>
             </div>
@@ -437,10 +438,10 @@ const BorderlineBrainsGame = () => {
                 <div className="text-center mb-6">
                   <div className="text-8xl mb-4">{currentScenarioData.traveler.emoji}</div>
                   <h4 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    {currentScenarioData.traveler.name}
+                    <TranslatedText text={currentScenarioData.traveler.name} />
                   </h4>
                   <p className="text-lg text-gray-600 italic" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    "{currentScenarioData.traveler.statement}"
+                    "<TranslatedText text={currentScenarioData.traveler.statement} />"
                   </p>
                 </div>
 
@@ -464,15 +465,15 @@ const BorderlineBrainsGame = () => {
                         >
                           <div className="flex items-center justify-center gap-2 mb-2">
                             {getClueIcon(clueType)}
-                            <span className="capitalize font-medium text-sm">{clueType}</span>
+                            <span className="capitalize font-medium text-sm"><TranslatedText text={clueType} /></span>
                           </div>
 
                           {isDiscovered ? (
                             <div className="mt-2 flex items-center justify-center reveal">
-                              {renderClueBody(clueType, clue)}
+                              <TranslatedText text={clue.evidence} />
                             </div>
                           ) : (
-                            <div className="text-xs mt-2 text-gray-500">Click to examine</div>
+                            <div className="text-xs mt-2 text-gray-500"><TranslatedText text="Click to examine" /></div>
                           )}
                         </button>
                       );
@@ -497,7 +498,7 @@ const BorderlineBrainsGame = () => {
                     >
                       <div className="flex items-center justify-center gap-3">
                         <span className="text-3xl">{getCountryFlag(country)}</span>
-                        <span className="font-semibold text-lg">{country}</span>
+                        <span className="font-semibold text-lg"><TranslatedText text={country} /></span>
                       </div>
                     </button>
                   ))}
@@ -537,19 +538,19 @@ const BorderlineBrainsGame = () => {
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Customs Approved! ✅' : 'Further Investigation Needed! ❌'}
+                  {feedbackType === 'correct' ? <TranslatedText text="Customs Approved! ✅" /> : <TranslatedText text="Further Investigation Needed! ❌" />}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {currentScenarioData.explanation}
+                <TranslatedText text={currentScenarioData.explanation} />
               </div>
               {feedbackType === 'correct' && (
                 <div className="text-green-700 font-medium mb-2">
-                  +{difficultySettings[difficulty].pointsPerQuestion} points earned!
+                  <TranslatedText text={`+${difficultySettings[difficulty].pointsPerQuestion} points earned!`} />
                 </div>
               )}
               {feedbackType === 'incorrect' && lives > 1 && (
-                <p className="text-red-700 font-medium">Lives remaining: {lives - 1}</p>
+                <p className="text-red-700 font-medium"><TranslatedText text={`Lives remaining: ${lives - 1}`} /></p>
               )}
             </div>
           )}
@@ -557,14 +558,10 @@ const BorderlineBrainsGame = () => {
           {/* Instructions footer */}
           <div className="text-center max-w-2xl mt-6">
             <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              🛂 Click clue categories to examine evidence. Flags & currency only show icons—no direct country names.
+              🛂 <TranslatedText text="Click clue categories to examine evidence. Flags & currency only show icons—no direct country names." />
             </p>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].questionCount} travelers | 
-              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              +{difficultySettings[difficulty].pointsPerQuestion} points per correct answer
+              <TranslatedText text={`${difficulty} Mode: ${difficultySettings[difficulty].questionCount} travelers | ${Math.floor(difficultySettings[difficulty].timeLimit / 60)}:${String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit | ${difficultySettings[difficulty].lives} lives | ${difficultySettings[difficulty].hints} hints | +${difficultySettings[difficulty].pointsPerQuestion} points per correct answer`} />
             </div>
           </div>
         </div>
@@ -576,7 +573,7 @@ const BorderlineBrainsGame = () => {
         onClose={() => setShowCompletionModal(false)}
         score={score}
         customStats={customStats}
-        gameTitle="Borderline Brains"
+        gameTitle={<TranslatedText text="Borderline Brains" />}
       />
       
       {/* Local animation styles */}

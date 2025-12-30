@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Anchor, Crown, Mountain } from 'lucide-react';
+import TranslatedText from '../../../components/TranslatedText.jsx';
 
 const IslandMap = ({ currentIsland, unlockedIslands, onIslandSelect }) => {
   const islands = [
@@ -54,7 +55,7 @@ const IslandMap = ({ currentIsland, unlockedIslands, onIslandSelect }) => {
         <div className="bg-amber-100 border-2 border-amber-600 rounded-lg px-4 py-2 shadow-lg">
           <h3 className="text-lg font-bold text-amber-800 flex items-center gap-2">
             <Anchor className="h-5 w-5" />
-            Croatian Adriatic Islands
+            <TranslatedText text="Croatian Adriatic Islands" />
           </h3>
         </div>
       </div>
@@ -79,10 +80,10 @@ const IslandMap = ({ currentIsland, unlockedIslands, onIslandSelect }) => {
             {/* Island name and status */}
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center">
               <div className={`text-sm font-bold ${island.color} bg-white px-2 py-1 rounded border shadow-sm`}>
-                {island.name}
+                <TranslatedText text={island.name} />
               </div>
               <div className="text-xs text-gray-600 mt-1">
-                {island.description}
+                <TranslatedText text={island.description} />
               </div>
             </div>
 
@@ -97,7 +98,7 @@ const IslandMap = ({ currentIsland, unlockedIslands, onIslandSelect }) => {
             {isCurrentIsland(island) && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <div className="bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold animate-pulse">
-                  Current
+                  <TranslatedText text="Current" />
                 </div>
               </div>
             )}

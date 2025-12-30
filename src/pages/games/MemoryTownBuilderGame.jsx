@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import TranslatedText from '../../components/TranslatedText.jsx';
 import {
   difficultySettings,
   buildingTypes,
@@ -259,8 +260,8 @@ useEffect(() => {
       {gameState === 'ready' && <Header unreadCount={2} />}
 
       <GameFramework
-        gameTitle="🏗️✨ Memory Town Builder"
-        gameShortDescription="Build and memorize a town layout, then recreate it from memory. Test your spatial memory and planning skills!"
+        gameTitle={<TranslatedText text="🏗️✨ Memory Town Builder" />}
+        gameShortDescription={<TranslatedText text="Build and memorize a town layout, then recreate it from memory. Test your spatial memory and planning skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 md:p-6">
@@ -270,7 +271,7 @@ useEffect(() => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-base md:text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Build Your Perfect Memory Town
+                  <TranslatedText text="How to Build Your Perfect Memory Town" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -285,49 +286,49 @@ useEffect(() => {
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Building2 className="h-4 w-4" />
-                      🎯 Objective
+                      🎯 <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Study the town layout, then recreate it perfectly by placing buildings in their exact positions.
+                      <TranslatedText text="Study the town layout, then recreate it perfectly by placing buildings in their exact positions." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Brain className="h-4 w-4" />
-                      🧠 How to Play
+                      🧠 <TranslatedText text="How to Play" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Study: Memorize the layout</li>
-                      <li>• Recall: Select building type</li>
-                      <li>• Place: Click grid to position</li>
-                      <li>• Match: Recreate exactly</li>
+                      <li>• <TranslatedText text="Study: Memorize the layout" /></li>
+                      <li>• <TranslatedText text="Recall: Select building type" /></li>
+                      <li>• <TranslatedText text="Place: Click grid to position" /></li>
+                      <li>• <TranslatedText text="Match: Recreate exactly" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <Sparkles className="h-4 w-4" />
-                      💡 Tips
+                      💡 <TranslatedText text="Tips" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Focus during study time</li>
-                      <li>• Use visual landmarks</li>
-                      <li>• Complete objectives in order</li>
-                      <li>• Remember building positions</li>
+                      <li>• <TranslatedText text="Focus during study time" /></li>
+                      <li>• <TranslatedText text="Use visual landmarks" /></li>
+                      <li>• <TranslatedText text="Complete objectives in order" /></li>
+                      <li>• <TranslatedText text="Remember building positions" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg border border-blue-200'>
   <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
     <Trophy className="h-4 w-4" />
-    📊 Scoring
+    📊 <TranslatedText text="Scoring" />
   </h4>
   <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-    <li>• Easy: 25pts × 8 placements</li>
-    <li>• Moderate: 40pts × 5 placements</li>
-    <li>• Hard: 50pts × 4 placements</li>
-    <li>• Maximum score: 200 points</li>
+    <li>• <TranslatedText text="Easy: 25pts × 8 placements" /></li>
+    <li>• <TranslatedText text="Moderate: 40pts × 5 placements" /></li>
+    <li>• <TranslatedText text="Hard: 50pts × 4 placements" /></li>
+    <li>• <TranslatedText text="Maximum score: 200 points" /></li>
   </ul>
 </div>
                 </div>
@@ -356,7 +357,7 @@ useEffect(() => {
               <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 md:p-4">
                 <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-3 md:mb-4 flex items-center gap-2">
                   <Building2 className="h-4 w-4 md:h-5 md:w-5" />
-                  Building Types
+                  <TranslatedText text="Building Types" />
                 </h3>
                 <div className="grid grid-cols-3 md:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
                   {Object.entries(buildingTypes).map(([key, building]) => {
@@ -381,10 +382,10 @@ useEffect(() => {
                 {selectedBuilding && (
                   <div className="p-2 md:p-3 bg-white rounded-lg border">
                     <div className="text-sm font-medium text-gray-800 mb-1">
-                      Selected: {buildingTypes[selectedBuilding].name}
+                      <TranslatedText text="Selected" />: <TranslatedText text={buildingTypes[selectedBuilding].name} />
                     </div>
                     <div className="text-xs text-gray-600">
-                      Click on the grid to place this building
+                      <TranslatedText text="Click on the grid to place this building" />
                     </div>
                   </div>
                 )}
@@ -405,7 +406,7 @@ useEffect(() => {
                   style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                 >
                   <Lightbulb className="h-4 w-4" />
-                  Get Hint ({maxHints - hintsUsed} left)
+                  <TranslatedText text="Get Hint" /> ({maxHints - hintsUsed} <TranslatedText text="left" />)
                 </button>
               </div>
             )}
@@ -414,9 +415,9 @@ useEffect(() => {
             <div className="bg-green-50 rounded-lg p-3 md:p-4">
               <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-3 md:mb-4 flex items-center gap-2">
                 <Target className="h-4 w-4 md:h-5 md:w-5" />
-                Round {currentRound} Goals
+                <TranslatedText text="Round" /> {currentRound} <TranslatedText text="Goals" />
                 {currentRound === 2 && (
-                  <span className="text-sm font-normal text-green-600">(Final Round!)</span>
+                  <span className="text-sm font-normal text-green-600">(<TranslatedText text="Final Round!" />)</span>
                 )}
               </h3>
               <div className="space-y-2">
@@ -438,7 +439,7 @@ useEffect(() => {
                       }`}>
                         {completedObjectives.includes(globalIndex) ? '✓' : index + 1}
                       </div>
-                      {objective.text}
+                      <TranslatedText text={objective.text} />
                     </div>
                   );
                 })}
@@ -448,7 +449,7 @@ useEffect(() => {
               {currentRound === 1 && settings.objectives.round1.every((_, index) => completedObjectives.includes(index)) && (
                 <div className="mt-4 p-2 bg-blue-100 rounded-lg text-center">
                   <p className="text-blue-800 font-semibold text-sm">
-                    🎉 Round 1 Complete! Moving to Round 2...
+                    🎉 <TranslatedText text="Round 1 Complete! Moving to Round 2..." />
                   </p>
                 </div>
               )}
@@ -463,11 +464,11 @@ useEffect(() => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Timer className="h-4 w-4 md:h-5 md:w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800 text-sm md:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Study Time: {studyTimeRemaining}s
+                    <TranslatedText text="Study Time" />: {studyTimeRemaining}s
                   </span>
                 </div>
                 <p className="text-yellow-700 text-sm md:text-base text-center" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  Memorize the building positions! You'll need to recreate this layout.
+                  <TranslatedText text="Memorize the building positions! You'll need to recreate this layout." />
                 </p>
               </div>
             )}
@@ -478,11 +479,11 @@ useEffect(() => {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-4 w-4 md:h-5 md:w-5 text-yellow-600" />
                   <span className="font-semibold text-yellow-800 text-sm md:text-base" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
+                    <TranslatedText text="Hint" />:
                   </span>
                 </div>
                 <p className="text-yellow-700 text-sm md:text-base" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
+                  <TranslatedText text={hintMessage} />
                 </p>
               </div>
             )}
@@ -526,14 +527,14 @@ useEffect(() => {
                   {isCompactView ? <Smartphone className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
                   <span>
                     {gamePhase === 'study' 
-                      ? 'Study the layout carefully!' 
-                      : 'Select a building type, then click to place'
+                      ? <TranslatedText text="Study the layout carefully!" />
+                      : <TranslatedText text="Select a building type, then click to place" />
                     }
                   </span>
                 </div>
                 {selectedBuilding && gamePhase !== 'study' && (
                   <span className="font-semibold">
-                    Selected: {buildingTypes[selectedBuilding].name}
+                    <TranslatedText text="Selected" />: <TranslatedText text={buildingTypes[selectedBuilding].name} />
                   </span>
                 )}
               </div>
@@ -543,7 +544,7 @@ useEffect(() => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-4 md:mt-6">
               <div className="text-center bg-blue-50 rounded-lg p-2 md:p-3">
                 <div className="text-xs md:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Moves Left
+                  <TranslatedText text="Moves Left" />
                 </div>
                 <div className="text-lg md:text-xl font-semibold text-blue-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {maxTurns - currentTurn}
@@ -552,7 +553,7 @@ useEffect(() => {
               
               <div className="text-center bg-purple-50 rounded-lg p-2 md:p-3">
                 <div className="text-xs md:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Buildings Placed
+                  <TranslatedText text="Buildings Placed" />
                 </div>
                 <div className="text-lg md:text-xl font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {placedBuildings}
@@ -561,7 +562,7 @@ useEffect(() => {
               
               <div className="text-center bg-green-50 rounded-lg p-2 md:p-3">
                 <div className="text-xs md:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Accuracy
+                  <TranslatedText text="Accuracy" />
                 </div>
                 <div className="text-lg md:text-xl font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {levelData ? calculateAccuracy(playerGrid, levelData.targetGrid) : 0}%
@@ -586,7 +587,7 @@ useEffect(() => {
         onClose={() => setShowCompletionModal(false)}
         score={score}
         customStats={customStats}
-        gameTitle="Memory Town Builder"
+        gameTitle={<TranslatedText text="Memory Town Builder" />}
       />
     </div>
   );

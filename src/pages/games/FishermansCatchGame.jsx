@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import GameFramework from '../../components/GameFramework';
 import Header from '../../components/Header';
 import GameCompletionModal from '../../components/games/GameCompletionModal';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { I18nContext } from '../../context/I18nContext';
+import { staticTranslations } from '../../data/staticTranslations';
 import {
   difficultySettings,
   getScenariosByDifficulty,
@@ -250,15 +253,17 @@ const FishermansCatchGame = () => {
     if (currentScenarioData) {
       let hintMessage = '';
       if (currentScenarioData.target.color && !Array.isArray(currentScenarioData.target.color)) {
-        hintMessage = `Look for ${currentScenarioData.target.color} colored fish!`;
+        const colorText = translateText(currentScenarioData.target.color);
+        hintMessage = translateText('Look for {color} colored fish!').replace('{color}', colorText);
       } else if (currentScenarioData.target.size && !Array.isArray(currentScenarioData.target.size)) {
-        hintMessage = `Focus on ${currentScenarioData.target.size} sized fish!`;
+        const sizeText = translateText(currentScenarioData.target.size);
+        hintMessage = translateText('Focus on {size} sized fish!').replace('{size}', sizeText);
       } else {
-        hintMessage = 'Read the instruction carefully and avoid sharks and junk!';
+        hintMessage = translateText('Read the instruction carefully and avoid sharks and junk!');
       }
 
       setFeedbackType('hint');
-      setFeedbackMessage(`💡 Hint: ${hintMessage}`);
+      setFeedbackMessage(`${translateText('💡 Hint')}: ${hintMessage}`);
       setShowFeedback(true);
       setTimeout(() => setShowFeedback(false), 3000);
     }
@@ -302,6 +307,18 @@ const FishermansCatchGame = () => {
     console.log('Fisherman\'s Catch Game completed:', payload);
   };
 
+  const { language } = useContext(I18nContext);
+  
+  // Helper function for dynamic translations
+  const translateText = (text) => {
+    if (!text || language === 'en') return text;
+    const langDict = staticTranslations[language];
+    if (langDict && langDict[text]) {
+      return langDict[text];
+    }
+    return text;
+  };
+
   const customStats = {
     currentScenario: currentScenario + 1,
     totalScenarios: 4,
@@ -319,8 +336,8 @@ const FishermansCatchGame = () => {
     <div>
       {gameState === 'ready' && <Header unreadCount={3} />}
       <GameFramework
-        gameTitle="🎣 Fisherman's Catch"
-        gameShortDescription="Catch fish while avoiding obstacles. Challenge your timing and strategic thinking skills!"
+        gameTitle={<TranslatedText text="🎣 Fisherman's Catch" />}
+        gameShortDescription={<TranslatedText text="Catch fish while avoiding obstacles. Challenge your timing and strategic thinking skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -329,7 +346,7 @@ const FishermansCatchGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Fisherman's Catch
+                  <TranslatedText text="How to Play Fisherman's Catch" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -342,43 +359,43 @@ const FishermansCatchGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎣 Objective
+                      🎣 <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Catch only the correct fish while avoiding sharks, boots, and junk items swimming by.
+                      <TranslatedText text="Catch only the correct fish while avoiding sharks, boots, and junk items swimming by." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎮 Gameplay
+                      🎮 <TranslatedText text="Gameplay" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Click on fish to cast your net</li>
-                      <li>• Follow the specific instructions</li>
-                      <li>• Avoid dangerous sharks and junk</li>
+                      <li>• <TranslatedText text="Click on fish to cast your net" /></li>
+                      <li>• <TranslatedText text="Follow the specific instructions" /></li>
+                      <li>• <TranslatedText text="Avoid dangerous sharks and junk" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      📊 <TranslatedText text="Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 catches, +25/-10 points</li>
-                      <li>• Moderate: 5 catches, +40/-20 points</li>
-                      <li>• Hard: 4 catches, +50/-25 points</li>
+                      <li>• <TranslatedText text="Easy: 8 catches, +25/-10 points" /></li>
+                      <li>• <TranslatedText text="Moderate: 5 catches, +40/-20 points" /></li>
+                      <li>• <TranslatedText text="Hard: 4 catches, +50/-25 points" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      ⚡ Strategy
+                      ⚡ <TranslatedText text="Strategy" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Read instructions carefully</li>
-                      <li>• Watch fish colors and sizes</li>
-                      <li>• Use hints when stuck</li>
+                      <li>• <TranslatedText text="Read instructions carefully" /></li>
+                      <li>• <TranslatedText text="Watch fish colors and sizes" /></li>
+                      <li>• <TranslatedText text="Use hints when stuck" /></li>
                     </ul>
                   </div>
                 </div>
@@ -412,7 +429,7 @@ const FishermansCatchGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
-                Hint ({maxHints - hintsUsed})
+                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
               </button>
             )}
           </div>
@@ -420,7 +437,7 @@ const FishermansCatchGame = () => {
           <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Caught
+                <TranslatedText text="Caught" />
               </div>
               <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {correctCatches}/{difficultySettings[difficulty].catchesNeeded}
@@ -428,7 +445,7 @@ const FishermansCatchGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
+                <TranslatedText text="Lives" />
               </div>
               <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {'💖'.repeat(lives)}
@@ -436,7 +453,7 @@ const FishermansCatchGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Accuracy
+                <TranslatedText text="Accuracy" />
               </div>
               <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {customStats.accuracy}%
@@ -444,7 +461,7 @@ const FishermansCatchGame = () => {
             </div>
             <div className="text-center bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Scenario Time
+                <TranslatedText text="Scenario Time" />
               </div>
               <div className={`text-lg font-semibold ${scenarioTimeRemaining <= 5 ? 'text-red-600' : 'text-purple-600'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {scenarioTimeRemaining}s
@@ -458,23 +475,23 @@ const FishermansCatchGame = () => {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Target className="h-5 w-5 text-blue-800" />
                   <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Scenario {currentScenario + 1} of 4 - {difficulty} Level
+                    <TranslatedText text="Scenario" /> {currentScenario + 1} <TranslatedText text="of" /> 4 - {difficulty} <TranslatedText text="Level" />
                   </span>
                 </div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {currentScenarioData.instruction}
+                  <TranslatedText text={currentScenarioData.instruction} />
                 </h3>
                 <p className="text-blue-700 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {currentScenarioData.description}
+                  <TranslatedText text={currentScenarioData.description} />
                 </p>
                 <div className="flex items-center justify-center gap-4 text-sm text-blue-600">
                   <span className="flex items-center gap-1">
                     <Timer className="h-4 w-4" />
-                    {scenarioTimeRemaining}s remaining
+                    {scenarioTimeRemaining}s <TranslatedText text="remaining" />
                   </span>
                   <span className="flex items-center gap-1">
                     <Fish className="h-4 w-4" />
-                    {correctCatches}/{difficultySettings[difficulty].catchesNeeded} needed
+                    {correctCatches}/{difficultySettings[difficulty].catchesNeeded} <TranslatedText text="needed" />
                   </span>
                 </div>
               </div>
@@ -549,7 +566,7 @@ const FishermansCatchGame = () => {
                   <Lightbulb className="h-6 w-6 text-yellow-600" />
                 )}
                 <div className="text-lg font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackMessage}
+                  <TranslatedText text={feedbackMessage} />
                 </div>
               </div>
             </div>
@@ -557,20 +574,19 @@ const FishermansCatchGame = () => {
 
           <div className="text-center max-w-3xl">
             <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Click on the fish swimming by to cast your net. Follow the scenario instructions carefully.
-              Watch out for sharks 🦈, boots 🥾, and other junk that will cost you points and lives!
+              <TranslatedText text="Click on the fish swimming by to cast your net. Follow the scenario instructions carefully. Watch out for sharks 🦈, boots 🥾, and other junk that will cost you points and lives!" />
             </p>
             <div className="mt-2 text-xs text-gray-500 grid grid-cols-2 md:grid-cols-4 gap-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              <div>🐠 Small Fish</div>
-              <div>🐟 Medium Fish</div>
-              <div>🐡 Large Fish</div>
-              <div>⚠️ Dangerous Items</div>
+              <div>🐠 <TranslatedText text="Small Fish" /></div>
+              <div>🐟 <TranslatedText text="Medium Fish" /></div>
+              <div>🐡 <TranslatedText text="Large Fish" /></div>
+              <div>⚠️ <TranslatedText text="Dangerous Items" /></div>
             </div>
             <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].catchesNeeded} catches needed |
-              {difficultySettings[difficulty].timeLimit}s total time (4 scenarios × {difficultySettings[difficulty].scenarioTime}s each) |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              +{difficultySettings[difficulty].pointsPerCorrect}/{difficultySettings[difficulty].pointsPerWrong} points
+              {difficulty} <TranslatedText text="Mode" />: {difficultySettings[difficulty].catchesNeeded} <TranslatedText text="catches needed" /> |
+              {difficultySettings[difficulty].timeLimit}s <TranslatedText text="total time" /> (4 <TranslatedText text="scenarios" /> × {difficultySettings[difficulty].scenarioTime}s <TranslatedText text="each" />) |
+              {difficultySettings[difficulty].lives} <TranslatedText text="lives" /> | {difficultySettings[difficulty].hints} <TranslatedText text="hints" /> |
+              +{difficultySettings[difficulty].pointsPerCorrect}/{difficultySettings[difficulty].pointsPerWrong} <TranslatedText text="points" />
             </div>
           </div>
         </div>

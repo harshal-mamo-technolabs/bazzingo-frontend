@@ -24,6 +24,7 @@ import {
   ChevronDown,
   Sparkles
 } from 'lucide-react';
+import TranslatedText from '../../components/TranslatedText.jsx';
 
 const MarketRushGame = () => {
   // Game state
@@ -260,8 +261,8 @@ const MarketRushGame = () => {
       {gameState === 'ready' && <Header unreadCount={3} />}
 
       <GameFramework
-        gameTitle="Market Rush: Village Bazaar"
-        gameShortDescription="Trade stocks and manage your portfolio. Challenge your economic thinking and risk management skills!"
+        gameTitle={<TranslatedText text="Market Rush: Village Bazaar" />}
+        gameShortDescription={<TranslatedText text="Trade stocks and manage your portfolio. Challenge your economic thinking and risk management skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -271,7 +272,7 @@ const MarketRushGame = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Market Rush: Village Bazaar
+                  <TranslatedText text="How to Play Market Rush: Village Bazaar" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -285,44 +286,44 @@ const MarketRushGame = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🏪 Your Stall
+                      🏪 <TranslatedText text="Your Stall" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Choose your market stall type and serve customers authentic Croatian products from your village bazaar.
+                      <TranslatedText text="Choose your market stall type and serve customers authentic Croatian products from your village bazaar." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      👥 Memory Challenge
+                      👥 <TranslatedText text="Memory Challenge" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Customer orders appear for 4-6 seconds</li>
-                      <li>• Remember the items and quantities</li>
-                      <li>• Serve in the correct order</li>
+                      <li>• <TranslatedText text="Customer orders appear for 4-6 seconds" /></li>
+                      <li>• <TranslatedText text="Remember the items and quantities" /></li>
+                      <li>• <TranslatedText text="Serve in the correct order" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 New Scoring System
+                      📊 <TranslatedText text="New Scoring System" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25 pts per correct order</li>
-                      <li>• Moderate: 40 pts per correct order</li>
-                      <li>• Hard: 50 pts per correct order</li>
-                      <li>• Wrong orders lose 1 life only</li>
+                      <li>• <TranslatedText text="Easy: 25 pts per correct order" /></li>
+                      <li>• <TranslatedText text="Moderate: 40 pts per correct order" /></li>
+                      <li>• <TranslatedText text="Hard: 50 pts per correct order" /></li>
+                      <li>• <TranslatedText text="Wrong orders lose 1 life only" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎯 Difficulty Levels
+                      🎯 <TranslatedText text="Difficulty Levels" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 customers, 6s display time</li>
-                      <li>• Moderate: 5 customers, 5s display time</li>
-                      <li>• Hard: 4 customers, fake customers, 4s display time</li>
+                      <li>• <TranslatedText text="Easy: 8 customers, 6s display time" /></li>
+                      <li>• <TranslatedText text="Moderate: 5 customers, 5s display time" /></li>
+                      <li>• <TranslatedText text="Hard: 4 customers, fake customers, 4s display time" /></li>
                     </ul>
                   </div>
                 </div>
@@ -347,7 +348,7 @@ const MarketRushGame = () => {
           {gameState === 'ready' && (
             <div className="w-full max-w-4xl mb-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Choose Your Market Stall
+                <TranslatedText text="Choose Your Market Stall" />
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {Object.values(stallTypes).map(stall => (
@@ -362,7 +363,7 @@ const MarketRushGame = () => {
                     style={{ fontFamily: 'Roboto, sans-serif' }}
                   >
                     <div className="text-4xl mb-2">{stall.icon}</div>
-                    <div className="font-semibold text-sm">{stall.name}</div>
+                    <div className="font-semibold text-sm"><TranslatedText text={stall.name} /></div>
                   </button>
                 ))}
               </div>
@@ -383,7 +384,7 @@ const MarketRushGame = () => {
                 style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
               >
                 <Lightbulb className="h-4 w-4" />
-                Show Order ({maxHints - hintsUsed})
+                <TranslatedText text="Show Order" /> ({maxHints - hintsUsed})
               </button>
             </div>
           )}
@@ -393,7 +394,7 @@ const MarketRushGame = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
               <div className="text-center bg-gray-50 rounded-lg p-3">
                 <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Customer
+                  <TranslatedText text="Customer" />
                 </div>
                 <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {currentCustomer + 1}/{customers.length}
@@ -417,7 +418,7 @@ const MarketRushGame = () => {
               </div>
               <div className="text-center bg-gray-50 rounded-lg p-3">
                 <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Order Timer
+                  <TranslatedText text="Order Timer" />
                 </div>
                 <div className={`text-lg font-semibold ${orderVisible ? 'text-blue-600' : 'text-gray-400'}`} style={{ fontFamily: 'Roboto, sans-serif' }}>
                   {orderVisible ? orderTimer : '--'}
@@ -434,11 +435,11 @@ const MarketRushGame = () => {
                   <div className="text-6xl">{currentCustomerData.emoji}</div>
                   <div>
                     <h3 className="text-2xl font-bold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      {currentCustomerData.name}
+                      <TranslatedText text={currentCustomerData.name} />
                     </h3>
                     {currentCustomerData.isFake && (
                       <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-medium">
-                        Suspicious Customer
+                        <TranslatedText text="Suspicious Customer" />
                       </span>
                     )}
                   </div>
@@ -450,11 +451,11 @@ const MarketRushGame = () => {
                     <div className="flex items-center justify-center gap-2 mb-3">
                       <ShoppingCart className="h-5 w-5 text-blue-800" />
                       <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        Customer wants:
+                        <TranslatedText text="Customer wants:" />
                       </span>
                       {showHint && (
                         <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-                          HINT USED
+                          <TranslatedText text="HINT USED" />
                         </span>
                       )}
                     </div>
@@ -480,7 +481,7 @@ const MarketRushGame = () => {
                     <div className="flex items-center justify-center gap-2 text-gray-600">
                       <Timer className="h-5 w-5" />
                       <span style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        Order is now hidden - remember what they wanted!
+                        <TranslatedText text="Order is now hidden - remember what they wanted!" />
                       </span>
                     </div>
                   </div>
@@ -490,7 +491,7 @@ const MarketRushGame = () => {
                   <div className="bg-red-100 rounded-lg p-4 mb-4">
                     <div className="flex items-center justify-center gap-2 text-red-800">
                       <span style={{ fontFamily: 'Roboto, sans-serif' }}>
-                        This customer seems suspicious... Don't serve them!
+                        <TranslatedText text="This customer seems suspicious... Don't serve them!" />
                       </span>
                     </div>
                   </div>
@@ -503,7 +504,7 @@ const MarketRushGame = () => {
           {gameState === 'playing' && !showFeedback && (
             <div className="w-full max-w-6xl mb-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Available Products - {stallTypes[selectedStall].name}
+                <TranslatedText text="Available Products" /> - <TranslatedText text={stallTypes[selectedStall].name} />
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {stallTypes[selectedStall].products.map(product => (
@@ -514,7 +515,7 @@ const MarketRushGame = () => {
                     style={{ fontFamily: 'Roboto, sans-serif' }}
                   >
                     <div className="text-3xl mb-1">{product.icon}</div>
-                    <div className="text-xs font-medium">{product.name}</div>
+                    <div className="text-xs font-medium"><TranslatedText text={product.name} /></div>
                   </button>
                 ))}
               </div>
@@ -526,13 +527,13 @@ const MarketRushGame = () => {
             <div className="w-full max-w-4xl mb-6">
               <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3 text-center" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Customer's Basket
+                  <TranslatedText text="Customer's Basket" />
                 </h4>
                 {playerOrder.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
                     <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-300" />
                     <p style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      Empty basket - tap products above to add them
+                      <TranslatedText text="Empty basket - tap products above to add them" />
                     </p>
                   </div>
                 ) : (
@@ -559,7 +560,7 @@ const MarketRushGame = () => {
                     className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                     style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                   >
-                    Clear Basket
+                    <TranslatedText text="Clear Basket" />
                   </button>
                   <button
                     onClick={serveCustomer}
@@ -567,7 +568,7 @@ const MarketRushGame = () => {
                     style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
                   >
                     <CheckCircle className="h-4 w-4" />
-                    Serve Customer
+                    <TranslatedText text="Serve Customer" />
                   </button>
                 </div>
               </div>
@@ -586,26 +587,26 @@ const MarketRushGame = () => {
                   <XCircle className="h-6 w-6 text-red-600" />
                 )}
                 <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackData.type === 'correct_order' || feedbackData.type === 'fake_customer_ignored' ? 'Great Service!' : 'Wrong Order!'}
+                  {feedbackData.type === 'correct_order' || feedbackData.type === 'fake_customer_ignored' ? <TranslatedText text="Great Service!" /> : <TranslatedText text="Wrong Order!" />}
                 </div>
               </div>
               <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {feedbackData.type === 'correct_order' && 'Perfect! You served the exact order the customer wanted.'}
-                {feedbackData.type === 'wrong_order' && 'Wrong items or quantities. You lost a life but can try again!'}
-                {feedbackData.type === 'fake_customer_ignored' && 'Good job! You correctly ignored the suspicious customer.'}
-                {feedbackData.type === 'fake_customer_served' && 'Oops! That was a fake customer - you lost a life.'}
-                {feedbackData.type === 'no_service' && 'You didn\'t serve anything - you lost a life.'}
+                {feedbackData.type === 'correct_order' && <TranslatedText text="Perfect! You served the exact order the customer wanted." />}
+                {feedbackData.type === 'wrong_order' && <TranslatedText text="Wrong items or quantities. You lost a life but can try again!" />}
+                {feedbackData.type === 'fake_customer_ignored' && <TranslatedText text="Good job! You correctly ignored the suspicious customer." />}
+                {feedbackData.type === 'fake_customer_served' && <TranslatedText text="Oops! That was a fake customer - you lost a life." />}
+                {feedbackData.type === 'no_service' && <TranslatedText text="You didn't serve anything - you lost a life." />}
               </div>
               <div className={`font-medium mb-2 ${feedbackData.points > 0 ? 'text-green-700' : 'text-red-700'}`}>
-                {feedbackData.points > 0 ? `+${feedbackData.points} points` : 'No points earned'}
+                {feedbackData.points > 0 ? <TranslatedText text={`+${feedbackData.points} points`} /> : <TranslatedText text="No points earned" />}
               </div>
               {currentCustomer + 1 < customers.length ? (
                 <p className="text-gray-700 font-medium">
-                  Next customer coming up...
+                  <TranslatedText text="Next customer coming up..." />
                 </p>
               ) : (
                 <p className="text-gray-700 font-medium">
-                  Market day complete!
+                  <TranslatedText text="Market day complete!" />
                 </p>
               )}
             </div>
@@ -615,8 +616,8 @@ const MarketRushGame = () => {
           {gameState === 'playing' && (
             <div className="text-center max-w-2xl mt-6">
               <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Remember customer orders before they disappear! Serve exactly what they want to earn points.
-                Wrong orders cost a life but no points are deducted.
+                <TranslatedText text="Remember customer orders before they disappear! Serve exactly what they want to earn points." />{' '}
+                <TranslatedText text="Wrong orders cost a life but no points are deducted." />
               </p>
               <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {difficulty} Mode: {difficultySettings[difficulty].customerCount} customers | 

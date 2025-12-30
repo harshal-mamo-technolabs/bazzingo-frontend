@@ -20,6 +20,11 @@ import {
   ChevronUp, 
   ChevronDown 
 } from 'lucide-react';
+import TranslatedText from '../../components/TranslatedText.jsx';
+import { useTranslateText } from '../../hooks/useTranslate';
+import { useContext } from 'react';
+import { I18nContext } from '../../context/I18nContext';
+import { staticTranslations } from '../../data/staticTranslations';
 
 const AdriaticCodebreaker = () => {
   const [gameState, setGameState] = useState('ready');
@@ -83,7 +88,8 @@ const AdriaticCodebreaker = () => {
       setCorrectAnswers(prev => prev + 1);
       setShowFeedback(true);
       setFeedbackType('correct');
-      setFeedbackMessage(`Excellent! The message reads: "${currentPuzzle.correctAnswer}"`);
+      const excellentMsg = translateText('Excellent! The message reads: "{message}"').replace('{message}', currentPuzzle.correctAnswer);
+      setFeedbackMessage(excellentMsg);
       
       // Calculate points
       const points = currentHintUsed ? 10 : 20;
@@ -102,7 +108,7 @@ const AdriaticCodebreaker = () => {
       setScore(prev => Math.max(0, prev - 10));
       setShowFeedback(true);
       setFeedbackType('incorrect');
-      setFeedbackMessage('That\'s not quite right. Check your decoding and try again!');
+      setFeedbackMessage(translateText('That\'s not quite right. Check your decoding and try again!'));
       
       setTimeout(() => {
         setShowFeedback(false);
@@ -214,14 +220,25 @@ const AdriaticCodebreaker = () => {
   };
 
   const currentPuzzle = currentPuzzles[currentPuzzleIndex];
+  const { language } = useContext(I18nContext);
+  
+  // Helper function for dynamic translations (synchronous, uses static translations)
+  const translateText = (text) => {
+    if (!text || language === 'en') return text;
+    const langDict = staticTranslations[language];
+    if (langDict && langDict[text]) {
+      return langDict[text];
+    }
+    return text;
+  };
 
   return (
     <div>
       {gameState === 'ready' && <Header unreadCount={3} />}
       
       <GameFramework
-        gameTitle="Adriatic Codebreaker"
-        gameShortDescription="Decode secret messages using cipher techniques. Challenge your pattern recognition and cryptography skills!"
+        gameTitle={<TranslatedText text="Adriatic Codebreaker" />}
+        gameShortDescription={<TranslatedText text="Decode secret messages using cipher techniques. Challenge your pattern recognition and cryptography skills!" />}
         gameDescription={
           <div className="mx-auto px-1 mb-2">
             <div className="bg-[#E8E8E8] rounded-lg p-6">
@@ -230,7 +247,7 @@ const AdriaticCodebreaker = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
               >
                 <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Decode Naval Messages Across Croatian Islands
+                  <TranslatedText text="Decode Naval Messages Across Croatian Islands" />
                 </h3>
                 <span className="text-blue-900 text-xl">
                   {showInstructions
@@ -243,43 +260,43 @@ const AdriaticCodebreaker = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🏴‍☠️ Objective
+                      🏴‍☠️ <TranslatedText text="Objective" />
                     </h4>
                     <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Intercept and decode encrypted naval messages across three Croatian islands using historical ciphers.
+                      <TranslatedText text="Intercept and decode encrypted naval messages across three Croatian islands using historical ciphers." />
                     </p>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🔐 Cipher Types
+                      🔐 <TranslatedText text="Cipher Types" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Caesar Cipher (letter shifts)</li>
-                      <li>• Morse Code (dots & dashes)</li>
-                      <li>• Symbol Cipher (Croatian symbols)</li>
+                      <li>• <TranslatedText text="Caesar Cipher (letter shifts)" /></li>
+                      <li>• <TranslatedText text="Morse Code (dots & dashes)" /></li>
+                      <li>• <TranslatedText text="Symbol Cipher (Croatian symbols)" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
+                      📊 <TranslatedText text="Scoring" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• +20 points without hint</li>
-                      <li>• +10 points with hint</li>
-                      <li>• -10 points wrong attempt</li>
+                      <li>• <TranslatedText text="+20 points without hint" /></li>
+                      <li>• <TranslatedText text="+10 points with hint" /></li>
+                      <li>• <TranslatedText text="-10 points wrong attempt" /></li>
                     </ul>
                   </div>
 
                   <div className='bg-white p-3 rounded-lg'>
                     <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🏆 Victory
+                      🏆 <TranslatedText text="Victory" />
                     </h4>
                     <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Complete all 3 islands</li>
-                      <li>• Score 120+ for victory</li>
-                      <li>• Earn Gold/Silver/Bronze rank</li>
+                      <li>• <TranslatedText text="Complete all 3 islands" /></li>
+                      <li>• <TranslatedText text="Score 120+ for victory" /></li>
+                      <li>• <TranslatedText text="Earn Gold/Silver/Bronze rank" /></li>
                     </ul>
                   </div>
                 </div>
@@ -306,11 +323,11 @@ const AdriaticCodebreaker = () => {
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Ship className="h-8 w-8 text-blue-600" />
-                  <h2 className="text-2xl font-bold text-blue-900">Choose Your Destination</h2>
+                  <h2 className="text-2xl font-bold text-blue-900"><TranslatedText text="Choose Your Destination" /></h2>
                   <Compass className="h-8 w-8 text-blue-600" />
                 </div>
                 <p className="text-blue-700">
-                  Select an island to begin intercepting encrypted naval messages
+                  <TranslatedText text="Select an island to begin intercepting encrypted naval messages" />
                 </p>
               </div>
               
@@ -323,15 +340,13 @@ const AdriaticCodebreaker = () => {
               {/* Island info */}
               <div className="mt-6 bg-blue-100 border-2 border-blue-400 rounded-lg p-4 text-center">
                 <h3 className="text-lg font-bold text-blue-900 mb-2">
-                  {difficultySettings[difficulty].island} Island
+                  <TranslatedText text={difficultySettings[difficulty].island} /> <TranslatedText text="Island" />
                 </h3>
                 <p className="text-blue-700 mb-3">
-                  {difficultySettings[difficulty].description}
+                  <TranslatedText text={difficultySettings[difficulty].description} />
                 </p>
                 <div className="text-sm text-blue-600">
-                  {difficultySettings[difficulty].puzzlesPerIsland} puzzles • 
-                  {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-                  {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit
+                  <TranslatedText text={`${difficultySettings[difficulty].puzzlesPerIsland} puzzles • ${Math.floor(difficultySettings[difficulty].timeLimit / 60)}:${String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit`} />
                 </div>
               </div>
             </div>
@@ -345,7 +360,7 @@ const AdriaticCodebreaker = () => {
                 <div className="flex items-center justify-center gap-3 mb-2">
                   <Anchor className="h-5 w-5 text-blue-600" />
                   <span className="font-bold text-blue-900">
-                    {difficultySettings[difficulty].island} Island - Puzzle {currentPuzzleIndex + 1} of {currentPuzzles.length}
+                    <TranslatedText text={`${difficultySettings[difficulty].island} Island - Puzzle ${currentPuzzleIndex + 1} of ${currentPuzzles.length}`} />
                   </span>
                 </div>
                 <div className="w-full bg-blue-200 rounded-full h-2">
