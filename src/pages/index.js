@@ -6,6 +6,8 @@ import UpdatePassword from './UpdatePassword';
 import ClientTicket from './ClientTicket';
 import HelpFAQs from './HelpFAQs';
 import NotificationPreferences from './NotificationPreferences';
+import Impressum from './Impressum';
+import AGB from './AGB';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfUse from './TermsOfUse';
 import Assessments from './Assessments';
@@ -119,6 +121,8 @@ export {
   ClientTicket,
   HelpFAQs,
   NotificationPreferences,
+  Impressum,
+  AGB,
   PrivacyPolicy,
   TermsOfUse,
   Assessments,

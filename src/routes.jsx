@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
 
 // Import non-game pages
-import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, PrivacyPolicy, TermsOfUse, Assessments, Dashboard, Games, Profile, Statistics, Leadboard, NotFound, VisualReasoningStaticAssessment, Plan, PaymentSuccess, PaymentCancel, Subscription, Notifications } from "./pages";
+import { Signup, Login, ForgotPassword, ResetPassword, UpdatePassword, ClientTicket, HelpFAQs, NotificationPreferences, Impressum, AGB, PrivacyPolicy, TermsOfUse, Assessments, Dashboard, Games, Profile, Statistics, Leadboard, NotFound, VisualReasoningStaticAssessment, Plan, PaymentSuccess, PaymentCancel, Subscription, Notifications } from "./pages";
 
 // Import game routes
 import { gameRoutes } from "./routes/gameRoutes";
@@ -65,10 +65,18 @@ const router = createBrowserRouter([
     },
     {
         path: "/impressum",
-        element: <PrivacyPolicy />,
+        element: <Impressum />,
     },
     {
         path: "/agb",
+        element: <AGB />,
+    },
+    {
+        path: "/privacy-policy",
+        element: <PrivacyPolicy />,
+    },
+    {
+        path: "/terms-of-use",
         element: <TermsOfUse />,
     },
     {

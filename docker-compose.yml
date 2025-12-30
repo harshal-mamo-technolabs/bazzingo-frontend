@@ -1,0 +1,10 @@
+services:
+  prod-bazzingo-frontend:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "5026:5026"
+    restart: always
+    volumes:
+      - ../log:/logs
