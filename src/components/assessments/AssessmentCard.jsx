@@ -16,8 +16,7 @@ const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingA
 
   return (
     <div
-      className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow relative"
-      onClick={() => onClick(assessment)} // Pass the original assessment object with _id
+      className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative"
     >
       {/* Purchased Badge */}
       {assessment?.isAssessmentPurchased && (

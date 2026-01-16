@@ -14,8 +14,7 @@ import { getDailyAssessmentRecommendation } from "../services/dashbaordService";
 import { getAllGames } from "../services/gameService.js";
 import BazzingoLoader from "../components/Loading/BazzingoLoader";
 import TimeRangeDropdown from "../components/Statistics/TimeRangeDropdown";
-import { loadStripe } from '@stripe/stripe-js';
-import { API_CONNECTION_HOST_URL } from '../utils/constant.js';
+import AssessmentStripeElementsModal from '../components/assessments/AssessmentStripeElementsModal';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubscriptionStatus, selectHasActiveSubscription, selectSubscriptionInitialized, selectSubscriptionLoading } from '../app/subscriptionSlice';
 import { isSubscriptionGateEnabled, isComponentVisible } from "../config/accessControl";
@@ -194,6 +193,7 @@ useEffect(() => {
   // Assessment recommendation state
   const [assessmentData, setAssessmentData] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
 
   // Callback function to receive IQ data from TestScore
   const handleIqDataLoaded = (iqData) => {
@@ -225,113 +225,15 @@ useEffect(() => {
     return description;
   };
 
-  const handleStartCertifiedTest = async () => {
+  const handleStartCertifiedTest = () => {
     if (!assessmentData) return;
     
-    setProcessing(true);
-    try {
-      console.log('🚀 Starting payment flow for assessment:', assessmentData.assessmentId);
-      
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      if (!stripe) {
-        throw new Error('Stripe failed to initialize');
-      }
+    // Open the Stripe Elements payment modal
+    setIsStripeModalOpen(true);
+  };
 
-      const userData = localStorage.getItem('user');
-      if (!userData) {
-        throw new Error('User not authenticated');
-      }
-
-      const parsedUserData = JSON.parse(userData);
-      const token = parsedUserData?.accessToken;
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const successUrl = `${window.location.origin}/payment/success`;
-      const cancelUrl = `${window.location.origin}/payment/cancel`;
-
-      console.log('📡 Making API call to:', `${API_CONNECTION_HOST_URL}/stripe/checkout/session`);
-      console.log('📡 Request body:', {
-        assessmentId: assessmentData.assessmentId,
-        successUrl,
-        cancelUrl,
-      });
-
-      const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/checkout/session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          assessmentId: assessmentData.assessmentId,
-          successUrl,
-          cancelUrl,
-        }),
-      });
-
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response ok:', response.ok);
-
-      const payload = await response.json().catch(() => ({}));
-      console.log('📡 Full response payload:', payload);
-
-      if (!response.ok) {
-        throw new Error(payload?.message || `Request failed (${response.status})`);
-      }
-
-      const resp = payload?.data;
-      console.log('🔄 Stripe response data:', resp);
-
-      // A) Checkout fallback -> redirect
-      if (resp?.url) {
-        console.log('🔄 Redirecting to Stripe Checkout:', resp.url);
-        window.location.href = resp.url;
-        return;
-      }
-
-      // B) One-click succeeded / processing
-      if (resp?.orderId && (resp.status === 'succeeded' || resp.status === 'processing')) {
-        console.log('✅ Payment succeeded/processing, redirecting to success page');
-        window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
-        return;
-      }
-
-      // C) One-click requires 3DS — MUST pass payment_method
-      if (resp?.requiresAction && resp?.clientSecret) {
-        console.log('🔐 Payment requires 3DS authentication');
-        console.log('🔐 Client secret:', resp.clientSecret);
-        console.log('🔐 Payment method ID:', resp.paymentMethodId);
-        
-        if (!resp.paymentMethodId) {
-          throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
-        }
-        
-        const result = await stripe.confirmCardPayment(resp.clientSecret, {
-          payment_method: resp.paymentMethodId,
-        });
-        
-        console.log('🔐 3DS confirmation result:', result);
-        
-        if (result.error) {
-          throw new Error(result.error.message || 'Authentication failed. Please try again.');
-        }
-        
-        console.log('✅ 3DS authentication successful, redirecting to success page');
-        window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
-        return;
-      }
-
-      throw new Error('Unexpected response from server.');
-    } catch (error) {
-      console.error('💥 Payment error:', error);
-      console.error('💥 Error stack:', error.stack);
-      alert(`Payment failed: ${error.message}. Please try again.`);
-    } finally {
-      console.log('🏁 Setting processing state to false');
-      setProcessing(false);
-    }
+  const handleCloseStripeModal = () => {
+    setIsStripeModalOpen(false);
   };
 
   const slides = [
@@ -1064,6 +966,20 @@ useEffect(() => {
           </main>
         </div>
         <NoDataModal isOpen={showNoDataModal} onClose={handleModalClose} onAssesmentClick={handleAssesmentClick} category={activeCategory} />
+        
+        {/* Stripe Elements Payment Modal */}
+        {assessmentData && (
+          <AssessmentStripeElementsModal
+            isOpen={isStripeModalOpen}
+            onClose={handleCloseStripeModal}
+            assessment={{
+              _id: assessmentData.assessmentId,
+              id: assessmentData.assessmentId,
+              title: assessmentData.title || 'Certified Test',
+              name: assessmentData.title || 'Certified Test',
+            }}
+          />
+        )}
       </SubscriptionBlocker>
     </MainLayout>
   );

@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import MainLayout from '../components/Layout/MainLayout';
 import { getPlansData } from '../services/dashbaordService';
-import { API_CONNECTION_HOST_URL } from '../utils/constant';
-import { loadStripe } from '@stripe/stripe-js';
+import StripeElementsCheckoutModal from '../components/Payment/StripeElementsCheckoutModal';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -128,13 +127,12 @@ const Toggle = ({ value, onChange }) => {
   );
 };
 
-const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscription, isLoggedIn, processingPlanId }) => {
+const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, isLoggedIn }) => {
   const priceData = plan.prices[billing === 'monthly' ? 'monthly' : 'yearly'];
   const trialPriceData = plan.prices.trial;
   
   const hasPlan = userSubscription && userSubscription.planId === plan._id;
   const isTrial = userSubscription && userSubscription.status === 'trialing' && userSubscription.planId === plan._id;
-  const isProcessing = processingPlanId === plan._id;
   
   const perMonth = useMemo(() => {
     if (!priceData || !priceData.priceId) return 0;
@@ -244,23 +242,23 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, loading, userSubscri
                 <>
                   <button
                     onClick={() => onSelect(plan, billing)}
-                    disabled={isProcessing || !isLoggedIn}
+                    disabled={!isLoggedIn}
                     className={`mt-4 w-full py-3 rounded-xl text-white font-semibold transition-all shadow ${
                       plan.name.includes('Gold') ? 'bg-[#FF6B3E] hover:brightness-95' : 'bg-gray-900 hover:brightness-110'
-                    } ${isProcessing || !isLoggedIn ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    } ${!isLoggedIn ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    {!isLoggedIn ? 'Login to Subscribe' : isProcessing ? 'Processing...' : `Choose ${plan.name}`}
+                    {!isLoggedIn ? 'Login to Subscribe' : `Choose ${plan.name}`}
                   </button>
                   
                   {trialPriceData && trialPriceData.unitAmount && !hasPlan && billing !== 'yearly' && (
                     <button
-                      onClick={() => onTrialSelect(plan, 'trial')}
-                      disabled={isProcessing || !isLoggedIn}
+                      onClick={() => onTrialSelect(plan)}
+                      disabled={!isLoggedIn}
                       className={`mt-2 w-full py-2 rounded-xl border border-gray-300 text-gray-700 font-semibold transition-all hover:bg-gray-50 ${
-                        isProcessing || !isLoggedIn ? 'opacity-70 cursor-not-allowed' : ''
+                        !isLoggedIn ? 'opacity-70 cursor-not-allowed' : ''
                       }`}
                     >
-                      {!isLoggedIn ? 'Login for Trial' : isProcessing ? 'Processing...' : `Try ${plan.name} Trial - €${trialPriceData.unitAmount}`}
+                      {!isLoggedIn ? 'Login for Trial' : `Try ${plan.name} Trial - €${trialPriceData.unitAmount}`}
                     </button>
                   )}
                 </>
@@ -284,14 +282,14 @@ function Payment() {
   const [billing, setBilling] = useState('monthly');
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
-  const [processingPlanId, setProcessingPlanId] = useState(null);
   const [error, setError] = useState(null);
-  const [hint, setHint] = useState('');
   const [userSubscription, setUserSubscription] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [stripePromise, setStripePromise] = useState(null);
-  const [userToken, setUserToken] = useState('');
+  
+  // Stripe Elements Modal state
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedPlanType, setSelectedPlanType] = useState('monthly');
 
 
   const checkUserSubscription = () => {
@@ -340,483 +338,52 @@ function Payment() {
       }
     };
 
-    const initializeStripe = async () => {
-      try {
-        const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key_here');
-        setStripePromise(stripe);
-      } catch (err) {
-        console.error('Failed to initialize Stripe:', err);
-      }
-    };
-
-    const initializeUserToken = () => {
+    const checkLoggedIn = () => {
       try {
         const raw = localStorage.getItem('user');
         if (raw) {
           const stored = JSON.parse(raw);
           const token = stored?.accessToken || stored?.user?.token || '';
-          setIsLoggedIn(true);
-          setUserToken(token);
+          setIsLoggedIn(!!token);
         } else {
           setIsLoggedIn(false);
-          setUserToken('');
         }
       } catch (e) {
-        console.error('Error getting user token:', e);
+        console.error('Error checking login status:', e);
         setIsLoggedIn(false);
-        setUserToken('');
       }
     };
 
     fetchPlans();
-    initializeUserToken(); 
-    initializeStripe();
+    checkLoggedIn();
   }, []);
 
-  const validTypes = ['trial', 'monthly', 'yearly'];
-
-  const validateSameOrigin = (url) => {
-    try { 
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      return !!url && url.startsWith(origin); 
-    } catch { 
-      return false; 
-    }
-  };
-
-  const authHeader = () => ({
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${userToken.trim()}`,
-  });
-
-  const persistAndLog = (obj) => {
-    try {
-      const wrapped = { when: Date.now(), ...obj };
-      sessionStorage.setItem('lastSubscriptionResponse', JSON.stringify(wrapped, null, 2));
-      console.log('[FE] Persisted payload:', wrapped);
-    } catch (e) {
-      console.warn('Failed to persist payload:', e);
-    }
-  };
-
-  const clearInvalidSubscriptionData = () => {
-    try {
-      sessionStorage.removeItem('lastSubscriptionResponse');
-      setUserSubscription(null);
-      console.log('[FE] Cleared invalid subscription data');
-    } catch (e) {
-      console.warn('Failed to clear subscription data:', e);
-    }
-  };
-
-  const isHealthySubStatus = (s) => {
-    if (!s) return false;
-    const ok = ['active', 'trialing', 'succeeded', 'processing'];
-    return ok.includes(String(s).toLowerCase());
-  };
-
-  const isIncompleteSubStatus = (s) => {
-    if (!s) return false;
-    const incomplete = ['incomplete', 'incomplete_expired', 'past_due', 'unpaid'];
-    return incomplete.includes(String(s).toLowerCase());
-  };
-
-  const handle3DSecureAuthenticationNewFlow = async (clientSecret, paymentMethodId, paymentIntentId, planId, subType, successUrl) => {
-    try {
-      if (!stripePromise) {
-        console.error('❌ [3DS NEW FLOW] Stripe promise not available');
-        throw new Error('Stripe not loaded. Please refresh the page and try again.');
-      }
-
-      const stripe = await stripePromise;
-    
-      if (!paymentMethodId) {
-        console.error('❌ [3DS NEW FLOW] Payment method ID is missing');
-        throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
-      }
-
-      if (!clientSecret) {
-        console.error('❌ [3DS NEW FLOW] Client secret is missing');
-        throw new Error('Missing client secret for 3DS confirmation. Please retry the payment.');
-      }
-
-      if (!paymentIntentId) {
-        console.error('❌ [3DS NEW FLOW] Payment intent ID is missing');
-        throw new Error('Missing payment intent ID for confirmation. Please retry the payment.');
-      }
-
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethodId
-      });
-
-      if (error) {
-        console.error('❌ [3DS NEW FLOW] Stripe error occurred:', error);
-        throw new Error(error.message || 'Authentication failed. Please try again.');
-      }
-      
-      await confirmSubscription(paymentIntentId, planId, subType, successUrl);
-      
-    } catch (err) {
-      console.error('❌ [3DS NEW FLOW] 3D Secure authentication failed:', {
-        timestamp: new Date().toISOString(),
-        error: {
-          name: err.name,
-          message: err.message,
-          stack: err.stack
-        },
-        context: {
-          clientSecretPreview: clientSecret?.slice(0, 20) + '...',
-          paymentMethodId,
-          paymentIntentId,
-          planId,
-          subType,
-          successUrl
-        }
-      });
-      
-      setError(`Payment authentication failed: ${err.message}`);
-        setHint('');
-      setSubscriptionLoading(false);
-    }
-  };
-
-  const confirmSubscription = async (paymentIntentId, planId, subType, successUrl) => {
-    try {
-      const body = { paymentIntentId, planId, type: subType };
-      const headers = authHeader();
-
-      const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/subscription/confirm`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('❌ [CONFIRM] HTTP Error:', {
-          status: res.status,
-          statusText: res.statusText,
-          errorText: errorText,
-          url: res.url
-        });
-        throw new Error(`Subscription confirmation failed: ${res.status} - ${errorText}`);
-      }
-
-      const payload = await res.json().catch((parseError) => {
-        console.error('❌ [CONFIRM] JSON Parse Error:', parseError);
-        return {};
-      });
-
-      // Handle successful confirmation
-      if (payload?.status === 'success' && payload?.data?.subscriptionId) {
-        
-        const qp = new URLSearchParams({
-          subscription_id: payload.data.subscriptionId,
-          status: payload.data.status || 'active',
-          type: subType,
-          plan_id: planId,
-        }).toString();
-
-        persistAndLog({ payload, reason: 'subscription_confirmed_success' });
-        
-        window.location.href = `${successUrl}?${qp}`;
-        return;
-      } else {
-        throw new Error('Subscription confirmation failed: Invalid response from server');
-      }
-
-    } catch (err) {
-      console.error('❌ [CONFIRM] Subscription confirmation failed:', {
-        timestamp: new Date().toISOString(),
-        error: {
-          name: err.name,
-          message: err.message,
-          stack: err.stack
-        },
-        context: {
-          paymentIntentId,
-          planId,
-          subType,
-          successUrl
-        }
-      });
-      
-      setError(`Subscription confirmation failed: ${err.message}`);
-      setHint('');
-      setSubscriptionLoading(false);
-    }
-  };
-
-  const handle3DSecureAuthentication = async (clientSecret, paymentMethodId, subscriptionId, suc, subType) => {
-    try {
-      if (!stripePromise) {
-        console.error('❌ [3DS AUTH] Stripe promise not available');
-        throw new Error('Stripe not loaded. Please refresh the page and try again.');
-      }
-
-      const stripe = await stripePromise;
-
-      if (!paymentMethodId) {
-        console.error('❌ [3DS AUTH] Payment method ID is missing');
-        throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
-      }
-
-      if (!clientSecret) {
-        console.error('❌ [3DS AUTH] Client secret is missing');
-        throw new Error('Missing client secret for 3DS confirmation. Please retry the payment.');
-      }
-
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethodId
-      });
-
-      if (error) {
-        console.error('❌ [3DS AUTH] Stripe error occurred:', error);
-        throw new Error(error.message || 'Authentication failed. Please try again.');
-      }
-
-        const qp = new URLSearchParams({
-          subscription_id: subscriptionId || '',
-          status: 'succeeded',
-          type: subType || '',
-          authenticated: 'true'
-        }).toString();
-
-        try {
-          const toPersist = { 
-            clientSecret, 
-            paymentIntent, 
-            subscriptionId,
-            reason: '3ds_success_redirect' 
-          };
-          sessionStorage.setItem('lastSubscriptionResponse', JSON.stringify({ 
-            when: Date.now(), 
-            ...toPersist 
-          }, null, 2));
-        } catch (e) {
-        console.warn('⚠️ [3DS AUTH] Failed to persist 3DS success:', e);
-        }
-
-      const redirectUrl = `${suc}?${qp}`;
-        
-        setTimeout(() => {
-        window.location.href = redirectUrl;
-        }, 1000);
-        
-    } catch (err) {
-      console.error('❌ [3DS AUTH] 3D Secure authentication failed:', {
-        timestamp: new Date().toISOString(),
-        error: {
-          name: err.name,
-          message: err.message,
-          stack: err.stack
-        },
-        context: {
-          clientSecretPreview: clientSecret?.slice(0, 20) + '...',
-          paymentMethodId,
-          subscriptionId,
-          successUrl: suc,
-          subType
-        }
-      });
-      
-      setError(`Payment authentication failed: ${err.message}`);
-      setHint('');
-      setSubscriptionLoading(false);
-    }
-  };
-
-  const handleSubscription = async (plan, type) => {
-    // Check if user is logged in
+  // Open checkout modal with selected plan
+  const handleSelect = (plan, currentBilling) => {
     if (!isLoggedIn) {
       setError('Please log in to subscribe to a plan.');
       return;
     }
-    
-    const token = userToken.trim();
-    const planId = plan._id;
-    const subType = type;
-    
-    setSubscriptionLoading(true);
-    setProcessingPlanId(planId);
-    setError('');
-    setHint('');
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const successUrl = `${origin}/payment/success`;
-    const cancelUrl = `${origin}/payment/cancel`;
-
-    if (!token) {
-      console.error('❌ [PLAN PAYMENT] Validation failed: No user token');
-      setError('Please log in to subscribe to a plan.');
-      setSubscriptionLoading(false);
-      return;
-    }
-    
-    if (!planId) {
-      console.error('❌ [PLAN PAYMENT] Validation failed: No plan ID');
-      setError('Please select a plan.');
-      setSubscriptionLoading(false);
-      return;
-    }
-    
-    if (!validTypes.includes(subType)) {
-      console.error('❌ [PLAN PAYMENT] Validation failed: Invalid subscription type', { subType, validTypes });
-      setError(`Type must be one of: ${validTypes.join(', ')}`);
-      setSubscriptionLoading(false);
-      return;
-    }
-    
-    if (!validateSameOrigin(successUrl) || !validateSameOrigin(cancelUrl)) {
-      console.error('❌ [PLAN PAYMENT] Validation failed: Invalid URLs', { successUrl, cancelUrl });
-      setError('Success and Cancel URLs must start with this site origin.');
-      setSubscriptionLoading(false);
-      return;
-    }
-
-    try {
-      const body = { planId: planId, type: subType, successUrl: successUrl, cancelUrl: cancelUrl };
-      const headers = authHeader();
-
-      const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/subscription`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('❌ [PLAN PAYMENT] HTTP Error - API LEVEL ISSUE:', {
-          timestamp: new Date().toISOString(),
-          status: res.status,
-          statusText: res.statusText,
-          errorText: errorText,
-          url: res.url,
-          requestBody: body,
-          requestHeaders: headers,
-          issueType: 'API_ERROR',
-          recommendation: 'Check server logs and API endpoint'
-        });
-        throw new Error(`Server error: ${res.status} - ${errorText}`);
-      }
-
-      const payload = await res.json().catch((parseError) => {
-        console.error('❌ [PLAN PAYMENT] JSON Parse Error - FRONTEND ISSUE:', {
-          timestamp: new Date().toISOString(),
-          error: parseError,
-          issueType: 'FRONTEND_PARSE_ERROR',
-          recommendation: 'Check response format from server'
-        });
-        return {};
-      });
-
-      const topStatus = payload?.status; // "success" | "requires_action" | etc.
-      const data = payload?.data || {};
-      const dataStatus = data?.status || data?.state;
-
-      if (topStatus === 'success' && data?.subscriptionId && !data?.requiresAction) {
-        const finalStatus = (dataStatus || '').toLowerCase();
-
-        if (!isHealthySubStatus(finalStatus)) {
-          persistAndLog({ payload, reason: 'unhealthy_status_blocked_redirect' });
-          setError(
-            `Payment failed with status "${dataStatus}". ` +
-            `Please try again or contact support if the issue persists.`
-          );
-          setSubscriptionLoading(false);
-          return;
-        }
-
-        const qp = new URLSearchParams({
-          subscription_id: data.subscriptionId,
-          status: dataStatus || 'active',
-          type: subType,
-          plan_id: data.plan?.id || planId,
-        }).toString();
-
-        persistAndLog({ payload, reason: 'direct_success_redirect' });
-        console.log('✅ [PLAN PAYMENT] Redirecting to success:', `${successUrl}?${qp}`);
-        window.location.href = `${successUrl}?${qp}`;
-        return;
-      }
-
-      const requiresAction = data?.requiresAction === true;
-
-      if (requiresAction && data?.clientSecret && data?.paymentMethodId && data?.paymentIntentId) {
-        console.log('🔐 [PLAN PAYMENT] 3D Secure authentication required - starting NEW FLOW process');
-        
-        if (!stripePromise) {
-          console.error('❌ [PLAN PAYMENT] Stripe not loaded');
-          throw new Error('Stripe not loaded. Please refresh the page and try again.');
-        }
-        
-        persistAndLog({ payload, reason: 'requires_action_new_flow' });
-        
-        await handle3DSecureAuthenticationNewFlow(
-          data.clientSecret,
-          data.paymentMethodId,
-          data.paymentIntentId,
-          planId,
-          subType,
-          successUrl
-        );
-        return;
-      }
-
-      if (data?.url) {
-        persistAndLog({ payload, reason: 'checkout_fallback_redirect' });
-        console.log('[FE] ↪ Redirecting to Checkout:', data.url);
-        window.location.href = data.url;
-        return;
-      }
-
-      if (data?.sessionId && !data?.url) {
-        persistAndLog({ payload, reason: 'session_without_url' });
-        throw new Error('Session created but missing redirect URL.');
-      }
-
-      persistAndLog({ payload, reason: 'unexpected_shape' });
-      throw new Error('Unexpected response from subscription API.');
-    } catch (err) {
-      console.error('❌ [PLAN PAYMENT] Subscription process failed - DETAILED ERROR ANALYSIS:', {
-        timestamp: new Date().toISOString(),
-        error: {
-          name: err.name,
-          message: err.message,
-          stack: err.stack,
-          cause: err.cause
-        },
-        context: {
-          planId,
-          subType,
-          isLoggedIn,
-          stripeLoaded: !!stripePromise,
-          userTokenLength: token.length,
-          apiUrl: `${API_CONNECTION_HOST_URL}/stripe/subscription`
-        },
-        issueType: err.message.includes('Server error') ? 'API_ISSUE' : 'FRONTEND_ISSUE',
-        recommendation: err.message.includes('Server error') 
-          ? 'Check API server logs and endpoint availability' 
-          : 'Check frontend code and network connectivity'
-      });
-      
-      setError(err?.message || 'Something went wrong.');
-      clearInvalidSubscriptionData();
-    } finally {
-      console.log('🏁 [PLAN PAYMENT] Subscription process completed, cleaning up');
-      setSubscriptionLoading(false);
-      setProcessingPlanId(null);
-      setHint('');
-    }
-  };
-
-  const handleSelect = (plan, currentBilling) => {
     console.log('Selected plan:', { plan, billing: currentBilling });
-    handleSubscription(plan, currentBilling);
+    setSelectedPlan(plan);
+    setSelectedPlanType(currentBilling);
+    setCheckoutModalOpen(true);
   };
 
-  const handleTrialSelect = (plan, type) => {
-    console.log('Selected trial:', { plan, type });
-    handleSubscription(plan, type);
+  const handleTrialSelect = (plan) => {
+    if (!isLoggedIn) {
+      setError('Please log in to subscribe to a plan.');
+      return;
+    }
+    console.log('Selected trial:', { plan });
+    setSelectedPlan(plan);
+    setSelectedPlanType('trial');
+    setCheckoutModalOpen(true);
+  };
+
+  const handleCloseCheckoutModal = () => {
+    setCheckoutModalOpen(false);
+    setSelectedPlan(null);
   };
 
   const refreshSubscriptionStatus = () => {
@@ -868,13 +435,19 @@ function Payment() {
                   billing={billing} 
                   onSelect={handleSelect}
                   onTrialSelect={handleTrialSelect}
-                  loading={subscriptionLoading}
-                  processingPlanId={processingPlanId}
                   userSubscription={userSubscription}
                   isLoggedIn={isLoggedIn}
                 />
               ))}
             </div>
+
+            {/* Stripe Elements Checkout Modal */}
+            <StripeElementsCheckoutModal
+              isOpen={checkoutModalOpen}
+              onClose={handleCloseCheckoutModal}
+              plan={selectedPlan}
+              initialPlanType={selectedPlanType}
+            />
 
             <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
               <div className="flex items-center justify-center gap-2 bg-white/70 rounded-xl border border-gray-200 py-3">

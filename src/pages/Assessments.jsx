@@ -6,15 +6,12 @@ import AssessmentGrid from '../components/assessments/AssessmentGrid';
 import RecentAssessments from '../components/assessments/RecentAssessments';
 import AssessmentCompletionModal from '../components/assessments/AssessmentCompletionModal.jsx';
 import AssessmentPurchaseModal from '../components/assessments/AssessmentPurchaseModal.jsx';
+import AssessmentStripeElementsModal from '../components/assessments/AssessmentStripeElementsModal.jsx';
 import AssessmentStartConfirmationModal from '../components/assessments/AssessmentStartConfirmationModal.jsx';
 // import { getAllAssessment } from '../services/dashbaordService'; // Import the API function
 import { getAllAssessment ,getRecentAssessmentActivity } from '../services/dashbaordService';
-import { API_CONNECTION_HOST_URL } from '../utils/constant';
-import { loadStripe } from '@stripe/stripe-js';
 import { isAssessmentPaymentEnabled } from '../config/accessControl';
 import TranslatedText from '../components/TranslatedText.jsx';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const Assessments = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,6 +21,7 @@ const Assessments = () => {
     const [loading, setLoading] = useState(false);
     const [recentActivity, setRecentActivity] = useState([]);
     const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+    const [isStripeElementsModalOpen, setIsStripeElementsModalOpen] = useState(false);
     const [selectedAssessmentForPurchase, setSelectedAssessmentForPurchase] = useState(null);
     const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
     const [selectedAssessmentForConfirmation, setSelectedAssessmentForConfirmation] = useState(null);
@@ -124,84 +122,19 @@ const Assessments = () => {
         setIsPurchaseModalOpen(true);
     };
 
-    const handlePurchaseAssessment = async () => {
-        const assessment = selectedAssessmentForPurchase;
-        if (!assessment) return;
-
-        const id = assessment?._id || assessment?.id;
-        if (!id) return;
-        setProcessingAssessmentId(id);
-
-        // Mirror the flow from AssessmentPaymentDemo, but get token from storage and URLs from current origin
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        const successUrl = `${origin}/payment/success`;
-        const cancelUrl = `${origin}/payment/cancel`;
-
-        let token = '';
-        try {
-            const raw = localStorage.getItem('user');
-            if (raw) {
-                const stored = JSON.parse(raw);
-                token = stored?.accessToken || stored?.user?.token || '';
-            }
-        } catch {}
-
-        const assessmentId = id;
-        if (!token || !assessmentId) {
-            console.error('Missing token or assessmentId for checkout');
-            setProcessingAssessmentId(null);
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/checkout/session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ assessmentId, successUrl, cancelUrl }),
-            });
-
-            const payload = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(payload?.message || `Request failed (${res.status})`);
-
-            const resp = payload?.data;
-
-            // A) Checkout fallback -> redirect
-            if (resp?.url) {
-                window.location.href = resp.url;
-                return;
-            }
-
-            // B) One-click succeeded / processing
-            if (resp?.orderId && (resp.status === 'succeeded' || resp.status === 'processing')) {
-                window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
-                return;
-            }
-
-            // C) One-click requires 3DS — MUST pass payment_method
-            if (resp?.requiresAction && resp?.clientSecret) {
-                const stripe = await stripePromise;
-                if (!stripe) throw new Error('Stripe not loaded');
-                if (!resp.paymentMethodId) {
-                    throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
-                }
-                const result = await stripe.confirmCardPayment(resp.clientSecret, {
-                    payment_method: resp.paymentMethodId,
-                });
-                if (result.error) throw new Error(result.error.message || 'Authentication failed. Please try again.');
-                window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
-                return;
-            }
-
-            throw new Error('Unexpected response from server.');
-        } catch (err) {
-            console.error('[Assessment Checkout] Error:', err);
-        } finally {
-            setProcessingAssessmentId(null);
-        }
+    const handlePurchaseAssessment = () => {
+        // Close the info modal and open Stripe Elements payment modal
+        setIsPurchaseModalOpen(false);
+        setIsStripeElementsModalOpen(true);
     };
 
     const handleClosePurchaseModal = () => {
         setIsPurchaseModalOpen(false);
+        setSelectedAssessmentForPurchase(null);
+    };
+
+    const handleCloseStripeElementsModal = () => {
+        setIsStripeElementsModalOpen(false);
         setSelectedAssessmentForPurchase(null);
     };
 
@@ -358,7 +291,17 @@ const Assessments = () => {
                     assessment={selectedAssessmentForPurchase}
                     onClose={handleClosePurchaseModal}
                     onBuy={handlePurchaseAssessment}
-                    isProcessing={processingAssessmentId === (selectedAssessmentForPurchase?._id || selectedAssessmentForPurchase?.id)}
+                    isProcessing={false}
+                />
+
+                <AssessmentStripeElementsModal
+                    isOpen={isStripeElementsModalOpen}
+                    assessment={selectedAssessmentForPurchase}
+                    onClose={handleCloseStripeElementsModal}
+                    onSuccess={(data) => {
+                        console.log('Payment successful:', data);
+                        // Modal will handle redirect to success page
+                    }}
                 />
 
                 <AssessmentStartConfirmationModal

@@ -160,14 +160,34 @@ export default function PaymentSuccess() {
       const urlParams = new URLSearchParams(window.location.search);
       const orderId = urlParams.get('order_id');
       const sessionId = urlParams.get('session_id');
+      const subscriptionId = urlParams.get('subscription_id');
+      const setupIntentId = urlParams.get('setupIntentId');
+      const subscriptionType = urlParams.get('type') || urlParams.get('subscriptionType');
+      const status = urlParams.get('status');
+      const planName = urlParams.get('plan_name');
       
       console.log('🎯 [PAYMENT SUCCESS] Processing payment success:', {
         orderId,
         sessionId,
+        subscriptionId,
+        setupIntentId,
+        subscriptionType,
+        status,
+        planName,
         allParams: Object.fromEntries(urlParams.entries())
       });
 
-      // Case 1: order_id parameter - Assessment purchase
+      // Case 1: Stripe Elements flow - subscription_id present (from new flow)
+      if (subscriptionId || setupIntentId) {
+        const message = subscriptionType === 'trial' 
+          ? 'Congratulations! Your trial has started successfully' 
+          : 'Congratulations! Your subscription is now active';
+        showToast(message, 'success');
+        setTimeout(() => navigate('/dashboard'), 2000);
+        return;
+      }
+
+      // Case 2: order_id parameter - Assessment purchase
       if (orderId) {
         // Try to get assessment ID for auto-start
         const assessmentId = await getAssessmentId(orderId, null);
@@ -180,13 +200,13 @@ export default function PaymentSuccess() {
         return;
       }
 
-      // Case 2: session_id parameter - Check with API
+      // Case 3: session_id parameter - Check with API (legacy Stripe Checkout flow)
       if (sessionId) {
         checkSession(sessionId);
         return;
       }
 
-      // Case 3: Any other case - Default plan purchase
+      // Case 4: Any other case - Default plan purchase
       showToast('Congratulations! Your new plan purchase successful', 'success');
       setTimeout(() => navigate('/dashboard'), 2000);
     };

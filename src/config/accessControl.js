@@ -31,8 +31,8 @@ export const VISIBILITY_CONTROLS = {
   premiumNavItem: true,
   subscriptionNavItem: true,
   dashboardCertifiedCard: true,  
-  statisticsCertifiedCard: false,  
-  assessmentCompletionUpsell: false,
+  statisticsCertifiedCard: true,  
+  assessmentCompletionUpsell: true,
   
   /**
    * Profile page visibility controls
@@ -48,7 +48,7 @@ export const VISIBILITY_CONTROLS = {
 };
 
 export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
-  assessmentPaymentsEnabled: false,
+  assessmentPaymentsEnabled: true,
 };
 
 export const isAssessmentPaymentEnabled = () =>

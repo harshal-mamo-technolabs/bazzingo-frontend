@@ -23,6 +23,10 @@ import PaymentCancel from './PaymentCancel';
 import Plan from './Plan';
 import Subscription from './Subscription';
 import Notifications from './Notifications';
+import StripeElementsSubscription from './StripeElementsSubscription';
+import StripePaymentSuccess from './StripePaymentSuccess';
+import StripeElementsPayment from './StripeElementsPayment';
+import StripePaymentComplete from './StripePaymentComplete';
 
 // Working games import
 import MetacognitiveStrategyNavigatorGame from './games/MetacognitiveStrategyNavigatorGame';
@@ -138,6 +142,10 @@ export {
   Plan,
   Subscription,
   Notifications,
+  StripeElementsSubscription,
+  StripePaymentSuccess,
+  StripeElementsPayment,
+  StripePaymentComplete,
  
   // ✅ Working game pages
   MetacognitiveStrategyNavigatorGame,
