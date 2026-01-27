@@ -69,6 +69,7 @@ import RiverCrossingGame from './games/RiverCrossingGame.jsx';
 import CastleDefenderGame from './games/CastleDefenderGame.jsx';
 import MaskMemoryGame from './games/MaskMemoryGame.jsx';
 import FishermansCatchGame from './games/FishermansCatchGame.jsx';
+import ZipGame from './games/ZipGame';
  
 /*
 // Unused Game imports
@@ -187,7 +188,8 @@ export {
   RiverCrossingGame,
   CastleDefenderGame,
   MaskMemoryGame,
-  FishermansCatchGame
+  FishermansCatchGame,
+  ZipGame
  
 /*
   // 🚫 Unused game pages

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../Header';
 import BazzingoLoader from "../Loading/BazzingoLoader";
 import AssessmentCompletionModal from './AssessmentCompletionModal.jsx';
@@ -74,6 +74,7 @@ export default function VisualReasoningStaticAssessment() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [timeLeft, setTimeLeft] = useState(60);
   const location = useLocation();
+  const navigate = useNavigate();
   const fromQuickAssessment = location.state?.fromQuickAssessment || false;
   const hasAdvancedRef = useRef(false);
   const [assessmentId, setAssessmentId] = useState(null);
@@ -93,6 +94,11 @@ export default function VisualReasoningStaticAssessment() {
   // Keep ref in sync with state
   useEffect(() => {
     unansweredQuestionsRef.current = unansweredQuestions;
+  }, [unansweredQuestions]);
+
+  useEffect(() => {
+    const ids = unansweredQuestions.map((item) => item.question.id);
+    console.log(`[REVIEW] Unanswered changed: count=${unansweredQuestions.length}`, ids);
   }, [unansweredQuestions]);
 
   
@@ -141,6 +147,17 @@ export default function VisualReasoningStaticAssessment() {
           });
         }
 
+        console.log(`[QUIZ] Source: ${fromQuickAssessment ? 'quick' : 'full'}, assessmentId: ${id}`);
+        console.log(`[QUESTION COUNT] API returned: ${apiQuestions.length}`);
+        const __questionIds = apiQuestions.map((q) => q?._id ?? q?.id);
+        const __uniqueIds = new Set(__questionIds);
+        const __duplicateIds = __questionIds.filter((qid, idx) => __questionIds.indexOf(qid) !== idx);
+        console.log(`[QUESTION IDS] unique=${__uniqueIds.size} duplicates=${[...new Set(__duplicateIds)].length}`, [...new Set(__duplicateIds)]);
+        const __typeCounts = apiQuestions.reduce((acc, q) => { const t = q?.questionType ?? 'unknown'; acc[t] = (acc[t] ?? 0) + 1; return acc; }, {});
+        const __optTypeCounts = apiQuestions.reduce((acc, q) => { const t = q?.optionsType ?? 'unknown'; acc[t] = (acc[t] ?? 0) + 1; return acc; }, {});
+        console.log(`[QUESTION TYPES]`, __typeCounts);
+        console.log(`[OPTIONS TYPES]`, __optTypeCounts);
+
         if (!apiQuestions.length) {
           throw new Error("No questions received from API");
         }
@@ -160,6 +177,12 @@ export default function VisualReasoningStaticAssessment() {
           questionType: q.questionType, // Add questionType to identify image questions
           originalIndex: idx, // Store original index for reference
         }));
+
+        console.log(`[MAPPED] Mapped questions: ${mapped.length}`);
+        const __mappedIds = mapped.map((q) => q.id);
+        const __uniqueMapped = new Set(__mappedIds);
+        const __dupMapped = __mappedIds.filter((qid, idx) => __mappedIds.indexOf(qid) !== idx);
+        console.log(`[MAPPED IDS] unique=${__uniqueMapped.size} duplicates=${[...new Set(__dupMapped)].length}`, [...new Set(__dupMapped)]);
 
         setQuestions(mapped);
         setOriginalQuestions(mapped);
@@ -222,6 +245,13 @@ export default function VisualReasoningStaticAssessment() {
     return questions[currentIndex];
   }, [questions, currentIndex, isReviewPhase, unansweredQuestions]);
 
+  useEffect(() => {
+    if (!questions.length) return;
+    const qlen = isReviewPhase ? unansweredQuestionsRef.current.length : questions.length;
+    const qid = currentQuestion?.id;
+    console.log(`[INDEX] phase=${isReviewPhase ? 'review' : 'main'} position=${currentIndex + 1}/${qlen} id=${qid}`);
+  }, [currentIndex, isReviewPhase, questions.length, unansweredQuestions.length, currentQuestion?.id]);
+
   const progressPercent = useMemo(() => {
     if (isReviewPhase) {
       const unansweredCount = unansweredQuestionsRef.current.length;
@@ -270,6 +300,7 @@ export default function VisualReasoningStaticAssessment() {
   const handleOptionSelect = (option, idx) => {
     if (!currentQuestion?.id) return; // Safety check
     
+    console.log(`[ANSWER] Selected option ${idx} for question ${currentQuestion.id}`);
     setSelectedOption(option);
     setAnswers((prev) => ({
       ...prev,
@@ -284,6 +315,7 @@ export default function VisualReasoningStaticAssessment() {
     if (hasAdvancedRef.current || !currentQuestion?.id) return; // Safety check
     hasAdvancedRef.current = true;
 
+    console.log(`[CONTINUE] phase=${isReviewPhase ? 'review' : 'main'} idx=${currentIndex} total=${questions.length} unanswered=${unansweredQuestions.length} selected=${answers[currentQuestion.id] !== undefined ? answers[currentQuestion.id] : 'none'}`);
     let willAddToUnanswered = false;
     let updatedUnansweredQuestions = unansweredQuestions;
 
@@ -376,6 +408,7 @@ export default function VisualReasoningStaticAssessment() {
           dedup.push(item);
         }
       }
+      console.log(`[REVIEW] Deduped unanswered size: ${dedup.length} (from ${updatedUnansweredQuestions.length})`);
       setUnansweredQuestions(dedup);
       unansweredQuestionsRef.current = dedup;
       setIsReviewPhase(true);
@@ -505,6 +538,7 @@ export default function VisualReasoningStaticAssessment() {
     }
     
     setTimeLeft(initialTime);
+    console.log(`[TIMER] Reset ${initialTime}s for question ${currentQuestion?.id}`);
     hasAdvancedRef.current = false;
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -516,6 +550,7 @@ export default function VisualReasoningStaticAssessment() {
           
           // If time runs out and no answer was selected
           if (currentQuestion?.id && answers[currentQuestion.id] === undefined) {
+            console.log(`[TIMER] Timeout on question ${currentQuestion?.id}; selected=false; phase=${isReviewPhase ? 'review' : 'main'}`);
             if (!isReviewPhase) {
               // Only queue during first pass; never add during review
             const newUnansweredQuestions = [
@@ -822,7 +857,13 @@ export default function VisualReasoningStaticAssessment() {
 
             {/* Actions */}
             <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-0">
-              <button className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`} disabled={isSubmittingScore}><TranslatedText text="Exit" /></button>
+              <button
+                className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`}
+                disabled={isSubmittingScore}
+                onClick={() => navigate('/assessments')}
+              >
+                <TranslatedText text="Exit" />
+              </button>
               <button
                 className={`px-4 py-2 w-full rounded-lg text-white ${isSubmittingScore ? 'bg-orange-300 cursor-wait' : 'bg-orange-500 hover:bg-orange-600'}`}
                 disabled={isSubmittingScore}

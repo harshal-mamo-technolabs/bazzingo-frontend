@@ -329,9 +329,9 @@ const GameFramework = ({
         </div>
       </div>
 
-      <p className="text-gray-600 text-base mx-auto px-1 lg:px-2 mt-4" style={{ fontWeight: '400' }}>
-                  {gameDescription}
-        </p>
+      <div className="text-gray-600 text-base mx-auto px-1 lg:px-2 mt-4" style={{ fontWeight: '400' }}>
+        {typeof gameDescription === 'string' ? <TranslatedText text={gameDescription} /> : gameDescription}
+      </div>
     </div>
   );
 };

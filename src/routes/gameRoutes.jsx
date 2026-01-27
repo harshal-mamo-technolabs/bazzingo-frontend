@@ -39,7 +39,8 @@ import {
   RiverCrossingGame,
   CastleDefenderGame,
   MaskMemoryGame,
-  FishermansCatchGame
+  FishermansCatchGame,
+  ZipGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -282,5 +283,10 @@ export const gameRoutes = [
     path: "/games/fishermans-catch-game",
     element: <FishermansCatchGame/>,
     name: "Fishermans Catch Game"
+  },
+  {
+    path: "/games/zip-game",
+    element: <ZipGame />,
+    name: "ZIP"
   }
 ];
