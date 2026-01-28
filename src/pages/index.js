@@ -71,7 +71,10 @@ import MaskMemoryGame from './games/MaskMemoryGame.jsx';
 import FishermansCatchGame from './games/FishermansCatchGame.jsx';
 import ZipGame from './games/ZipGame';
 import ColorMatchGame from './games/ColorMatchGame';
+import ColorMatchCircleGame from './games/ColorMatchCircleGame';
 import TowerOfHanoi from './games/TowerOfHanoi.jsx';
+import ShopShiftGame from './games/ShopShift.jsx';
+import PatternMatchGame from './games/PatternMatchGame';
  
 /*
 // Unused Game imports
@@ -193,7 +196,10 @@ export {
   FishermansCatchGame,
   ZipGame,
   ColorMatchGame,
-  TowerOfHanoi
+  ColorMatchCircleGame,
+  TowerOfHanoi,
+  ShopShiftGame,
+  PatternMatchGame
  
 /*
   // 🚫 Unused game pages

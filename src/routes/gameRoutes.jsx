@@ -42,11 +42,13 @@ import {
   FishermansCatchGame,
   ZipGame,
   ColorMatchGame,
-  TowerOfHanoi
+  ColorMatchCircleGame,
+  TowerOfHanoi,
+  ShopShiftGame,
+  PatternMatchGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
-  //PatternMatchGame,
   //ColorRushGame,
   //LogicPuzzleGame,
   //LogicPatternSequenceGame,
@@ -292,9 +294,24 @@ export const gameRoutes = [
     name: "Color Match Game"
   },
   {
+    path: "/games/color-match-circle-game",
+    element: <ColorMatchCircleGame />,
+    name: "Color Match Circle Game"
+  },
+  {
     path: "/games/tower-of-hanoi-game",
     element: <TowerOfHanoi />,
     name: "Tower of Hanoi"
+  },
+  {
+    path: "/games/shop-shift-game",
+    element: <ShopShiftGame />,
+    name: "Shop Shift Game"
+  },
+  {
+    path: "/games/pattern-match-game",
+    element: <PatternMatchGame />,
+    name: "Pattern Match Game"
   },
   {
     path: "/games/zip-game",
