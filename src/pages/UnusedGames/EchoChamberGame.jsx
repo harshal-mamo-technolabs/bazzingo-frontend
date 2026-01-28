@@ -352,7 +352,6 @@ const EchoChamberGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Echo Chamber Game completed:', payload);
   };
 
   const customStats = {

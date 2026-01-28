@@ -1,10 +1,8 @@
 // Service Worker for Push Notifications
 self.addEventListener('push', function(event) {
-  console.log('Push event received:', event);
   
   if (event.data) {
     const data = event.data.json();
-    console.log('Push data:', data);
     
     // Use local icon instead of external image to avoid blocking issues
     const options = {
@@ -28,17 +26,13 @@ self.addEventListener('push', function(event) {
       ]
     };
     
-    console.log('Notification options:', options);
-    console.log('About to show notification with title:', data.title);
     
     // Check if we have permission to show notifications
     // Note: Service workers can't directly check permission, but we can try to show the notification
-    console.log('Attempting to show notification...');
     
     event.waitUntil(
       self.registration.showNotification(data.title, options)
         .then(() => {
-          console.log('Notification displayed successfully');
         })
         .catch((error) => {
           console.error('Failed to display notification:', error);
@@ -50,8 +44,6 @@ self.addEventListener('push', function(event) {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', function(event) {
-  console.log('Notification clicked:', event);
-  console.log('Notification data:', event.notification.data);
   
   event.notification.close();
   
@@ -64,7 +56,6 @@ self.addEventListener('notificationclick', function(event) {
       urlToOpen = self.location.origin + urlToOpen;
     }
     
-    console.log('Redirecting to:', urlToOpen);
     
     event.waitUntil(
       clients.matchAll({ type: 'window' }).then(function(clientList) {
@@ -90,5 +81,4 @@ self.addEventListener('notificationclick', function(event) {
 
 // Handle notification close
 self.addEventListener('notificationclose', function(event) {
-  console.log('Notification closed:', event);
 });

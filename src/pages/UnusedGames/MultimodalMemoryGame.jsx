@@ -216,7 +216,6 @@ const MultimodalMemoryGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   // Custom stats

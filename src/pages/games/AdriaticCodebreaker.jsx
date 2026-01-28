@@ -196,7 +196,6 @@ const AdriaticCodebreaker = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Adriatic Codebreaker completed:', payload);
   };
 
   // Calculate final results

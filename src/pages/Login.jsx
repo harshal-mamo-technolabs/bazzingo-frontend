@@ -39,7 +39,6 @@ const Login = () => {
 
       const response = await loginService(formData.email, formData.password);
 
-      console.log("Login response:", response);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
         const userData = {
@@ -48,7 +47,6 @@ const Login = () => {
           tokenExpiry: getTokenExpiry(),
         };
 
-        console.log("Extracted userData:", userData);
 
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));
@@ -69,7 +67,6 @@ const Login = () => {
       dispatch(loadingAction());
       const response = await googleLogin(credentialResponse.credential);
 
-      console.log("Google login response:", response);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
         const userData = {
@@ -78,7 +75,6 @@ const Login = () => {
           tokenExpiry: getTokenExpiry(),
         };
 
-        console.log("Extracted userData:", userData);
 
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));

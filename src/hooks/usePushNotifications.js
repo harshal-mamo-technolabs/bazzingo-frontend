@@ -128,7 +128,6 @@ export default function usePushNotifications() {
           setPermission(Notification.permission);
 
           if (sub) {
-            console.log('[Push] Existing subscription endpoint:', sub.endpoint);
           }
         }
       } catch (e) {
@@ -167,7 +166,6 @@ export default function usePushNotifications() {
       await registerPushSubscription(subscription);
 
       setIsSubscribed(true);
-      console.log('[Push] Subscribed successfully. Endpoint:', subscription?.endpoint);
 
       return subscription;
     } catch (e) {
@@ -200,7 +198,6 @@ export default function usePushNotifications() {
       await unregisterPushSubscription(endpoint);
 
       setIsSubscribed(false);
-      console.log('[Push] Unsubscribed. Endpoint:', endpoint);
     } catch (e) {
       setError(e);
       throw e;

@@ -241,7 +241,6 @@ const CognitiveFlexibilityArchitectGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Cognitive Flexibility Architect completed:', payload);
   };
 
   const customStats = {

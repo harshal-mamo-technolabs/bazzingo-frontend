@@ -712,7 +712,6 @@ const EscapeGridGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Escape Grid Game completed:', payload);
   };
 
   const customStats = {

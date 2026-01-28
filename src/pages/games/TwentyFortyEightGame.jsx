@@ -389,7 +389,6 @@ const Game2048 = () => {
     };
 
     const handleGameComplete = (payload) => {
-        console.log('Game completed:', payload);
     };
 
     // Get tile color

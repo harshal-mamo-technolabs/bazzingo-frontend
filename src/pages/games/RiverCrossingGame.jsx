@@ -160,7 +160,6 @@ const RiverCrossingGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('River Crossing Game completed:', payload);
   };
 
   const customStats = {

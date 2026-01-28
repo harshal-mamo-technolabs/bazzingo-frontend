@@ -374,7 +374,6 @@ const NumberPatternMasterGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Number Pattern Master completed:', payload);
   };
 
   const customStats = {

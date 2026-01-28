@@ -395,7 +395,6 @@ const TicTacToeGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   // Prevent difficulty change during gameplay or when finished

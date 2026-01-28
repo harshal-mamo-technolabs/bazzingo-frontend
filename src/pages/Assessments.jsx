@@ -157,7 +157,6 @@ const Assessments = () => {
         try {
             const autoStartAssessmentId = localStorage.getItem('autoStartAssessmentId');
             if (autoStartAssessmentId) {
-                console.log('🎯 [AUTO-START] Found assessment ID to auto-start:', autoStartAssessmentId);
                 
                 // Find the assessment in the list
                 let targetAssessment = assessmentsList.find(
@@ -166,12 +165,10 @@ const Assessments = () => {
                 
                 // If not found in list, fetch assessment details from API
                 if (!targetAssessment) {
-                    console.log('🔍 [AUTO-START] Assessment not in list, fetching from API...');
                     targetAssessment = await fetchAssessmentById(autoStartAssessmentId);
                 }
                 
                 if (targetAssessment) {
-                    console.log('✅ [AUTO-START] Found target assessment:', targetAssessment);
                     
                     // Clear the stored ID so it doesn't auto-start again
                     localStorage.removeItem('autoStartAssessmentId');
@@ -183,7 +180,6 @@ const Assessments = () => {
                         setIsConfirmationModalOpen(true);
                     }, 1000); // Small delay to ensure UI is ready
                 } else {
-                    console.log('❌ [AUTO-START] Assessment not found anywhere');
                     // Clear the stored ID if assessment not found
                     localStorage.removeItem('autoStartAssessmentId');
                 }
@@ -219,7 +215,6 @@ const Assessments = () => {
             }
 
             const data = await response.json();
-            console.log('📋 [AUTO-START] Fetched assessment from API:', data);
 
             // Return assessment in expected format
             if (data.status === 'success' && data.data) {
@@ -299,7 +294,6 @@ const Assessments = () => {
                     assessment={selectedAssessmentForPurchase}
                     onClose={handleCloseStripeElementsModal}
                     onSuccess={(data) => {
-                        console.log('Payment successful:', data);
                         // Modal will handle redirect to success page
                     }}
                 />

@@ -304,7 +304,6 @@ const FishermansCatchGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Fisherman\'s Catch Game completed:', payload);
   };
 
   const { language } = useContext(I18nContext);

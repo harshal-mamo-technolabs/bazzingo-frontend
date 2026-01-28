@@ -345,7 +345,6 @@ const TowerOfHanoiGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   // Show hint function

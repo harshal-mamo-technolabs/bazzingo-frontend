@@ -109,11 +109,6 @@ async function flushBatch(langKey) {
       staticTranslationIndices.set(index, staticTranslation);
     } else {
       // Log strings that are NOT in static translations and require API call
-      console.log('[translationService] ⚠️ Missing static translation:', {
-        text: text,
-        targetLang: langKey,
-        index: index
-      });
       textsToTranslate.push({ text, index });
     }
   });
@@ -131,16 +126,9 @@ async function flushBatch(langKey) {
       const textsForAPI = textsToTranslate.map(item => item.text);
       
       // Log all strings that require API translation
-      console.log('[translationService] 🔄 API Translation Required - Missing from staticTranslations.js:', {
-        count: textsForAPI.length,
-        targetLang: langKey,
-        missingStrings: textsForAPI,
-        endpoint: API_ENDPOINT,
-      });
       
       // Also log each string individually for easier tracking
       textsForAPI.forEach((text, idx) => {
-        console.log(`[translationService] 📝 Missing translation [${idx + 1}/${textsForAPI.length}]: "${text}" (${langKey})`);
       });
 
       const response = await fetch(API_ENDPOINT, {
@@ -242,10 +230,6 @@ export function translateText(text, targetLang, sourceLang = 'en') {
   }
 
   // Log when a single translation requires API call (not batched yet)
-  console.log('[translationService] ⚠️ Single translation missing from static:', {
-    text: text,
-    targetLang: targetLang
-  });
 
   const key = `${targetLang}|${text}`;
   if (pendingMap.has(key)) {

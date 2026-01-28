@@ -188,7 +188,6 @@ const WhoIsBrainGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Who Is Brain Game completed:', payload);
   };
 
   const customStats = {

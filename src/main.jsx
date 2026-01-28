@@ -22,13 +22,10 @@ if ('serviceWorker' in navigator) {
 
     switch (type) {
       case 'PUSH_RECEIVED':
-        console.log('[App] PUSH_RECEIVED:', payload);
         break;
       case 'PUSH_SHOWN':
-        console.log('[App] PUSH_SHOWN:', payload);
         break;
       case 'PUSH_SHOWN_COUNT':
-        console.log('[App] PUSH_SHOWN_COUNT:', payload);
         break;
       case 'PUSH_ERROR':
         console.error('[App] PUSH_ERROR:', payload);

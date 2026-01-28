@@ -364,7 +364,6 @@ function Payment() {
       setError('Please log in to subscribe to a plan.');
       return;
     }
-    console.log('Selected plan:', { plan, billing: currentBilling });
     setSelectedPlan(plan);
     setSelectedPlanType(currentBilling);
     setCheckoutModalOpen(true);
@@ -375,7 +374,6 @@ function Payment() {
       setError('Please log in to subscribe to a plan.');
       return;
     }
-    console.log('Selected trial:', { plan });
     setSelectedPlan(plan);
     setSelectedPlanType('trial');
     setCheckoutModalOpen(true);

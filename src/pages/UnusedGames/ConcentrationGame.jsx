@@ -240,7 +240,6 @@ const ConcentrationGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   // Calculate performance metrics

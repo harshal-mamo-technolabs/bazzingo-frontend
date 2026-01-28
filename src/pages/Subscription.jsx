@@ -108,7 +108,6 @@ const Subscription = () => {
       }
 
       const payload = { timestamp: new Date().toISOString(), source: 'frontend' };
-      console.log('API Request:', { endpoint: '/stripe/end-trial-pro', timestamp: new Date(), payload });
 
       const res = await fetch(`${API_CONNECTION_HOST_URL}/stripe/end-trial-pro`, {
         method: 'POST',
@@ -120,7 +119,6 @@ const Subscription = () => {
       });
 
       const result = await res.json().catch(() => ({}));
-      console.log('API Response:', result);
 
       if (!res.ok) {
         const msg = result?.message || `Failed to end trial: ${res.status}`;
@@ -140,8 +138,6 @@ const Subscription = () => {
       }
 
       const action = result?.data?.action;
-      console.log('Action Required:', action);
-      console.log('Request ID:', requestId);
 
       if (action === 'requires_3ds_authentication') {
         const auth = result?.data?.authentication || {};
@@ -159,7 +155,6 @@ const Subscription = () => {
         }
 
         // After successful 3DS, call API again to finalize
-        console.log('3DS succeeded, retrying API...');
         const retryRes = await fetch(`${API_CONNECTION_HOST_URL}/stripe/end-trial-pro`, {
           method: 'POST',
           headers: {
@@ -169,7 +164,6 @@ const Subscription = () => {
           body: JSON.stringify({ timestamp: new Date().toISOString(), source: 'frontend' })
         });
         const retryJson = await retryRes.json().catch(() => ({}));
-        console.log('API Response (retry):', retryJson);
 
         const retryRequestId = retryJson?.data?.requestId;
         if (retryRequestId) {

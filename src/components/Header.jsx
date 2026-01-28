@@ -126,7 +126,6 @@ export default function Header({unreadCount = 0}) {
           const img = new Image();
           img.src = userData.avatar;
           img.onload = () => {
-            console.log('Profile avatar preloaded and cached');
           };
         }
       } catch (error) {

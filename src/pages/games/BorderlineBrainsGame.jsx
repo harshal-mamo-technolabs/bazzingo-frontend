@@ -202,7 +202,6 @@ const BorderlineBrainsGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Borderline Brains Game completed:', payload);
   };
 
   const customStats = {

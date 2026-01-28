@@ -40,7 +40,9 @@ import {
   CastleDefenderGame,
   MaskMemoryGame,
   FishermansCatchGame,
-  ZipGame
+  ZipGame,
+  ColorMatchGame,
+  TowerOfHanoi
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -283,6 +285,16 @@ export const gameRoutes = [
     path: "/games/fishermans-catch-game",
     element: <FishermansCatchGame/>,
     name: "Fishermans Catch Game"
+  },
+  {
+    path: "/games/color-match-game",
+    element: <ColorMatchGame />,
+    name: "Color Match Game"
+  },
+  {
+    path: "/games/tower-of-hanoi-game",
+    element: <TowerOfHanoi />,
+    name: "Tower of Hanoi"
   },
   {
     path: "/games/zip-game",

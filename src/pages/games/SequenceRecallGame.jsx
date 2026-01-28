@@ -184,7 +184,6 @@ const SequenceRecallGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   const customStats = {

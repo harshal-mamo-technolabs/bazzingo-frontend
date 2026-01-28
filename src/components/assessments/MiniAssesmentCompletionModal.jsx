@@ -58,7 +58,6 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
     
     setProcessing(true);
     try {
-      console.log('🚀 Starting payment flow for assessment:', assessmentData.assessmentId);
       
       const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
       if (!stripe) {
@@ -79,12 +78,6 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
       const successUrl = `${window.location.origin}/payment/success`;
       const cancelUrl = `${window.location.origin}/payment/cancel`;
 
-      console.log('📡 Making API call to:', `${API_CONNECTION_HOST_URL}/stripe/checkout/session`);
-      console.log('📡 Request body:', {
-        assessmentId: assessmentData.assessmentId,
-        successUrl,
-        cancelUrl,
-      });
 
       const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/checkout/session`, {
         method: 'POST',
@@ -99,38 +92,29 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
         }),
       });
 
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response ok:', response.ok);
 
       const payload = await response.json().catch(() => ({}));
-      console.log('📡 Full response payload:', payload);
 
       if (!response.ok) {
         throw new Error(payload?.message || `Request failed (${response.status})`);
       }
 
       const resp = payload?.data;
-      console.log('🔄 Stripe response data:', resp);
 
       // A) Checkout fallback -> redirect
       if (resp?.url) {
-        console.log('🔄 Redirecting to Stripe Checkout:', resp.url);
         window.location.href = resp.url;
         return;
       }
 
       // B) One-click succeeded / processing
       if (resp?.orderId && (resp.status === 'succeeded' || resp.status === 'processing')) {
-        console.log('✅ Payment succeeded/processing, redirecting to success page');
         window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
         return;
       }
 
       // C) One-click requires 3DS — MUST pass payment_method
       if (resp?.requiresAction && resp?.clientSecret) {
-        console.log('🔐 Payment requires 3DS authentication');
-        console.log('🔐 Client secret:', resp.clientSecret);
-        console.log('🔐 Payment method ID:', resp.paymentMethodId);
         
         if (!resp.paymentMethodId) {
           throw new Error('Missing payment method for 3DS confirmation. Please retry the payment.');
@@ -140,13 +124,11 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
           payment_method: resp.paymentMethodId,
         });
         
-        console.log('🔐 3DS confirmation result:', result);
         
         if (result.error) {
           throw new Error(result.error.message || 'Authentication failed. Please try again.');
         }
         
-        console.log('✅ 3DS authentication successful, redirecting to success page');
         window.location.href = `${successUrl}?order_id=${encodeURIComponent(resp.orderId)}`;
         return;
       }
@@ -157,7 +139,6 @@ const MiniAssessmentCompletionModal = ({ isOpen, onClose, score = 0, totalQuesti
       console.error('💥 Error stack:', error.stack);
       alert(`Payment failed: ${error.message}. Please try again.`);
     } finally {
-      console.log('🏁 Setting processing state to false');
       setProcessing(false);
     }
   }, [assessmentData]);

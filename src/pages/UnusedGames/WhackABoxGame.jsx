@@ -217,7 +217,6 @@ const WhackABoxGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   const avgReactionTime = reactionTimes.length > 0

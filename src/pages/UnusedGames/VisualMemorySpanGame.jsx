@@ -281,7 +281,6 @@ const VisualMemorySpanGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   // Calculate performance metrics

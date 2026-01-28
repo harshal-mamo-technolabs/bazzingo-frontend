@@ -241,7 +241,6 @@ const MarketRushGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Market Rush Game completed:', payload);
   };
 
   const customStats = {

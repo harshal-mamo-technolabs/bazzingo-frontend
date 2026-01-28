@@ -239,7 +239,6 @@ const CognitivePatternWeaverGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Cognitive Pattern Weaver completed:', payload);
   };
 
   const customStats = {

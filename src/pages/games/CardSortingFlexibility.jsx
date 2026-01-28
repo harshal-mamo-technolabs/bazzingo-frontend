@@ -355,7 +355,6 @@ const CardSortingGame = () => {
     };
 
     const handleGameComplete = (payload) => {
-        console.log('Game completed:', payload);
     };
 
     const handleDifficultyChange = (newDifficulty) => {

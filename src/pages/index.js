@@ -70,6 +70,8 @@ import CastleDefenderGame from './games/CastleDefenderGame.jsx';
 import MaskMemoryGame from './games/MaskMemoryGame.jsx';
 import FishermansCatchGame from './games/FishermansCatchGame.jsx';
 import ZipGame from './games/ZipGame';
+import ColorMatchGame from './games/ColorMatchGame';
+import TowerOfHanoi from './games/TowerOfHanoi.jsx';
  
 /*
 // Unused Game imports
@@ -189,7 +191,9 @@ export {
   CastleDefenderGame,
   MaskMemoryGame,
   FishermansCatchGame,
-  ZipGame
+  ZipGame,
+  ColorMatchGame,
+  TowerOfHanoi
  
 /*
   // 🚫 Unused game pages

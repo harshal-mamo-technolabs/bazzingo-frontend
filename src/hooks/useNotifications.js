@@ -12,18 +12,15 @@ function useNotifications(userId) {
     });
 
     socket.on('connect', () => {
-      console.log('Socket connected:', socket.id);
       socket.emit('registerUser', userId);
     });
 
     socket.on('newNotification', (notification) => {
-      console.log('Received notification:', notification);
       showInAppNotification(notification);
     });
 
     return () => {
       socket.disconnect();
-      console.log('Socket disconnected.');
     };
   }, [userId]);
 }

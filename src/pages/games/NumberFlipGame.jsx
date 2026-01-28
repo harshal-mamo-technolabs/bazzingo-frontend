@@ -181,7 +181,6 @@ const NumberFlipGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
     // Here you would typically send the payload to your analytics service
   };
 

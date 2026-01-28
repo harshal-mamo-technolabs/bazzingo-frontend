@@ -413,7 +413,6 @@ const PuzzleQuestAdventure = () => {
 
   // Handle game complete
   const handleGameComplete = (payload) => {
-    console.log('Puzzle Quest Adventure completed:', payload);
   };
 
   // Get cell content

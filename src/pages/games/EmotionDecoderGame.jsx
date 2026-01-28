@@ -305,7 +305,6 @@ const EmotionDecoderGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Emotion Decoder Game completed:', payload);
   };
 
   const customStats = {

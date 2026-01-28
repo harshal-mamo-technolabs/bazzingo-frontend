@@ -31,7 +31,6 @@ class PushNotificationService {
       // Check if service worker is already registered
       const existingRegistration = await navigator.serviceWorker.getRegistration('/sw.js');
       if (existingRegistration) {
-        console.log('Service worker already registered:', existingRegistration);
         return existingRegistration;
       }
 
@@ -40,11 +39,9 @@ class PushNotificationService {
         scope: '/'
       });
       
-      console.log('Service worker registered:', registration);
       
       // Wait for service worker to be ready
       await navigator.serviceWorker.ready;
-      console.log('Service worker is ready');
       
       return registration;
     } catch (error) {
@@ -61,9 +58,7 @@ class PushNotificationService {
       
       // Ensure service worker is active
       if (registration.active) {
-        console.log('Service worker is active');
       } else if (registration.installing) {
-        console.log('Service worker is installing, waiting...');
         await new Promise((resolve) => {
           registration.installing.addEventListener('statechange', () => {
             if (registration.installing.state === 'activated') {
@@ -72,7 +67,6 @@ class PushNotificationService {
           });
         });
       } else if (registration.waiting) {
-        console.log('Service worker is waiting, activating...');
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         await navigator.serviceWorker.ready;
       }
@@ -86,7 +80,6 @@ class PushNotificationService {
         applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
       });
 
-      console.log('Push subscription created:', subscription);
 
       // Send subscription to backend
       await this.sendSubscriptionToBackend(subscription);
@@ -123,7 +116,6 @@ class PushNotificationService {
       throw new Error('Failed to send subscription to backend');
     }
 
-    console.log('Subscription sent to backend successfully');
   }
 
   // Unsubscribe from push notifications
@@ -134,7 +126,6 @@ class PushNotificationService {
       
       if (subscription) {
         await subscription.unsubscribe();
-        console.log('Unsubscribed from push notifications');
         
         // Notify backend about unsubscription
         await this.notifyBackendUnsubscribe();

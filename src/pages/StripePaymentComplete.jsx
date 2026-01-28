@@ -73,7 +73,6 @@ function StripePaymentComplete() {
         const clientSecret = searchParams.get('payment_intent_client_secret');
         const redirectStatus = searchParams.get('redirect_status');
 
-        console.log('Payment verification params:', { orderId, paymentIntentId, redirectStatus });
 
         // If we have redirect status from Stripe
         if (redirectStatus === 'succeeded') {
@@ -116,7 +115,6 @@ function StripePaymentComplete() {
           const stripe = await loadStripe(configData.data.publishableKey);
 
           const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
-          console.log('PaymentIntent status:', paymentIntent.status);
 
           if (paymentIntent.status === 'succeeded') {
             // Confirm with backend
@@ -188,7 +186,6 @@ function StripePaymentComplete() {
       const checkStatus = async () => {
         try {
           const statusData = await apiCall(`/stripe-elements/payment-status/${orderId}`);
-          console.log('Poll attempt', attempts + 1, '- Status:', statusData.data?.status);
 
           if (statusData.data?.status === 'succeeded') {
             setOrder(statusData.data);

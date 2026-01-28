@@ -122,7 +122,6 @@ function CheckoutForm({ setupIntentId, subscriptionData, onSuccess, onError }) {
 
       // Step 2: SetupIntent succeeded - now activate the subscription
       if (setupIntent && setupIntent.status === 'succeeded') {
-        console.log('SetupIntent succeeded:', setupIntent.id);
         setProcessingStep(subscriptionData.withTrial ? 'Processing trial payment...' : 'Activating subscription...');
 
         const activateData = await apiCall('/stripe-elements/activate-subscription', {
@@ -138,11 +137,9 @@ function CheckoutForm({ setupIntentId, subscriptionData, onSuccess, onError }) {
           }),
         });
 
-        console.log('Activate response:', activateData);
 
         // Check if we have a clientSecret that needs confirmation (3DS for payment)
         if (activateData.data?.clientSecret && activateData.status === 'requires_action') {
-          console.log('Payment needs 3DS confirmation, calling confirmCardPayment...');
           setProcessingStep('Completing 3D Secure authentication...');
 
           const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
@@ -157,7 +154,6 @@ function CheckoutForm({ setupIntentId, subscriptionData, onSuccess, onError }) {
             return;
           }
 
-          console.log('Payment confirmed:', paymentIntent?.status);
 
           // Payment succeeded - poll for subscription to become active/trialing
           if (paymentIntent && (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing')) {
@@ -194,7 +190,6 @@ function CheckoutForm({ setupIntentId, subscriptionData, onSuccess, onError }) {
       try {
         const statusData = await apiCall(`/stripe-elements/subscription-status/${data.subscriptionId}`);
 
-        console.log('Subscription status check:', statusData.data?.status);
 
         // Check for active or trialing status
         if (statusData.data?.status === 'active' || statusData.data?.status === 'trialing') {
@@ -385,12 +380,6 @@ function StripeElementsSubscription({
         const plan = plansResponse.data.plans[0];
         setPlanData(plan);
 
-        console.log('Plan prices:', {
-          monthly: plan.prices?.monthly?.priceId?.stripePriceId,
-          trial: plan.prices?.trial?.stripePriceId,
-          monthlyAmount: plan.prices?.monthly?.priceId?.unitAmount,
-          trialAmount: plan.prices?.trial?.unitAmount,
-        });
 
       } catch (err) {
         console.error('Fetch plans error:', err);
@@ -466,7 +455,6 @@ function StripeElementsSubscription({
   const handleSuccess = (subscription) => {
     setSuccess(true);
     setSubscriptionData(subscription);
-    console.log('Subscription active:', subscription);
     onSuccessCallback?.(subscription);
   };
 
@@ -808,8 +796,6 @@ export default StripeElementsSubscription;
   trialPriceId="price_yyy"      // Your one-time trial price ID
   trialDays={7}                 // Custom trial period
   successRedirectUrl="/welcome"
-  onSuccess={(data) => console.log('Success:', data)}
-  onError={(error) => console.log('Error:', error)}
 />
 
 // IMPORTANT: Make sure getAuthToken() returns your JWT token

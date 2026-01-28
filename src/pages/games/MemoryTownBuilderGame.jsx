@@ -200,7 +200,6 @@ useEffect(() => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Memory Town Builder completed:', payload);
   };
 
   // Handle cell click

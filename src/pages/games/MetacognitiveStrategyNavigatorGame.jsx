@@ -396,7 +396,6 @@ const MetacognitiveStrategyNavigatorGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Metacognitive Strategy Navigator completed:', payload);
   };
 
   const customStats = {

@@ -125,7 +125,6 @@ function PaymentForm({ orderId, paymentData, onSuccess, onError }) {
 
       // Payment succeeded
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        console.log('Payment succeeded:', paymentIntent.id);
         setProcessingStep('Payment successful!');
 
         // Confirm with backend
@@ -326,7 +325,6 @@ function StripeElementsPayment({
   const handleSuccess = (data) => {
     setSuccess(true);
     setPaymentData(data);
-    console.log('Payment successful:', data);
     onSuccessCallback?.(data);
   };
 

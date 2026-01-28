@@ -441,7 +441,6 @@ const SetCardMatchGame = () => {
 
     // Handle game complete
     const handleGameComplete = (payload) => {
-        console.log('Set Card Match game completed:', payload);
     };
 
     // Render card shape

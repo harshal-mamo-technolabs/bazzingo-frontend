@@ -6,7 +6,6 @@ const GamesGrid = ({ games, pillConfig, activeCategory }) => {
   const navigate = useNavigate();
 
   const handleGameClick = (game) => {
-    console.log('Navigating to game:', game.title, 'with gameId:', game.gameId);
     navigate(game.path, { 
       state: { 
         gameId: game.gameId || game.id,

@@ -20,10 +20,8 @@ const PushNotificationSetup = () => {
     if (pushNotificationService.isPushSupported()) {
       // Check permission directly from browser
       const browserPermission = Notification.permission;
-      console.log('Browser permission:', browserPermission);
       
       const status = await pushNotificationService.getSubscriptionStatus();
-      console.log('Subscription status:', status);
       
       // Force default state for testing if permission is not explicitly set
       const finalPermission = browserPermission === 'default' ? 'default' : browserPermission;
@@ -33,7 +31,6 @@ const PushNotificationSetup = () => {
       // Check service worker status
       const swStatus = await pushNotificationService.checkServiceWorkerStatus();
       setServiceWorkerStatus(swStatus);
-      console.log('Service Worker Status:', swStatus);
     }
   };
 
@@ -42,11 +39,9 @@ const PushNotificationSetup = () => {
     setError(null);
 
     try {
-      console.log('Starting notification enable process...');
       
       // Check service worker status first
       const swStatus = await pushNotificationService.checkServiceWorkerStatus();
-      console.log('Service Worker Status before registration:', swStatus);
       
       // Request permission
       const hasPermission = await pushNotificationService.requestPermission();
@@ -59,7 +54,6 @@ const PushNotificationSetup = () => {
       }
 
       setPermission('granted');
-      console.log('Permission granted, proceeding with subscription...');
 
       // Subscribe to push notifications
       await pushNotificationService.subscribeToPush();
@@ -118,7 +112,6 @@ const PushNotificationSetup = () => {
         });
         
         notification.onclick = () => {
-          console.log('Test notification clicked');
           notification.close();
         };
         

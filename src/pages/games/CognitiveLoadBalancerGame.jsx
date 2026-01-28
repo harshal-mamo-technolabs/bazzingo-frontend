@@ -296,7 +296,6 @@ const CognitiveLoadBalancerGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Cognitive Load Balancer completed:', payload);
   };
 
   const customStats = {

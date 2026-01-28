@@ -22,7 +22,6 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
       
       // Listen for score submission completion event
       const handleScoreSubmitted = (event) => {
-        console.log('Score submission completed, fetching daily suggestions', event.detail);
         setScoreSubmitted(true);
         if (!hasFetchedRef.current) {
           hasFetchedRef.current = true;
@@ -35,7 +34,6 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
       
       // Fallback: if no event is received within 3 seconds, fetch anyway
       const fallbackTimer = setTimeout(() => {
-        console.log('Fallback: fetching daily suggestions after timeout');
         setScoreSubmitted(true);
         if (!hasFetchedRef.current) {
           hasFetchedRef.current = true;
@@ -52,23 +50,18 @@ const GameCompletionModal = ({ isOpen, onClose, score = 85 }) => {
 
   const fetchDailySuggestions = async () => {
     try {
-      console.log('Fetching daily suggestions...');
       setLoading(true)
       const response = await getDailySuggestions()
-      console.log('Daily suggestions response:', response);
       if (response.status === 'success' && response.data.suggestion) {
         const allGames = response.data.suggestion.games;
         // Filter only unplayed games
         const unplayedGames = allGames.filter(game => !game.isPlayed)
-        console.log('Total games:', allGames.length, 'Unplayed games:', unplayedGames.length);
         
         if (unplayedGames.length === 0 && allGames.length > 0) {
           // All games have been played
-          console.log('All daily games completed! Showing completion message.');
           setAllGamesPlayed(true);
           setSuggestions([]);
         } else {
-          console.log('Found unplayed games, showing suggestions.');
           setAllGamesPlayed(false);
           setSuggestions(unplayedGames)
         }

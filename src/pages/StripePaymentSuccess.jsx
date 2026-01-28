@@ -71,14 +71,11 @@ function StripePaymentSuccess() {
 
         // CASE 1: Redirected after SetupIntent confirmation (3DS flow)
         if (setupIntentClientSecret) {
-          console.log('Verifying SetupIntent after redirect...');
 
           const { setupIntent } = await stripe.retrieveSetupIntent(setupIntentClientSecret);
-          console.log('SetupIntent status:', setupIntent.status);
 
           if (setupIntent.status === 'succeeded') {
             // SetupIntent succeeded, now activate the subscription
-            console.log('SetupIntent succeeded, activating subscription...');
 
             const activateData = await apiCall('/stripe-elements/activate-subscription', {
               method: 'POST',
@@ -89,11 +86,9 @@ function StripePaymentSuccess() {
               }),
             });
 
-            console.log('Activation response:', activateData);
 
             // Check if payment requires 3DS confirmation
             if (activateData.data?.requiresAction && activateData.data?.clientSecret) {
-              console.log('Payment requires 3DS confirmation...');
               const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
                 activateData.data.clientSecret
               );
@@ -104,7 +99,6 @@ function StripePaymentSuccess() {
                 return;
               }
 
-              console.log('Payment confirmed:', paymentIntent?.status);
 
               // Poll for subscription status
               if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
@@ -157,14 +151,12 @@ function StripePaymentSuccess() {
 
         // CASE 2: Direct subscription ID check (for already activated subscriptions)
         if (subscriptionId) {
-          console.log('Checking subscription status:', subscriptionId);
           await pollSubscriptionStatus(subscriptionId, stripe);
           return;
         }
 
         // CASE 3: SetupIntent ID without client secret (manual verification)
         if (setupIntentId) {
-          console.log('Activating subscription with setupIntentId:', setupIntentId);
 
           const activateData = await apiCall('/stripe-elements/activate-subscription', {
             method: 'POST',
@@ -175,11 +167,9 @@ function StripePaymentSuccess() {
             }),
           });
 
-          console.log('Activation response:', activateData);
 
           // Check if payment requires 3DS confirmation
           if (activateData.data?.requiresAction && activateData.data?.clientSecret) {
-            console.log('Payment requires 3DS confirmation...');
             const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
               activateData.data.clientSecret
             );
@@ -190,7 +180,6 @@ function StripePaymentSuccess() {
               return;
             }
 
-            console.log('Payment confirmed:', paymentIntent?.status);
 
             // Poll for subscription status
             if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
@@ -252,7 +241,6 @@ function StripePaymentSuccess() {
         try {
           const statusData = await apiCall(`/stripe-elements/subscription-status/${subId}`);
 
-          console.log('Poll attempt', attempts + 1, '- Status:', statusData.data?.status);
 
           // Check for success statuses
           if (statusData.data?.status === 'active' || statusData.data?.status === 'trialing') {
@@ -270,7 +258,6 @@ function StripePaymentSuccess() {
 
           // Check if 3DS is still required
           if (statusData.data?.requiresAction && statusData.data?.actionClientSecret) {
-            console.log('3DS required during polling...');
             const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
               statusData.data.actionClientSecret
             );
@@ -281,7 +268,6 @@ function StripePaymentSuccess() {
               return true;
             }
 
-            console.log('3DS completed:', paymentIntent?.status);
             // Continue polling after 3DS
           }
 

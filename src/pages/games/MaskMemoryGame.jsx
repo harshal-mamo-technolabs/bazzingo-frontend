@@ -283,7 +283,6 @@ const MaskMemoryGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Mask Memory Game completed:', payload);
   };
 
   const customStats = {

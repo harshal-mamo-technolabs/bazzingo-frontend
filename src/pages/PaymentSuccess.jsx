@@ -71,7 +71,6 @@ export default function PaymentSuccess() {
         return null;
       }
 
-      console.log('🔍 [PAYMENT SUCCESS] Getting assessment ID from:', apiUrl);
       
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -86,7 +85,6 @@ export default function PaymentSuccess() {
       }
 
       const data = await response.json();
-      console.log('📋 [PAYMENT SUCCESS] Assessment ID response:', data);
 
       if (data.status === 'success' && data.data?.found && data.data?.assessmentId) {
         return data.data.assessmentId;
@@ -102,7 +100,6 @@ export default function PaymentSuccess() {
   // Handle session check API call
   const checkSession = async (sessionId) => {
     try {
-      console.log('🔍 [PAYMENT SUCCESS] Checking session:', sessionId);
       
       const token = getUserToken();
       const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/session/check?stripeSessionId=${sessionId}`, {
@@ -118,7 +115,6 @@ export default function PaymentSuccess() {
       }
 
       const data = await response.json();
-      console.log('📋 [PAYMENT SUCCESS] Session check response:', data);
 
       if (data.status === 'success' && data.data) {
         const { presentInOrder, presentInSubscription } = data.data;
@@ -166,16 +162,6 @@ export default function PaymentSuccess() {
       const status = urlParams.get('status');
       const planName = urlParams.get('plan_name');
       
-      console.log('🎯 [PAYMENT SUCCESS] Processing payment success:', {
-        orderId,
-        sessionId,
-        subscriptionId,
-        setupIntentId,
-        subscriptionType,
-        status,
-        planName,
-        allParams: Object.fromEntries(urlParams.entries())
-      });
 
       // Case 1: Stripe Elements flow - subscription_id present (from new flow)
       if (subscriptionId || setupIntentId) {

@@ -80,9 +80,7 @@ const GameFramework = ({
     if (gameId) {
       try {
         setIsSubmitting(true);
-        console.log('Submitting score:', { gameId, score: normalizedScore });
         await submitGameScore(gameId, normalizedScore);
-        console.log('Score submitted successfully');
         scoreSubmitted = true;
         
         // Dispatch custom event to notify GameCompletionModal (only once)

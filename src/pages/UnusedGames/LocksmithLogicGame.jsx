@@ -537,7 +537,6 @@ const LocksmithLogicGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Locksmith Logic Game completed:', payload);
   };
 
   const customStats = {

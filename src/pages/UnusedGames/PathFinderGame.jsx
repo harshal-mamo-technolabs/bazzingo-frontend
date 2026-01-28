@@ -290,7 +290,6 @@ const PathFinderGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   // Get cell styling

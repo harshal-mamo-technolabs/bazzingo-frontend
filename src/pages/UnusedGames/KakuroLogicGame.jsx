@@ -708,7 +708,6 @@ const KakuroLogicGame = () => {
 
   // Handle game complete
   const handleGameComplete = (payload) => {
-    console.log('Kakuro game completed:', payload);
   };
 
   // Get cell class names

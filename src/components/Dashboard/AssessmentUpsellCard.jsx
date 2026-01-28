@@ -13,13 +13,10 @@ export default function AssessmentUpsellCard() {
     useEffect(() => {
         const fetchAssessmentData = async () => {
             try {
-                console.log('🔄 Fetching daily assessment recommendation...');
                 setLoading(true);
                 const response = await getDailyAssessmentRecommendation();
-                console.log('📊 API Response:', response);
                 setAssessmentData(response.data);
                 setError(null);
-                console.log('✅ Assessment data set successfully');
             } catch (err) {
                 console.error("❌ Failed to fetch assessment recommendation:", err);
                 console.error("❌ Error details:", {
@@ -30,7 +27,6 @@ export default function AssessmentUpsellCard() {
                 setError("Failed to load assessment data");
             } finally {
                 setLoading(false);
-                console.log('🏁 Loading state set to false');
             }
         };
 

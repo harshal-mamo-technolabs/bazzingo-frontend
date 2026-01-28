@@ -32,7 +32,6 @@ const userSlice = createSlice({
                     const parsedData = JSON.parse(userData);
                     if (parsedData && parsedData.accessToken) {
                         if (isTokenExpired(parsedData.tokenExpiry)) {
-                            console.log("Token expired, logging out user");
                             localStorage.removeItem("user");
                             state.status = false;
                             state.user = null;

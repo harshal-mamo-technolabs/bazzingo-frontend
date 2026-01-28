@@ -305,7 +305,6 @@ const NeuralNetworkBuilderGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Neural Network Builder completed:', payload);
   };
 
   const customStats = {

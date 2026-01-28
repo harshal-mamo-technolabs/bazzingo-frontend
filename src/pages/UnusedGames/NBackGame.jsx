@@ -357,7 +357,6 @@ const NBackGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('N-Back Game completed:', payload);
   };
 
   // Calculate performance metrics

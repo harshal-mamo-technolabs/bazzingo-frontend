@@ -188,7 +188,6 @@ const MathMindGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('MathMind Architect completed:', payload);
   };
 
   // Handle tile placement

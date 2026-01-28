@@ -577,7 +577,6 @@ const SudokuGame = () => {
 
     // Handle game complete
     const handleGameComplete = (payload) => {
-        console.log('Sudoku game completed:', payload);
     };
 
     // Get cell class names

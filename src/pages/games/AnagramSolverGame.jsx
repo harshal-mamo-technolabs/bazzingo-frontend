@@ -285,7 +285,6 @@ const AnagramSolverGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Game completed:', payload);
   };
 
   const handleDifficultyChange = (newDifficulty) => {

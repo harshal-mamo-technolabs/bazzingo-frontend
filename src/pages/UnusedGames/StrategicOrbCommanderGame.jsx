@@ -445,7 +445,6 @@ const StrategicOrbCommanderGame = () => {
 
   // Handle game complete
   const handleGameComplete = (payload) => {
-    console.log('Strategic Orb Commander completed:', payload);
   };
 
   // Get orb class name

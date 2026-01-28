@@ -460,7 +460,6 @@ const MastermindDeductionGame = () => {
 
     // Handle game complete
     const handleGameComplete = (payload) => {
-        console.log('Mastermind game completed:', payload);
     };
 
     // Get position button class

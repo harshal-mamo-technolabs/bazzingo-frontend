@@ -356,7 +356,6 @@ const CastleDefenderGame = () => {
 
   const handleGameComplete = (payload) => {
     cleanup();
-    console.log('Castle Defender Game completed:', payload);
   };
 
   const customStats = {

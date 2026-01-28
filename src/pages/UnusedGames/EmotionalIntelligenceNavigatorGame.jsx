@@ -417,7 +417,6 @@ const EmotionalIntelligenceNavigatorGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Emotional Intelligence Navigator completed:', payload);
   };
 
   const customStats = {

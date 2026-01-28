@@ -352,7 +352,6 @@ const TemporalReasoningArchitectGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Temporal Reasoning Architect completed:', payload);
   };
 
   const customStats = {

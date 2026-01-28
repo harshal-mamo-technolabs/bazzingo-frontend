@@ -10,7 +10,6 @@ export const fetchSubscriptionStatus = createAsyncThunk(
       const token = state.user.accessToken;
       
       if (!token) {
-        console.log('🔒 [SUBSCRIPTION] No user token found, setting default state');
         return {
           subscriptionStatus: 'none',
           planName: null,
@@ -24,7 +23,6 @@ export const fetchSubscriptionStatus = createAsyncThunk(
         };
       }
 
-      console.log('🔍 [SUBSCRIPTION] Fetching subscription status...');
       
       const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/user/subscription-status`, {
         method: 'GET',
@@ -39,7 +37,6 @@ export const fetchSubscriptionStatus = createAsyncThunk(
       }
 
       const data = await response.json();
-      console.log('📋 [SUBSCRIPTION] Subscription status response:', data);
 
       if (data.status === 'success') {
         const subscriptionInfo = {
@@ -54,7 +51,6 @@ export const fetchSubscriptionStatus = createAsyncThunk(
           subscription: data.data.subscription
         };
 
-        console.log('✅ [SUBSCRIPTION] Subscription data updated:', subscriptionInfo);
         return subscriptionInfo;
       } else {
         throw new Error('Invalid response from subscription status API');

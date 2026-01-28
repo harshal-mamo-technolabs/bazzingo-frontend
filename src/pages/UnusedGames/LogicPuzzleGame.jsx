@@ -270,7 +270,6 @@ const LogicPuzzleGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Logic Puzzle Game completed:', payload);
   };
 
   const customStats = {

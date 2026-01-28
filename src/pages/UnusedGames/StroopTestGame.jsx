@@ -248,7 +248,6 @@ const StroopTestGame = () => {
   };
 
   const handleGameComplete = (payload) => {
-    console.log('Stroop Test completed:', payload);
   };
 
   // Calculate performance metrics
