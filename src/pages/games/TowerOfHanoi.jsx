@@ -1,188 +1,41 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import GameFramework from '../../components/GameFramework';
-import Header from '../../components/Header';
-import { Volume2, VolumeX, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { ChevronDown, ChevronUp, Play, RotateCcw, Trophy, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import GameFrameworkV2 from '../../components/GameFrameworkV2';
 
-// ============== COLORS ==============
 const COLORS = {
-  background: '#f8fafc',
-  cardBack: '#e2e8f0',
-  cardBackHover: '#cbd5e1',
-  cardBorder: '#94a3b8',
-  textPrimary: '#1e293b',
-  textSecondary: '#64748b',
-  accent: '#FF6B3E',
-  success: '#22c55e',
-  warning: '#facc15',
-  gridBg: '#f1f5f9',
-  card: '#ffffff',
-  muted: '#E8EAED',
-  mutedForeground: '#6B7280',
-  towerPole: '#94a3b8',
-  towerBase: '#64748b',
+  primary: '#FF6B3E',
+  skyTop: '#87CEEB',
+  skyBottom: '#E0F4FF',
+  grass: '#7CB342',
+  grassDark: '#558B2F',
+  wood: '#8D6E63',
+  woodDark: '#5D4037',
+  woodLight: '#A1887F',
+  stone: '#9E9E9E',
+  stoneDark: '#757575',
+  text: '#2D3748',
+  textLight: '#718096',
+  white: '#FFFFFF',
+  success: '#48BB78',
+  gold: '#F6E05E',
   diskColors: [
-    { hex: '#EF4444', glow: 'rgba(239, 68, 68, 0.4)' },
-    { hex: '#F97316', glow: 'rgba(249, 115, 22, 0.4)' },
-    { hex: '#EAB308', glow: 'rgba(234, 179, 8, 0.4)' },
-    { hex: '#22C55E', glow: 'rgba(34, 197, 94, 0.4)' },
-    { hex: '#3B82F6', glow: 'rgba(59, 130, 246, 0.4)' },
-    { hex: '#A855F7', glow: 'rgba(168, 85, 247, 0.4)' },
-    { hex: '#EC4899', glow: 'rgba(236, 72, 153, 0.4)' },
+    { bg: 'linear-gradient(180deg, #FF6B6B 0%, #C53030 100%)', shine: '#FEB2B2', shadow: '#9B2C2C' },
+    { bg: 'linear-gradient(180deg, #F6AD55 0%, #C05621 100%)', shine: '#FBD38D', shadow: '#9C4221' },
+    { bg: 'linear-gradient(180deg, #68D391 0%, #276749 100%)', shine: '#9AE6B4', shadow: '#22543D' },
+    { bg: 'linear-gradient(180deg, #63B3ED 0%, #2B6CB0 100%)', shine: '#90CDF4', shadow: '#2C5282' },
+    { bg: 'linear-gradient(180deg, #B794F4 0%, #6B46C1 100%)', shine: '#D6BCFA', shadow: '#553C9A' },
+    { bg: 'linear-gradient(180deg, #FC8181 0%, #C53030 100%)', shine: '#FED7D7', shadow: '#9B2C2C' },
+    { bg: 'linear-gradient(180deg, #4FD1C5 0%, #234E52 100%)', shine: '#81E6D9', shadow: '#1D4044' },
   ],
 };
 
-// ============== CSS KEYFRAMES ==============
-const gameStyles = `
-  @keyframes diskDrop {
-    0% { transform: translateY(-15px); opacity: 0.8; }
-    60% { transform: translateY(3px); }
-    100% { transform: translateY(0); opacity: 1; }
-  }
-  
-  @keyframes diskLift {
-    0% { transform: scale(1); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
-    100% { transform: scale(1.08) translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.25); }
-  }
-  
-  @keyframes towerPulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(255, 107, 62, 0); }
-    50% { box-shadow: 0 0 20px rgba(255, 107, 62, 0.5); }
-  }
-  
-  @keyframes victoryBurst {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
-  
-  @keyframes sparkle {
-    0% { opacity: 1; transform: scale(0) rotate(0deg); }
-    50% { opacity: 1; transform: scale(1) rotate(180deg); }
-    100% { opacity: 0; transform: scale(0) rotate(360deg); }
-  }
-  
-  @keyframes invalidShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-  }
-  
-  @keyframes floatUp {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-40px); opacity: 0; }
-  }
-  
-  .disk-dragging {
-    animation: diskLift 0.15s ease forwards;
-    cursor: grabbing !important;
-    z-index: 1000 !important;
-    pointer-events: none;
-  }
-  
-  .tower-highlight {
-    animation: towerPulse 0.8s ease infinite;
-  }
-  
-  .disk-drop {
-    animation: diskDrop 0.25s ease-out forwards;
-  }
-  
-  .invalid-move {
-    animation: invalidShake 0.3s ease;
-  }
-  
-  .victory-disk {
-    animation: victoryBurst 0.5s ease infinite;
-  }
-  
-  .float-score {
-    animation: floatUp 0.8s ease-out forwards;
-  }
-  
-  .sparkle {
-    animation: sparkle 0.6s ease-out forwards;
-  }
-`;
-
-// ============== SOUND UTILITY ==============
-const createAudioContext = () => {
-  try {
-    return new (window.AudioContext || window.webkitAudioContext)();
-  } catch {
-    return null;
-  }
-};
-
-const playSound = (type, isMuted) => {
-  if (isMuted) return;
-  const ctx = createAudioContext();
-  if (!ctx) return;
-
-  const oscillator = ctx.createOscillator();
-  const gainNode = ctx.createGain();
-  oscillator.connect(gainNode);
-  gainNode.connect(ctx.destination);
-
-  switch (type) {
-    case 'pickup':
-      oscillator.frequency.setValueAtTime(400, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.1);
-      break;
-    case 'drop':
-      oscillator.frequency.setValueAtTime(300, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.15);
-      gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.15);
-      break;
-    case 'invalid':
-      oscillator.type = 'sawtooth';
-      oscillator.frequency.setValueAtTime(150, ctx.currentTime);
-      gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.2);
-      break;
-    case 'move':
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(523, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(659, ctx.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.12, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.1);
-      break;
-    case 'victory':
-      const notes = [523, 659, 784, 1047];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.15);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.3);
-        osc.start(ctx.currentTime + i * 0.15);
-        osc.stop(ctx.currentTime + i * 0.15 + 0.3);
-      });
-      break;
-  }
-};
-
-// ============== DIFFICULTY SETTINGS ==============
 const DIFFICULTY_SETTINGS = {
   Easy: { disks: 3, time: 180 },
   Moderate: { disks: 4, time: 180 },
   Hard: { disks: 5, time: 180 },
 };
 
-// ============== MAIN COMPONENT ==============
-const TowerOfHanoi = () => {
+const TowerOfHanoiGame = () => {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [towers, setTowers] = useState([[], [], []]);
@@ -196,29 +49,100 @@ const TowerOfHanoi = () => {
   const [floatingScores, setFloatingScores] = useState([]);
   const [isVictory, setIsVictory] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
   const [dragPosition, setDragPosition] = useState(null);
-  
-  const containerRef = useRef(null);
+  const [confetti, setConfetti] = useState([]);
+
   const gameAreaRef = useRef(null);
+  const audioContextRef = useRef(null);
 
   const settings = DIFFICULTY_SETTINGS[difficulty];
   const optimalMoves = Math.pow(2, settings.disks) - 1;
 
-  // Inject styles
-  useEffect(() => {
-    const styleEl = document.createElement('style');
-    styleEl.textContent = gameStyles;
-    document.head.appendChild(styleEl);
-    return () => { document.head.removeChild(styleEl); };
-  }, []);
-
-  // Update time when difficulty changes in ready state
-  useEffect(() => {
-    if (gameState === 'ready') {
-      setTimeRemaining(DIFFICULTY_SETTINGS[difficulty].time);
+  // Sound system
+  const playSound = useCallback((type) => {
+    if (isMuted) return;
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
-  }, [difficulty, gameState]);
+    const ctx = audioContextRef.current;
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    switch (type) {
+      case 'pickup':
+        oscillator.frequency.setValueAtTime(500, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + 0.08);
+        gainNode.gain.setValueAtTime(0.12, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.08);
+        break;
+      case 'drop':
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.2);
+        break;
+      case 'invalid':
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(120, ctx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.15);
+        break;
+      case 'move':
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(440, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(550, ctx.currentTime + 0.08);
+        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.08);
+        break;
+      case 'victory':
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.25);
+          osc.start(ctx.currentTime + i * 0.12);
+          osc.stop(ctx.currentTime + i * 0.12 + 0.25);
+        });
+        break;
+      default:
+        break;
+    }
+  }, [isMuted]);
+
+  // Responsive dimensions
+  const dimensions = useMemo(() => {
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
+    const availableWidth = Math.min(vw - 32, 800);
+    const availableHeight = Math.min(vh - 320, 350);
+    const towerWidth = Math.floor((availableWidth - 60) / 3);
+    const maxDiskWidth = Math.min(towerWidth - 24, 140);
+    const diskHeight = Math.min(32, Math.floor((availableHeight - 100) / (settings.disks + 1)));
+    const poleHeight = Math.min(availableHeight - 80, diskHeight * (settings.disks + 2));
+    return { availableWidth, availableHeight, towerWidth, maxDiskWidth, diskHeight, poleHeight };
+  }, [settings.disks]);
+
+  const getDiskWidth = useCallback((size) => {
+    const minWidth = 45;
+    const step = (dimensions.maxDiskWidth - minWidth) / settings.disks;
+    return minWidth + (size * step);
+  }, [dimensions.maxDiskWidth, settings.disks]);
 
   // Initialize game
   const initGame = useCallback(() => {
@@ -233,7 +157,8 @@ const TowerOfHanoi = () => {
     setIsVictory(false);
     setDragState({ diskId: null, fromTower: null, isDragging: false });
     setDragPosition(null);
-  }, [settings.disks]);
+    setTimeRemaining(settings.time);
+  }, [settings.disks, settings.time]);
 
   // Timer
   useEffect(() => {
@@ -254,7 +179,22 @@ const TowerOfHanoi = () => {
   useEffect(() => {
     if (gameState === 'playing' && towers[2].length === settings.disks) {
       setIsVictory(true);
-      playSound('victory', isMuted);
+      playSound('victory');
+      
+      // Create confetti
+      const newConfetti = [];
+      for (let i = 0; i < 50; i++) {
+        newConfetti.push({
+          id: `confetti-${i}-${Date.now()}`,
+          x: Math.random() * 100,
+          delay: Math.random() * 0.8,
+          duration: 2 + Math.random() * 2,
+          color: ['#FF6B6B', '#F6AD55', '#68D391', '#63B3ED', '#B794F4', '#F6E05E'][Math.floor(Math.random() * 6)],
+          size: 6 + Math.random() * 8,
+        });
+      }
+      setConfetti(newConfetti);
+      setTimeout(() => setConfetti([]), 4000);
       
       // Calculate score
       const efficiency = Math.max(0, 1 - (moves - optimalMoves) / optimalMoves);
@@ -262,30 +202,12 @@ const TowerOfHanoi = () => {
       const finalScore = Math.round((efficiency * 150) + (timeBonus * 50));
       setScore(Math.min(200, Math.max(0, finalScore)));
       
+      // Set game to finished after a short delay to show victory animation
       setTimeout(() => setGameState('finished'), 1500);
     }
-  }, [towers, gameState, settings.disks, moves, optimalMoves, timeRemaining, settings.time, isMuted]);
+  }, [towers, gameState, settings.disks, moves, optimalMoves, timeRemaining, settings.time, playSound]);
 
-  // Responsive sizing
-  const dimensions = useMemo(() => {
-    const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
-    const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
-    const availableWidth = Math.min(vw - 32, 520);
-    const availableHeight = Math.min(vh - 420, 280);
-    const towerWidth = Math.floor((availableWidth - 24) / 3);
-    const maxDiskWidth = Math.min(towerWidth - 16, 120);
-    const diskHeight = Math.min(28, Math.floor((availableHeight - 60) / (settings.disks + 1)));
-    return { availableWidth, availableHeight, towerWidth, maxDiskWidth, diskHeight };
-  }, [settings.disks]);
-
-  // Get disk width based on size
-  const getDiskWidth = useCallback((size) => {
-    const minWidth = 35;
-    const step = (dimensions.maxDiskWidth - minWidth) / settings.disks;
-    return minWidth + (size * step);
-  }, [dimensions.maxDiskWidth, settings.disks]);
-
-  // Check if move is valid
+  // Check valid move
   const isValidMove = useCallback((fromTower, toTower) => {
     if (fromTower === toTower) return false;
     const sourceTower = towers[fromTower];
@@ -300,42 +222,42 @@ const TowerOfHanoi = () => {
   // Add sparkles
   const addSparkles = useCallback((towerIndex, color) => {
     if (!gameAreaRef.current) return;
-    const towerX = (towerIndex + 0.5) * dimensions.towerWidth + 12;
-    const towerY = dimensions.availableHeight - 40;
+    const rect = gameAreaRef.current.getBoundingClientRect();
+    const towerCenterX = (towerIndex + 0.5) * dimensions.towerWidth + 30;
     
     const newSparkles = Array.from({ length: 6 }, (_, i) => ({
       id: `${Date.now()}-${i}-${Math.random()}`,
-      x: towerX + (Math.random() - 0.5) * 40,
-      y: towerY + (Math.random() - 0.5) * 20,
+      x: towerCenterX + (Math.random() - 0.5) * 50,
+      y: dimensions.availableHeight - 80 + (Math.random() - 0.5) * 30,
       color,
     }));
     
     setSparkles(prev => [...prev, ...newSparkles]);
     setTimeout(() => {
       setSparkles(prev => prev.filter(s => !newSparkles.find(ns => ns.id === s.id)));
-    }, 600);
+    }, 500);
   }, [dimensions]);
 
   // Add floating score
   const addFloatingScore = useCallback((value, towerIndex) => {
-    const towerX = (towerIndex + 0.5) * dimensions.towerWidth + 12;
+    const towerX = (towerIndex + 0.5) * dimensions.towerWidth + 30;
     const id = `${Date.now()}-${Math.random()}`;
-    setFloatingScores(prev => [...prev, { id, value, x: towerX, y: 50 }]);
+    setFloatingScores(prev => [...prev, { id, value, x: towerX, y: 60 }]);
     setTimeout(() => {
       setFloatingScores(prev => prev.filter(f => f.id !== id));
-    }, 800);
+    }, 700);
   }, [dimensions.towerWidth]);
 
   // Move disk
   const moveDisk = useCallback((fromTower, toTower) => {
     if (!isValidMove(fromTower, toTower)) {
-      playSound('invalid', isMuted);
+      playSound('invalid');
       setInvalidTower(toTower);
       setTimeout(() => setInvalidTower(null), 300);
       return false;
     }
 
-    playSound('move', isMuted);
+    playSound('move');
     const disk = towers[fromTower][towers[fromTower].length - 1];
     
     setTowers(prev => {
@@ -346,18 +268,18 @@ const TowerOfHanoi = () => {
     });
     setMoves(m => m + 1);
     
-    addSparkles(toTower, COLORS.diskColors[disk.size - 1].hex);
-    addFloatingScore('+1', toTower);
+    addSparkles(toTower, COLORS.diskColors[disk.size - 1].shine);
+    addFloatingScore('✓', toTower);
     
     return true;
-  }, [isValidMove, towers, isMuted, addSparkles, addFloatingScore]);
+  }, [isValidMove, towers, playSound, addSparkles, addFloatingScore]);
 
-  // Get tower index from position
+  // Get tower from position
   const getTowerFromPosition = useCallback((clientX) => {
     if (!gameAreaRef.current) return null;
     const rect = gameAreaRef.current.getBoundingClientRect();
     const relativeX = clientX - rect.left;
-    const towerIndex = Math.floor(relativeX / (dimensions.towerWidth));
+    const towerIndex = Math.floor(relativeX / dimensions.towerWidth);
     if (towerIndex >= 0 && towerIndex < 3) return towerIndex;
     return null;
   }, [dimensions.towerWidth]);
@@ -370,20 +292,20 @@ const TowerOfHanoi = () => {
 
     e.preventDefault();
     const topDisk = tower[tower.length - 1];
-    playSound('pickup', isMuted);
+    playSound('pickup');
     
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
     setDragState({ diskId: topDisk.id, fromTower: towerIndex, isDragging: true });
     setDragPosition({ x: clientX, y: clientY });
-  }, [gameState, towers, isMuted]);
+  }, [gameState, towers, playSound]);
 
   const handleDragMove = useCallback((e) => {
     if (!dragState.isDragging) return;
     
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
     setDragPosition({ x: clientX, y: clientY });
     
@@ -402,21 +324,21 @@ const TowerOfHanoi = () => {
       return;
     }
 
-    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX;
     const toTower = getTowerFromPosition(clientX);
     
     if (toTower !== null && toTower !== dragState.fromTower) {
       if (moveDisk(dragState.fromTower, toTower)) {
-        playSound('drop', isMuted);
+        playSound('drop');
       }
     }
 
     setDragState({ diskId: null, fromTower: null, isDragging: false });
     setHighlightedTower(null);
     setDragPosition(null);
-  }, [dragState, getTowerFromPosition, moveDisk, isMuted]);
+  }, [dragState, getTowerFromPosition, moveDisk, playSound]);
 
-  // Global event listeners for drag
+  // Global event listeners
   useEffect(() => {
     if (dragState.isDragging) {
       window.addEventListener('mousemove', handleDragMove);
@@ -434,324 +356,391 @@ const TowerOfHanoi = () => {
 
   const handleStart = () => {
     initGame();
-    setTimeRemaining(settings.time);
+    setGameState('playing');
   };
 
   const handleReset = () => {
     initGame();
-    setTimeRemaining(settings.time);
+    setGameState('ready');
   };
 
-  // Get dragged disk info
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const instructionsSection = (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          🎯 Objective
+        </h4>
+        <p className="text-sm text-blue-700">
+          Move all disks from tower A to tower C following the classic rules.
+        </p>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          🎮 How to Play
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Drag and drop disks between towers</li>
+          <li>• Only move one disk at a time</li>
+          <li>• Never place larger disk on smaller</li>
+          <li>• Complete in minimum moves for bonus</li>
+        </ul>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          📊 Scoring
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Efficiency bonus for optimal moves</li>
+          <li>• Time bonus for quick completion</li>
+          <li>• Maximum score: 200 points</li>
+          <li>• Optimal = 2ⁿ - 1 moves</li>
+        </ul>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          💡 Strategy
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Plan moves ahead</li>
+          <li>• Use tower B as temporary storage</li>
+          <li>• Start with smallest disk</li>
+          <li>• Practice with fewer disks first</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  // Get dragged disk
   const draggedDisk = useMemo(() => {
     if (!dragState.isDragging || dragState.fromTower === null) return null;
     const tower = towers[dragState.fromTower];
     return tower[tower.length - 1];
   }, [dragState, towers]);
 
-  
+  const cssAnimation = `
+    @keyframes diskBounce {
+      0% { transform: translateY(-30px) scaleY(1); opacity: 0; }
+      50% { transform: translateY(5px) scaleY(0.95); }
+      70% { transform: translateY(-3px) scaleY(1.02); }
+      100% { transform: translateY(0) scaleY(1); opacity: 1; }
+    }
+    @keyframes diskLift {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.15) rotate(-2deg); }
+    }
+    @keyframes poleGlow {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 107, 62, 0.3)); }
+      50% { filter: drop-shadow(0 0 20px rgba(255, 107, 62, 0.7)); }
+    }
+    @keyframes victoryBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.08); }
+    }
+    @keyframes sparkleFloat {
+      0% { transform: scale(0) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+      100% { transform: scale(0) rotate(360deg) translateY(-20px); opacity: 0; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-6px) rotate(-2deg); }
+      40% { transform: translateX(6px) rotate(2deg); }
+      60% { transform: translateX(-4px) rotate(-1deg); }
+      80% { transform: translateX(4px) rotate(1deg); }
+    }
+    @keyframes floatUp {
+      0% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateX(-50%) translateY(-50px) scale(1.3); opacity: 0; }
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    @keyframes cloudFloat {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(20px); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .disk-dragging {
+      animation: diskLift 0.12s ease-out forwards;
+      cursor: grabbing !important;
+      z-index: 1000 !important;
+    }
+    .tower-highlight {
+      animation: poleGlow 0.5s ease-in-out infinite;
+    }
+    .disk-drop {
+      animation: diskBounce 0.35s ease-out forwards;
+    }
+    .invalid-move {
+      animation: shake 0.35s ease;
+    }
+    .victory-disk {
+      animation: victoryBounce 0.5s ease-in-out infinite;
+    }
+    .float-score {
+      animation: floatUp 0.7s ease-out forwards;
+    }
+    .sparkle {
+      animation: sparkleFloat 0.5s ease-out forwards;
+    }
+    .confetti {
+      animation: confettiFall var(--duration) linear forwards;
+      animation-delay: var(--delay);
+    }
+    .cloud {
+      animation: cloudFloat 8s ease-in-out infinite;
+    }
+    .btn-bounce:hover { transform: scale(1.05); }
+    .btn-bounce:active { transform: scale(0.98); }
+  `;
 
-  // Styles
-  const styles = {
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '12px',
-      padding: '8px',
-      width: '100%',
-      height: '100%',
-      minHeight: '350px',
-    },
-    statsBar: {
-      display: 'flex',
-      justifyContent: 'center',
-      gap: '10px',
-      flexWrap: 'wrap',
-      width: '100%',
-      maxWidth: `${dimensions.availableWidth}px`,
-    },
-    statBadge: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '6px 12px',
-      backgroundColor: COLORS.cardBack,
-      borderRadius: '16px',
-      fontSize: '14px',
-      color: COLORS.textPrimary,
-      border: `1px solid ${COLORS.cardBorder}`,
-    },
-    muteButton: {
-      padding: '8px',
-      backgroundColor: COLORS.cardBack,
-      border: `1px solid ${COLORS.cardBorder}`,
-      borderRadius: '8px',
-      cursor: 'pointer',
-      color: COLORS.textPrimary,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    gameArea: {
-      position: 'relative',
-      width: dimensions.availableWidth,
-      height: dimensions.availableHeight,
-      display: 'flex',
-      justifyContent: 'space-around',
-      alignItems: 'flex-end',
-      padding: '12px',
-      borderRadius: '16px',
-      boxSizing: 'border-box',
-    },
-    tower: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      width: dimensions.towerWidth - 8,
-      height: '100%',
-      position: 'relative',
-    },
-    towerPole: {
-      position: 'absolute',
-      bottom: '18px',
-      width: '10px',
-      height: `${dimensions.availableHeight - 50}px`,
-      background: `linear-gradient(180deg, ${COLORS.towerPole} 0%, ${COLORS.towerBase} 100%)`,
-      borderRadius: '5px 5px 0 0',
-      boxShadow: '0 0 8px rgba(0,0,0,0.1)',
-    },
-    towerBase: {
-      position: 'absolute',
-      bottom: '8px',
-      width: '85%',
-      height: '12px',
-      background: COLORS.towerBase,
-      borderRadius: '4px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-    },
-    towerLabel: {
-      position: 'absolute',
-      bottom: '-22px',
-      fontSize: '13px',
-      color: COLORS.textSecondary,
-      fontWeight: 'bold',
-    },
-    disksContainer: {
-      display: 'flex',
-      flexDirection: 'column-reverse',
-      alignItems: 'center',
-      position: 'absolute',
-      bottom: '20px',
-      gap: '2px',
-    },
-    disk: {
-      borderRadius: '6px',
-      cursor: 'grab',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontWeight: 'bold',
-      fontSize: '12px',
-      color: '#fff',
-      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-      boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
-      transition: 'box-shadow 0.15s ease',
-      userSelect: 'none',
-      touchAction: 'none',
-    },
-    ghostDisk: {
-      position: 'fixed',
-      borderRadius: '6px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontWeight: 'bold',
-      fontSize: '12px',
-      color: '#fff',
-      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-      pointerEvents: 'none',
-      zIndex: 1000,
-      transform: 'translate(-50%, -50%)',
-    },
-    sparkle: {
-      position: 'absolute',
-      width: '8px',
-      height: '8px',
-      borderRadius: '50%',
-      pointerEvents: 'none',
-      zIndex: 20,
-    },
-    floatingScore: {
-      position: 'absolute',
-      fontSize: '16px',
-      fontWeight: 'bold',
-      color: COLORS.success,
-      pointerEvents: 'none',
-      zIndex: 20,
-      transform: 'translateX(-50%)',
-    },
-    hint: {
-      textAlign: 'center',
-      color: COLORS.textSecondary,
-      fontSize: '13px',
-      maxWidth: '400px',
-    },
+  // Render wooden pole
+  const renderPole = (towerIndex) => {
+    const isHighlighted = highlightedTower === towerIndex && dragState.fromTower !== towerIndex;
+    return (
+      <div
+        className={isHighlighted ? 'tower-highlight' : ''}
+        style={{
+          position: 'absolute',
+          bottom: '32px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '16px',
+          height: `${dimensions.poleHeight}px`,
+          background: `linear-gradient(90deg, ${COLORS.woodDark} 0%, ${COLORS.wood} 30%, ${COLORS.woodLight} 50%, ${COLORS.wood} 70%, ${COLORS.woodDark} 100%)`,
+          borderRadius: '8px 8px 0 0',
+          boxShadow: isHighlighted 
+            ? `0 0 20px rgba(255, 107, 62, 0.6), inset -2px 0 4px rgba(0,0,0,0.2)` 
+            : 'inset -2px 0 4px rgba(0,0,0,0.2)',
+          transition: 'box-shadow 0.2s ease',
+        }}
+      >
+        {/* Pole top cap */}
+        <div style={{
+          position: 'absolute',
+          top: '-6px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '24px',
+          height: '12px',
+          background: `linear-gradient(180deg, ${COLORS.woodLight} 0%, ${COLORS.wood} 100%)`,
+          borderRadius: '12px 12px 4px 4px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+        }} />
+      </div>
+    );
   };
 
-  // ============= GAME DESCRIPTION =============
-  const gameDescription = (
-    <div className="mx-auto px-1 mb-2">
-      <div className="bg-[#E8E8E8] rounded-lg p-6">
-        <div
-          className="flex items-center justify-between mb-4 cursor-pointer"
-          onClick={() => setShowInstructions(!showInstructions)}
-        >
-          <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-            How to Play Tower of Hanoi
-          </h3>
-          <span className="text-blue-900 text-xl">
-            {showInstructions
-              ? <ChevronUp className="h-5 w-5 text-blue-900" />
-              : <ChevronDown className="h-5 w-5 text-blue-900" />}
-          </span>
-        </div>
-        {showInstructions && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-3 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                🎯 Objective
-              </h4>
-              <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Move the entire stack of disks from Tower A to Tower C.
-              </p>
-            </div>
-            <div className="bg-white p-3 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                🎮 How to Play
-              </h4>
-              <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                <li>• Drag the top disk from one tower to another</li>
-                <li>• Only one disk can be moved at a time</li>
-                <li>• A larger disk cannot be placed on a smaller disk</li>
-                <li>• Goal: rebuild the stack on the rightmost tower</li>
-              </ul>
-            </div>
-            <div className="bg-white p-3 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                📊 Scoring
-              </h4>
-              <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                <li>• Fewer moves = higher efficiency</li>
-                <li>• Optimal moves: 2ⁿ − 1</li>
-                <li>• Time bonus applied on completion</li>
-              </ul>
-            </div>
-            <div className="bg-white p-3 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                💡 Strategy
-              </h4>
-              <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                <li>• Think recursively: move n−1 disks to spare</li>
-                <li>• Free the smallest disk to unlock progress</li>
-                <li>• Visualize the final stack before each move</li>
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+  // Render base
+  const renderBase = () => (
+    <div style={{
+      position: 'absolute',
+      bottom: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: '90%',
+      height: '14px',
+      background: `linear-gradient(180deg, ${COLORS.wood} 0%, ${COLORS.woodDark} 100%)`,
+      borderRadius: '4px',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.1)',
+    }} />
   );
 
-  return (
+  const playingContent = (
     <>
-      {gameState === 'ready' && <Header unreadCount={3} />}
-      <style>{gameStyles}</style>
-      <GameFramework
-        gameTitle="Tower of Hanoi"
-        gameDescription={gameDescription}
-        gameShortDescription="Move all disks to the rightmost tower using drag and drop!"
-        category="Logic"
-        gameState={gameState}
-        setGameState={setGameState}
-        score={score}
-        timeRemaining={timeRemaining}
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        onStart={handleStart}
-        onReset={handleReset}
-        customStats={{ moves, optimalMoves }}
+      <style>{cssAnimation}</style>
+      <div 
+        className="fixed inset-0 w-full h-full overflow-hidden flex flex-col"
+        style={{
+          background: `linear-gradient(180deg, ${COLORS.skyTop} 0%, ${COLORS.skyBottom} 60%, ${COLORS.grass} 60%, ${COLORS.grassDark} 100%)`,
+        }}
       >
-        <div style={styles.container} ref={containerRef}>
-          {/* Stats Bar */}
-          <div style={styles.statsBar}>
-            <div style={styles.statBadge}>
-              🎯 Moves: {moves}
-            </div>
-            <div style={styles.statBadge}>
-              ⭐ Optimal: {optimalMoves}
-            </div>
-            <div style={styles.statBadge}>
-              💿 Disks: {settings.disks}
-            </div>
-            <button
-              style={styles.muteButton}
-              onClick={() => setIsMuted(!isMuted)}
-              title={isMuted ? 'Unmute' : 'Mute'}
+        {/* Game Stats Bar */}
+        <div style={{
+          padding: '10px 16px',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '12px',
+          flexWrap: 'wrap',
+          background: 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(8px)',
+        }}>
+          {[
+            { icon: '⏱️', label: formatTime(timeRemaining), highlight: timeRemaining <= 30 },
+            { icon: '🎯', label: `${moves} moves` },
+            { icon: '⭐', label: `${optimalMoves} optimal` },
+            { icon: '🏆', label: `${score}/200`, primary: true },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                background: stat.primary 
+                  ? `linear-gradient(135deg, ${COLORS.primary} 0%, #E53E3E 100%)`
+                  : COLORS.white,
+                borderRadius: '20px',
+                color: stat.primary ? COLORS.white : stat.highlight ? '#E53E3E' : COLORS.text,
+                fontSize: '14px',
+                fontWeight: 700,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              }}
             >
-              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-            </button>
-          </div>
+              <span>{stat.icon}</span>
+              <span>{stat.label}</span>
+            </div>
+          ))}
+        </div>
 
-          {/* Game Area */}
-          <div ref={gameAreaRef} style={styles.gameArea}>
+        {/* Decorative clouds */}
+        <div className="cloud" style={{ position: 'absolute', top: '8%', left: '10%', fontSize: '40px', opacity: 0.8 }}>☁️</div>
+        <div className="cloud" style={{ position: 'absolute', top: '5%', right: '15%', fontSize: '50px', opacity: 0.7, animationDelay: '-3s' }}>☁️</div>
+        <div className="cloud" style={{ position: 'absolute', top: '15%', left: '60%', fontSize: '35px', opacity: 0.6, animationDelay: '-5s' }}>☁️</div>
+
+        {/* Confetti */}
+        {confetti.map(c => (
+          <div
+            key={c.id}
+            className="confetti"
+            style={{
+              position: 'absolute',
+              left: `${c.x}%`,
+              top: 0,
+              width: `${c.size}px`,
+              height: `${c.size}px`,
+              backgroundColor: c.color,
+              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+              '--delay': `${c.delay}s`,
+              '--duration': `${c.duration}s`,
+              zIndex: 100,
+            }}
+          />
+        ))}
+
+        {/* Main Game Area */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          position: 'relative',
+        }}>
+          <div
+            ref={gameAreaRef}
+            style={{
+              width: dimensions.availableWidth,
+              height: dimensions.availableHeight,
+              display: 'flex',
+              justifyContent: 'space-around',
+              alignItems: 'flex-end',
+              padding: '20px',
+              position: 'relative',
+              background: 'rgba(255,255,255,0.6)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: '20px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Towers */}
             {towers.map((tower, towerIndex) => (
               <div
                 key={towerIndex}
+                className={invalidTower === towerIndex ? 'invalid-move' : ''}
                 style={{
-                  ...styles.tower,
-                  ...(highlightedTower === towerIndex && dragState.fromTower !== towerIndex
-                    ? { filter: 'brightness(1.1)' }
-                    : {}),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  width: dimensions.towerWidth - 16,
+                  height: '100%',
+                  position: 'relative',
                 }}
-                className={highlightedTower === towerIndex && dragState.fromTower !== towerIndex ? 'tower-highlight' : ''}
               >
-                <div style={styles.towerPole} />
-                <div style={styles.towerBase} />
-                <div style={styles.towerLabel}>
-                  {towerIndex === 0 ? 'A' : towerIndex === 1 ? 'B' : 'C'}
+                {renderPole(towerIndex)}
+                {renderBase()}
+                
+                {/* Tower Label */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '0',
+                  fontSize: '14px',
+                  color: COLORS.woodDark,
+                  fontWeight: 800,
+                  background: 'rgba(255,255,255,0.8)',
+                  padding: '2px 10px',
+                  borderRadius: '8px',
+                }}>
+                  {['A', 'B', 'C'][towerIndex]}
                 </div>
                 
-                <div style={styles.disksContainer}>
+                {/* Disks */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column-reverse',
+                  alignItems: 'center',
+                  position: 'absolute',
+                  bottom: '34px',
+                  gap: '2px',
+                }}>
                   {tower.map((disk, diskIndex) => {
                     const isTopDisk = diskIndex === tower.length - 1;
                     const isDragging = dragState.diskId === disk.id && dragState.isDragging;
                     const diskWidth = getDiskWidth(disk.size);
-                    const diskColor = COLORS.diskColors[disk.size - 1];
+                    const diskStyle = COLORS.diskColors[disk.size - 1];
                     
                     return (
                       <div
                         key={disk.id}
+                        className={isVictory ? 'victory-disk' : ''}
                         style={{
-                          ...styles.disk,
                           width: `${diskWidth}px`,
                           height: `${dimensions.diskHeight}px`,
-                          background: `linear-gradient(135deg, ${diskColor.hex} 0%, ${diskColor.hex}dd 100%)`,
+                          background: diskStyle.bg,
+                          borderRadius: '10px',
                           cursor: isTopDisk && gameState === 'playing' ? 'grab' : 'default',
-                          opacity: isDragging ? 0.3 : 1,
+                          opacity: isDragging ? 0.4 : 1,
                           zIndex: diskIndex,
-                          boxShadow: `0 3px 8px rgba(0,0,0,0.15)`,
+                          boxShadow: `
+                            0 ${Math.max(3, dimensions.diskHeight / 6)}px 0 ${diskStyle.shadow},
+                            0 ${Math.max(6, dimensions.diskHeight / 3)}px 12px rgba(0,0,0,0.2),
+                            inset 0 2px 4px rgba(255,255,255,0.4)
+                          `,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          userSelect: 'none',
+                          touchAction: 'none',
+                          transition: 'opacity 0.1s ease',
                         }}
-                        className={`
-                          ${isVictory ? 'victory-disk' : ''}
-                          ${invalidTower === towerIndex ? 'invalid-move' : ''}
-                        `}
                         onMouseDown={(e) => isTopDisk && handleDragStart(e, towerIndex)}
                         onTouchStart={(e) => isTopDisk && handleDragStart(e, towerIndex)}
                       >
-                        {disk.size}
+                        {/* Shine effect */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '3px',
+                          left: '10%',
+                          width: '80%',
+                          height: '6px',
+                          background: `linear-gradient(90deg, transparent 0%, ${diskStyle.shine}88 50%, transparent 100%)`,
+                          borderRadius: '4px',
+                        }} />
                       </div>
                     );
                   })}
@@ -763,12 +752,18 @@ const TowerOfHanoi = () => {
             {floatingScores.map((fs) => (
               <div
                 key={fs.id}
+                className="float-score"
                 style={{
-                  ...styles.floatingScore,
+                  position: 'absolute',
                   left: `${fs.x}px`,
                   top: `${fs.y}px`,
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: COLORS.success,
+                  pointerEvents: 'none',
+                  zIndex: 30,
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
                 }}
-                className="float-score"
               >
                 {fs.value}
               </div>
@@ -778,43 +773,107 @@ const TowerOfHanoi = () => {
             {sparkles.map(sparkle => (
               <div
                 key={sparkle.id}
+                className="sparkle"
                 style={{
-                  ...styles.sparkle,
+                  position: 'absolute',
                   left: sparkle.x,
                   top: sparkle.y,
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
                   backgroundColor: sparkle.color,
+                  boxShadow: `0 0 10px ${sparkle.color}`,
+                  pointerEvents: 'none',
+                  zIndex: 25,
                 }}
-                className="sparkle"
               />
             ))}
           </div>
+        </div>
 
-          {/* Hint */}
-          <div style={styles.hint}>
-            💡 Drag disks from tower to tower. Smaller disks must always be on top!
+        {/* Footer / Instructions */}
+        <div style={{
+          padding: '10px 16px',
+          background: 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(0,0,0,0.05)',
+        }}>
+          <div style={{
+            textAlign: 'center',
+            color: COLORS.text,
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+          }}>
+            <Sparkles size={16} color={COLORS.primary} />
+            Drag disks between towers • Smaller disks must stay on top!
           </div>
         </div>
-      </GameFramework>
+      </div>
 
-      {/* Ghost disk that follows cursor */}
+      {/* Ghost Disk */}
       {dragState.isDragging && draggedDisk && dragPosition && (
         <div
+          className="disk-dragging"
           style={{
-            ...styles.ghostDisk,
+            position: 'fixed',
             left: dragPosition.x,
             top: dragPosition.y,
             width: `${getDiskWidth(draggedDisk.size)}px`,
             height: `${dimensions.diskHeight}px`,
-            background: `linear-gradient(135deg, ${COLORS.diskColors[draggedDisk.size - 1].hex} 0%, ${COLORS.diskColors[draggedDisk.size - 1].hex}dd 100%)`,
-            boxShadow: `0 12px 24px rgba(0,0,0,0.3), 0 0 16px ${COLORS.diskColors[draggedDisk.size - 1].glow}`,
+            background: COLORS.diskColors[draggedDisk.size - 1].bg,
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            transform: 'translate(-50%, -50%)',
+            boxShadow: `
+              0 15px 35px rgba(0,0,0,0.35),
+              0 0 25px ${COLORS.diskColors[draggedDisk.size - 1].shine}88,
+              inset 0 2px 4px rgba(255,255,255,0.4)
+            `,
           }}
-          className="disk-dragging"
         >
-          {draggedDisk.size}
+          {/* Shine effect */}
+          <div style={{
+            position: 'absolute',
+            top: '3px',
+            left: '10%',
+            width: '80%',
+            height: '6px',
+            background: `linear-gradient(90deg, transparent 0%, ${COLORS.diskColors[draggedDisk.size - 1].shine}88 50%, transparent 100%)`,
+            borderRadius: '4px',
+          }} />
         </div>
       )}
     </>
   );
+
+  return (
+    <GameFrameworkV2
+      gameTitle="Tower of Hanoi"
+      gameShortDescription="Move all disks from tower A to tower C following the classic rules. Only one disk at a time, and never place a larger disk on a smaller one!"
+      category="Puzzle"
+      gameState={gameState}
+      setGameState={setGameState}
+      score={score}
+      timeRemaining={timeRemaining}
+      difficulty={difficulty}
+      setDifficulty={setDifficulty}
+      onStart={handleStart}
+      onReset={handleReset}
+      customStats={{ moves, optimalMoves }}
+      enableCompletionModal={true}
+      instructionsSection={instructionsSection}
+    >
+      {playingContent}
+    </GameFrameworkV2>
+  );
 };
 
-export default TowerOfHanoi;
+export default TowerOfHanoiGame;

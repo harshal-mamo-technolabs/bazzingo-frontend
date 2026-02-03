@@ -1,671 +1,779 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import GameFramework from '../../components/GameFramework';
-import Header from '../../components/Header';
-import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Bomb, Flag, Eye, Lightbulb, Trophy, Heart, Zap, ChevronUp, ChevronDown } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { ChevronLeft, Flag, Bomb, Trophy, Play, RotateCcw, Sparkles, Clock, Target } from 'lucide-react';
+import GameFrameworkV2 from '../../components/GameFrameworkV2';
 
-const numberColors = {
-    1: "text-blue-600",
-    2: "text-green-600",
-    3: "text-red-600",
-    4: "text-purple-600",
-    5: "text-yellow-600",
-    6: "text-pink-600",
-    7: "text-black",
-    8: "text-gray-600"
+const COLORS = {
+  primary: '#FF6B3E',
+  skyTop: '#667eea',
+  skyMid: '#764ba2',
+  skyBottom: '#f093fb',
+  grassTop: '#84fab0',
+  grassBottom: '#8fd3f4',
+  cellUnrevealed: 'linear-gradient(145deg, #6366f1, #4f46e5)',
+  cellRevealed: 'linear-gradient(145deg, #fef3c7, #fde68a)',
+  cellMine: 'linear-gradient(145deg, #ef4444, #dc2626)',
+  cellFlagged: 'linear-gradient(145deg, #f59e0b, #d97706)',
+  numbers: ['', '#3b82f6', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#1f2937', '#6b7280'],
 };
 
-const TapMinesweeperGame = () => {
-    const [gameState, setGameState] = useState('ready');
-    const [difficulty, setDifficulty] = useState('Easy');
-    const [score, setScore] = useState(0);
-    const [finalScore, setFinalScore] = useState(0);
-    const [timeRemaining, setTimeRemaining] = useState(180);
-    const [lives, setLives] = useState(3);
-    const [hintsUsed, setHintsUsed] = useState(0);
-    const [maxHints, setMaxHints] = useState(3);
-    const [minesRevealed, setMinesRevealed] = useState(0);
-    const [cellsRevealed, setCellsRevealed] = useState(0);
-    const [flagsPlaced, setFlagsPlaced] = useState(0);
-    const [gameStartTime, setGameStartTime] = useState(0);
-    const [gameDuration, setGameDuration] = useState(0);
-    const [showCompletionModal, setShowCompletionModal] = useState(false);
-    const [showInstructions, setShowInstructions] = useState(true);
+const CONFETTI_COLORS = ['#FF6B3E', '#FFD700', '#22c55e', '#3b82f6', '#ec4899', '#8b5cf6'];
 
-    // Game state
-    const [board, setBoard] = useState([]);
-    const [revealed, setRevealed] = useState([]);
-    const [flagged, setFlagged] = useState([]);
-    const [gameResult, setGameResult] = useState(null); // 'win', 'lose', null
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [feedbackMessage, setFeedbackMessage] = useState('');
-    const [feedbackType, setFeedbackType] = useState('');
-    const [hintCell, setHintCell] = useState(null);
+const Minesweeper = () => {
+  const [gameState, setGameState] = useState('ready');
+  const [difficulty, setDifficulty] = useState('Easy');
+  const [score, setScore] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(180);
+  const [grid, setGrid] = useState([]);
+  const [flagsPlaced, setFlagsPlaced] = useState(0);
+  const [revealedCount, setRevealedCount] = useState(0);
+  const [explosions, setExplosions] = useState([]);
+  const [floatingScores, setFloatingScores] = useState([]);
+  const [confetti, setConfetti] = useState([]);
+  const [gameWon, setGameWon] = useState(false);
+  const [firstClick, setFirstClick] = useState(true);
+  const [streak, setStreak] = useState(0);
 
-    // Difficulty settings
-    const difficultySettings = {
-        Easy: {
-            rows: 9,
-            cols: 9,
-            mines: 10,
-            timeLimit: 180,
-            lives: 3,
-            hints: 3,
-            description: '9x9 grid with 10 mines - Perfect for beginners'
-        },
-        Moderate: {
-            rows: 9,
-            cols: 9,
-            mines: 20,
-            timeLimit: 180,
-            lives: 3,
-            hints: 3,
-            description: '9x9 grid with 20 mines - Balanced challenge'
-        },
-        Hard: {
-            rows: 9,
-            cols: 9,
-            mines: 30,
-            timeLimit: 180,
-            lives: 3,
-            hints: 3,
-            description: '9x9 grid with 30 mines - Advanced level'
-        }
-    };
+  const audioContextRef = useRef(null);
+  const explosionIdRef = useRef(0);
+  const floatingIdRef = useRef(0);
 
+  const difficultySettings = useMemo(() => ({
+    Easy: { rows: 8, cols: 8, mines: 10, time: 300 },
+    Moderate: { rows: 10, cols: 10, mines: 20, time: 240 },
+    Hard: { rows: 12, cols: 10, mines: 30, time: 180 },
+  }), []);
 
-    // Initialize board
-    const initializeBoard = useCallback((rows, cols, mines) => {
-        // Create empty board
-        const newBoard = Array(rows).fill().map(() => Array(cols).fill(0));
-        const newRevealed = Array(rows).fill().map(() => Array(cols).fill(false));
-        const newFlagged = Array(rows).fill().map(() => Array(cols).fill(false));
+  const settings = difficultySettings[difficulty];
 
-        // Place mines randomly
-        let minesPlaced = 0;
-        while (minesPlaced < mines) {
-            const row = Math.floor(Math.random() * rows);
-            const col = Math.floor(Math.random() * cols);
+  const playSound = useCallback((type) => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const ctx = audioContextRef.current;
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
 
-            if (newBoard[row][col] !== -1) {
-                newBoard[row][col] = -1; // -1 represents a mine
-                minesPlaced++;
-
-                // Update adjacent cells
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        const newRow = row + i;
-                        const newCol = col + j;
-
-                        if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && newBoard[newRow][newCol] !== -1) {
-                            newBoard[newRow][newCol]++;
-                        }
-                    }
-                }
-            }
-        }
-
-        setBoard(newBoard);
-        setRevealed(newRevealed);
-        setFlagged(newFlagged);
-    }, []);
-
-    // Handle cell click (reveal)
-    const handleCellClick = (row, col) => {
-        if (gameState !== 'playing' || revealed[row][col] || flagged[row][col] || gameResult) {
-            return;
-        }
-
-        const newRevealed = [...revealed];
-
-        if (board[row][col] === -1) {
-            // Hit a mine
-            setMinesRevealed(prev => prev + 1);
-            setLives(prev => {
-                const newLives = prev - 1;
-                if (newLives <= 0) {
-                    // Game over
-                    handleGameEnd('lose');
-                } else {
-                    showFeedbackToUser('Mine hit! Lives remaining: ' + newLives, 'lose');
-                }
-                return newLives;
-            });
-
-            // Reveal the mine
-            newRevealed[row][col] = true;
-        } else {
-            // Safe cell - reveal it and possibly adjacent cells
-            revealCell(row, col, newRevealed);
-            setCellsRevealed(prev => prev + countRevealedCells(newRevealed));
-
-            // Check win condition
-            if (checkWinCondition(newRevealed)) {
-                handleGameEnd('win');
-            }
-        }
-
-        setRevealed(newRevealed);
-
-        // Clear hint if it was used
-        if (hintCell && hintCell.row === row && hintCell.col === col) {
-            setHintCell(null);
-        }
-    };
-
-    // Reveal cell and adjacent empty cells
-    const revealCell = (row, col, revealedArray) => {
-        const settings = difficultySettings[difficulty];
-        if (row < 0 || row >= settings.rows || col < 0 || col >= settings.cols || revealedArray[row][col]) {
-            return;
-        }
-
-        revealedArray[row][col] = true;
-
-        // If cell is empty (0), reveal adjacent cells
-        if (board[row][col] === 0) {
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    revealCell(row + i, col + j, revealedArray);
-                }
-            }
-        }
-    };
-
-    // Handle right click (flag)
-    const handleCellRightClick = (e, row, col) => {
-        e.preventDefault();
-
-        if (gameState !== 'playing' || revealed[row][col] || gameResult) {
-            return;
-        }
-
-        const newFlagged = [...flagged];
-        newFlagged[row][col] = !newFlagged[row][col];
-        setFlagged(newFlagged);
-
-        setFlagsPlaced(prev => newFlagged[row][col] ? prev + 1 : prev - 1);
-    };
-
-    // Count revealed cells
-    const countRevealedCells = (revealedArray) => {
-        let count = 0;
-        revealedArray.forEach(row => {
-            row.forEach(cell => {
-                if (cell) count++;
-            });
+    switch (type) {
+      case 'reveal':
+        oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+        oscillator.frequency.setValueAtTime(1200, ctx.currentTime + 0.05);
+        gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.1);
+        break;
+      case 'flag':
+        oscillator.frequency.setValueAtTime(500, ctx.currentTime);
+        oscillator.frequency.setValueAtTime(800, ctx.currentTime + 0.1);
+        oscillator.type = 'triangle';
+        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.15);
+        break;
+      case 'explosion':
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.4);
+        gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.5);
+        break;
+      case 'win':
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.25);
+          osc.start(ctx.currentTime + i * 0.12);
+          osc.stop(ctx.currentTime + i * 0.12 + 0.25);
         });
-        return count;
-    };
+        return;
+      case 'click':
+        oscillator.frequency.setValueAtTime(600, ctx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.05);
+        break;
+      default:
+        break;
+    }
+  }, []);
 
-    // Check win condition
-    const checkWinCondition = (revealedArray) => {
-        const settings = difficultySettings[difficulty];
-        const totalCells = settings.rows * settings.cols;
-        const revealedCount = countRevealedCells(revealedArray);
-        return revealedCount === totalCells - settings.mines;
-    };
+  const createEmptyGrid = useCallback(() => {
+    return Array(settings.rows).fill(null).map(() =>
+      Array(settings.cols).fill(null).map(() => ({
+        isMine: false,
+        isRevealed: false,
+        isFlagged: false,
+        adjacentMines: 0,
+      }))
+    );
+  }, [settings.rows, settings.cols]);
 
-    // Show feedback to user
-    const showFeedbackToUser = (message, type) => {
-        setFeedbackMessage(message);
-        setFeedbackType(type);
-        setShowFeedback(true);
+  const placeMines = useCallback((grid, excludeRow, excludeCol) => {
+    const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+    let minesPlaced = 0;
 
-        setTimeout(() => {
-            setShowFeedback(false);
-        }, 2000);
-    };
+    while (minesPlaced < settings.mines) {
+      const row = Math.floor(Math.random() * settings.rows);
+      const col = Math.floor(Math.random() * settings.cols);
+      const isExcluded = Math.abs(row - excludeRow) <= 1 && Math.abs(col - excludeCol) <= 1;
 
-    // Handle game end
-    const handleGameEnd = (result) => {
-        setGameResult(result);
-        const endTime = Date.now();
-        const duration = Math.floor((endTime - gameStartTime) / 1000);
-        setGameDuration(duration);
-        setFinalScore(score);
-        setGameState('finished');
+      if (!newGrid[row][col].isMine && !isExcluded) {
+        newGrid[row][col].isMine = true;
+        minesPlaced++;
+      }
+    }
 
-        let message = '';
-        if (result === 'win') {
-            message = 'Congratulations! All mines cleared!';
-            showFeedbackToUser(message, 'win');
-        } else {
-            message = 'Game Over! Better luck next time.';
-            showFeedbackToUser(message, 'lose');
-        }
-
-        setShowCompletionModal(true);
-    };
-
-    // Use hint
-    const useHint = () => {
-        if (hintsUsed >= maxHints || gameState !== 'playing' || gameResult) return;
-
-        setHintsUsed(prev => prev + 1);
-
-        // Find a safe cell to reveal
-        const settings = difficultySettings[difficulty];
-        const safeCells = [];
-
-        for (let row = 0; row < settings.rows; row++) {
-            for (let col = 0; col < settings.cols; col++) {
-                if (!revealed[row][col] && !flagged[row][col] && board[row][col] !== -1) {
-                    safeCells.push({ row, col });
-                }
+    for (let r = 0; r < settings.rows; r++) {
+      for (let c = 0; c < settings.cols; c++) {
+        if (!newGrid[r][c].isMine) {
+          let count = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = r + dr;
+              const nc = c + dc;
+              if (nr >= 0 && nr < settings.rows && nc >= 0 && nc < settings.cols && newGrid[nr][nc].isMine) {
+                count++;
+              }
             }
+          }
+          newGrid[r][c].adjacentMines = count;
         }
+      }
+    }
 
-        if (safeCells.length > 0) {
-            const randomSafeCell = safeCells[Math.floor(Math.random() * safeCells.length)];
-            setHintCell(randomSafeCell);
+    return newGrid;
+  }, [settings.mines, settings.rows, settings.cols]);
 
-            setTimeout(() => {
-                setHintCell(null);
-            }, 3000);
+  const revealCell = useCallback((grid, row, col) => {
+    const newGrid = grid.map(r => r.map(c => ({ ...c })));
+    let revealed = 0;
+
+    const reveal = (r, c) => {
+      if (r < 0 || r >= settings.rows || c < 0 || c >= settings.cols) return;
+      if (newGrid[r][c].isRevealed || newGrid[r][c].isFlagged) return;
+
+      newGrid[r][c].isRevealed = true;
+      revealed++;
+
+      if (newGrid[r][c].adjacentMines === 0 && !newGrid[r][c].isMine) {
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            reveal(r + dr, c + dc);
+          }
         }
+      }
     };
 
-    // Calculate score
-    const calculateScore = useCallback(() => {
-        if (gameState !== 'playing') return score;
+    reveal(row, col);
+    return { newGrid, revealed };
+  }, [settings.rows, settings.cols]);
 
-        const settings = difficultySettings[difficulty];
-        const totalCells = settings.rows * settings.cols;
-        const totalMines = settings.mines;
-        const revealedCount = countRevealedCells(revealed);
+  const addFloatingScore = useCallback((x, y, value) => {
+    const id = floatingIdRef.current++;
+    setFloatingScores(prev => [...prev, { id, x, y, value }]);
+    setTimeout(() => setFloatingScores(prev => prev.filter(s => s.id !== id)), 1000);
+  }, []);
 
-        // Base score from revealed safe cells (0-80 points)
-        const revealProgress = revealedCount / (totalCells - totalMines);
-        let baseScore = revealProgress * 80;
+  const addExplosion = useCallback((row, col) => {
+    const id = explosionIdRef.current++;
+    setExplosions(prev => [...prev, { id, row, col }]);
+    setTimeout(() => setExplosions(prev => prev.filter(e => e.id !== id)), 600);
+  }, []);
 
-        // Time bonus (max 40 points)
-        const timeProgress = timeRemaining / settings.timeLimit;
-        const timeBonus = timeProgress * 40;
+  const spawnConfetti = useCallback(() => {
+    const newConfetti = [];
+    for (let i = 0; i < 50; i++) {
+      newConfetti.push({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 0.5,
+        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      });
+    }
+    setConfetti(newConfetti);
+  }, []);
 
-        // Lives bonus (max 30 points)
-        const livesBonus = (lives / settings.lives) * 30;
+  const handleCellClick = useCallback((row, col, e) => {
+    if (gameState !== 'playing') return;
 
-        // Hints penalty (subtract up to 20 points)
-        const hintsPenalty = (hintsUsed / settings.hints) * 20;
+    const cell = grid[row][col];
+    if (cell.isRevealed || cell.isFlagged) return;
 
-        // Efficiency bonus (max 25 points) - fewer flags used is better
-        const flagEfficiency = Math.max(0, (totalMines - flagsPlaced) / totalMines);
-        const efficiencyBonus = flagEfficiency * 25;
+    let currentGrid = grid;
 
-        // Difficulty multiplier
-        const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.3;
+    if (firstClick) {
+      currentGrid = placeMines(grid, row, col);
+      setFirstClick(false);
+    }
 
-        // Mine avoidance bonus (max 15 points)
-        const mineAvoidanceBonus = Math.max(0, (settings.lives - minesRevealed) / settings.lives) * 15;
+    if (currentGrid[row][col].isMine) {
+      playSound('explosion');
+      addExplosion(row, col);
+      setStreak(0);
 
-        let finalScore = (baseScore + timeBonus + livesBonus + efficiencyBonus + mineAvoidanceBonus - hintsPenalty) * difficultyMultiplier;
+      const newGrid = currentGrid.map(r => r.map(c => ({
+        ...c,
+        isRevealed: c.isMine ? true : c.isRevealed
+      })));
+      setGrid(newGrid);
+      setGameWon(false);
 
-        // Apply final modifier to make 200 very challenging
-        finalScore = finalScore * 0.75;
+      setTimeout(() => setGameState('finished'), 600);
+    } else {
+      playSound('reveal');
+      const { newGrid, revealed } = revealCell(currentGrid, row, col);
+      setGrid(newGrid);
 
-        return Math.round(Math.max(0, Math.min(200, finalScore)));
-    }, [gameState, revealed, timeRemaining, lives, hintsUsed, flagsPlaced, minesRevealed, difficulty, score]);
+      const newRevealedCount = revealedCount + revealed;
+      setRevealedCount(newRevealedCount);
 
-    // Update score
-    useEffect(() => {
-        if (gameState === 'playing') {
-            const newScore = calculateScore();
-            setScore(newScore);
+      const points = revealed * 3 + (streak >= 3 ? 5 : 0);
+      setScore(prev => Math.min(200, prev + points));
+      setStreak(prev => prev + 1);
+
+      const rect = e.target.getBoundingClientRect();
+      addFloatingScore(rect.left + rect.width / 2, rect.top, points);
+
+      const totalSafeCells = settings.rows * settings.cols - settings.mines;
+      if (newRevealedCount >= totalSafeCells) {
+        playSound('win');
+        setGameWon(true);
+        setScore(prev => Math.min(200, prev + Math.floor(timeRemaining / 3)));
+        spawnConfetti();
+        setTimeout(() => setGameState('finished'), 800);
+      }
+    }
+  }, [gameState, grid, firstClick, placeMines, revealCell, revealedCount, settings, playSound, addExplosion, addFloatingScore, streak, timeRemaining, spawnConfetti]);
+
+  const handleCellRightClick = useCallback((e, row, col) => {
+    e.preventDefault();
+    if (gameState !== 'playing') return;
+
+    const cell = grid[row][col];
+    if (cell.isRevealed) return;
+
+    playSound('flag');
+
+    const newGrid = grid.map(r => r.map(c => ({ ...c })));
+    newGrid[row][col].isFlagged = !cell.isFlagged;
+    setGrid(newGrid);
+    setFlagsPlaced(prev => cell.isFlagged ? prev - 1 : prev + 1);
+  }, [gameState, grid, playSound]);
+
+  const longPressTimer = useRef(null);
+  const isLongPress = useRef(false);
+
+  const handleTouchStart = useCallback((row, col) => {
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      if (gameState !== 'playing') return;
+      const cell = grid[row][col];
+      if (cell.isRevealed) return;
+      playSound('flag');
+      const newGrid = grid.map(r => r.map(c => ({ ...c })));
+      newGrid[row][col].isFlagged = !cell.isFlagged;
+      setGrid(newGrid);
+      setFlagsPlaced(prev => cell.isFlagged ? prev - 1 : prev + 1);
+    }, 500);
+  }, [gameState, grid, playSound]);
+
+  const handleTouchEnd = useCallback((row, col, e) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+    if (!isLongPress.current) {
+      handleCellClick(row, col, e);
+    }
+  }, [handleCellClick]);
+
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          setGameState('finished');
+          return 0;
         }
-    }, [calculateScore, gameState]);
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [gameState]);
 
-    // Timer countdown
-    useEffect(() => {
-        let interval;
-        if (gameState === 'playing' && timeRemaining > 0) {
-            interval = setInterval(() => {
-                setTimeRemaining(prev => {
-                    if (prev <= 1) {
-                        handleGameEnd('lose');
-                        return 0;
+  const startGame = useCallback(() => {
+    setScore(0);
+    setTimeRemaining(settings.time);
+    setGrid(createEmptyGrid());
+    setFlagsPlaced(0);
+    setRevealedCount(0);
+    setFirstClick(true);
+    setGameWon(false);
+    setExplosions([]);
+    setFloatingScores([]);
+    setConfetti([]);
+    setStreak(0);
+    setGameState('playing');
+  }, [settings.time, createEmptyGrid]);
+
+  const cellSize = useMemo(() => {
+    const maxWidth = Math.min(window.innerWidth - 32, 450);
+    const maxHeight = window.innerHeight * 0.55;
+    const sizeFromWidth = Math.floor(maxWidth / settings.cols) - 4;
+    const sizeFromHeight = Math.floor(maxHeight / settings.rows) - 4;
+    return Math.max(28, Math.min(sizeFromWidth, sizeFromHeight, 42));
+  }, [settings.rows, settings.cols]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const instructionsSection = (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          🎯 Objective
+        </h4>
+        <p className="text-sm text-blue-700">
+          Reveal all safe cells without hitting mines. Numbers show how many mines are adjacent to that cell.
+        </p>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          🎮 How to Play
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Tap cells to reveal them</li>
+          <li>• Long-press or right-click to flag</li>
+          <li>• Numbers show adjacent mine count</li>
+          <li>• Reveal all safe cells to win!</li>
+        </ul>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          📊 Scoring
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Points for each cell revealed</li>
+          <li>• Streak bonus for consecutive reveals</li>
+          <li>• Time bonus for quick completion</li>
+          <li>• Maximum score: 200 points</li>
+        </ul>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          💡 Strategy
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Start with corners and edges</li>
+          <li>• Use numbers to deduce mine locations</li>
+          <li>• Flag suspected mines immediately</li>
+          <li>• Look for patterns and logical deductions</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  const cssAnimation = `
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(5deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes cellReveal {
+      0% { transform: scale(0.8) rotateY(90deg); }
+      50% { transform: scale(1.1) rotateY(0deg); }
+      100% { transform: scale(1) rotateY(0deg); }
+    }
+    @keyframes cellPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+    @keyframes explosion {
+      0% { transform: scale(0); opacity: 1; }
+      50% { transform: scale(2); opacity: 0.8; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-60px) scale(1.3); opacity: 0; }
+    }
+    @keyframes flagWave {
+      0%, 100% { transform: rotate(-8deg); }
+      50% { transform: rotate(8deg); }
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    @keyframes cloudFloat {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(calc(100vw + 100%)); }
+    }
+    @keyframes streakPulse {
+      0%, 100% { transform: scale(1); text-shadow: 0 0 10px rgba(255,107,62,0.5); }
+      50% { transform: scale(1.1); text-shadow: 0 0 20px rgba(255,107,62,0.8); }
+    }
+    @keyframes victoryGlow {
+      0%, 100% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.4); }
+      50% { box-shadow: 0 0 60px rgba(34, 197, 94, 0.8); }
+    }
+    .cell-hover:hover { 
+      transform: scale(1.08) translateY(-2px); 
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .cell-hover:active { 
+      transform: scale(0.95); 
+    }
+    .btn-3d {
+      transition: all 0.15s ease;
+    }
+    .btn-3d:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    .btn-3d:active {
+      transform: translateY(0);
+    }
+  `;
+
+  const playingContent = (
+    <>
+      <style>{cssAnimation}</style>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: `linear-gradient(180deg, ${COLORS.skyTop} 0%, ${COLORS.skyMid} 40%, ${COLORS.grassTop} 70%, ${COLORS.grassBottom} 100%)`,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        {/* Floating clouds */}
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={`cloud-${i}`}
+            style={{
+              position: 'absolute',
+              top: `${5 + i * 8}%`,
+              left: 0,
+              width: `${80 + i * 20}px`,
+              height: `${30 + i * 10}px`,
+              background: 'rgba(255,255,255,0.25)',
+              borderRadius: '50px',
+              filter: 'blur(6px)',
+              animation: `cloudFloat ${25 + i * 5}s linear infinite`,
+              animationDelay: `${i * 6}s`,
+            }}
+          />
+        ))}
+
+        {/* Game Stats Bar */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '12px',
+          padding: '12px 16px',
+          background: 'rgba(255,255,255,0.15)',
+          backdropFilter: 'blur(15px)',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(255,255,255,0.2)',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            color: 'white',
+            fontWeight: 600,
+          }}>
+            <Clock size={18} />
+            {formatTime(timeRemaining)}
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(255,255,255,0.2)',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            color: 'white',
+            fontWeight: 600,
+          }}>
+            <Trophy size={18} />
+            {score}
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(255,255,255,0.2)',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            color: 'white',
+            fontWeight: 600,
+          }}>
+            <Bomb size={18} />
+            {settings.mines - flagsPlaced}
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(255,255,255,0.2)',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            color: 'white',
+            fontWeight: 600,
+          }}>
+            <Target size={18} />
+            {revealedCount}
+          </div>
+        </div>
+
+        {/* Streak indicator */}
+        {streak >= 3 && (
+          <div style={{
+            position: 'absolute',
+            top: '80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: `linear-gradient(135deg, ${COLORS.primary}, #ffd700)`,
+            padding: '8px 20px',
+            borderRadius: '20px',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '14px',
+            animation: 'streakPulse 0.5s ease-in-out infinite',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            zIndex: 100,
+          }}>
+            <Sparkles size={16} />
+            {streak} Streak! 🔥
+          </div>
+        )}
+
+        {/* Game Grid Container */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+        }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${settings.cols}, ${cellSize}px)`,
+              gap: '4px',
+              padding: '16px',
+              background: 'rgba(0,0,0,0.25)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              boxShadow: '0 15px 50px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.15)',
+            }}
+          >
+            {grid.map((row, rowIndex) =>
+              row.map((cell, colIndex) => {
+                const getCellStyle = () => {
+                  const base = {
+                    width: cellSize,
+                    height: cellSize,
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: cellSize * 0.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    position: 'relative',
+                    userSelect: 'none',
+                  };
+
+                  if (cell.isRevealed) {
+                    if (cell.isMine) {
+                      return {
+                        ...base,
+                        background: COLORS.cellMine,
+                        boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.4)',
+                        animation: 'cellReveal 0.3s ease-out',
+                      };
                     }
-                    return prev - 1;
-                });
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [gameState, timeRemaining, gameStartTime, score]);
+                    return {
+                      ...base,
+                      background: COLORS.cellRevealed,
+                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.15)',
+                      color: COLORS.numbers[cell.adjacentMines],
+                      animation: 'cellReveal 0.3s ease-out',
+                    };
+                  }
 
-    // Initialize game
-    const initializeGame = useCallback(() => {
-        const settings = difficultySettings[difficulty];
-        setScore(0);
-        setFinalScore(0);
-        setTimeRemaining(settings.timeLimit);
-        setLives(settings.lives);
-        setMaxHints(settings.hints);
-        setHintsUsed(0);
-        setMinesRevealed(0);
-        setCellsRevealed(0);
-        setFlagsPlaced(0);
-        setGameDuration(0);
-        setGameResult(null);
-        setShowFeedback(false);
-        setHintCell(null);
-        initializeBoard(settings.rows, settings.cols, settings.mines);
-    }, [difficulty, initializeBoard]);
+                  if (cell.isFlagged) {
+                    return {
+                      ...base,
+                      background: COLORS.cellFlagged,
+                      boxShadow: '0 4px 12px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.4)',
+                    };
+                  }
 
-    const handleStart = () => {
-        initializeGame();
-        setGameStartTime(Date.now());
-    };
+                  return {
+                    ...base,
+                    background: COLORS.cellUnrevealed,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
+                  };
+                };
 
-    const handleReset = () => {
-        initializeGame();
-        setShowCompletionModal(false);
-    };
-
-    const handleGameComplete = (payload) => {
-    };
-
-    // Prevent difficulty change during gameplay
-    const handleDifficultyChange = (newDifficulty) => {
-        if (gameState === 'ready') {
-            setDifficulty(newDifficulty);
-        }
-    };
-
-    // Get cell display content
-    const getCellContent = (row, col) => {
-        if (flagged[row][col]) {
-            return <Flag className="h-4 w-4 text-red-600" />;
-        }
-
-        if (!revealed[row][col]) {
-            return '';
-        }
-
-        if (board[row][col] === -1) {
-            return <Bomb className="h-4 w-4 text-red-600" />;
-        }
-
-        if (board[row][col] === 0) {
-            return '';
-        }
-
-        return board[row][col];
-    };
-
-    // Get cell styling
-    const getCellStyle = (row, col) => {
-        const isRevealed = revealed[row][col];
-        const isFlagged = flagged[row][col];
-        const value = board[row][col];
-        const isMine = value === -1;
-        const isHint = hintCell && hintCell.row === row && hintCell.col === col;
-
-        // base layout
-        let classes = "msw-cell flex items-center justify-center cursor-pointer transition-all duration-200 text-xs sm:text-sm ";
-
-        if (!isRevealed) {
-            // unrevealed
-            classes += "bg-gradient-to-br from-slate-200 to-slate-300 hover:from-slate-300 hover:to-slate-400 shadow-inner border border-slate-400 ";
-        }
-
-        if (isFlagged && !isRevealed) {
-            classes += "bg-gradient-to-br from-orange-200 to-orange-300 border-orange-400 ";
-        }
-
-        if (isRevealed && !isMine) {
-            classes += "bg-gradient-to-br from-white to-slate-100 border border-slate-300 shadow ";
-        }
-
-        if (isRevealed && isMine) {
-            classes += "bg-gradient-to-br from-red-400 to-red-600 text-white border border-red-600 mine ";
-        }
-
-        if (isHint && !isRevealed) {
-            classes += "ring-4 ring-yellow-400 hint ";
-        }
-
-        if (isRevealed) {
-            classes += "revealed ";
-        }
-
-        // number colors
-        if (isRevealed && value > 0) {
-            classes += numberColors[value] + " ";
-        }
-
-        return classes;
-    };
-
-
-    const customStats = {
-        cellsRevealed,
-        minesRevealed,
-        flagsPlaced,
-        lives,
-        hintsUsed,
-        efficiency: flagsPlaced > 0 ? Math.round((difficultySettings[difficulty].mines / flagsPlaced) * 100) : 100
-    };
-
-    const settings = difficultySettings[difficulty];
-
-    return (
-        <div>
-            {gameState === 'ready' && <Header unreadCount={3} />}
-
-            <GameFramework
-                gameTitle="Tap Minesweeper"
-        gameShortDescription="Clear mines safely by using numbers as clues. Test your logical deduction and risk assessment skills!"
-                gameDescription={
-                    <div className="mx-auto px-1 mb-2">
-                        <div className="bg-[#E8E8E8] rounded-lg p-6">
-                            {/* Header with toggle icon */}
-                            <div
-                                className="flex items-center justify-between mb-4 cursor-pointer"
-                                onClick={() => setShowInstructions(!showInstructions)}
-                            >
-                                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    How to Play Tap Minesweeper
-                                </h3>
-                                <span className="text-blue-900 text-xl">
-                                    {showInstructions ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                                </span>
-                            </div>
-
-                            {/* Instructions */}
-                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showInstructions ? '' : 'hidden'}`}>
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🎯 Objective
-                                    </h4>
-                                    <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        Reveal all safe cells without hitting mines. Numbers show how many mines are adjacent to that cell.
-                                    </p>
-                                </div>
-
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🖱️ Controls
-                                    </h4>
-                                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong>Left Click:</strong> Reveal cell</li>
-                                        <li>• <strong>Right Click:</strong> Flag suspected mine</li>
-                                        <li>• <strong>Hint Button:</strong> Shows safe cell to click</li>
-                                    </ul>
-                                </div>
-
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        📊 Difficulty
-                                    </h4>
-                                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong>Easy:</strong> 9x9, 10 mines</li>
-                                        <li>• <strong>Medium:</strong> 9x9, 20 mines</li>
-                                        <li>• <strong>Hard:</strong> 9x9, 30 mines</li>
-                                    </ul>
-                                </div>
-
-                                <div className='bg-white p-3 rounded-lg'>
-                                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        💯 Scoring
-                                    </h4>
-                                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• Safe cells revealed</li>
-                                        <li>• Time remaining bonus</li>
-                                        <li>• Lives preserved</li>
-                                        <li>• Efficient flagging</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-                category="Problem Solving"
-                gameState={gameState}
-                setGameState={setGameState}
-                score={gameState === 'finished' ? finalScore : score}
-                timeRemaining={timeRemaining}
-                difficulty={difficulty}
-                setDifficulty={handleDifficultyChange}
-                onStart={handleStart}
-                onReset={handleReset}
-                onGameComplete={handleGameComplete}
-                customStats={customStats}
-            >
-                {/* Game Content */}
-                <div className="flex flex-col items-center">
-                    {/* Game Controls */}
-                    <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-                        <button
-                            onClick={useHint}
-                            disabled={hintsUsed >= maxHints || gameResult}
-                            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${hintsUsed >= maxHints || gameResult
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                                }`}
-                            style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-                        >
-                            <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
-                            Hint ({maxHints - hintsUsed})
-                        </button>
-                    </div>
-
-                    {/* Game Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6 w-full max-w-4xl px-2">
-                        <div className="text-center bg-gray-50 rounded-lg p-3">
-                            <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Mines Left
-                            </div>
-                            <div className="text-sm sm:text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {settings.mines - flagsPlaced}
-                            </div>
-                        </div>
-                        <div className="text-center bg-gray-50 rounded-lg p-3">
-                            <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Lives
-                            </div>
-                            <div className="text-sm sm:text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {'❤️'.repeat(lives)}
-                            </div>
-                        </div>
-                        <div className="text-center bg-gray-50 rounded-lg p-3">
-                            <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Revealed
-                            </div>
-                            <div className="text-sm sm:text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {cellsRevealed}/{settings.rows * settings.cols - settings.mines}
-                            </div>
-                        </div>
-                        <div className="text-center bg-gray-50 rounded-lg p-3">
-                            <div className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                Flags
-                            </div>
-                            <div className="text-sm sm:text-lg font-semibold text-orange-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {flagsPlaced}/{settings.mines}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Game Board */}
-                    <div className="w-full mb-4 sm:mb-6 px-2">
-                        <div className="bg-white rounded-lg p-2 sm:p-4 shadow-lg border border-gray-200 overflow-x-auto">
-                            <div
-                                className="grid gap-0.5 sm:gap-1 mx-auto"
-                                style={{
-                                    gridTemplateColumns: `repeat(${settings.cols}, 1fr)`,
-                                    maxWidth: 'fit-content'
-                                }}
-                            >
-                                {board.map((row, rowIndex) =>
-                                    row.map((cell, colIndex) => (
-                                        <div
-                                            key={`${rowIndex}-${colIndex}`}
-                                            className={getCellStyle(rowIndex, colIndex)}
-                                            onClick={() => handleCellClick(rowIndex, colIndex)}
-                                            onContextMenu={(e) => handleCellRightClick(e, rowIndex, colIndex)}
-                                            style={{
-                                                minWidth: difficulty === 'Hard' ? '18px' : window.innerWidth < 640 ? '24px' : '30px',
-                                                minHeight: difficulty === 'Hard' ? '18px' : window.innerWidth < 640 ? '24px' : '30px',
-                                                fontSize: difficulty === 'Hard' ? '10px' : window.innerWidth < 640 ? '12px' : '14px'
-                                            }}
-                                        >
-                                            {/* glossy highlight */}
-                                            {!revealed[rowIndex][colIndex] && <span className="msw-gloss" />}
-
-                                            {/* cell content */}
-                                            {getCellContent(rowIndex, colIndex)}
-                                        </div>
-
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Feedback */}
-                    {showFeedback && (
-                        <div className={`w-full max-w-2xl text-center p-3 sm:p-4 rounded-lg mb-4 mx-2 ${feedbackType === 'win' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                            <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
-                                {feedbackType === 'win' ? (
-                                    <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-                                ) : (
-                                    <Bomb className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
-                                )}
-                                <div className="text-base sm:text-lg font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    {feedbackMessage}
-                                </div>
-                            </div>
-                        </div>
+                return (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={!cell.isRevealed ? 'cell-hover' : ''}
+                    style={getCellStyle()}
+                    onClick={(e) => !cell.isFlagged && handleCellClick(rowIndex, colIndex, e)}
+                    onContextMenu={(e) => handleCellRightClick(e, rowIndex, colIndex)}
+                    onTouchStart={() => handleTouchStart(rowIndex, colIndex)}
+                    onTouchEnd={(e) => handleTouchEnd(rowIndex, colIndex, e)}
+                  >
+                    {cell.isRevealed && cell.isMine && <Bomb size={cellSize * 0.5} color="white" />}
+                    {cell.isRevealed && !cell.isMine && cell.adjacentMines > 0 && cell.adjacentMines}
+                    {!cell.isRevealed && cell.isFlagged && (
+                      <div style={{ animation: 'flagWave 0.6s ease-in-out infinite' }}>
+                        <Flag size={cellSize * 0.45} color="white" fill="white" />
+                      </div>
                     )}
 
-                    {/* Instructions */}
-                    <div className="text-center max-w-2xl mt-4 sm:mt-6 px-4">
-                        <p className="text-xs sm:text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                            Left click to reveal cells, right click to flag mines. Numbers show adjacent mine count.
-                            Use hints wisely to reveal safe cells when stuck!
-                        </p>
-                        <div className="mt-1 sm:mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            {difficulty} Mode: {settings.description} |
-                            {Math.floor(settings.timeLimit / 60)}:{String(settings.timeLimit % 60).padStart(2, '0')} time limit |
-                            {settings.lives} lives | {settings.hints} hints
-                        </div>
-                    </div>
-                </div>
-            </GameFramework>
-
-            <GameCompletionModal
-                isOpen={showCompletionModal}
-                onClose={() => setShowCompletionModal(false)}
-                score={finalScore}
-                difficulty={difficulty}
-                duration={gameDuration}
-                customStats={{
-                    correctAnswers: cellsRevealed,
-                    totalQuestions: settings.rows * settings.cols - settings.mines
-                }}
-            />
+                    {/* Shine overlay */}
+                    {!cell.isRevealed && !cell.isFlagged && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)',
+                        pointerEvents: 'none',
+                      }} />
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
-    );
+
+        {/* Explosions */}
+        {explosions.map(exp => (
+          <div
+            key={exp.id}
+            style={{
+              position: 'fixed',
+              left: '50%',
+              top: '50%',
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, #ff6b3e, #ef4444, transparent)',
+              animation: 'explosion 0.6s ease-out forwards',
+              pointerEvents: 'none',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1000,
+            }}
+          />
+        ))}
+
+        {/* Floating Scores */}
+        {floatingScores.map(s => (
+          <div
+            key={s.id}
+            style={{
+              position: 'fixed',
+              left: s.x,
+              top: s.y,
+              color: '#ffd700',
+              fontWeight: 800,
+              fontSize: '24px',
+              textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+              animation: 'floatUp 1s ease-out forwards',
+              pointerEvents: 'none',
+              zIndex: 1000,
+            }}
+          >
+            +{s.value}
+          </div>
+        ))}
+
+        {/* Footer instruction */}
+        <div style={{
+          padding: '12px',
+          textAlign: 'center',
+          background: 'rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(10px)',
+          color: 'rgba(255,255,255,0.8)',
+          fontSize: '13px',
+        }}>
+          Tap to reveal • Long-press to flag 🚩
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <GameFrameworkV2
+      gameTitle="Minesweeper"
+      gameShortDescription="Reveal all safe cells without hitting mines. Numbers show how many mines are adjacent to each cell. Test your logic and deduction skills!"
+      category="Puzzle"
+      gameState={gameState}
+      setGameState={setGameState}
+      score={score}
+      timeRemaining={timeRemaining}
+      difficulty={difficulty}
+      setDifficulty={setDifficulty}
+      onStart={startGame}
+      onReset={() => {
+        setScore(0);
+        setTimeRemaining(settings.time);
+        setGrid(createEmptyGrid());
+        setFlagsPlaced(0);
+        setRevealedCount(0);
+        setFirstClick(true);
+        setGameWon(false);
+        setExplosions([]);
+        setFloatingScores([]);
+        setConfetti([]);
+        setStreak(0);
+        setGameState('ready');
+      }}
+      customStats={{ flagsPlaced, revealedCount, streak }}
+      enableCompletionModal={true}
+      instructionsSection={instructionsSection}
+    >
+      {playingContent}
+    </GameFrameworkV2>
+  );
 };
 
-export default TapMinesweeperGame;
+export default Minesweeper;

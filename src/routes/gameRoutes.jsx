@@ -45,7 +45,9 @@ import {
   ColorMatchCircleGame,
   TowerOfHanoi,
   ShopShiftGame,
-  PatternMatchGame
+  PatternMatchGame,
+  ColorWordMatch,
+  MemoryMatrix
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -312,6 +314,16 @@ export const gameRoutes = [
     path: "/games/pattern-match-game",
     element: <PatternMatchGame />,
     name: "Pattern Match Game"
+  },
+  {
+    path: "/games/color-word-match-game",
+    element: <ColorWordMatch />,
+    name: "Color Word Match Game"
+  },
+  {
+    path: "/games/memory-matrix-game",
+    element: <MemoryMatrix />,
+    name: "Memory Matrix Game"
   },
   {
     path: "/games/zip-game",
