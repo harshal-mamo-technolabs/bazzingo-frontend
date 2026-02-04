@@ -5,13 +5,13 @@ import { API_CONNECTION_HOST_URL } from '../utils/constant';
 let beaconInitialized = false;
 let beaconScriptLoaded = false;
 
-export default function useHelpScout(beaconId, options = {}) {
+export default function useHelpScout(beaconId, options = {}, enabled = true) {
   const { customAttributes = {} } = options;
   const initRef = useRef(false);
   const cleanupFunctionsRef = useRef([]);
 
   useEffect(() => {
-    if (!beaconId) {
+    if (!beaconId || !enabled) {
       return;
     }
 
@@ -96,7 +96,7 @@ export default function useHelpScout(beaconId, options = {}) {
       beaconScriptLoaded = false;
       initRef.current = false;
     };
-  }, [beaconId]);
+  }, [beaconId, enabled]);
 
   useEffect(() => {
     if (beaconInitialized && window.Beacon && typeof window.Beacon === 'function') {

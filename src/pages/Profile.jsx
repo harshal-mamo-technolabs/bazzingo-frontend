@@ -23,7 +23,7 @@ import TranslatedText from "../components/TranslatedText.jsx";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useI18n } from "../context/I18nContext.jsx";
-import { isProfilePageVisible } from "../config/accessControl";
+import { isProfilePageVisible, isComponentVisible } from "../config/accessControl";
 
 
 // Premium Celebration Modal Component
@@ -514,8 +514,16 @@ const Profile = () => {
     isProfilePageVisible(page.pageKey)
   );
   
+  // Filter base settings to hide update password if switch is enabled
+  const filteredBaseSettings = baseSettings.filter(setting => {
+    if (setting.route === "/update-password" && isComponentVisible('hideUpdatePasswordForMSISDN')) {
+      return false; // Hide update password if switch is enabled
+    }
+    return true;
+  });
+  
   // Final settings list
-  const settings = [...baseSettings, ...visibleProfilePages];
+  const settings = [...filteredBaseSettings, ...visibleProfilePages];
   const unreadCount = 3;
 
   // Handle token-based login from URL (only once)

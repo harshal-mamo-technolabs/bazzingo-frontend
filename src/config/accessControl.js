@@ -45,6 +45,14 @@ export const VISIBILITY_CONTROLS = {
   impressum: false,
   faq: true,
   ticketRaisingSystem: true,
+  
+  /**
+   * Profile settings visibility controls
+   * Control visibility of profile settings options
+   */
+  // updatePasswordPage: true,
+  hideUpdatePasswordForMSISDN: true,
+  hideHelpScoutBeaconForMSISDN: true,
 };
 
 export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
@@ -53,6 +61,19 @@ export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
 
 export const isAssessmentPaymentEnabled = () =>
   Boolean(ASSESSMENT_BEHAVIOUR_CONTROLS.assessmentPaymentsEnabled);
+
+/**
+ * MSISDN Authentication controls
+ * Control MSISDN-based authentication features
+ */
+export const MSISDN_CONTROLS = {
+  enabled: true,  
+  useMSISDNSignup: true,
+  useMSISDNLogin: true,
+};
+
+export const isMSISDNControlEnabled = (control) =>
+  Boolean(MSISDN_CONTROLS.enabled && MSISDN_CONTROLS[control]);
 
 
 export const isComponentVisible = (component) =>

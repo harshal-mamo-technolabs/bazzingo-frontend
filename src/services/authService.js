@@ -79,6 +79,25 @@ export async function updatePassword(currentPassword, newPassword) {
     return response.data;
 }
 
+export async function signupMSISDN(msisdn, name, age, country) {
+    const response = await axios.post(`${API_CONNECTION_HOST_URL}/auth/signup-msisdn`, {
+        msisdn,
+        name,
+        age,
+        country,
+    });
+
+    return response.data;
+}
+
+export async function loginMSISDN(msisdn) {
+    const response = await axios.post(`${API_CONNECTION_HOST_URL}/auth/login-msisdn`, {
+        msisdn,
+    });
+
+    return response.data;
+}
+
 export async function refreshTokenLP(token) {
     const response = await axios.post(`${API_CONNECTION_HOST_URL}${REFRESH_TOKEN_LP_ENDPOINT}`, {
         token,

@@ -1,4 +1,4 @@
-import React from 'react';
+  import React from 'react';
 
 // Flag components for all countries
 export const AfghanistanFlag = () => (
@@ -629,7 +629,7 @@ export const IndiaFlag = () => (
   <div className="w-5 h-3.5 rounded-sm overflow-hidden border border-gray-200 flex flex-col">
     <div className="h-1/3 bg-orange-500" />
     <div className="h-1/3 bg-white flex items-center justify-center">
-      <div className="w-1.5 h-1.5 border border-blue-600 rounded-full" />
+      <div className="w-1.5 h-1.5 border-2 border-blue-600 rounded-full" />
     </div>
     <div className="h-1/3 bg-green-600" />
   </div>

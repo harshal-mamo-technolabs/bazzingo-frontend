@@ -5,6 +5,7 @@ import { ArrowLeft, MessageCircle, Mail, HelpCircle, BookOpen, Wrench, CreditCar
 import MainLayout from '../components/Layout/MainLayout';
 import useHelpScout from '../hooks/useHelpScout';
 import { selectSubscriptionData } from '../app/subscriptionSlice';
+import { isComponentVisible } from '../config/accessControl';
 import TranslatedText from '../components/TranslatedText.jsx';
 
 function ClientTicket() {
@@ -32,7 +33,7 @@ function ClientTicket() {
 
     useHelpScout(beaconId, {
         customAttributes: helpScoutAttributes
-    });
+    }, !isComponentVisible('hideHelpScoutBeaconForMSISDN')); // Pass false to hide beacon if switch is enabled
 
     const helpResources = [
         { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },

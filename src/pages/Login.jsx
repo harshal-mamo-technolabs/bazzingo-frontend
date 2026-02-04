@@ -2,16 +2,16 @@ import React, { useEffect } from 'react';
 import AuthLayout from '../components/Layout/AuthLayout';
 import Button from '../components/Form/Button';
 import { LoginForm } from '../components/Authentication';
+import { isMSISDNControlEnabled } from '../config/accessControl';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
-import { googleLogin } from '../services/authService';
-import { GoogleLogin } from '@react-oauth/google';
-import { login as loginService } from '../services/authService';
+import { googleLogin, login as loginService, loginMSISDN } from '../services/authService';
 import { login as loginAction, loading as loadingAction, checkAndValidateToken } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS, getTokenExpiry } from '../utils/constant';
 import TranslatedText from '../components/TranslatedText.jsx';
 import { useTranslateText } from '../hooks/useTranslate';
+import MSISDNLoginForm from '../components/Authentication/MSISDNLoginForm';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -47,6 +47,33 @@ const Login = () => {
           tokenExpiry: getTokenExpiry(),
         };
 
+
+        dispatch(loginAction(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
+        toast.success(loggedInSuccessText);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || loginFailedText;
+      toast.error(message);
+    } finally {
+      dispatch(loadingAction());
+    }
+  };
+
+  const msisdnLoginHandler = async (formData) => {
+    try {
+      dispatch(loadingAction());
+
+      const response = await loginMSISDN(formData.msisdn);
+
+      if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+        const userData = {
+          user: response.data?.user || response.user || response.data,
+          accessToken: response.data?.token || response.token || response.data?.accessToken || response.accessToken,
+          tokenExpiry: getTokenExpiry(),
+        };
 
         dispatch(loginAction(userData));
         localStorage.setItem("user", JSON.stringify(userData));
@@ -129,7 +156,11 @@ const Login = () => {
       </div>
 
       <div className="w-full">
-        <LoginForm loginHandler={loginHandler} loading={loading} />
+        {isMSISDNControlEnabled('useMSISDNLogin') ? (
+          <MSISDNLoginForm loginHandler={msisdnLoginHandler} loading={loading} />
+        ) : (
+          <LoginForm loginHandler={loginHandler} loading={loading} />
+        )}
         {/* Social Login Section - Commented Out */}
         {/* <div className="text-center my-4 md:my-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">Or Continue With</p>
