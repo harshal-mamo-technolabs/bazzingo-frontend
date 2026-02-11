@@ -81,6 +81,7 @@ import MemoryMatrix from './games/MemoryMatrixGame.jsx';
 import TugOfMathsGame from './games/TugOfMathsGame.jsx';
 import ArrowEscapeGame from './games/ArrowEscapeGame.jsx';
 import BallSortGame from './games/BallSortGame.jsx';
+import CocktailSortGame from './games/CocktailSortGame.jsx';
  
 /*
 // Unused Game imports
@@ -211,7 +212,8 @@ export {
   MemoryMatrix,
   TugOfMathsGame,
   ArrowEscapeGame,
-  BallSortGame
+  BallSortGame,
+  CocktailSortGame
  
 /*
   // 🚫 Unused game pages

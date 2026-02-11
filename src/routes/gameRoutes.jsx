@@ -51,7 +51,8 @@ import {
   MemoryMatrix,
   TugOfMathsGame,
   ArrowEscapeGame,
-  BallSortGame
+  BallSortGame,
+  CocktailSortGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -353,5 +354,10 @@ export const gameRoutes = [
     path: "/games/ball-sort-game",
     element: <BallSortGame />,
     name: "Ball Sort Game"
+  },
+  {
+    path: "/games/cocktail-sort-game",
+    element: <CocktailSortGame />,
+    name: "Cocktail Sort Game"
   }
 ];
