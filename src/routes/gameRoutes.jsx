@@ -48,7 +48,9 @@ import {
   TrainOfThoughtGame,
   PatternMatchGame,
   ColorWordMatch,
-  MemoryMatrix
+  MemoryMatrix,
+  TugOfMathsGame,
+  ArrowEscapeGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -335,5 +337,15 @@ export const gameRoutes = [
     path: "/games/zip-game",
     element: <ZipGame />,
     name: "ZIP"
+  },
+  {
+    path: "/games/tug-of-maths-game",
+    element: <TugOfMathsGame />,
+    name: "Tug of Maths Game"
+  },
+  {
+    path: "/games/arrow-escape-game",
+    element: <ArrowEscapeGame />,
+    name: "Arrow Escape Game"
   }
 ];
