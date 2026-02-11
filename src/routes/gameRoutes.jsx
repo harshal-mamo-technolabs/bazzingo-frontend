@@ -52,7 +52,8 @@ import {
   TugOfMathsGame,
   ArrowEscapeGame,
   BallSortGame,
-  CocktailSortGame
+  CocktailSortGame,
+  TileAdjustGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -359,5 +360,10 @@ export const gameRoutes = [
     path: "/games/cocktail-sort-game",
     element: <CocktailSortGame />,
     name: "Cocktail Sort Game"
+  },
+  {
+    path: "/games/tile-adjust-game",
+    element: <TileAdjustGame />,
+    name: "Tile Adjust Game"
   }
 ];

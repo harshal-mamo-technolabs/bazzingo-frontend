@@ -82,6 +82,7 @@ import TugOfMathsGame from './games/TugOfMathsGame.jsx';
 import ArrowEscapeGame from './games/ArrowEscapeGame.jsx';
 import BallSortGame from './games/BallSortGame.jsx';
 import CocktailSortGame from './games/CocktailSortGame.jsx';
+import TileAdjustGame from './games/TileAdjustGame.jsx';
  
 /*
 // Unused Game imports
@@ -213,7 +214,8 @@ export {
   TugOfMathsGame,
   ArrowEscapeGame,
   BallSortGame,
-  CocktailSortGame
+  CocktailSortGame,
+  TileAdjustGame
  
 /*
   // 🚫 Unused game pages
