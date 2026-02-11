@@ -76,6 +76,52 @@ export const isMSISDNControlEnabled = (control) =>
   Boolean(MSISDN_CONTROLS.enabled && MSISDN_CONTROLS[control]);
 
 
+/**
+ * Language controls
+ * Control default language settings
+ */
+export const LANGUAGE_CONTROLS = {
+  /**
+   * Master switch for language controls
+   */
+  enabled: true,
+  
+  /**
+   * Default language to use regardless of browser/location
+   * Supported values: 'en', 'de', 'ro'
+   * Set to null to use browser-based detection
+   */
+  defaultLanguage: 'de',
+};
+
+/**
+ * Default country controls
+ * Control default country selection in signup forms
+ */
+export const DEFAULT_COUNTRY_CONTROLS = {
+  /**
+   * Master switch for default country controls
+   */
+  enabled: true,
+  
+  /**
+   * Default country to pre-select in signup forms
+   * Must match a country name from the countries array in constant.js
+   * Set to null to show no default selection
+   */
+  defaultCountry: 'Germany',
+};
+
+export const getDefaultLanguage = () => {
+  if (!LANGUAGE_CONTROLS.enabled) return null;
+  return LANGUAGE_CONTROLS.defaultLanguage;
+};
+
+export const getDefaultCountry = () => {
+  if (!DEFAULT_COUNTRY_CONTROLS.enabled) return null;
+  return DEFAULT_COUNTRY_CONTROLS.defaultCountry;
+};
+
 export const isComponentVisible = (component) =>
   Boolean(VISIBILITY_CONTROLS.enabled && VISIBILITY_CONTROLS[component]);
 

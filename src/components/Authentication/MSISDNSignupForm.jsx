@@ -4,6 +4,7 @@ import { countries } from '../../utils/constant';
 import { Globe, ChevronDown, Phone } from 'lucide-react';
 import TranslatedText from '../TranslatedText.jsx';
 import { useTranslateText } from '../../hooks/useTranslate';
+import { getDefaultCountry } from '../../config/accessControl';
 
 export default function MSISDNSignupForm({ signupHandler, loading = false }) {
   const {
@@ -15,11 +16,14 @@ export default function MSISDNSignupForm({ signupHandler, loading = false }) {
 
   const selectedCountry = watch("country");
   
+  // Get default country from access control
+  const defaultCountry = getDefaultCountry();
+  
   // Translated strings for validation messages
   const fullNameRequiredText = useTranslateText('Full name is required');
   const nameMinLengthText = useTranslateText('Name must be at least 2 characters long');
-  const msisdnRequiredText = useTranslateText('MSISDN number is required');
-  const invalidMSISDNFormatText = useTranslateText('Invalid MSISDN format');
+  const msisdnRequiredText = useTranslateText('Phone number is required');
+  const invalidMSISDNFormatText = useTranslateText('Invalid phone number format');
   const ageRequiredText = useTranslateText('Age is required');
   const ageMinText = useTranslateText('You must be at least 13 years old');
   const ageMaxText = useTranslateText('Please enter a valid age');
@@ -52,13 +56,13 @@ export default function MSISDNSignupForm({ signupHandler, loading = false }) {
         {/* MSISDN Field */}
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            <TranslatedText text="MSISDN Number" />
+            <TranslatedText text="Phone Number" />
           </label>
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="tel"
-              placeholder={useTranslateText('Enter your MSISDN number')}
+              placeholder={useTranslateText('Enter your phone number')}
               className="w-full pl-12 pr-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
               {...register("msisdn", {
                 required: msisdnRequiredText,
@@ -102,7 +106,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false }) {
               <select
                 className={`w-full pl-12 pr-12 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] bg-white appearance-none ${selectedCountry ? "text-gray-800" : "text-gray-400"
                   }`}
-                defaultValue=""
+                defaultValue={defaultCountry || ""}
                 {...register("country", {
                   required: countryRequiredText,
                 })}
@@ -110,7 +114,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false }) {
                   color: selectedCountry ? '#1F2937' : '#9CA3AF'
                 }}
               >
-                <option value="" disabled hidden style={{ color: '#9CA3AF' }}>{selectCountryPlaceholder}</option>
+                {!defaultCountry && <option value="" disabled hidden style={{ color: '#9CA3AF' }}>{selectCountryPlaceholder}</option>}
                 {countries.map((country) => (
                   <option key={country} value={country} style={{ color: '#1F2937' }}>
                     {country}

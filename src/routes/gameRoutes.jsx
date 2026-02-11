@@ -45,6 +45,7 @@ import {
   ColorMatchCircleGame,
   TowerOfHanoi,
   ShopShiftGame,
+  TrainOfThoughtGame,
   PatternMatchGame,
   ColorWordMatch,
   MemoryMatrix
@@ -309,6 +310,11 @@ export const gameRoutes = [
     path: "/games/shop-shift-game",
     element: <ShopShiftGame />,
     name: "Shop Shift Game"
+  },
+  {
+    path: "/games/train-of-thought-game",
+    element: <TrainOfThoughtGame />,
+    name: "Train of Thought Game"
   },
   {
     path: "/games/pattern-match-game",

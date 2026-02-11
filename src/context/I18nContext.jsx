@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { getDefaultLanguage } from '../config/accessControl';
 
 const STORAGE_KEY = 'bazzingo.lang';
 const SUPPORTED_LANGS = ['en', 'de', 'ro'];
@@ -11,6 +12,13 @@ export const  I18nContext = createContext({
 export function I18nProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
     if (typeof window === 'undefined') return 'de';
+    
+    // Check if there's a default language set in access control
+    const defaultLang = getDefaultLanguage();
+    if (defaultLang && SUPPORTED_LANGS.includes(defaultLang)) {
+      return defaultLang;
+    }
+    
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored && SUPPORTED_LANGS.includes(stored)) {
       return stored;

@@ -47,6 +47,9 @@ export const staticTranslations = {
     'Select your country': 'Wählen Sie Ihr Land',
     'Enter your full name': 'Geben Sie Ihren vollständigen Namen ein',
     'Enter your age': 'Geben Sie Ihr Alter ein',
+    'Enter your phone number': 'Geben Sie Ihre Telefonnummer ein',
+    'Phone number is required': 'Telefonnummer ist erforderlich',
+    'Invalid phone number format': 'Ungültiges Telefonnummernformat',
     
     // Profile & Settings
     'Profile Information': 'Profilinformationen',
@@ -1535,6 +1538,9 @@ export const staticTranslations = {
     'Select your country': 'Selectați țara dvs.',
     'Enter your full name': 'Introduceți numele complet',
     'Enter your age': 'Introduceți vârsta',
+    'Enter your phone number': 'Introduceți numărul de telefon',
+    'Phone number is required': 'Numărul de telefon este obligatoriu',
+    'Invalid phone number format': 'Format invalid al numărului de telefon',
     
     // Profile & Settings
     'Profile Information': 'Informații profil',

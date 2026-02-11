@@ -12,8 +12,8 @@ export default function MSISDNLoginForm({ loginHandler, loading = false }) {
   } = useForm();
 
   // Translated strings for validation messages
-  const msisdnRequiredText = useTranslateText('MSISDN number is required');
-  const invalidMSISDNFormatText = useTranslateText('Invalid MSISDN format');
+  const msisdnRequiredText = useTranslateText('Phone number is required');
+  const invalidMSISDNFormatText = useTranslateText('Invalid phone number format');
 
   return (
     <form onSubmit={handleSubmit(loginHandler)} className="flex flex-col gap-5 md:gap-6">
@@ -21,13 +21,13 @@ export default function MSISDNLoginForm({ loginHandler, loading = false }) {
         {/* MSISDN Field */}
         <div>
           <label className="block text-xs md:text-sm font-medium text-gray-800 mb-2">
-            <TranslatedText text="MSISDN Number" />
+            <TranslatedText text="Phone Number" />
           </label>
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="tel"
-              placeholder={useTranslateText('Enter your MSISDN number')}
+              placeholder={useTranslateText('Enter your phone number')}
               className="w-full pl-12 pr-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
               {...register("msisdn", {
                 required: msisdnRequiredText,

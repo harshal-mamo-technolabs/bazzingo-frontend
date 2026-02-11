@@ -74,6 +74,7 @@ import ColorMatchGame from './games/ColorMatchGame';
 import ColorMatchCircleGame from './games/ColorMatchCircleGame';
 import TowerOfHanoi from './games/TowerOfHanoi.jsx';
 import ShopShiftGame from './games/ShopShift.jsx';
+import TrainOfThoughtGame from './games/TrainOfThoughtGame';
 import PatternMatchGame from './games/PatternMatchGame';
 import ColorWordMatch from './games/ColorWordMatchGame.jsx';
 import MemoryMatrix from './games/MemoryMatrixGame.jsx';
@@ -201,6 +202,7 @@ export {
   ColorMatchCircleGame,
   TowerOfHanoi,
   ShopShiftGame,
+  TrainOfThoughtGame,
   PatternMatchGame,
   ColorWordMatch,
   MemoryMatrix
