@@ -80,6 +80,7 @@ import ColorWordMatch from './games/ColorWordMatchGame.jsx';
 import MemoryMatrix from './games/MemoryMatrixGame.jsx';
 import TugOfMathsGame from './games/TugOfMathsGame.jsx';
 import ArrowEscapeGame from './games/ArrowEscapeGame.jsx';
+import BallSortGame from './games/BallSortGame.jsx';
  
 /*
 // Unused Game imports
@@ -209,7 +210,8 @@ export {
   ColorWordMatch,
   MemoryMatrix,
   TugOfMathsGame,
-  ArrowEscapeGame
+  ArrowEscapeGame,
+  BallSortGame
  
 /*
   // 🚫 Unused game pages

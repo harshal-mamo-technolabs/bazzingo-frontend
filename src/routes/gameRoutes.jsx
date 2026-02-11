@@ -50,7 +50,8 @@ import {
   ColorWordMatch,
   MemoryMatrix,
   TugOfMathsGame,
-  ArrowEscapeGame
+  ArrowEscapeGame,
+  BallSortGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -347,5 +348,10 @@ export const gameRoutes = [
     path: "/games/arrow-escape-game",
     element: <ArrowEscapeGame />,
     name: "Arrow Escape Game"
+  },
+  {
+    path: "/games/ball-sort-game",
+    element: <BallSortGame />,
+    name: "Ball Sort Game"
   }
 ];
