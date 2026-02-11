@@ -54,6 +54,7 @@ const TIME_LIMIT = 180; // 3 minutes
 // ─── AUDIO ENGINE ─────────────────────────────────────────────────────────────
 let audioCtx = null;
 let masterGain = null;
+let bgMusicOscillators = [];
 
 function initAudio() {
   if (audioCtx) return;
@@ -80,6 +81,54 @@ function playTone(freq, duration, type = 'sine', vol = 0.2) {
 function playPop() { playTone(600, 0.1, 'sine', 0.3); setTimeout(() => playTone(900, 0.08, 'sine', 0.15), 50); }
 function playDrop() { playTone(300, 0.15, 'triangle', 0.25); setTimeout(() => playTone(200, 0.1, 'triangle', 0.15), 80); }
 function playBuzz() { playTone(100, 0.25, 'sawtooth', 0.1); }
+
+function startBackgroundMusic() {
+  if (!audioCtx || bgMusicOscillators.length > 0) return;
+  
+  const bgGain = audioCtx.createGain();
+  bgGain.gain.value = 0.08;
+  bgGain.connect(masterGain);
+
+  // Ambient chord progression
+  const melody = [
+    { freq: 261.63, duration: 2 }, // C4
+    { freq: 329.63, duration: 2 }, // E4
+    { freq: 392.00, duration: 2 }, // G4
+    { freq: 329.63, duration: 2 }, // E4
+  ];
+
+  let currentNote = 0;
+  
+  function playNextNote() {
+    if (bgMusicOscillators.length === 0) return;
+    
+    const note = melody[currentNote];
+    const osc = audioCtx.createOscillator();
+    const noteGain = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.value = note.freq;
+    noteGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    noteGain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.1);
+    noteGain.gain.setValueAtTime(1, audioCtx.currentTime + note.duration - 0.1);
+    noteGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + note.duration);
+    
+    osc.connect(noteGain);
+    noteGain.connect(bgGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + note.duration);
+    
+    currentNote = (currentNote + 1) % melody.length;
+    setTimeout(playNextNote, note.duration * 1000);
+  }
+  
+  bgMusicOscillators.push(true);
+  playNextNote();
+}
+
+function stopBackgroundMusic() {
+  bgMusicOscillators = [];
+}
 
 // ─── STYLES (CSS keyframes injected once) ─────────────────────────────────────
 const STYLE_ID = 'ballsort-styles';
@@ -110,9 +159,27 @@ const BallSortGame = () => {
   const [shakeTube, setShakeTube] = useState(null);
   const [droppingTube, setDroppingTube] = useState(null);
   const [particles, setParticles] = useState([]);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
   const particleId = useRef(0);
 
   useEffect(() => { injectStyles(); }, []);
+
+  // Track screen size for responsive tube sizing
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Stop music when game finishes
+  useEffect(() => {
+    if (gameState === 'finished') {
+      stopBackgroundMusic();
+    }
+  }, [gameState]);
 
   const settings = PUZZLES[difficulty];
 
@@ -132,12 +199,14 @@ const BallSortGame = () => {
 
   const handleStart = useCallback(() => {
     initAudio();
+    startBackgroundMusic();
     initGame();
     setTimeRemaining(TIME_LIMIT);
     setGameState('playing');
   }, [initGame]);
 
   const handleReset = useCallback(() => {
+    stopBackgroundMusic();
     initGame();
     setTimeRemaining(TIME_LIMIT);
   }, [initGame]);
@@ -264,8 +333,9 @@ const BallSortGame = () => {
   );
 
   // Playing content
-  const tubeWidth = 56;
-  const ballSize = 40;
+  // Responsive sizing: larger tubes for big screens, keep current size for small screens
+  const tubeWidth = isLargeScreen ? 80 : 56;
+  const ballSize = isLargeScreen ? 60 : 40;
   const tubeHeight = MAX_BALLS * (ballSize + 4) + 24;
 
   const playingContent = (
@@ -330,6 +400,21 @@ const BallSortGame = () => {
           flexWrap: 'wrap',
           justifyContent: 'center',
         }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: timeRemaining <= 30 ? 'rgba(255,59,48,0.2)' : 'rgba(255,255,255,0.1)',
+            padding: '8px 16px',
+            borderRadius: 12,
+            backdropFilter: 'blur(10px)',
+            border: timeRemaining <= 30 ? '2px solid rgba(255,59,48,0.5)' : 'none',
+          }}>
+            <span>⏱️</span>
+            <span style={{ fontWeight: 600, color: timeRemaining <= 30 ? '#ff3b30' : '#fff' }}>
+              Time: {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+            </span>
+          </div>
           <div style={{
             display: 'flex',
             alignItems: 'center',
