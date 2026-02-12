@@ -83,6 +83,7 @@ import ArrowEscapeGame from './games/ArrowEscapeGame.jsx';
 import BallSortGame from './games/BallSortGame.jsx';
 import CocktailSortGame from './games/CocktailSortGame.jsx';
 import TileAdjustGame from './games/TileAdjustGame.jsx';
+import FillTracksGame from './games/FillTracks.jsx';
  
 /*
 // Unused Game imports
@@ -215,7 +216,8 @@ export {
   ArrowEscapeGame,
   BallSortGame,
   CocktailSortGame,
-  TileAdjustGame
+  TileAdjustGame,
+  FillTracksGame
  
 /*
   // 🚫 Unused game pages

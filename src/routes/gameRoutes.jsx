@@ -53,7 +53,8 @@ import {
   ArrowEscapeGame,
   BallSortGame,
   CocktailSortGame,
-  TileAdjustGame
+  TileAdjustGame,
+  FillTracksGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -365,5 +366,10 @@ export const gameRoutes = [
     path: "/games/tile-adjust-game",
     element: <TileAdjustGame />,
     name: "Tile Adjust Game"
+  },
+  {
+    path: "/games/fill-tracks-game",
+    element: <FillTracksGame />,
+    name: "Fill Tracks Game"
   }
 ];
