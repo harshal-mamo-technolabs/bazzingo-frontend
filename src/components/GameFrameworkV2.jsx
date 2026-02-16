@@ -138,7 +138,8 @@ const GameFrameworkV2 = ({
                   <select
                     value={difficulty}
                     onChange={(e) => setDifficulty(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                    disabled={gameState !== 'ready' || location.state?.fromDailyGame}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="Easy">Easy</option>
                     <option value="Moderate">Moderate</option>
@@ -147,6 +148,13 @@ const GameFrameworkV2 = ({
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(difficulty)}`}>
                     {difficulty}
                   </span>
+                  
+                  {/* Daily Challenge Indicator */}
+                  {location.state?.fromDailyGame && (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                      <TranslatedText text="Daily Challenge" />
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
