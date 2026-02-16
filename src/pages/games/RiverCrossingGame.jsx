@@ -1,520 +1,718 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import GameFramework from '../../components/GameFramework';
-import Header from '../../components/Header';
-import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/RiverCrossing';
-import { Waves, Lightbulb, CheckCircle, XCircle, ArrowRight, Users, ChevronUp, ChevronDown, Navigation } from 'lucide-react';
-import TranslatedText from '../../components/TranslatedText.jsx';
-import { useTranslateText } from '../../hooks/useTranslate';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-const RiverCrossingGame = () => {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
-  const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
-  const [currentScenario, setCurrentScenario] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [maxHints, setMaxHints] = useState(3);
-  const [solvedScenarios, setSolvedScenarios] = useState(0);
-  const [totalAttempts, setTotalAttempts] = useState(0);
-  const [totalResponseTime, setTotalResponseTime] = useState(0);
-  const [scenarioStartTime, setScenarioStartTime] = useState(0);
-  const [currentScenarios, setCurrentScenarios] = useState([]);
+/*
+  River Crossing Challenge – Carnival Quest
+  3 levels, 200-point cap, 3-minute timer, Web Audio API, fully self-contained JSX.
+  Rules: Move items across the river on a raft. Certain items can't be left alone together.
+*/
 
-  // Game state
-  const [selectedMove, setSelectedMove] = useState(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackType, setFeedbackType] = useState('');
-  const [showHint, setShowHint] = useState(false);
-  const [hintMessage, setHintMessage] = useState('');
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
+/* ───── LEVEL DEFINITIONS ───── */
+const LEVELS = [
+  {
+    id: 1,
+    name: 'Farm Crossing',
+    subtitle: 'The Classic Puzzle',
+    desc: 'Get the Farmer, Fox, Chicken & Grain across. Fox eats Chicken if alone. Chicken eats Grain if alone.',
+    raftCapacity: 2, // farmer + 1
+    items: [
+      { id: 'farmer', label: 'Farmer', emoji: '👨‍🌾', required: true },
+      { id: 'fox', label: 'Fox', emoji: '🦊' },
+      { id: 'chicken', label: 'Chicken', emoji: '🐔' },
+      { id: 'grain', label: 'Grain', emoji: '🌾' },
+    ],
+    conflicts: [
+      { a: 'fox', b: 'chicken', msg: 'Fox ate the Chicken!' },
+      { a: 'chicken', b: 'grain', msg: 'Chicken ate the Grain!' },
+    ],
+    bg: ['#1a3a2a', '#0d2818'],
+    water: ['#1565C0', '#0D47A1'],
+    sky: ['#4a90d9', '#1a3a6a'],
+  },
+  {
+    id: 2,
+    name: 'Jungle Expedition',
+    subtitle: 'Dangerous Cargo',
+    desc: 'Transport Explorer, Lion, Zebra, Antelope & Supplies. Lion eats Zebra. Zebra eats Supplies. Lion eats Antelope if alone.',
+    raftCapacity: 2,
+    items: [
+      { id: 'explorer', label: 'Explorer', emoji: '🧑‍🔬', required: true },
+      { id: 'lion', label: 'Lion', emoji: '🦁' },
+      { id: 'zebra', label: 'Zebra', emoji: '🦓' },
+      { id: 'antelope', label: 'Antelope', emoji: '🦌' },
+      { id: 'supplies', label: 'Supplies', emoji: '📦' },
+    ],
+    conflicts: [
+      { a: 'lion', b: 'zebra', msg: 'Lion attacked the Zebra!' },
+      { a: 'lion', b: 'antelope', msg: 'Lion attacked the Antelope!' },
+      { a: 'zebra', b: 'supplies', msg: 'Zebra ate the Supplies!' },
+    ],
+    bg: ['#2d1b00', '#1a1000'],
+    water: ['#00695C', '#004D40'],
+    sky: ['#ff8f00', '#4e342e'],
+  },
+  {
+    id: 3,
+    name: 'Royal Transport',
+    subtitle: 'Kingdom at Stake',
+    desc: 'Move King, Queen, Prince, Dragon, Treasure & Guard. Dragon attacks anyone without Guard. Prince steals Treasure without King.',
+    raftCapacity: 2,
+    items: [
+      { id: 'guard', label: 'Guard', emoji: '💂', required: true },
+      { id: 'king', label: 'King', emoji: '👑' },
+      { id: 'queen', label: 'Queen', emoji: '👸' },
+      { id: 'prince', label: 'Prince', emoji: '🤴' },
+      { id: 'dragon', label: 'Dragon', emoji: '🐉' },
+      { id: 'treasure', label: 'Treasure', emoji: '💎' },
+    ],
+    conflicts: [
+      { a: 'dragon', b: 'king', guard: 'guard', msg: 'Dragon attacked the King!' },
+      { a: 'dragon', b: 'queen', guard: 'guard', msg: 'Dragon attacked the Queen!' },
+      { a: 'dragon', b: 'prince', guard: 'guard', msg: 'Dragon attacked the Prince!' },
+      { a: 'prince', b: 'treasure', guard: 'king', msg: 'Prince stole the Treasure!' },
+    ],
+    bg: ['#1a0a2e', '#0d0520'],
+    water: ['#4A148C', '#311B92'],
+    sky: ['#7c4dff', '#1a0a2e'],
+  },
+];
 
-  // Update score whenever relevant values change
-  useEffect(() => {
-    const newScore = calculateScore(difficulty, solvedScenarios);
-    setScore(newScore);
-  }, [difficulty, solvedScenarios]);
+const TIME_LIMIT = 180;
+const MAX_SCORE = 200;
+const POINTS_PER_LEVEL = 67;
 
-  // Handle move selection
-  const handleMoveSelect = useCallback((moveId) => {
-    if (gameState !== 'playing' || showFeedback || !currentScenarios[currentScenario]) return;
+/* ───── AUDIO ───── */
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
 
-    const responseTime = Date.now() - scenarioStartTime;
-    const currentScenarioData = currentScenarios[currentScenario];
-    const isCorrect = moveId === currentScenarioData.correctMove;
-
-    setSelectedMove(moveId);
-    setShowFeedback(true);
-    setTotalAttempts(prev => prev + 1);
-    setTotalResponseTime(prev => prev + responseTime);
-
-    if (isCorrect) {
-      setFeedbackType('correct');
-      setSolvedScenarios(prev => prev + 1);
-      setStreak(prev => {
-        const newStreak = prev + 1;
-        setMaxStreak(current => Math.max(current, newStreak));
-        return newStreak;
-      });
-
-      setTimeout(() => {
-        if (currentScenario + 1 >= currentScenarios.length) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        } else {
-          setCurrentScenario(prev => prev + 1);
-          setSelectedMove(null);
-          setShowFeedback(false);
-          setScenarioStartTime(Date.now());
-        }
-      }, 2500);
-    } else {
-      setFeedbackType('incorrect');
-      setStreak(0);
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          setTimeout(() => {
-            setGameState('finished');
-            setShowCompletionModal(true);
-          }, 2000);
-        }
-        return Math.max(0, newLives);
-      });
-
-      setTimeout(() => {
-        if (lives > 1) {
-          setShowFeedback(false);
-          setSelectedMove(null);
-        }
-      }, 2500);
+    switch (type) {
+      case 'select': osc.frequency.value = 520; gain.gain.value = 0.12; osc.type = 'sine'; osc.start(); osc.stop(ctx.currentTime + 0.1); break;
+      case 'deselect': osc.frequency.value = 380; gain.gain.value = 0.1; osc.type = 'sine'; osc.start(); osc.stop(ctx.currentTime + 0.08); break;
+      case 'sail': {
+        osc.frequency.value = 300; gain.gain.value = 0.15; osc.type = 'triangle';
+        osc.frequency.linearRampToValueAtTime(500, ctx.currentTime + 0.3);
+        osc.start(); osc.stop(ctx.currentTime + 0.4); break;
+      }
+      case 'conflict': {
+        osc.frequency.value = 200; gain.gain.value = 0.2; osc.type = 'sawtooth';
+        osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.5);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+        osc.start(); osc.stop(ctx.currentTime + 0.5); break;
+      }
+      case 'win': {
+        osc.type = 'sine'; gain.gain.value = 0.15;
+        [523, 659, 784, 1047].forEach((f, i) => { osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.15); });
+        osc.start(); osc.stop(ctx.currentTime + 0.6); break;
+      }
+      case 'lose': {
+        osc.type = 'sawtooth'; gain.gain.value = 0.15;
+        osc.frequency.value = 400;
+        osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.8);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+        osc.start(); osc.stop(ctx.currentTime + 0.8); break;
+      }
+      case 'splash': {
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length) * 0.15;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filt = ctx.createBiquadFilter();
+        filt.type = 'lowpass'; filt.frequency.value = 800;
+        src.connect(filt); filt.connect(ctx.destination);
+        src.start(); osc.disconnect(); return;
+      }
+      case 'levelup': {
+        osc.type = 'sine'; gain.gain.value = 0.15;
+        [440, 554, 659, 880].forEach((f, i) => osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.12));
+        osc.start(); osc.stop(ctx.currentTime + 0.5); break;
+      }
+      default: osc.start(); osc.stop(ctx.currentTime + 0.1);
     }
-  }, [gameState, showFeedback, currentScenario, scenarioStartTime, lives, currentScenarios]);
+  } catch (e) { /* silent */ }
+}
 
-  // Use hint
-  const useHint = () => {
-    if (hintsUsed >= maxHints || gameState !== 'playing' || !currentScenarios[currentScenario]) return;
+/* ───── COMPONENT ───── */
+export default function RiverCrossing({ onBack }) {
+  const [phase, setPhase] = useState('menu'); // menu | playing | conflict | levelWin | gameWin | gameOver
+  const [levelIdx, setLevelIdx] = useState(0);
+  const [leftBank, setLeftBank] = useState([]);
+  const [rightBank, setRightBank] = useState([]);
+  const [raftItems, setRaftItems] = useState([]);
+  const [raftSide, setRaftSide] = useState('left'); // left | right | moving
+  const [selected, setSelected] = useState([]);
+  const [moves, setMoves] = useState(0);
+  const [timer, setTimer] = useState(TIME_LIMIT);
+  const [score, setScore] = useState(0);
+  const [conflictMsg, setConflictMsg] = useState('');
+  const [muted, setMuted] = useState(false);
+  const [particles, setParticles] = useState([]);
+  const [raftAnim, setRaftAnim] = useState(0); // 0-1 for animation
+  const [shake, setShake] = useState(false);
+  const timerRef = useRef(null);
+  const animRef = useRef(null);
+  const raftAnimRef = useRef(null);
+  const waveOffset = useRef(0);
+  const canvasRef = useRef(null);
 
-    setHintsUsed(prev => prev + 1);
-    
-    const currentScenarioData = currentScenarios[currentScenario];
-    setHintMessage(currentScenarioData.hint);
+  const lvl = LEVELS[levelIdx];
 
-    setShowHint(true);
-    setTimeout(() => {
-      setShowHint(false);
-    }, 4000);
-  };
+  const play = useCallback((t) => { if (!muted) playSound(t); }, [muted]);
 
-  // Timer countdown
+  /* ── Init level ── */
+  const initLevel = useCallback((idx) => {
+    const l = LEVELS[idx];
+    setLevelIdx(idx);
+    setLeftBank(l.items.map(it => it.id));
+    setRightBank([]);
+    setRaftItems([]);
+    setRaftSide('left');
+    setSelected([]);
+    setMoves(0);
+    setConflictMsg('');
+    setRaftAnim(0);
+    setPhase('playing');
+  }, []);
+
+  /* ── Timer ── */
   useEffect(() => {
-    let interval;
-    if (gameState === 'playing' && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setGameState('finished');
-            setShowCompletionModal(true);
+    if (phase === 'playing') {
+      timerRef.current = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            setPhase('gameOver');
+            play('lose');
             return 0;
           }
-          return prev - 1;
+          return t - 1;
         });
       }, 1000);
     }
-    return () => clearInterval(interval);
-  }, [gameState, timeRemaining]);
+    return () => clearInterval(timerRef.current);
+  }, [phase, play]);
 
-  // Initialize game
-  const initializeGame = useCallback(() => {
-    const settings = difficultySettings[difficulty];
-    const scenarios = getScenariosByDifficulty(difficulty);
+  /* ── Water Animation ── */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let running = true;
+
+    const draw = () => {
+      if (!running) return;
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
+      waveOffset.current += 0.02;
+
+      // Draw water
+      const waterColors = lvl.water;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, waterColors[0]);
+      grad.addColorStop(1, waterColors[1]);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Waves
+      for (let layer = 0; layer < 3; layer++) {
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        const amp = 6 + layer * 3;
+        const freq = 0.015 + layer * 0.005;
+        const speed = waveOffset.current * (1 + layer * 0.3);
+        const yBase = h * 0.15 + layer * (h * 0.25);
+        for (let x = 0; x <= w; x += 2) {
+          const y = yBase + Math.sin(x * freq + speed) * amp + Math.sin(x * freq * 2.3 + speed * 1.5) * (amp * 0.4);
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(255,255,255,${0.03 + layer * 0.02})`;
+        ctx.fill();
+      }
+
+      // Sparkles
+      for (let i = 0; i < 8; i++) {
+        const sx = (Math.sin(waveOffset.current * 0.7 + i * 2.3) * 0.5 + 0.5) * w;
+        const sy = (Math.sin(waveOffset.current * 0.5 + i * 3.1) * 0.5 + 0.5) * h;
+        const sparkAlpha = Math.sin(waveOffset.current * 2 + i) * 0.3 + 0.3;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${sparkAlpha})`;
+        ctx.fill();
+      }
+
+      // Bubbles
+      for (let i = 0; i < 5; i++) {
+        const bx = (i * 237 + waveOffset.current * 20) % w;
+        const by = h - ((waveOffset.current * 30 + i * 87) % h);
+        const br = 2 + Math.sin(i + waveOffset.current) * 1;
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { running = false; cancelAnimationFrame(animRef.current); };
+  }, [lvl]);
+
+  /* ── Conflict Check ── */
+  const checkConflicts = useCallback((bank, guardians) => {
+    for (const c of lvl.conflicts) {
+      const aIn = bank.includes(c.a);
+      const bIn = bank.includes(c.b);
+      if (aIn && bIn) {
+        // If conflict has a guard requirement, check if guard is present
+        if (c.guard) {
+          if (!bank.includes(c.guard)) return c.msg;
+        } else {
+          // The required person (farmer/explorer/guard) is the guardian
+          const req = lvl.items.find(it => it.required);
+          if (req && !bank.includes(req.id)) return c.msg;
+        }
+      }
+    }
+    return null;
+  }, [lvl]);
+
+  /* ── Select item on bank ── */
+  const toggleSelect = (itemId) => {
+    if (phase !== 'playing' || raftSide === 'moving') return;
+    const currentBank = raftSide === 'left' ? leftBank : rightBank;
+    if (!currentBank.includes(itemId)) return;
+
+    if (selected.includes(itemId)) {
+      setSelected(s => s.filter(x => x !== itemId));
+      play('deselect');
+    } else {
+      if (selected.length >= lvl.raftCapacity) return;
+      // Ensure required person is on raft
+      const req = lvl.items.find(it => it.required);
+      if (req && selected.length === 0 && itemId !== req.id && currentBank.includes(req.id)) {
+        // Auto-select required person first
+        setSelected([req.id, itemId]);
+        play('select');
+        return;
+      }
+      setSelected(s => [...s, itemId]);
+      play('select');
+    }
+  };
+
+  /* ── Sail ── */
+  const sail = () => {
+    if (phase !== 'playing' || raftSide === 'moving') return;
+    if (selected.length === 0) return;
+    const req = lvl.items.find(it => it.required);
+    if (req && !selected.includes(req.id)) return;
+
+    play('sail');
+
+    // Remove from current bank
+    const fromBank = raftSide === 'left' ? [...leftBank] : [...rightBank];
+    const newFrom = fromBank.filter(x => !selected.includes(x));
     
-    setCurrentScenarios(scenarios);
+    // Check conflicts on departing bank
+    const conflict = checkConflicts(newFrom);
+    if (conflict) {
+      setConflictMsg(conflict);
+      setPhase('conflict');
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      play('conflict');
+      return;
+    }
+
+    // Animate raft
+    setRaftSide('moving');
+    setRaftItems([...selected]);
+    if (raftSide === 'left') setLeftBank(newFrom); else setRightBank(newFrom);
+
+    const targetSide = raftSide === 'left' ? 'right' : 'left';
+    let progress = 0;
+    const animInterval = setInterval(() => {
+      progress += 0.025;
+      setRaftAnim(raftSide === 'left' ? progress : 1 - progress);
+      if (progress >= 1) {
+        clearInterval(animInterval);
+        play('splash');
+        // Add to target bank
+        const toBank = targetSide === 'left' ? [...leftBank] : [...rightBank];
+        // Need fresh state
+        if (targetSide === 'right') {
+          setRightBank(rb => [...rb, ...selected]);
+        } else {
+          setLeftBank(lb => [...lb, ...selected]);
+        }
+        setRaftItems([]);
+        setRaftSide(targetSide);
+        setSelected([]);
+        setMoves(m => m + 1);
+
+        // Check win
+        setTimeout(() => {
+          setRightBank(rb => {
+            if (rb.length === lvl.items.length) {
+              // Level complete
+              const timeBonus = Math.floor((timer / TIME_LIMIT) * POINTS_PER_LEVEL * 0.5);
+              const moveBonus = Math.max(0, POINTS_PER_LEVEL * 0.5 - moves * 2);
+              const pts = Math.min(Math.floor(timeBonus + moveBonus), POINTS_PER_LEVEL);
+              setScore(s => Math.min(s + pts, MAX_SCORE));
+              play('levelup');
+              if (levelIdx >= LEVELS.length - 1) {
+                setPhase('gameWin');
+                play('win');
+              } else {
+                setPhase('levelWin');
+              }
+            }
+            return rb;
+          });
+        }, 100);
+      }
+    }, 16);
+  };
+
+  /* ── Retry after conflict ── */
+  const retryLevel = () => {
+    initLevel(levelIdx);
+  };
+
+  const nextLevel = () => {
+    initLevel(levelIdx + 1);
+  };
+
+  const startGame = () => {
     setScore(0);
-    setTimeRemaining(settings.timeLimit);
-    setCurrentScenario(0);
-    setStreak(0);
-    setMaxStreak(0);
-    setLives(settings.lives);
-    setMaxHints(settings.hints);
-    setHintsUsed(0);
-    setSolvedScenarios(0);
-    setTotalAttempts(0);
-    setTotalResponseTime(0);
-    setSelectedMove(null);
-    setShowFeedback(false);
-    setShowHint(false);
-  }, [difficulty]);
-
-  const handleStart = () => {
-    initializeGame();
-    setScenarioStartTime(Date.now());
+    setTimer(TIME_LIMIT);
+    initLevel(0);
   };
 
-  const handleReset = () => {
-    initializeGame();
+  const goMenu = () => {
+    setPhase('menu');
+    clearInterval(timerRef.current);
   };
 
-  const handleGameComplete = (payload) => {
+  /* ── Format time ── */
+  const fmt = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+  /* ── Stars ── */
+  const getStars = (sc) => sc >= 180 ? 3 : sc >= 120 ? 2 : sc > 0 ? 1 : 0;
+
+  /* ── Find item data ── */
+  const getItem = (id) => lvl.items.find(it => it.id === id);
+
+  /* ── Styles ── */
+  const S = {
+    full: {
+      position: 'fixed', inset: 0, overflow: 'hidden', fontFamily: "'Segoe UI', system-ui, sans-serif",
+      background: `linear-gradient(180deg, ${lvl.sky[0]}, ${lvl.sky[1]})`,
+      color: '#fff', userSelect: 'none',
+    },
+    menu: {
+      position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      background: 'linear-gradient(180deg, #0a1628, #1a3a6a, #0d2818)',
+      color: '#fff', fontFamily: "'Segoe UI', system-ui, sans-serif", userSelect: 'none', padding: '1rem',
+    },
+    glass: {
+      background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(255,255,255,0.15)', borderRadius: '16px',
+    },
+    btn: {
+      padding: '12px 28px', borderRadius: '12px', border: 'none', cursor: 'pointer',
+      fontWeight: 700, fontSize: 'clamp(0.85rem, 2vw, 1rem)', transition: 'all 0.2s',
+      background: 'linear-gradient(135deg, #4fc3f7, #0288d1)', color: '#fff',
+      boxShadow: '0 4px 15px rgba(2,136,209,0.4)',
+    },
+    btnDanger: {
+      background: 'linear-gradient(135deg, #ef5350, #c62828)',
+      boxShadow: '0 4px 15px rgba(198,40,40,0.4)',
+    },
+    btnSuccess: {
+      background: 'linear-gradient(135deg, #66bb6a, #2e7d32)',
+      boxShadow: '0 4px 15px rgba(46,125,50,0.4)',
+    },
+    itemCircle: (isSelected, isOnRaft) => ({
+      width: 'clamp(50px, 14vw, 80px)', height: 'clamp(50px, 14vw, 80px)',
+      borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer', transition: 'all 0.3s',
+      background: isSelected ? 'rgba(76,175,80,0.4)' : isOnRaft ? 'rgba(255,193,7,0.3)' : 'rgba(255,255,255,0.1)',
+      border: isSelected ? '3px solid #4caf50' : isOnRaft ? '3px solid #ffc107' : '2px solid rgba(255,255,255,0.2)',
+      transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+      boxShadow: isSelected ? '0 0 20px rgba(76,175,80,0.5)' : 'none',
+    }),
   };
 
-  const customStats = {
-    currentScenario: currentScenario + 1,
-    totalScenarios: currentScenarios.length,
-    streak: maxStreak,
-    lives,
-    hintsUsed,
-    solvedScenarios,
-    totalAttempts,
-    averageResponseTime: totalAttempts > 0 ? Math.round(totalResponseTime / totalAttempts / 1000) : 0
-  };
+  /* ════════ MENU ════════ */
+  if (phase === 'menu') {
+    return (
+      <div style={S.menu}>
+        <div style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: '0.3rem' }}>🚣</div>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0,
+          background: 'linear-gradient(135deg, #4fc3f7, #81d4fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          River Crossing
+        </h1>
+        <p style={{ opacity: 0.7, margin: '0.3rem 0 1.5rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>Challenge</p>
 
-  const currentScenarioData = currentScenarios[currentScenario] || currentScenarios[0];
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', width: '100%', maxWidth: '380px' }}>
+          {LEVELS.map((l, i) => (
+            <div key={l.id} style={{ ...S.glass, padding: 'clamp(12px, 3vw, 20px)', cursor: 'pointer', transition: 'transform 0.2s' }}
+              onClick={() => { }} >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+                <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>{l.items[0].emoji}</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>Level {l.id}: {l.name}</div>
+                  <div style={{ opacity: 0.6, fontSize: 'clamp(0.7rem, 2vw, 0.85rem)' }}>{l.subtitle}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button style={{ ...S.btn, marginTop: '1.5rem', fontSize: 'clamp(1rem, 3vw, 1.2rem)', padding: '14px 48px' }}
+          onClick={startGame}>
+          🚀 Start Game
+        </button>
+
+        {onBack && (
+          <button style={{ ...S.btn, marginTop: '0.8rem', background: 'rgba(255,255,255,0.1)', boxShadow: 'none', border: '1px solid rgba(255,255,255,0.2)' }}
+            onClick={onBack}>
+            ← Back
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  /* ════════ CONFLICT ════════ */
+  if (phase === 'conflict') {
+    return (
+      <div style={{ ...S.menu, background: 'linear-gradient(180deg, #1a0000, #4a0000)' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'pulse 1s infinite' }}>💥</div>
+        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', margin: '0 0 0.5rem', color: '#ff5252' }}>Conflict!</h2>
+        <p style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)', opacity: 0.9, textAlign: 'center', maxWidth: '300px' }}>{conflictMsg}</p>
+        <button style={{ ...S.btnDanger, ...S.btn, marginTop: '1.5rem' }} onClick={retryLevel}>🔄 Retry Level</button>
+        <button style={{ ...S.btn, marginTop: '0.8rem', background: 'rgba(255,255,255,0.1)', boxShadow: 'none' }} onClick={goMenu}>Menu</button>
+        <style>{`@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }`}</style>
+      </div>
+    );
+  }
+
+  /* ════════ LEVEL WIN ════════ */
+  if (phase === 'levelWin') {
+    return (
+      <div style={S.menu}>
+        <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>🎉</div>
+        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', margin: '0 0 0.3rem' }}>Level {levelIdx + 1} Complete!</h2>
+        <p style={{ opacity: 0.7, fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}>Moves: {moves} | Score: {score}/{MAX_SCORE}</p>
+        <div style={{ fontSize: '2rem', margin: '0.5rem 0' }}>
+          {'⭐'.repeat(getStars(score))}{'☆'.repeat(3 - getStars(score))}
+        </div>
+        <button style={{ ...S.btnSuccess, ...S.btn, marginTop: '1rem' }} onClick={nextLevel}>Next Level →</button>
+      </div>
+    );
+  }
+
+  /* ════════ GAME WIN ════════ */
+  if (phase === 'gameWin') {
+    return (
+      <div style={S.menu}>
+        <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>🏆</div>
+        <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', margin: '0 0 0.3rem',
+          background: 'linear-gradient(135deg, #ffd700, #ffab00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Victory!
+        </h2>
+        <p style={{ opacity: 0.8, fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>Final Score: {score}/{MAX_SCORE}</p>
+        <div style={{ fontSize: '2.5rem', margin: '0.5rem 0' }}>
+          {'⭐'.repeat(getStars(score))}{'☆'.repeat(3 - getStars(score))}
+        </div>
+        <button style={{ ...S.btn, marginTop: '1rem' }} onClick={startGame}>🔄 Play Again</button>
+        {onBack && <button style={{ ...S.btn, marginTop: '0.8rem', background: 'rgba(255,255,255,0.1)', boxShadow: 'none' }} onClick={onBack}>← Back</button>}
+      </div>
+    );
+  }
+
+  /* ════════ GAME OVER ════════ */
+  if (phase === 'gameOver') {
+    return (
+      <div style={{ ...S.menu, background: 'linear-gradient(180deg, #1a0000, #2d0000, #000)' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>⏰</div>
+        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', color: '#ff5252' }}>Time's Up!</h2>
+        <p style={{ opacity: 0.7 }}>Score: {score}/{MAX_SCORE}</p>
+        <button style={{ ...S.btn, marginTop: '1rem' }} onClick={startGame}>🔄 Try Again</button>
+        {onBack && <button style={{ ...S.btn, marginTop: '0.8rem', background: 'rgba(255,255,255,0.1)', boxShadow: 'none' }} onClick={onBack}>← Back</button>}
+      </div>
+    );
+  }
+
+  /* ════════ PLAYING ════════ */
+  const currentBank = raftSide === 'left' ? leftBank : rightBank;
+  const reqItem = lvl.items.find(it => it.required);
+  const canSail = selected.length > 0 && (!reqItem || selected.includes(reqItem.id));
+  const raftX = raftSide === 'moving' ? raftAnim : (raftSide === 'left' ? 0 : 1);
 
   return (
-    <div>
-      {gameState === 'ready' && <Header unreadCount={3} />}
+    <div style={{ ...S.full, display: 'flex', flexDirection: 'column', animation: shake ? 'shakeAnim 0.4s' : 'none' }}>
+      <style>{`
+        @keyframes shakeAnim { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        @keyframes bobFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes ripple { 0%{transform:scale(0);opacity:0.6} 100%{transform:scale(3);opacity:0} }
+      `}</style>
 
-      <GameFramework
-        gameTitle={<TranslatedText text="River Crossing Challenge" />}
-        gameShortDescription={<TranslatedText text="Help villagers, animals, or goods cross a river on a raft following specific rules and constraints." />}
-        gameDescription={
-          <div className="mx-auto px-1 mb-2">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              {/* Header with toggle */}
-              <div
-                className="flex items-center justify-between mb-4 cursor-pointer"
-                onClick={() => setShowInstructions(!showInstructions)}
-              >
-                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  <TranslatedText text="How to Play River Crossing Challenge" />
-                </h3>
-                <span className="text-blue-900 text-xl">
-                  {showInstructions
-                    ? <ChevronUp className="h-5 w-5 text-blue-900" />
-                    : <ChevronDown className="h-5 w-5 text-blue-900" />}
-                </span>
-              </div>
-
-              {/* Toggle Content */}
-              {showInstructions && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🚤 <TranslatedText text="Objective" />
-                    </h4>
-                    <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <TranslatedText text="Help villagers, animals, or goods cross a river on a raft following specific rules and constraints." />
-                    </p>
-                  </div>
-
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🧩 <TranslatedText text="Strategy" />
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• <TranslatedText text="Read the crossing rules carefully" /></li>
-                      <li>• <TranslatedText text="Plan your moves step by step" /></li>
-                      <li>• <TranslatedText text="Choose who crosses first wisely" /></li>
-                    </ul>
-                  </div>
-
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 <TranslatedText text="Scoring" />
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• <TranslatedText text="Easy: 25 points per correct answer" /></li>
-                      <li>• <TranslatedText text="Medium: 40 points per correct answer" /></li>
-                      <li>• <TranslatedText text="Hard: 50 points per correct answer" /></li>
-                    </ul>
-                  </div>
-
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📝 <TranslatedText text="Questions" />
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• <TranslatedText text="Easy: 8 different puzzles" /></li>
-                      <li>• <TranslatedText text="Medium: 5 different puzzles" /></li>
-                      <li>• <TranslatedText text="Hard: 4 different puzzles" /></li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        }
-        category="Gameacy"
-        gameState={gameState}
-        setGameState={setGameState}
-        score={score}
-        timeRemaining={timeRemaining}
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        onStart={handleStart}
-        onReset={handleReset}
-        onGameComplete={handleGameComplete}
-        customStats={customStats}
-      >
-        {/* Game Content */}
-        <div className="flex flex-col items-center">
-          {/* Game Controls */}
-          <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
-            {gameState === 'playing' && (
-              <button
-                onClick={useHint}
-                disabled={hintsUsed >= maxHints}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${hintsUsed >= maxHints
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                  }`}
-                style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-              >
-                <Lightbulb className="h-4 w-4" />
-                <TranslatedText text="Hint" /> ({maxHints - hintsUsed})
-              </button>
-            )}
-          </div>
-
-          {/* Game Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <TranslatedText text="Puzzle" />
-              </div>
-              <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <TranslatedText text="Lives" />
-              </div>
-              <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {'❤️'.repeat(lives)}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <TranslatedText text="Streak" />
-              </div>
-              <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {streak}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <TranslatedText text="Solved" />
-              </div>
-              <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {solvedScenarios}
-              </div>
-            </div>
-          </div>
-
-          {/* Scenario Question */}
-          {currentScenarioData && (
-            <div className="w-full max-w-4xl mb-6">
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Waves className="h-5 w-5 text-blue-800" />
-                  <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    <TranslatedText text={`River Crossing #${currentScenario + 1} - ${difficulty} Level`} />
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  <TranslatedText text={currentScenarioData.question} />
-                </h3>
-                <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  <TranslatedText text={currentScenarioData.description} />
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Rules Display */}
-          {currentScenarioData && (
-            <div className="w-full max-w-4xl mb-6">
-              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Navigation className="h-5 w-5 text-yellow-600" />
-                  <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    <TranslatedText text="Crossing Rules:" />
-                  </span>
-                </div>
-                <ul className="text-yellow-700 text-sm space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {currentScenarioData.rules.map((rule, index) => (
-                    <li key={index}>• <TranslatedText text={rule} /></li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {/* Hint Display */}
-          {showHint && (
-            <div className="w-full max-w-2xl mb-6">
-              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-5 w-5 text-yellow-600" />
-                  <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    <TranslatedText text="Hint:" />
-                  </span>
-                </div>
-                <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  <TranslatedText text={hintMessage} />
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* River Visualization */}
-          {currentScenarioData && (
-            <div className="w-full max-w-6xl mb-6">
-              <div className="bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg p-6">
-                {/* Left Side - Characters to Cross */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                  <div className="bg-green-100 rounded-lg p-4">
-                    <h4 className="text-center font-semibold text-green-800 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🏠 <TranslatedText text="Starting Side" />
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {currentScenarioData.characters.map((character) => (
-                        <div key={character.id} className="text-center bg-white rounded-lg p-3">
-                          <div className="text-3xl mb-1">{character.emoji}</div>
-                          <div className="text-xs font-medium text-gray-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            <TranslatedText text={character.name} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* River */}
-                  <div className="bg-blue-300 rounded-lg p-4 flex flex-col items-center justify-center">
-                    <Waves className="h-12 w-12 text-blue-600 mb-2" />
-                    <h4 className="text-center font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🌊 <TranslatedText text="River" />
-                    </h4>
-                    <div className="text-center text-blue-700 text-sm mt-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      <TranslatedText text={`Only ${currentScenarioData.raftCapacity || 2} can cross at once`} />
-                    </div>
-                  </div>
-
-                  {/* Right Side - Destination */}
-                  <div className="bg-purple-100 rounded-lg p-4">
-                    <h4 className="text-center font-semibold text-purple-800 mb-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🎯 <TranslatedText text="Destination" />
-                    </h4>
-                    <div className="text-center text-gray-500 text-sm" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      <TranslatedText text="Everyone needs to get here safely" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Move Options */}
-          {currentScenarioData && !showFeedback && (
-            <div className="w-full max-w-4xl mb-6">
-              <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
-                <h4 className="text-center font-semibold text-gray-800 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  <TranslatedText text="Who should cross the river first?" />
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {currentScenarioData.moves.map((move) => (
-                    <button
-                      key={move.id}
-                      onClick={() => handleMoveSelect(move.id)}
-                      className={`p-4 rounded-lg border-2 transition-all duration-300 text-left ${
-                        selectedMove === move.id
-                          ? 'border-[#FF6B3E] bg-orange-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                      }`}
-                      style={{ fontFamily: 'Roboto, sans-serif' }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">{move.emoji}</div>
-                        <div>
-                          <div className="font-medium text-gray-900"><TranslatedText text={move.description} /></div>
-                          <div className="text-sm text-gray-600"><TranslatedText text={move.reasoning} /></div>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-gray-400 ml-auto" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Feedback */}
-          {showFeedback && currentScenarioData && (
-            <div className={`w-full max-w-2xl text-center p-6 rounded-lg ${
-              feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                {feedbackType === 'correct' ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <XCircle className="h-6 w-6 text-red-600" />
-                )}
-                <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? <TranslatedText text="Great Strategy!" /> : <TranslatedText text="Wrong Move!" />}
-                </div>
-              </div>
-              <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                <TranslatedText text={currentScenarioData.explanation} />
-              </div>
-              {feedbackType === 'correct' && (
-                <div className="text-green-700 font-medium mb-2">
-                  <TranslatedText text={`+${difficultySettings[difficulty].pointsPerQuestion} points earned!`} />
-                </div>
-              )}
-              {feedbackType === 'correct' && currentScenario + 1 < currentScenarios.length && (
-                <p className="text-green-700 font-medium">
-                  <TranslatedText text="Moving to next puzzle..." />
-                </p>
-              )}
-              {feedbackType === 'incorrect' && lives > 1 && (
-                <p className="text-red-700 font-medium">
-                  <TranslatedText text={`Lives remaining: ${lives - 1}`} />
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Instructions */}
-          <div className="text-center max-w-2xl mt-6">
-            <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              <TranslatedText text="Read the crossing rules carefully and choose the best first move." />{' '}
-              <TranslatedText text="Consider what happens when certain characters are left alone together." />{' '}
-              <TranslatedText text="Use hints wisely when you're stuck on a tricky puzzle." />
-            </p>
-            <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].questionCount} puzzles | 
-              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              {difficultySettings[difficulty].pointsPerQuestion} points per correct answer
-            </div>
-          </div>
+      {/* ── HUD ── */}
+      <div style={{ ...S.glass, margin: 'clamp(6px,1.5vw,12px)', padding: 'clamp(8px,2vw,14px)', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', zIndex: 10 }}>
+        <div style={{ display: 'flex', gap: 'clamp(8px,2vw,16px)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 700, fontSize: 'clamp(0.75rem,2vw,0.95rem)' }}>
+            Lv.{levelIdx + 1} {lvl.name}
+          </span>
+          <span style={{ fontSize: 'clamp(0.75rem,2vw,0.9rem)' }}>⏱ {fmt(timer)}</span>
+          <span style={{ fontSize: 'clamp(0.75rem,2vw,0.9rem)' }}>🎯 {score}/{MAX_SCORE}</span>
+          <span style={{ fontSize: 'clamp(0.75rem,2vw,0.9rem)' }}>📊 Moves: {moves}</span>
         </div>
-      </GameFramework>
-      
-      <GameCompletionModal
-        isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
-        score={score}
-      />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={() => setMuted(!muted)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}>
+            {muted ? '🔇' : '🔊'}
+          </button>
+          <button onClick={goMenu} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1rem', cursor: 'pointer', opacity: 0.7 }}>
+            ☰
+          </button>
+        </div>
+      </div>
+
+      {/* ── Rules hint ── */}
+      <div style={{ textAlign: 'center', fontSize: 'clamp(0.65rem, 1.8vw, 0.8rem)', opacity: 0.6, padding: '0 1rem', lineHeight: 1.3 }}>
+        {lvl.desc}
+      </div>
+
+      {/* ── GAME AREA ── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'row', position: 'relative', minHeight: 0 }}>
+
+        {/* Left Bank */}
+        <div style={{ flex: '0 0 25%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 'clamp(6px,1.5vw,12px)', padding: 'clamp(4px,1vw,12px)', zIndex: 5,
+          background: `linear-gradient(180deg, ${lvl.bg[0]}, ${lvl.bg[1]})`,
+          borderRight: '3px solid rgba(139,119,42,0.4)',
+        }}>
+          <div style={{ fontSize: 'clamp(0.65rem,1.8vw,0.8rem)', fontWeight: 700, opacity: 0.7, marginBottom: '0.3rem' }}>
+            🏕️ Left Bank
+          </div>
+          {leftBank.map(id => {
+            const it = getItem(id);
+            const isSel = selected.includes(id) && raftSide === 'left';
+            return (
+              <div key={id} style={S.itemCircle(isSel, false)} onClick={() => raftSide === 'left' && toggleSelect(id)}>
+                <span style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)' }}>{it.emoji}</span>
+                <span style={{ fontSize: 'clamp(0.5rem, 1.5vw, 0.65rem)', opacity: 0.8 }}>{it.label}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* River */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+
+          {/* Raft */}
+          <div style={{
+            position: 'absolute', bottom: '30%',
+            left: `${5 + raftX * 60}%`,
+            transition: raftSide === 'moving' ? 'none' : 'left 0.3s',
+            animation: 'bobFloat 2s ease-in-out infinite',
+            zIndex: 5,
+          }}>
+            {/* Raft body */}
+            <div style={{
+              width: 'clamp(60px,18vw,120px)', height: 'clamp(35px,8vw,55px)',
+              background: 'linear-gradient(180deg, #8d6e63, #5d4037)',
+              borderRadius: '8px 8px 30% 30%',
+              border: '2px solid #4e342e',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+              position: 'relative',
+            }}>
+              {/* Raft planks */}
+              {[0,1,2].map(i => (
+                <div key={i} style={{ position: 'absolute', top: i * 33 + '%', left: 0, right: 0, height: '2px', background: 'rgba(0,0,0,0.15)' }} />
+              ))}
+              {raftItems.map(id => {
+                const it = getItem(id);
+                return <span key={id} style={{ fontSize: 'clamp(1rem, 3vw, 1.5rem)' }}>{it?.emoji}</span>;
+              })}
+              {raftItems.length === 0 && <span style={{ fontSize: 'clamp(0.9rem,2.5vw,1.3rem)' }}>🚣</span>}
+            </div>
+
+            {/* Water ripples */}
+            <div style={{
+              position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%)',
+              width: 'clamp(80px,22vw,140px)', height: '12px',
+              background: 'radial-gradient(ellipse, rgba(255,255,255,0.15) 0%, transparent 70%)',
+              borderRadius: '50%',
+            }} />
+          </div>
+
+          {/* Fish swimming */}
+          {[0,1,2].map(i => (
+            <div key={i} style={{
+              position: 'absolute',
+              top: `${50 + i * 15}%`,
+              left: `${(Date.now() / (30 + i * 10) + i * 200) % 110 - 5}%`,
+              fontSize: 'clamp(1rem, 3vw, 1.5rem)',
+              opacity: 0.4,
+              transform: 'scaleX(-1)',
+              transition: 'left 0.5s linear',
+            }}>
+              🐟
+            </div>
+          ))}
+        </div>
+
+        {/* Right Bank */}
+        <div style={{ flex: '0 0 25%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 'clamp(6px,1.5vw,12px)', padding: 'clamp(4px,1vw,12px)', zIndex: 5,
+          background: `linear-gradient(180deg, ${lvl.bg[0]}, ${lvl.bg[1]})`,
+          borderLeft: '3px solid rgba(139,119,42,0.4)',
+        }}>
+          <div style={{ fontSize: 'clamp(0.65rem,1.8vw,0.8rem)', fontWeight: 700, opacity: 0.7, marginBottom: '0.3rem' }}>
+            🏰 Right Bank
+          </div>
+          {rightBank.map(id => {
+            const it = getItem(id);
+            const isSel = selected.includes(id) && raftSide === 'right';
+            return (
+              <div key={id} style={S.itemCircle(isSel, false)} onClick={() => raftSide === 'right' && toggleSelect(id)}>
+                <span style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)' }}>{it.emoji}</span>
+                <span style={{ fontSize: 'clamp(0.5rem, 1.5vw, 0.65rem)', opacity: 0.8 }}>{it.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Bottom bar ── */}
+      <div style={{ ...S.glass, margin: 'clamp(6px,1.5vw,12px)', marginTop: 0, padding: 'clamp(10px,2vw,16px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(8px,2vw,16px)', flexWrap: 'wrap', zIndex: 10 }}>
+        <div style={{ fontSize: 'clamp(0.7rem,2vw,0.85rem)', opacity: 0.7 }}>
+          Selected: {selected.map(id => getItem(id)?.emoji).join(' ') || 'None'}
+        </div>
+        <button style={{ ...S.btn, opacity: canSail ? 1 : 0.4, pointerEvents: canSail ? 'auto' : 'none',
+          padding: 'clamp(8px,2vw,12px) clamp(16px,4vw,32px)' }}
+          onClick={sail}>
+          {raftSide === 'left' ? '→ Sail Right' : '← Sail Left'}
+        </button>
+        <button style={{ ...S.btn, background: 'rgba(255,255,255,0.1)', boxShadow: 'none', fontSize: 'clamp(0.75rem,2vw,0.85rem)' }}
+          onClick={retryLevel}>
+          🔄 Reset
+        </button>
+      </div>
     </div>
   );
-};
-
-export default RiverCrossingGame;
+}
