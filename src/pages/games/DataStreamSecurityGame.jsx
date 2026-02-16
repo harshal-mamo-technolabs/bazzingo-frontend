@@ -1,797 +1,626 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import GameFramework from '../../components/GameFramework';
-import Header from '../../components/Header';
-import GameCompletionModal from '../../components/games/GameCompletionModal';
-import TranslatedText from '../../components/TranslatedText.jsx';
-import { useTranslateText } from '../../hooks/useTranslate';
-import {
-    Lock,
-    Unlock,
-    Eye,
-    Brain,
-    Zap,
-    CheckCircle,
-    XCircle,
-    ChevronUp,
-    ChevronDown,
-    Timer,
-    Cpu
-} from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import GameFrameworkV2 from '../../components/GameFrameworkV2';
 
-const DataStreamSecurityGame = () => {
-    const [gameState, setGameState] = useState('ready');
-    const [difficulty, setDifficulty] = useState('Easy');
-    
-    // Translated strings for dynamic messages
-    const securityLockBypassedText = useTranslateText('Security lock bypassed! Data stream authenticated.');
-    const accessDeniedText = useTranslateText('Access denied! Pattern sequence broken.');
-    const accessGrantedText = useTranslateText('ACCESS GRANTED');
-    const accessDeniedLabelText = useTranslateText('ACCESS DENIED');
-    const [score, setScore] = useState(0);
-    const [finalScore, setFinalScore] = useState(0);
-    const [timeRemaining, setTimeRemaining] = useState(120);
-    const [currentPhase, setCurrentPhase] = useState('learning'); // 'learning', 'unlocking'
-    const [lives, setLives] = useState(3);
-    const [currentLockIndex, setCurrentLockIndex] = useState(0);
-    const [correctUnlocks, setCorrectUnlocks] = useState(0);
-    const [totalLocks, setTotalLocks] = useState(0);
-    const [streak, setStreak] = useState(0);
-    const [maxStreak, setMaxStreak] = useState(0);
-    const [learningTimeLeft, setLearningTimeLeft] = useState(0);
-    const [patternSequence, setPatternSequence] = useState([]);
-    const [currentLock, setCurrentLock] = useState(null);
-    const [selectedAnswer, setSelectedAnswer] = useState(null);
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [feedbackType, setFeedbackType] = useState('');
-    const [feedbackMessage, setFeedbackMessage] = useState('');
-    const [showInstructions, setShowInstructions] = useState(true);
-    const [gameStartTime, setGameStartTime] = useState(0);
-    const [gameDuration, setGameDuration] = useState(0);
-    const [totalResponseTime, setTotalResponseTime] = useState(0);
-    const [lockStartTime, setLockStartTime] = useState(0);
-    const [showCompletionModal, setShowCompletionModal] = useState(false);
-    const [streamAnimation, setStreamAnimation] = useState(true);
-    const streamRef = useRef(null);
-    const [streamWidth, setStreamWidth] = useState(800);
+/* ───── CONSTANTS ───── */
+const TIME_LIMIT = 120;
+const MAX_SCORE = 200;
 
-    // Track container width so animation distance matches the black surface only
-    useEffect(() => {
-        const updateWidth = () => {
-            if (streamRef.current) {
-                setStreamWidth(streamRef.current.clientWidth);
-            }
-        };
-        updateWidth();
-        window.addEventListener('resize', updateWidth);
-        return () => window.removeEventListener('resize', updateWidth);
-    }, []);
-
-    // Data stream colors and symbols
-    const streamColors = ['#00ff41', '#0066ff', '#ff0066', '#ffff00', '#ff6600', '#9900ff'];
-    const streamSymbols = ['◆', '●', '▲', '■', '◇', '☀'];
-
-    // Difficulty settings - Updated as requested
-    const difficultySettings = {
-        Easy: {
-            patternLength: 5,
-            learningTime: 15,
-            timeLimit: 120,
-            lives: 3,
-            lockCount: 8,
-            streamSpeed: 2200,
-            pointsPerCorrect: 25,
-            description: '5-step patterns, 15s study time, 8 locks, 25 points each'
-        },
-        Moderate: {
-            patternLength: 5,
-            learningTime: 12,
-            timeLimit: 120,
-            lives: 3,
-            lockCount: 5,
-            streamSpeed: 1700,
-            pointsPerCorrect: 40,
-            description: '5-step patterns, 12s study time, 5 locks, 40 points each'
-        },
-        Hard: {
-            patternLength: 5,
-            learningTime: 10,
-            timeLimit: 120,
-            lives: 3,
-            lockCount: 4,
-            streamSpeed: 1400,
-            pointsPerCorrect: 50,
-            description: '5-step patterns, 10s study time, 4 locks, 50 points each'
-        }
-    };
-    
-    // Translated difficulty descriptions
-    const easyDescription = useTranslateText('5-step patterns, 15s study time, 8 locks, 25 points each');
-    const moderateDescription = useTranslateText('5-step patterns, 12s study time, 5 locks, 40 points each');
-    const hardDescription = useTranslateText('5-step patterns, 10s study time, 4 locks, 50 points each');
-    
-    const getDifficultyDescription = (diff) => {
-        if (diff === 'Easy') return easyDescription;
-        if (diff === 'Moderate') return moderateDescription;
-        return hardDescription;
-    };
-
-    // Generate pattern sequence
-    const generatePattern = useCallback((length) => {
-        const pattern = [];
-        for (let i = 0; i < length; i++) {
-            pattern.push({
-                id: i,
-                color: streamColors[Math.floor(Math.random() * streamColors.length)],
-                symbol: streamSymbols[Math.floor(Math.random() * streamSymbols.length)]
-            });
-        }
-        return pattern;
-    }, []);
-
-    // Generate security lock challenge
-    const generateLock = useCallback((pattern, lockIndex) => {
-        if (lockIndex >= pattern.length - 1) return null;
-
-        // Get the current position in the pattern
-        const currentElement = pattern[lockIndex];
-        const nextElement = pattern[lockIndex + 1];
-
-        // Create wrong options
-        const wrongOptions = [];
-        const availableColors = streamColors.filter(c => c !== nextElement.color);
-        const availableSymbols = streamSymbols.filter(s => s !== nextElement.symbol);
-
-        // Generate 3 wrong options
-        for (let i = 0; i < 3; i++) {
-            wrongOptions.push({
-                color: availableColors[Math.floor(Math.random() * availableColors.length)],
-                symbol: availableSymbols[Math.floor(Math.random() * availableSymbols.length)]
-            });
-        }
-
-        // Shuffle all options
-        const allOptions = [nextElement, ...wrongOptions].sort(() => Math.random() - 0.5);
-
-        return {
-            lockIndex: lockIndex + 1,
-            currentElement,
-            correctAnswer: nextElement,
-            options: allOptions,
-            sequence: pattern.slice(0, lockIndex + 1)
-        };
-    }, []);
-
-    // Handle lock answer selection
-    const handleAnswerSelect = (selectedOption) => {
-        if (selectedAnswer !== null) return;
-
-        setSelectedAnswer(selectedOption);
-        const responseTime = Date.now() - lockStartTime;
-        setTotalResponseTime(prev => prev + responseTime);
-
-        const isCorrect = selectedOption.color === currentLock.correctAnswer.color && 
-                         selectedOption.symbol === currentLock.correctAnswer.symbol;
-
-        if (isCorrect) {
-            setCorrectUnlocks(prev => prev + 1);
-            setStreak(prev => {
-                const newStreak = prev + 1;
-                setMaxStreak(current => Math.max(current, newStreak));
-                return newStreak;
-            });
-            setFeedbackType('correct');
-            setFeedbackMessage(securityLockBypassedText);
-        } else {
-            setStreak(0);
-            setLives(prev => {
-                const newLives = prev - 1;
-                if (newLives <= 0) {
-                    endGame();
-                }
-                return newLives;
-            });
-            setFeedbackType('incorrect');
-            setFeedbackMessage(accessDeniedText);
-        }
-
-        setShowFeedback(true);
-
-        setTimeout(() => {
-            setShowFeedback(false);
-            if (lives > 1 || isCorrect) {
-                nextLock();
-            }
-        }, 1500);
-    };
-
-    // Move to next lock
-    const nextLock = () => {
-        setSelectedAnswer(null);
-        const nextIndex = currentLockIndex + 1;
-
-        if (nextIndex >= totalLocks) {
-            endGame();
-            return;
-        }
-
-        setCurrentLockIndex(nextIndex);
-        const nextLockData = generateLock(patternSequence, nextIndex);
-        setCurrentLock(nextLockData);
-        setLockStartTime(Date.now());
-    };
-
-    // End the game
-    const endGame = () => {
-        const endTime = Date.now();
-        const duration = Math.floor((endTime - gameStartTime) / 1000);
-        setGameDuration(duration);
-        setFinalScore(calculateScore());
-        //setFinalScore(score);
-        setGameState('finished');
-        setShowCompletionModal(true);
-        setStreamAnimation(false);
-    };
-
-    // Calculate score - Updated as requested
-    const calculateScore = useCallback(() => {
-        return correctUnlocks * difficultySettings[difficulty].pointsPerCorrect;
-    }, [correctUnlocks, difficulty]);
-
-    // Update score during gameplay
-    useEffect(() => {
-        if (gameState === 'playing') {
-            setFinalScore(calculateScore());
-        }
-    }, [calculateScore, gameState]);
-
-    // Timer management
-    useEffect(() => {
-        let interval;
-
-        if (gameState === 'playing' && currentPhase === 'learning' && learningTimeLeft > 0) {
-            interval = setInterval(() => {
-                setLearningTimeLeft(prev => {
-                    if (prev <= 1) {
-                        setCurrentPhase('unlocking');
-                        const firstLock = generateLock(patternSequence, 0);
-                        setCurrentLock(firstLock);
-                        setLockStartTime(Date.now());
-                        setTotalLocks(Math.min(difficultySettings[difficulty].lockCount, patternSequence.length - 1));
-                        setStreamAnimation(false);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else if (gameState === 'playing' && currentPhase === 'unlocking' && timeRemaining > 0) {
-            interval = setInterval(() => {
-                setTimeRemaining(prev => {
-                    if (prev <= 1) {
-                        endGame();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        }
-
-        return () => clearInterval(interval);
-    }, [gameState, currentPhase, learningTimeLeft, timeRemaining, patternSequence, generateLock, difficulty]);
-
-    // Initialize game
-    const initializeGame = useCallback(() => {
-        const settings = difficultySettings[difficulty];
-
-        // Reset all state
-        setScore(0);
-        setFinalScore(0);
-        setTimeRemaining(settings.timeLimit);
-        setLives(settings.lives);
-        setCurrentPhase('learning');
-        setCurrentLockIndex(0);
-        setCorrectUnlocks(0);
-        setTotalLocks(0);
-        setStreak(0);
-        setMaxStreak(0);
-        setLearningTimeLeft(settings.learningTime);
-        setTotalResponseTime(0);
-        setGameDuration(0);
-        setShowCompletionModal(false);
-        setShowFeedback(false);
-        setSelectedAnswer(null);
-        setStreamAnimation(true);
-
-        // Generate new pattern
-        const newPattern = generatePattern(settings.patternLength);
-        setPatternSequence(newPattern);
-    }, [difficulty, generatePattern]);
-
-    const handleStart = () => {
-        initializeGame();
-        setGameStartTime(Date.now());
-        setGameState('playing');
-    };
-
-    const handleReset = () => {
-        initializeGame();
-        setCurrentLock(null);
-        setGameState('ready');
-    };
-
-    const handleGameComplete = (payload) => {
-    };
-
-    const handleDifficultyChange = (newDifficulty) => {
-        if (gameState === 'ready') {
-            setDifficulty(newDifficulty);
-        }
-    };
-
-    const customStats = {
-        correctUnlocks,
-        totalLocks: totalLocks || difficultySettings[difficulty].lockCount,
-        accuracy: totalLocks > 0 ? Math.round((correctUnlocks / totalLocks) * 100) : 0,
-        averageResponseTime: totalLocks > 0 ? Math.round(totalResponseTime / totalLocks / 1000) : 0,
-        streak: maxStreak,
-        lives
-    };
-
-    return (
-        <div>
-            <style>{`
-                @keyframes dataFlow {
-                    0% { transform: translateX(-100px); opacity: 0; }
-                    10% { opacity: 1; }
-                    90% { opacity: 1; }
-                    100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
-                }
-                
-                @keyframes glow {
-                    0%, 100% { box-shadow: 0 0 5px currentColor; }
-                    50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
-                }
-                
-                @keyframes shake {
-                    0%,100% { transform: translateX(0); }
-                    25% { transform: translateX(-4px); }
-                    50% { transform: translateX(4px); }
-                    75% { transform: translateX(-3px); }
-                }
-                
-                .data-stream-item {
-                    animation: dataFlow 3s linear infinite;
-                }
-                
-                .glow-effect {
-                    animation: glow 2s ease-in-out infinite;
-                }
-                
-                .shake { 
-                    animation: shake 0.4s ease; 
-                }
-                
-                .cyber-grid {
-                    background-image: 
-                        linear-gradient(rgba(0, 255, 65, 0.1) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(0, 255, 65, 0.1) 1px, transparent 1px);
-                    background-size: 20px 20px;
-                }
-            `}</style>
-
-            {gameState === 'ready' && <Header unreadCount={3} />}
-
-            <GameFramework
-                gameTitle={<TranslatedText text="Data Stream Security" />}
-        gameShortDescription={<TranslatedText text="Protect data streams from cyber threats. Challenge your cybersecurity knowledge and strategic thinking!" />}
-                gameDescription={
-                    <div className="mx-auto px-1 mb-2">
-                        <div className="bg-[#E8E8E8] rounded-lg p-6">
-                            <div
-                                className="flex items-center justify-between mb-4 cursor-pointer"
-                                onClick={() => setShowInstructions(!showInstructions)}
-                            >
-                                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                    <TranslatedText text="How to Play Data Stream Security" />
-                                </h3>
-                                <span className="text-blue-900 text-xl">
-                                    {showInstructions
-                                        ? <ChevronUp className="h-5 w-5 text-blue-900" />
-                                        : <ChevronDown className="h-5 w-5 text-blue-900" />}
-                                </span>
-                            </div>
-
-                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${showInstructions ? '' : 'hidden'}`}>
-                                <div className='bg-white p-3 rounded-lg border-l-4 border-cyan-500'>
-                                    <h4 className="text-sm font-medium text-cyan-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🎯 <TranslatedText text="Game Objective" />
-                                    </h4>
-                                    <p className="text-sm text-cyan-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <TranslatedText text="Memorize a sequence of colored symbols and predict the next elements to unlock security systems." />
-                                    </p>
-                                </div>
-
-                                <div className='bg-white p-3 rounded-lg border-l-4 border-purple-500'>
-                                    <h4 className="text-sm font-medium text-purple-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🌊 <TranslatedText text="Learning Phase" />
-                                    </h4>
-                                    <p className="text-sm text-purple-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <TranslatedText text="Carefully study the flowing data stream pattern. You'll have limited time to memorize the sequence." />
-                                    </p>
-                                </div>
-
-                                <div className='bg-white p-3 rounded-lg border-l-4 border-green-500'>
-                                    <h4 className="text-sm font-medium text-green-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🔒 <TranslatedText text="Unlocking Phase" />
-                                    </h4>
-                                    <p className="text-sm text-green-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <TranslatedText text="Predict the next symbol in the sequence to bypass security locks. Each correct answer earns points based on difficulty." />
-                                    </p>
-                                </div>
-
-                                <div className='bg-white p-3 rounded-lg border-l-4 border-orange-500'>
-                                    <h4 className="text-sm font-medium text-orange-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        🏆 <TranslatedText text="Scoring System" />
-                                    </h4>
-                                    <ul className="text-sm text-orange-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                        <li>• <strong><TranslatedText text="Easy" />:</strong> <TranslatedText text="25 points per correct answer" /></li>
-                                        <li>• <strong><TranslatedText text="Moderate" />:</strong> <TranslatedText text="40 points per correct answer" /></li>
-                                        <li>• <strong><TranslatedText text="Hard" />:</strong> <TranslatedText text="50 points per correct answer" /></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-                category="Gameacy"
-                gameState={gameState}
-                setGameState={setGameState}
-                score={calculateScore()} //gameState === 'finished' ? finalScore : score}
-                timeRemaining={timeRemaining}
-                difficulty={difficulty}
-                setDifficulty={handleDifficultyChange}
-                onStart={handleStart}
-                onReset={handleReset}
-                onGameComplete={handleGameComplete}
-                customStats={customStats}
-            >
-                <div className="flex flex-col items-center">
-                    {/* Game Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full max-w-2xl">
-                        <div className="text-center bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-3 border border-red-200">
-                            <div className="text-sm text-red-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                <TranslatedText text="Security Lives" />
-                            </div>
-                            <div className="text-lg font-bold text-red-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {'🔐'.repeat(lives)}
-                            </div>
-                        </div>
-                        <div className="text-center bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-                            <div className="text-sm text-green-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                <TranslatedText text="Unlock Streak" />
-                            </div>
-                            <div className="text-lg font-bold text-green-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {streak} 🔓
-                            </div>
-                        </div>
-                        <div className="text-center bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                            <div className="text-sm text-blue-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                <TranslatedText text="Bypassed" />
-                            </div>
-                            <div className="text-lg font-bold text-blue-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                {correctUnlocks}/{totalLocks || difficultySettings[difficulty].lockCount}
-                            </div>
-                        </div>
-                        <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-                            <div className="text-sm text-purple-600 font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                <TranslatedText text="Status" />
-                            </div>
-                            <div className="text-lg font-bold text-purple-700 capitalize" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                <TranslatedText text={currentPhase} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                        {/* Learning Phase */}
-                        {currentPhase === 'learning' && (
-                            <motion.div
-                                key="learning"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -16 }}
-                                transition={{ duration: 0.35 }}
-                                className="w-full max-w-4xl"
-                            >
-                                <div className="bg-gradient-to-r from-cyan-100 to-blue-100 border-2 border-cyan-300 rounded-lg p-6 mb-6 text-center cyber-grid">
-                                    <div className="flex items-center justify-center gap-3 mb-4">
-                                        <Eye className="h-6 w-6 text-cyan-600 glow-effect" />
-                                        <h3 className="text-xl font-bold text-cyan-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            <TranslatedText text="Data Stream Analysis - Learning Phase" />
-                                        </h3>
-                                        <Cpu className="h-6 w-6 text-cyan-600 glow-effect" />
-                                    </div>
-                                    <div className="flex items-center justify-center gap-2 text-cyan-700 mb-3">
-                                        <Timer className="h-5 w-5" />
-                                        <span className="font-bold text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            <TranslatedText text="Scanning Time:" /> {learningTimeLeft}s
-                                        </span>
-                                    </div>
-                                    <div className="h-3 bg-cyan-200 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={false}
-                                            animate={{ width: `${(learningTimeLeft / difficultySettings[difficulty].learningTime) * 100}%` }}
-                                            className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
-                                            transition={{ ease: 'linear' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Data Stream Visualization */}
-                                <div className="bg-black rounded-lg p-6 mb-6 min-h-[200px] relative overflow-hidden border-2 border-gray-700">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-900/20 to-transparent"></div>
-                                    <h4 className="text-green-400 text-center mb-4 font-mono text-lg">
-                                        &gt; <TranslatedText text="ANALYZING DATA STREAM PATTERN" /> &lt;
-                                    </h4>
-                                    
-                                    {/* Flowing Data Stream */}
-                                    {streamAnimation && (
-                                        <div ref={streamRef} className="relative h-32 overflow-hidden">
-                                            {patternSequence.map((item, index) => {
-                                                // Slow down a bit more and ensure each symbol passes at least twice (repeat: 1)
-                                                const durationSec = difficulty === 'Easy' ? 9 : difficulty === 'Moderate' ? 8 : 7;
-                                                const stepDelay = difficulty === 'Easy' ? 1.0 : difficulty === 'Moderate' ? 0.85 : 0.7;
-                                                const repeatDelay = 0; // no extra gap between loops
-                                                return (
-                                                    <motion.div
-                                                        key={item.id}
-                                                        initial={{ x: -120, opacity: 0 }}
-                                                        animate={{ x: streamWidth + 120, opacity: [0, 1, 1, 0] }}
-                                                        transition={{
-                                                            duration: durationSec,
-                                                            delay: index * stepDelay,
-                                                            repeat: 1,
-                                                            repeatDelay
-                                                        }}
-                                                        className="absolute top-1/2 -translate-y-1/2"
-                                                        style={{ 
-                                                            color: item.color,
-                                                            fontSize: '2rem',
-                                                            fontWeight: 'bold',
-                                                            textShadow: `0 0 10px ${item.color}`,
-                                                            top: `${20 + (index % 3) * 30}px`
-                                                        }}
-                                                    >
-                                                        {item.symbol}
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {/* Pattern Display */}
-                                    <div className="mt-8 text-center">
-                                        <div className="text-green-400 mb-2 font-mono"><TranslatedText text="PATTERN SEQUENCE:" /></div>
-                                        <div className="flex justify-center gap-4 flex-wrap">
-                                            {patternSequence.map((item, index) => (
-                                                <motion.div
-                                                    key={item.id}
-                                                    initial={{ opacity: 0, scale: 0.5 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    transition={{ delay: index * 0.1 }}
-                                                    className="bg-gray-800 rounded-lg p-3 border border-gray-600 glow-effect"
-                                                    style={{ 
-                                                        borderColor: item.color,
-                                                        boxShadow: `0 0 10px ${item.color}40`
-                                                    }}
-                                                >
-                                                    <div className="text-center">
-                                                        <div 
-                                                            className="text-2xl font-bold mb-1"
-                                                            style={{ color: item.color }}
-                                                        >
-                                                            {item.symbol}
-                                                        </div>
-                                                        <div className="text-xs text-gray-400 font-mono">
-                                                            #{index + 1}
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* Unlocking Phase */}
-                        {currentPhase === 'unlocking' && currentLock && (
-                            <motion.div
-                                key="unlocking"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -16 }}
-                                transition={{ duration: 0.35 }}
-                                className="w-full max-w-3xl"
-                            >
-                                <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-300 rounded-lg p-6 mb-6 text-center cyber-grid">
-                                    <div className="flex items-center justify-center gap-3 mb-4">
-                                        <Lock className="h-6 w-6 text-purple-600 glow-effect" />
-                                        <h3 className="text-xl font-bold text-purple-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            <TranslatedText text="Security Lock" /> #{currentLockIndex + 1}
-                                        </h3>
-                                        <Brain className="h-6 w-6 text-purple-600 glow-effect" />
-                                    </div>
-                                    <div className="text-purple-700">
-                                        <span className="font-medium" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                            <TranslatedText text="Lock" /> {currentLockIndex + 1} <TranslatedText text="of" /> {totalLocks}
-                                        </span>
-                                    </div>
-                                    <div className="h-3 bg-purple-200 rounded-full mt-3 overflow-hidden">
-                                        <motion.div
-                                            initial={false}
-                                            animate={{ width: `${((currentLockIndex + 1) / totalLocks) * 100}%` }}
-                                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-                                            transition={{ duration: 0.5 }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Current Sequence Display */}
-                                <div className="bg-gray-900 rounded-lg p-6 mb-6 border-2 border-gray-700">
-                                    <div className="text-green-400 text-center mb-4 font-mono">
-                                        <TranslatedText text="CURRENT SEQUENCE:" />
-                                    </div>
-                                    <div className="flex justify-center gap-3 mb-4">
-                                        {currentLock.sequence.map((item, index) => (
-                                            <div
-                                                key={index}
-                                                className="bg-gray-800 rounded-lg p-3 border glow-effect"
-                                                style={{ 
-                                                    borderColor: item.color,
-                                                    boxShadow: `0 0 10px ${item.color}40`
-                                                }}
-                                            >
-                                                <div 
-                                                    className="text-xl font-bold text-center"
-                                                    style={{ color: item.color }}
-                                                >
-                                                    {item.symbol}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <div className="bg-gray-800 rounded-lg p-3 border-2 border-dashed border-yellow-500 flex items-center justify-center">
-                                            <div className="text-yellow-400 text-xl font-bold">?</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-yellow-400 text-center font-mono text-sm">
-                                        <TranslatedText text="PREDICT NEXT ELEMENT TO UNLOCK SECURITY SYSTEM" />
-                                    </div>
-                                </div>
-
-                                {/* Answer Options */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    {currentLock.options.map((option, index) => {
-                                        const isCorrect = option.color === currentLock.correctAnswer.color && 
-                                                         option.symbol === currentLock.correctAnswer.symbol;
-                                        const isSelected = selectedAnswer && 
-                                                          selectedAnswer.color === option.color && 
-                                                          selectedAnswer.symbol === option.symbol;
-                                        
-                                        return (
-                                            <motion.button
-                                                key={index}
-                                                whileHover={selectedAnswer === null ? { scale: 1.02 } : {}}
-                                                whileTap={selectedAnswer === null ? { scale: 0.98 } : {}}
-                                                onClick={() => handleAnswerSelect(option)}
-                                                disabled={selectedAnswer !== null}
-                                                className={`
-                                                    p-6 rounded-lg border-2 transition-all duration-300 text-center transform bg-gray-800
-                                                    ${selectedAnswer === null
-                                                        ? 'border-gray-600 hover:border-blue-400 hover:bg-gray-700'
-                                                        : isSelected
-                                                            ? isCorrect
-                                                                ? 'border-green-500 bg-green-900 text-green-100 glow-effect'
-                                                                : 'border-red-500 bg-red-900 text-red-100 shake'
-                                                            : isCorrect
-                                                                ? 'border-green-500 bg-green-900 text-green-100 glow-effect'
-                                                                : 'border-gray-600 bg-gray-700 text-gray-400'
-                                                    }
-                                                `}
-                                                style={{ 
-                                                    borderColor: selectedAnswer === null ? option.color : undefined,
-                                                    boxShadow: selectedAnswer === null ? `0 0 10px ${option.color}40` : undefined
-                                                }}
-                                            >
-                                                <div 
-                                                    className="text-4xl font-bold mb-2"
-                                                    style={{ color: selectedAnswer === null ? option.color : undefined }}
-                                                >
-                                                    {option.symbol}
-                                                </div>
-                                                <div className="text-sm font-mono opacity-75">
-                                                    <TranslatedText text="Option" /> {String.fromCharCode(65 + index)}
-                                                </div>
-                                                {selectedAnswer !== null && (
-                                                    <div className="mt-2 text-lg">
-                                                        {isCorrect ? <Unlock className="h-6 w-6 mx-auto" /> : 
-                                                         isSelected ? <XCircle className="h-6 w-6 mx-auto" /> : ''}
-                                                    </div>
-                                                )}
-                                            </motion.button>
-                                        );
-                                    })}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Feedback */}
-                    <AnimatePresence>
-                        {showFeedback && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -8 }}
-                                transition={{ duration: 0.25 }}
-                                className={`w-full max-w-2xl text-center p-6 rounded-lg mt-6 border-2 ${
-                                    feedbackType === 'correct' 
-                                        ? 'bg-green-900 text-green-100 border-green-500' 
-                                        : 'bg-red-900 text-red-100 border-red-500'
-                                }`}
-                            >
-                                <div className="flex items-center justify-center gap-3 mb-3">
-                                    {feedbackType === 'correct' ? (
-                                        <CheckCircle className="h-8 w-8 text-green-400" />
-                                    ) : (
-                                        <XCircle className="h-8 w-8 text-red-400" />
-                                    )}
-                                    <div className="text-xl font-bold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                                        {feedbackType === 'correct' ? accessGrantedText : accessDeniedLabelText}
-                                    </div>
-                                    {feedbackType === 'correct' && <Zap className="h-8 w-8 text-yellow-400" />}
-                                </div>
-                                <div className="text-sm font-mono" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                                    <TranslatedText text={feedbackMessage} />
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Game Instructions */}
-                    <div className="text-center max-w-3xl mt-6">
-                        <p className="text-sm text-gray-600 mb-2" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                            {currentPhase === 'learning'
-                                ? <TranslatedText text="Study the data stream pattern flowing across the screen. Memorize the sequence of colored symbols - you'll need to predict the next elements to unlock security systems!" />
-                                : <TranslatedText text="Based on the memorized pattern, select the correct next element to bypass the security lock. Wrong answers will cost you a life!" />
-                            }
-                        </p>
-                        <div className="mt-3 text-xs text-gray-500 bg-gray-100 rounded-lg p-3" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                            <strong><TranslatedText text={difficulty} /> <TranslatedText text="Mode:" /></strong> {getDifficultyDescription(difficulty)} | 
-                            {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:{String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} <TranslatedText text="time limit" /> | 
-                            {difficultySettings[difficulty].lives} <TranslatedText text="lives" />
-                        </div>
-                    </div>
-                </div>
-            </GameFramework>
-
-            <AnimatePresence>
-                {showCompletionModal && (
-                    <GameCompletionModal
-                        isOpen={showCompletionModal}
-                        onClose={() => setShowCompletionModal(false)}
-                        score={finalScore}
-                        difficulty={difficulty}
-                        duration={gameDuration}
-                        customStats={{
-                            correctUnlocks,
-                            totalLocks
-                        }}
-                    />
-                )}
-            </AnimatePresence>
-        </div>
-    );
+const LEVELS = {
+  Easy: {
+    name: 'Easy',
+    subtitle: 'Basic Packets',
+    desc: 'Remember a short sequence of data packets flowing through the stream.',
+    seqLength: 4,
+    symbols: ['🔴', '🟢', '🔵', '🟡'],
+    speed: 1800,
+    bg: ['#0a1628', '#162544'],
+    accent: '#00e5ff',
+  },
+  Moderate: {
+    name: 'Moderate',
+    subtitle: 'Encrypted Flow',
+    desc: 'Longer sequences with more packet types. Stay sharp!',
+    seqLength: 6,
+    symbols: ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠'],
+    speed: 1400,
+    bg: ['#1a0a2e', '#2d1b4e'],
+    accent: '#b388ff',
+  },
+  Hard: {
+    name: 'Hard',
+    subtitle: 'Firewall Breach',
+    desc: 'Long sequences, more types, faster flow. Can you crack it?',
+    seqLength: 8,
+    symbols: ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚪', '🟤'],
+    speed: 1000,
+    bg: ['#2e0a0a', '#4e1b1b'],
+    accent: '#ff5252',
+  },
 };
 
-export default DataStreamSecurityGame;
+/* ───── AUDIO ───── */
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.value = 0.15;
+
+    if (type === 'packet') {
+      osc.type = 'sine';
+      osc.frequency.value = 600 + Math.random() * 400;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start(); osc.stop(ctx.currentTime + 0.2);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.value = 200;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+    } else if (type === 'win') {
+      osc.type = 'sine';
+      osc.frequency.value = 523;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc.start(); osc.stop(ctx.currentTime + 0.8);
+      const o2 = ctx.createOscillator();
+      const g2 = ctx.createGain();
+      o2.connect(g2); g2.connect(ctx.destination);
+      o2.type = 'sine'; o2.frequency.value = 784; g2.gain.value = 0.12;
+      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      o2.start(ctx.currentTime + 0.15); o2.stop(ctx.currentTime + 0.8);
+    } else if (type === 'lose') {
+      osc.type = 'sawtooth';
+      osc.frequency.value = 150;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(); osc.stop(ctx.currentTime + 0.6);
+    } else if (type === 'click') {
+      osc.type = 'square';
+      osc.frequency.value = 1000;
+      gain.gain.value = 0.08;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.start(); osc.stop(ctx.currentTime + 0.05);
+    }
+  } catch (e) {}
+}
+
+/* ───── PARTICLE CANVAS ───── */
+function StreamCanvas({ colors, accent }) {
+  const canvasRef = useRef(null);
+  const particles = useRef([]);
+  const anim = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 60; i++) {
+      particles.current.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 0.5,
+        vx: (Math.random() - 0.3) * 1.5,
+        vy: -(Math.random() * 0.5 + 0.3),
+        a: Math.random() * 0.6 + 0.2,
+      });
+    }
+
+    const draw = () => {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, colors[0]);
+      gradient.addColorStop(1, colors[1]);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Grid lines
+      ctx.strokeStyle = accent + '15';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      particles.current.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = accent + Math.floor(p.a * 255).toString(16).padStart(2, '0');
+        ctx.fill();
+      });
+
+      anim.current = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => {
+      cancelAnimationFrame(anim.current);
+      window.removeEventListener('resize', resize);
+    };
+  }, [colors, accent]);
+
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />;
+}
+
+/* ───── MAIN COMPONENT ───── */
+export default function DataStreamSecurity() {
+  const [gameState, setGameState] = useState('ready');
+  const [difficulty, setDifficulty] = useState('Easy');
+  const [phase, setPhase] = useState('menu'); // menu | watching | answering | win | lose
+  const [levelIdx, setLevelIdx] = useState(0);
+  const [sequence, setSequence] = useState([]);
+  const [currentShow, setCurrentShow] = useState(-1);
+  const [playerSeq, setPlayerSeq] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
+  const [score, setScore] = useState(0);
+  const [round, setRound] = useState(1);
+  const [totalRounds] = useState(5);
+  const [roundSeqLen, setRoundSeqLen] = useState(0);
+  const [feedback, setFeedback] = useState(null); // { type: 'correct' | 'wrong', idx }
+  const [showRules, setShowRules] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [wrongCount, setWrongCount] = useState(0);
+  const timerRef = useRef(null);
+
+  const level = LEVELS[difficulty];
+
+  // Update timeLeft when difficulty changes (for ready screen display)
+  useEffect(() => {
+    if (gameState === 'ready') {
+      setTimeLeft(TIME_LIMIT);
+    }
+  }, [difficulty, gameState]);
+
+  /* Generate a sequence */
+  const genSeq = useCallback((len, symbols) => {
+    const seq = [];
+    for (let i = 0; i < len; i++) {
+      seq.push(symbols[Math.floor(Math.random() * symbols.length)]);
+    }
+    return seq;
+  }, []);
+
+  /* Start a level */
+  const startLevel = (diff) => {
+    playSound('click');
+    setDifficulty(diff);
+    setPhase('watching');
+    setScore(0);
+    setRound(1);
+    setTimeLeft(TIME_LIMIT);
+    setPlayerSeq([]);
+    setFeedback(null);
+    setCorrectCount(0);
+    setWrongCount(0);
+    const lvl = LEVELS[diff];
+    const len = lvl.seqLength;
+    setRoundSeqLen(len);
+    const seq = genSeq(len, lvl.symbols);
+    setSequence(seq);
+    setCurrentShow(0);
+    setGameState('playing');
+  };
+
+  const handleStart = useCallback(() => {
+    startLevel(difficulty);
+  }, [difficulty]);
+
+  const handleReset = useCallback(() => {
+    setGameState('ready');
+    setPhase('menu');
+    setScore(0);
+    setCorrectCount(0);
+    setWrongCount(0);
+    setTimeLeft(TIME_LIMIT);
+    setRound(1);
+    setPlayerSeq([]);
+    setFeedback(null);
+    clearInterval(timerRef.current);
+  }, []);
+
+  /* Show sequence one by one */
+  useEffect(() => {
+    if (phase !== 'watching' || currentShow < 0) return;
+    if (currentShow >= sequence.length) {
+      // Done showing, switch to answering
+      setTimeout(() => {
+        setCurrentShow(-1);
+        setPhase('answering');
+      }, 500);
+      return;
+    }
+    playSound('packet');
+    const t = setTimeout(() => setCurrentShow(prev => prev + 1), level.speed);
+    return () => clearTimeout(t);
+  }, [phase, currentShow, sequence.length, level.speed]);
+
+  /* Timer */
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    if (phase !== 'watching' && phase !== 'answering') return;
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          setPhase('lose');
+          setGameState('finished');
+          playSound('lose');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [gameState, phase]);
+
+  /* Handle player tap */
+  const handleTap = (symbol) => {
+    if (phase !== 'answering') return;
+    playSound('click');
+    const idx = playerSeq.length;
+    const newSeq = [...playerSeq, symbol];
+    setPlayerSeq(newSeq);
+
+    if (symbol !== sequence[idx]) {
+      // Wrong
+      playSound('wrong');
+      setFeedback({ type: 'wrong', idx });
+      setWrongCount(c => c + 1);
+      setTimeout(() => {
+        setFeedback(null);
+        // Move to next round or end
+        if (round >= totalRounds) {
+          if (score > 0) {
+            setPhase('win');
+            setGameState('finished');
+            playSound('win');
+          } else {
+            setPhase('lose');
+            setGameState('finished');
+            playSound('lose');
+          }
+        } else {
+          nextRound(score);
+        }
+      }, 800);
+      return;
+    }
+
+    // Correct so far
+    setFeedback({ type: 'correct', idx });
+    setTimeout(() => setFeedback(null), 300);
+
+    if (newSeq.length === sequence.length) {
+      // Full sequence correct!
+      playSound('correct');
+      setCorrectCount(c => c + 1);
+      const roundScore = Math.round((MAX_SCORE / totalRounds) * (timeLeft / TIME_LIMIT + 0.5));
+      const newScore = Math.min(MAX_SCORE, score + roundScore);
+      setScore(newScore);
+
+      setTimeout(() => {
+        if (round >= totalRounds || newScore >= MAX_SCORE) {
+          setPhase('win');
+          setGameState('finished');
+          playSound('win');
+        } else {
+          nextRound(newScore);
+        }
+      }, 600);
+    }
+  };
+
+  const nextRound = (currentScore) => {
+    const newRound = round + 1;
+    setRound(newRound);
+    setPlayerSeq([]);
+    setFeedback(null);
+    // Slightly increase length each round
+    const newLen = roundSeqLen + (newRound > 3 ? 1 : 0);
+    setRoundSeqLen(newLen);
+    const seq = genSeq(newLen, level.symbols);
+    setSequence(seq);
+    setPhase('watching');
+    setCurrentShow(0);
+    setScore(currentScore);
+  };
+
+  const goMenu = () => {
+    playSound('click');
+    setPhase('menu');
+    setGameState('ready');
+    clearInterval(timerRef.current);
+  };
+
+  // Check if game should end due to max score
+  useEffect(() => {
+    if (gameState === 'playing' && score >= MAX_SCORE) {
+      setPhase('win');
+      setGameState('finished');
+      playSound('win');
+    }
+  }, [gameState, score]);
+
+  const accuracy = correctCount + wrongCount > 0 
+    ? Math.round((correctCount / (correctCount + wrongCount)) * 100) 
+    : 0;
+
+  const instructionsSection = (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          🎯 Objective
+        </h4>
+        <p className="text-sm text-blue-700">
+          Watch data packets flow across the stream, memorize their order, then reproduce the exact sequence!
+        </p>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          🎮 How to Play
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Watch packets flow in sequence</li>
+          <li>• Memorize the exact order</li>
+          <li>• Tap symbols to reproduce</li>
+          <li>• Complete {totalRounds} rounds to win</li>
+        </ul>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          📊 Scoring
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Correct sequences earn points</li>
+          <li>• Faster completion = more points</li>
+          <li>• Max {MAX_SCORE} points per level</li>
+          <li>• Wrong answer moves to next round</li>
+        </ul>
+      </div>
+      <div className="bg-white p-3 rounded-lg">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
+          💡 Strategy
+        </h4>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Focus during packet flow</li>
+          <li>• Use memory techniques</li>
+          <li>• Sequences grow longer each round</li>
+          <li>• Higher difficulty = faster flow</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  const glassStyle = {
+    background: 'rgba(0,0,0,0.45)',
+    backdropFilter: 'blur(12px)',
+    borderRadius: 16,
+    border: '1px solid rgba(255,255,255,0.1)',
+    padding: 24,
+  };
+
+  const btnStyle = (color = '#00e5ff') => ({
+    padding: '12px 28px',
+    border: `2px solid ${color}`,
+    borderRadius: 12,
+    background: color + '22',
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  });
+
+  const symbolBtnStyle = (isActive) => ({
+    width: 64,
+    height: 64,
+    fontSize: 32,
+    borderRadius: 14,
+    border: `2px solid ${isActive ? level.accent : 'rgba(255,255,255,0.2)'}`,
+    background: isActive ? level.accent + '33' : 'rgba(255,255,255,0.08)',
+    cursor: phase === 'answering' ? 'pointer' : 'default',
+    transition: 'all 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: isActive ? `0 0 20px ${level.accent}55` : 'none',
+  });
+
+  const currentColors = phase === 'menu' ? ['#0a1628', '#162544'] : level.bg;
+  const currentAccent = phase === 'menu' ? '#00e5ff' : level.accent;
+
+  /* Format time */
+  const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+  const playingContent = (
+    <div style={{
+      position: 'relative',
+      width: '100vw',
+      height: '100vh',
+      overflow: 'hidden',
+      fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
+      color: '#fff',
+      userSelect: 'none',
+    }}>
+      <StreamCanvas colors={currentColors} accent={currentAccent} />
+
+      {/* HUD */}
+      {(phase === 'watching' || phase === 'answering') && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '12px 20px',
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+        }}>
+          <button onClick={goMenu} style={{ ...btnStyle(level.accent), padding: '8px 16px', fontSize: 14 }}>
+            ← Menu
+          </button>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 13, opacity: 0.7 }}>{level.name} — Round {round}/{totalRounds}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: level.accent }}>
+              {phase === 'watching' ? '👁️ MEMORIZE' : '🎯 PREDICT'}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: timeLeft < 30 ? '#ff5252' : '#fff' }}>
+              ⏱ {formatTime(timeLeft)}
+            </div>
+            <div style={{ fontSize: 14, color: level.accent }}>Score: {score}/{MAX_SCORE}</div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── WATCHING PHASE ─── */}
+      {phase === 'watching' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: 20, paddingTop: 80,
+        }}>
+          <div style={{ ...glassStyle, textAlign: 'center', minWidth: 280, maxWidth: 500 }}>
+            <div style={{ fontSize: 14, opacity: 0.6, marginBottom: 16 }}>
+              Watch the sequence carefully...
+            </div>
+
+            {/* Stream visualization */}
+            <div style={{
+              display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center',
+              minHeight: 100, flexWrap: 'wrap', padding: 16,
+            }}>
+              {sequence.map((sym, i) => (
+                <div key={i} style={{
+                  width: 60, height: 60,
+                  borderRadius: 14,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 30,
+                  background: i === currentShow
+                    ? level.accent + '44'
+                    : i < currentShow
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'rgba(255,255,255,0.03)',
+                  border: i === currentShow
+                    ? `2px solid ${level.accent}`
+                    : '2px solid rgba(255,255,255,0.08)',
+                  transform: i === currentShow ? 'scale(1.2)' : 'scale(1)',
+                  transition: 'all 0.3s',
+                  boxShadow: i === currentShow ? `0 0 25px ${level.accent}66` : 'none',
+                  opacity: i <= currentShow ? 1 : 0.3,
+                }}>
+                  {i <= currentShow ? sym : '?'}
+                </div>
+              ))}
+            </div>
+
+            <div style={{
+              marginTop: 12, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                background: level.accent,
+                width: `${((currentShow + 1) / sequence.length) * 100}%`,
+                transition: 'width 0.3s',
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── ANSWERING PHASE ─── */}
+      {phase === 'answering' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: 20, paddingTop: 80,
+        }}>
+          <div style={{ ...glassStyle, textAlign: 'center', minWidth: 280, maxWidth: 500 }}>
+            <div style={{ fontSize: 14, opacity: 0.6, marginBottom: 12 }}>
+              Reproduce the sequence! ({playerSeq.length}/{sequence.length})
+            </div>
+
+            {/* Player progress */}
+            <div style={{
+              display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap',
+              marginBottom: 20, minHeight: 50,
+            }}>
+              {sequence.map((_, i) => {
+                const filled = i < playerSeq.length;
+                const isCorrect = filled && playerSeq[i] === sequence[i];
+                const isWrong = feedback && feedback.type === 'wrong' && feedback.idx === i;
+                return (
+                  <div key={i} style={{
+                    width: 44, height: 44, borderRadius: 10,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22,
+                    background: isWrong ? '#ff525244' : filled ? level.accent + '33' : 'rgba(255,255,255,0.05)',
+                    border: `2px solid ${isWrong ? '#ff5252' : filled ? level.accent : 'rgba(255,255,255,0.15)'}`,
+                    transition: 'all 0.2s',
+                  }}>
+                    {filled ? playerSeq[i] : '·'}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Symbol buttons */}
+            <div style={{
+              display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap',
+            }}>
+              {level.symbols.map((sym, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleTap(sym)}
+                  style={symbolBtnStyle(false)}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = level.accent;
+                    e.currentTarget.style.background = level.accent + '33';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                  }}
+                >
+                  {sym}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <GameFrameworkV2
+      gameTitle="Data Stream Security"
+      gameShortDescription="Watch data packets flow across the stream, memorize their order, then reproduce the exact sequence!"
+      category="Memory"
+      gameState={gameState}
+      setGameState={setGameState}
+      score={score}
+      timeRemaining={timeLeft}
+      difficulty={difficulty}
+      setDifficulty={setDifficulty}
+      onStart={handleStart}
+      onReset={handleReset}
+      customStats={{ correctCount, wrongCount, accuracy, round, totalRounds }}
+      enableCompletionModal={true}
+      instructionsSection={instructionsSection}
+    >
+      {playingContent}
+    </GameFrameworkV2>
+  );
+}
