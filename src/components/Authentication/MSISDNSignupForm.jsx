@@ -6,13 +6,18 @@ import TranslatedText from '../TranslatedText.jsx';
 import { useTranslateText } from '../../hooks/useTranslate';
 import { getDefaultCountry } from '../../config/accessControl';
 
-export default function MSISDNSignupForm({ signupHandler, loading = false }) {
+export default function MSISDNSignupForm({ signupHandler, loading = false, msisdn = null }) {
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm();
+    setValue,
+  } = useForm({
+    defaultValues: {
+      msisdn: msisdn || ''
+    }
+  });
 
   const selectedCountry = watch("country");
   
@@ -63,7 +68,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false }) {
             <Input
               type="tel"
               placeholder={useTranslateText('Enter your phone number')}
-              className="w-full pl-12 pr-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
+              className={`w-full pl-12 pr-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] ${msisdn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               {...register("msisdn", {
                 required: msisdnRequiredText,
                 pattern: {
@@ -71,6 +76,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false }) {
                   message: invalidMSISDNFormatText,
                 },
               })}
+              readOnly={!!msisdn}
             />
           </div>
           {errors.msisdn && <p className="text-red-500 text-sm mt-1"><TranslatedText text={errors.msisdn.message} /></p>}
