@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { ArrowLeft, Volume2, VolumeX, Trophy, Clock, CheckCircle, XCircle } from 'lucide-react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useLocation, useSearchParams } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 import grandpaCartImage from '/grandma-cart.png';
 const PRODUCT_TYPES = [
@@ -17,7 +19,9 @@ const PRODUCT_TYPES = [
 ];
 
 const ShopShiftGame = () => {
-  const [gameState, setGameState] = useState('ready');
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const [gameState, setGameState] = useState('menu'); // menu | playing | finished
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(90);
@@ -29,6 +33,11 @@ const ShopShiftGame = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [lastAction, setLastAction] = useState(null);
   const [decisionMade, setDecisionMade] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [startTime, setStartTime] = useState(null);
 
   const audioContextRef = useRef(null);
   const productIdRef = useRef(0);
@@ -242,11 +251,56 @@ const ShopShiftGame = () => {
     }
   }, [gameState, currentProduct, spawnNextProduct]);
 
-  const handleStart = useCallback(() => {
+  // Check if game is in daily suggestions
+  useEffect(() => {
+    const checkDailyGame = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location.pathname || '';
+        
+        const normalizePath = (p = '') => {
+          const base = String(p).split('?')[0].split('#')[0].trim();
+          const noTrailing = base.replace(/\/+$/, '');
+          return noTrailing || '/';
+        };
+        
+        const matchedGame = games.find(
+          (g) => normalizePath(g?.gameId?.url) === normalizePath(pathname)
+        );
+        
+        if (matchedGame && matchedGame.difficulty) {
+          const difficulty = matchedGame.difficulty.toLowerCase();
+          // Map difficulty: easy -> Easy, moderate -> Moderate, hard -> Hard
+          const difficultyMap = { 
+            easy: 'Easy', 
+            moderate: 'Moderate', 
+            hard: 'Hard' 
+          };
+          const mappedDifficulty = difficultyMap[difficulty];
+          
+          if (mappedDifficulty) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(mappedDifficulty);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking daily game:', error);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    
+    checkDailyGame();
+  }, [location.pathname]);
+
+  const handleStart = useCallback((selectedDifficulty = null) => {
+    const diff = selectedDifficulty || difficulty;
     setScore(0);
     setCorrectCount(0);
     setWrongCount(0);
-    setTimeRemaining(settings.time);
+    setTimeRemaining(difficultySettings[diff].time);
     const randomProduct = PRODUCT_TYPES[Math.floor(Math.random() * PRODUCT_TYPES.length)];
     setCurrentRule({
       type: 'product',
@@ -257,18 +311,39 @@ const ShopShiftGame = () => {
     productIdRef.current = 0;
     setCurrentProduct(null);
     setDecisionMade(false);
+    setStartTime(Date.now());
     setGameState('playing');
-  }, [settings.time]);
+  }, [difficulty, difficultySettings]);
 
   const handleReset = useCallback(() => {
-    setGameState('ready');
+    setGameState('menu');
     setScore(0);
     setCorrectCount(0);
     setWrongCount(0);
     setTimeRemaining(settings.time);
     setCurrentProduct(null);
     setDecisionMade(false);
+    setStartTime(null);
   }, [settings.time]);
+
+  // Handle URL parameter for auto-start (only if not daily game)
+  useEffect(() => {
+    if (isDailyGame || checkingDailyGame) return;
+    
+    const levelParam = searchParams.get('level');
+    if (levelParam && ['easy', 'moderate', 'hard'].includes(levelParam.toLowerCase())) {
+      const difficultyMap = { 
+        easy: 'Easy', 
+        moderate: 'Moderate', 
+        hard: 'Hard' 
+      };
+      const mappedDifficulty = difficultyMap[levelParam.toLowerCase()];
+      if (mappedDifficulty) {
+        setDifficulty(mappedDifficulty);
+        handleStart(mappedDifficulty);
+      }
+    }
+  }, [searchParams, isDailyGame, checkingDailyGame, handleStart]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -286,53 +361,415 @@ const ShopShiftGame = () => {
     }
   }, [gameState, score]);
 
- 
+  const totalTimeElapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Score points by correctly buying sale items and skipping non-sale items.
-        </p>
+  // Menu Screen
+  if (gameState === 'menu' && !checkingDailyGame) {
+    const availableDifficulties = isDailyGame && dailyGameDifficulty
+      ? [dailyGameDifficulty]
+      : ['Easy', 'Moderate', 'Hard'];
+
+    const difficultyInfo = {
+      Easy: { icon: '🛒', color: '#4CAF50', desc: '90 seconds • Slower products' },
+      Moderate: { icon: '🏪', color: '#FF9800', desc: '75 seconds • Medium speed' },
+      Hard: { icon: '🏬', color: '#F44336', desc: '60 seconds • Fast products' },
+    };
+
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'linear-gradient(135deg, #87CEEB 0%, #B8D4E8 50%, #E8D4B8 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        overflow: 'auto',
+      }}>
+        {/* How to Play Button */}
+        <button
+          onClick={() => setShowInstructions(true)}
+          style={{
+            position: 'absolute',
+            top: 'clamp(16px, 3vw, 24px)',
+            right: 'clamp(16px, 3vw, 24px)',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '12px',
+            padding: 'clamp(10px, 2vw, 12px) clamp(16px, 3vw, 24px)',
+            color: '#fff',
+            fontSize: 'clamp(13px, 2vw, 15px)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            transition: 'all 0.3s ease',
+            zIndex: 10,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          }}
+        >
+          📖 How to Play
+        </button>
+
+        {/* Title */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: 'clamp(1rem, 3vw, 2rem)',
+          animation: 'float 3s ease-in-out infinite',
+        }}>
+          <h1 style={{
+            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            fontWeight: 900,
+            marginBottom: '0.5rem',
+            background: 'linear-gradient(135deg, #FF6B3E, #E74C3C, #C0392B)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: 'none',
+          }}>
+            🛒 ShopShift
+          </h1>
+          <p style={{
+            fontSize: 'clamp(1rem, 2vw, 1.3rem)',
+            color: '#2C3E50',
+            fontWeight: 600,
+            opacity: 0.9,
+          }}>
+            Buy products on sale, skip the rest!
+          </p>
+        </div>
+
+        {/* Daily Game Badge */}
+        {isDailyGame && dailyGameDifficulty && (
+          <div style={{
+            display: 'inline-block',
+            background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
+            padding: '8px 20px',
+            borderRadius: '20px',
+            marginBottom: '20px',
+            fontSize: 'clamp(12px, 2vw, 14px)',
+            fontWeight: 600,
+            color: '#fff',
+            boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
+          }}>
+            🎯 Daily Challenge: {dailyGameDifficulty}
+          </div>
+        )}
+
+        {/* Difficulty Selection */}
+        <div style={{
+          display: 'flex',
+          gap: 'clamp(1rem, 3vw, 2rem)',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          maxWidth: '900px',
+          marginBottom: '2rem',
+        }}>
+          {availableDifficulties.map((diff) => {
+            const info = difficultyInfo[diff];
+            return (
+              <button
+                key={diff}
+                onClick={() => {
+                  setDifficulty(diff);
+                  handleStart(diff);
+                }}
+                style={{
+                  background: `linear-gradient(135deg, ${info.color}dd, ${info.color}aa)`,
+                  border: `3px solid ${info.color}`,
+                  borderRadius: '20px',
+                  padding: 'clamp(1.5rem, 3vw, 2.5rem) clamp(2rem, 4vw, 3rem)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  minWidth: 'clamp(180px, 25vw, 240px)',
+                  boxShadow: `0 8px 24px ${info.color}44`,
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px) scale(1.05)';
+                  e.currentTarget.style.boxShadow = `0 12px 32px ${info.color}66`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = `0 8px 24px ${info.color}44`;
+                }}
+              >
+                <div style={{ fontSize: 'clamp(3rem, 6vw, 4.5rem)', marginBottom: '0.5rem' }}>
+                  {info.icon}
+                </div>
+                <div style={{
+                  fontSize: 'clamp(1.2rem, 2.5vw, 1.8rem)',
+                  fontWeight: 700,
+                  marginBottom: '0.5rem',
+                }}>
+                  {diff}
+                </div>
+                <div style={{
+                  fontSize: 'clamp(0.85rem, 1.5vw, 1rem)',
+                  opacity: 0.9,
+                }}>
+                  {info.desc}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Instructions Modal */}
+        {showInstructions && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }} onClick={() => setShowInstructions(false)}>
+            <div style={{
+              background: 'linear-gradient(135deg, #87CEEB 0%, #B8D4E8 100%)',
+              borderRadius: '20px',
+              padding: 'clamp(20px, 4vw, 40px)',
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              color: '#2C3E50',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              position: 'relative',
+            }} onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  color: '#2C3E50',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.currentTarget.style.transform = 'rotate(90deg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.transform = 'rotate(0deg)';
+                }}
+              >
+                ✕
+              </button>
+
+              <h2 style={{
+                fontSize: 'clamp(24px, 4vw, 32px)',
+                fontWeight: 'bold',
+                marginBottom: '8px',
+                textAlign: 'center',
+                color: '#2C3E50',
+              }}>
+                🛒 How to Play ShopShift
+              </h2>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '20px',
+                marginTop: '24px',
+              }}>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#4CAF50',
+                  }}>
+                    🎯 Objective
+                  </h3>
+                  <p style={{
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    color: '#2C3E50',
+                  }}>
+                    Score points by correctly buying sale items and skipping non-sale items. Watch for changing rules and make quick decisions!
+                  </p>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#2196F3',
+                  }}>
+                    🎮 How to Play
+                  </h3>
+                  <ul style={{
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    color: '#2C3E50',
+                    paddingLeft: '20px',
+                  }}>
+                    <li>Watch the sale sign for current deals</li>
+                    <li>Click BUY or SKIP as products pass</li>
+                    <li>Use ← → arrow keys for speed</li>
+                    <li>Don't let products escape!</li>
+                  </ul>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#FF9800',
+                  }}>
+                    📊 Scoring
+                  </h3>
+                  <ul style={{
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    color: '#2C3E50',
+                    paddingLeft: '20px',
+                  }}>
+                    <li>+10 points for correct BUY</li>
+                    <li>+5 points for correct SKIP</li>
+                    <li>Penalties for wrong decisions</li>
+                    <li>Maximum score: 200 points</li>
+                  </ul>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#9C27B0',
+                  }}>
+                    💡 Strategy
+                  </h3>
+                  <ul style={{
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    color: '#2C3E50',
+                    paddingLeft: '20px',
+                  }}>
+                    <li>Stay alert for rule changes</li>
+                    <li>Decide quickly before time runs out</li>
+                    <li>Higher difficulty = faster products</li>
+                    <li>Keep your eyes on the sale sign</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{
+                marginTop: '24px',
+                padding: '16px',
+                background: 'rgba(255, 107, 62, 0.2)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 107, 62, 0.4)',
+              }}>
+                <p style={{
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  color: '#2C3E50',
+                  textAlign: 'center',
+                  fontWeight: 500,
+                }}>
+                  💡 <strong>Pro Tip:</strong> The sale sign changes periodically! Stay focused and react quickly. Building accuracy streaks helps maximize your score!
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  width: '100%',
+                  marginTop: '24px',
+                  padding: '14px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#fff',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                }}
+              >
+                Got it! Let's Shop 🛒
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Watch the sale sign for current deals</li>
-          <li>• Click BUY or SKIP as products pass</li>
-          <li>• Use ← → arrow keys for speed</li>
-          <li>• Don't let products escape!</li>
-        </ul>
+    );
+  }
+
+  // Loading State
+  if (checkingDailyGame && gameState === 'menu') {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'linear-gradient(135deg, #87CEEB 0%, #B8D4E8 50%, #E8D4B8 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛒</div>
+          <div style={{ fontSize: '18px', color: '#2C3E50', opacity: 0.8 }}>Loading...</div>
+        </div>
       </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• +10 points for correct BUY</li>
-          <li>• +5 points for correct SKIP</li>
-          <li>• Penalties for wrong decisions</li>
-          <li>• Missed items count as wrong</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Strategy
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Stay alert for rule changes</li>
-          <li>• Decide quickly before time runs out</li>
-          <li>• Higher difficulty = faster products</li>
-          <li>• Keep your eyes on the sale sign</li>
-        </ul>
-      </div>
-    </div>
-  );
+    );
+  }
 
   const playingContent = (
     <>
@@ -379,7 +816,11 @@ const ShopShiftGame = () => {
       >
         <div className="flex items-center justify-between p-2 sm:p-3 bg-black/20 backdrop-blur-sm shrink-0">
           <button
-            onClick={handleReset}
+            onClick={() => {
+              setGameState('menu');
+              setCurrentProduct(null);
+              setDecisionMade(false);
+            }}
             className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors"
           >
             <ArrowLeft size={20} />
@@ -546,25 +987,32 @@ const ShopShiftGame = () => {
     </>
   );
 
+  // Game Completion Modal
+  const isVictory = score >= 200 || (timeRemaining > 0 && score > 150);
+
   return (
-    <GameFrameworkV2
-      gameTitle="ShopShift"
-      gameShortDescription="Buy products that are on sale, skip the rest! Watch for changing rules and make quick decisions."
-      category="Shopping"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{ correctCount, wrongCount, accuracy }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <>
+      {gameState === 'playing' && playingContent}
+      
+      {/* Game Completion Modal */}
+      <GameCompletionModal
+        isVisible={gameState === 'finished'}
+        onClose={handleReset}
+        gameTitle="ShopShift"
+        score={score}
+        moves={correctCount + wrongCount}
+        timeElapsed={totalTimeElapsed}
+        gameTimeLimit={settings.time}
+        isVictory={isVictory}
+        difficulty={difficulty}
+        customMessages={{
+          perfectScore: 180,
+          goodScore: 120,
+          maxScore: 200,
+          stats: `✅ Correct: ${correctCount} • ❌ Wrong: ${wrongCount} • 📊 Accuracy: ${accuracy}% • ⏱️ Time: ${formatTime(settings.time - timeRemaining)}`
+        }}
+      />
+    </>
   );
 
 
