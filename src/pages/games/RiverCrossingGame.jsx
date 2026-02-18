@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 /*
   River Crossing Challenge – Carnival Quest
@@ -138,8 +141,10 @@ function playSound(type) {
 
 /* ───── COMPONENT ───── */
 export default function RiverCrossing({ onBack }) {
-  const [phase, setPhase] = useState('menu'); // menu | playing | conflict | levelWin | gameWin | gameOver
+  const location = useLocation();
+  const [phase, setPhase] = useState('menu'); // menu | playing | conflict | levelWin | gameWin | gameOver | finished
   const [levelIdx, setLevelIdx] = useState(0);
+  const [menuLevelIdx, setMenuLevelIdx] = useState(0); // selected level on menu
   const [leftBank, setLeftBank] = useState([]);
   const [rightBank, setRightBank] = useState([]);
   const [raftItems, setRaftItems] = useState([]);
@@ -153,13 +158,52 @@ export default function RiverCrossing({ onBack }) {
   const [particles, setParticles] = useState([]);
   const [raftAnim, setRaftAnim] = useState(0); // 0-1 for animation
   const [shake, setShake] = useState(false);
+  const [dailyGameLevel, setDailyGameLevel] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [gameStartTime, setGameStartTime] = useState(null);
+  const [completionData, setCompletionData] = useState(null); // { score, isVictory, isLevelWin, levelIdx, moves, timeElapsed }
   const timerRef = useRef(null);
   const animRef = useRef(null);
   const raftAnimRef = useRef(null);
   const waveOffset = useRef(0);
   const canvasRef = useRef(null);
+  const playingStateRef = useRef({ score: 0, moves: 0, levelIdx: 0 });
 
   const lvl = LEVELS[levelIdx];
+  playingStateRef.current = { score, moves, levelIdx };
+
+  /* ── Daily game detection ── */
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location.pathname || '';
+        const normalizePath = (p = '') => {
+          const base = String(p).split('?')[0].split('#')[0].trim();
+          return (base.replace(/\/+$/, '') || '/');
+        };
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 0, moderate: 1, hard: 2 };
+          if (map[d] !== undefined) {
+            setIsDailyGame(true);
+            setDailyGameLevel(map[d]);
+            setMenuLevelIdx(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location.pathname]);
 
   const play = useCallback((t) => { if (!muted) playSound(t); }, [muted]);
 
@@ -176,6 +220,8 @@ export default function RiverCrossing({ onBack }) {
     setConflictMsg('');
     setRaftAnim(0);
     setPhase('playing');
+    setGameStartTime(Date.now());
+    setCompletionData(null);
   }, []);
 
   /* ── Timer ── */
@@ -185,8 +231,17 @@ export default function RiverCrossing({ onBack }) {
         setTimer(t => {
           if (t <= 1) {
             clearInterval(timerRef.current);
-            setPhase('gameOver');
             play('lose');
+            const { score: s, moves: m, levelIdx: li } = playingStateRef.current;
+            setCompletionData({
+              score: s,
+              isVictory: false,
+              isLevelWin: false,
+              levelIdx: li,
+              moves: m,
+              timeElapsed: TIME_LIMIT,
+            });
+            setPhase('finished');
             return 0;
           }
           return t - 1;
@@ -361,18 +416,26 @@ export default function RiverCrossing({ onBack }) {
         setTimeout(() => {
           setRightBank(rb => {
             if (rb.length === lvl.items.length) {
-              // Level complete
               const timeBonus = Math.floor((timer / TIME_LIMIT) * POINTS_PER_LEVEL * 0.5);
-              const moveBonus = Math.max(0, POINTS_PER_LEVEL * 0.5 - moves * 2);
+              const moveBonus = Math.max(0, POINTS_PER_LEVEL * 0.5 - (moves + 1) * 2);
               const pts = Math.min(Math.floor(timeBonus + moveBonus), POINTS_PER_LEVEL);
-              setScore(s => Math.min(s + pts, MAX_SCORE));
+              const isLastLevel = levelIdx >= LEVELS.length - 1;
+              const timeElapsed = TIME_LIMIT - (timer - 1 >= 0 ? timer - 1 : 0);
+              setScore(s => {
+                const newScore = Math.min(s + pts, MAX_SCORE);
+                setCompletionData({
+                  score: newScore,
+                  isVictory: true,
+                  isLevelWin: !isLastLevel,
+                  levelIdx,
+                  moves: moves + 1,
+                  timeElapsed: timeElapsed || TIME_LIMIT - timer,
+                });
+                setPhase('finished');
+                return newScore;
+              });
               play('levelup');
-              if (levelIdx >= LEVELS.length - 1) {
-                setPhase('gameWin');
-                play('win');
-              } else {
-                setPhase('levelWin');
-              }
+              if (isLastLevel) play('win');
             }
             return rb;
           });
@@ -390,15 +453,26 @@ export default function RiverCrossing({ onBack }) {
     initLevel(levelIdx + 1);
   };
 
-  const startGame = () => {
+  const startGame = (selectedIdx) => {
     setScore(0);
     setTimer(TIME_LIMIT);
-    initLevel(0);
+    initLevel(selectedIdx ?? menuLevelIdx);
   };
 
   const goMenu = () => {
     setPhase('menu');
+    setCompletionData(null);
     clearInterval(timerRef.current);
+  };
+
+  const handleCloseModal = () => {
+    if (completionData?.isLevelWin) {
+      setCompletionData(null);
+      setPhase('playing');
+      initLevel(levelIdx + 1);
+    } else {
+      goMenu();
+    }
   };
 
   /* ── Format time ── */
@@ -453,32 +527,95 @@ export default function RiverCrossing({ onBack }) {
 
   /* ════════ MENU ════════ */
   if (phase === 'menu') {
+    const availableLevels = isDailyGame && dailyGameLevel !== null ? [LEVELS[dailyGameLevel]] : LEVELS;
+    const levelIndices = isDailyGame && dailyGameLevel !== null ? [dailyGameLevel] : [0, 1, 2];
+
+    if (checkingDailyGame) {
+      return (
+        <div style={S.menu}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🚣</div>
+          <div style={{ opacity: 0.8 }}>Loading...</div>
+        </div>
+      );
+    }
+
     return (
       <div style={S.menu}>
+        <button
+          onClick={() => setShowInstructions(true)}
+          style={{
+            position: 'absolute', top: 20, right: 20, zIndex: 10,
+            padding: '10px 20px', background: 'rgba(79,195,247,0.2)', border: '2px solid rgba(79,195,247,0.5)',
+            borderRadius: 10, color: '#81d4fa', cursor: 'pointer', fontSize: 14, fontWeight: 700,
+          }}
+        >
+          📖 How to Play
+        </button>
+
+        {showInstructions && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+            onClick={() => setShowInstructions(false)}>
+            <div style={{ background: 'linear-gradient(180deg, #0a1628, #1a3a6a)', border: '2px solid #4fc3f7', borderRadius: 20, padding: 28, maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', color: '#fff' }} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setShowInstructions(false)} style={{ float: 'right', background: 'none', border: 'none', color: '#fff', fontSize: 24, cursor: 'pointer' }}>×</button>
+              <h2 style={{ marginTop: 0, color: '#4fc3f7' }}>🚣 How to Play River Crossing</h2>
+              <h3 style={{ fontSize: 16, color: '#81d4fa' }}>Objective</h3>
+              <p>Get everyone and everything from the left bank to the right bank using the raft. Never leave conflicting items alone together without the guardian!</p>
+              <h3 style={{ fontSize: 16, color: '#81d4fa' }}>Rules</h3>
+              <ul style={{ paddingLeft: 20 }}>
+                <li>Select items on the current bank (click them). The raft holds the driver + one or more items.</li>
+                <li>You must take the required person (Farmer / Explorer / Guard) on the raft to row it.</li>
+                <li>Click &quot;Sail Right&quot; or &quot;Sail Left&quot; to cross. When you leave a bank, no conflicting pair can be left alone (e.g. Fox + Chicken without Farmer).</li>
+                <li>If you break a rule, a conflict occurs and you must retry the level.</li>
+              </ul>
+              <h3 style={{ fontSize: 16, color: '#81d4fa' }}>Scoring</h3>
+              <p>Score up to 200 points across 3 levels. Finish in fewer moves and with time left for bonus points.</p>
+            </div>
+          </div>
+        )}
+
         <div style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: '0.3rem' }}>🚣</div>
         <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0,
           background: 'linear-gradient(135deg, #4fc3f7, #81d4fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           River Crossing
         </h1>
-        <p style={{ opacity: 0.7, margin: '0.3rem 0 1.5rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>Challenge</p>
+        <p style={{ opacity: 0.7, margin: '0.3rem 0 0.5rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>Challenge</p>
+        {isDailyGame && (
+          <div style={{ marginBottom: '1rem', padding: '6px 16px', background: 'rgba(79,195,247,0.2)', border: '1px solid rgba(79,195,247,0.4)', borderRadius: 20, fontSize: 13, color: '#81d4fa', fontWeight: 600 }}>
+            🎯 Daily Challenge
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', width: '100%', maxWidth: '380px' }}>
-          {LEVELS.map((l, i) => (
-            <div key={l.id} style={{ ...S.glass, padding: 'clamp(12px, 3vw, 20px)', cursor: 'pointer', transition: 'transform 0.2s' }}
-              onClick={() => { }} >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-                <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>{l.items[0].emoji}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>Level {l.id}: {l.name}</div>
-                  <div style={{ opacity: 0.6, fontSize: 'clamp(0.7rem, 2vw, 0.85rem)' }}>{l.subtitle}</div>
+          {availableLevels.map((l, i) => {
+            const idx = levelIndices[i];
+            const isSelected = menuLevelIdx === idx;
+            return (
+              <div
+                key={l.id}
+                style={{
+                  ...S.glass,
+                  padding: 'clamp(12px, 3vw, 20px)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s',
+                  border: isSelected ? '2px solid #4fc3f7' : undefined,
+                  transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                }}
+                onClick={() => setMenuLevelIdx(idx)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+                  <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>{l.items[0].emoji}</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>Level {l.id}: {l.name}</div>
+                    <div style={{ opacity: 0.6, fontSize: 'clamp(0.7rem, 2vw, 0.85rem)' }}>{l.subtitle}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <button style={{ ...S.btn, marginTop: '1.5rem', fontSize: 'clamp(1rem, 3vw, 1.2rem)', padding: '14px 48px' }}
-          onClick={startGame}>
+          onClick={() => startGame()}>
           🚀 Start Game
         </button>
 
@@ -506,60 +643,16 @@ export default function RiverCrossing({ onBack }) {
     );
   }
 
-  /* ════════ LEVEL WIN ════════ */
-  if (phase === 'levelWin') {
-    return (
-      <div style={S.menu}>
-        <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>🎉</div>
-        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', margin: '0 0 0.3rem' }}>Level {levelIdx + 1} Complete!</h2>
-        <p style={{ opacity: 0.7, fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}>Moves: {moves} | Score: {score}/{MAX_SCORE}</p>
-        <div style={{ fontSize: '2rem', margin: '0.5rem 0' }}>
-          {'⭐'.repeat(getStars(score))}{'☆'.repeat(3 - getStars(score))}
-        </div>
-        <button style={{ ...S.btnSuccess, ...S.btn, marginTop: '1rem' }} onClick={nextLevel}>Next Level →</button>
-      </div>
-    );
-  }
-
-  /* ════════ GAME WIN ════════ */
-  if (phase === 'gameWin') {
-    return (
-      <div style={S.menu}>
-        <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>🏆</div>
-        <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', margin: '0 0 0.3rem',
-          background: 'linear-gradient(135deg, #ffd700, #ffab00)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Victory!
-        </h2>
-        <p style={{ opacity: 0.8, fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)' }}>Final Score: {score}/{MAX_SCORE}</p>
-        <div style={{ fontSize: '2.5rem', margin: '0.5rem 0' }}>
-          {'⭐'.repeat(getStars(score))}{'☆'.repeat(3 - getStars(score))}
-        </div>
-        <button style={{ ...S.btn, marginTop: '1rem' }} onClick={startGame}>🔄 Play Again</button>
-        {onBack && <button style={{ ...S.btn, marginTop: '0.8rem', background: 'rgba(255,255,255,0.1)', boxShadow: 'none' }} onClick={onBack}>← Back</button>}
-      </div>
-    );
-  }
-
-  /* ════════ GAME OVER ════════ */
-  if (phase === 'gameOver') {
-    return (
-      <div style={{ ...S.menu, background: 'linear-gradient(180deg, #1a0000, #2d0000, #000)' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>⏰</div>
-        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 2rem)', color: '#ff5252' }}>Time's Up!</h2>
-        <p style={{ opacity: 0.7 }}>Score: {score}/{MAX_SCORE}</p>
-        <button style={{ ...S.btn, marginTop: '1rem' }} onClick={startGame}>🔄 Try Again</button>
-        {onBack && <button style={{ ...S.btn, marginTop: '0.8rem', background: 'rgba(255,255,255,0.1)', boxShadow: 'none' }} onClick={onBack}>← Back</button>}
-      </div>
-    );
-  }
-
-  /* ════════ PLAYING ════════ */
+  /* ════════ PLAYING (or finished: show game + completion modal) ════════ */
   const currentBank = raftSide === 'left' ? leftBank : rightBank;
   const reqItem = lvl.items.find(it => it.required);
-  const canSail = selected.length > 0 && (!reqItem || selected.includes(reqItem.id));
+  const canSail = phase === 'playing' && selected.length > 0 && (!reqItem || selected.includes(reqItem.id));
   const raftX = raftSide === 'moving' ? raftAnim : (raftSide === 'left' ? 0 : 1);
+  const timeElapsed = completionData?.timeElapsed ?? (gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0);
+  const difficultyLabel = completionData?.levelIdx === 0 ? 'Easy' : completionData?.levelIdx === 1 ? 'Moderate' : 'Hard';
 
   return (
+    <>
     <div style={{ ...S.full, display: 'flex', flexDirection: 'column', animation: shake ? 'shakeAnim 0.4s' : 'none' }}>
       <style>{`
         @keyframes shakeAnim { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
@@ -714,5 +807,24 @@ export default function RiverCrossing({ onBack }) {
         </button>
       </div>
     </div>
+
+    <GameCompletionModal
+      isVisible={phase === 'finished' && completionData != null}
+      onClose={handleCloseModal}
+      gameTitle="River Crossing"
+      score={completionData?.score ?? score}
+      moves={completionData?.moves ?? moves}
+      timeElapsed={timeElapsed}
+      gameTimeLimit={TIME_LIMIT}
+      isVictory={completionData?.isVictory ?? false}
+      difficulty={difficultyLabel}
+      customMessages={{
+        perfectScore: 180,
+        goodScore: 120,
+        maxScore: MAX_SCORE,
+        stats: `📊 Moves: ${completionData?.moves ?? moves} • ⏱ Time: ${Math.floor((completionData?.timeElapsed ?? timeElapsed) / 60)}:${((completionData?.timeElapsed ?? timeElapsed) % 60).toString().padStart(2, '0')}`,
+      }}
+    />
+    </>
   );
 }
