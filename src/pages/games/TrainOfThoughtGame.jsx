@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 // ============================================================================
 // CONSTANTS
@@ -16,9 +18,10 @@ const COLORS = {
   cyan: { main: '#00ACC1', light: '#26C6DA', dark: '#00838F' },
 };
 
+const COUNTDOWN_DURATION = 1;
 const TOTAL_POINTS = 200;
 const TIME_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
-
+// const TIME_LIMIT_MS = 1000;
 const LEVEL_CONFIGS = {
   easy: { difficulty: 'easy', trainCount: 3, trainSpeed: 0.003, releaseInterval: 5000 },
   moderate: { difficulty: 'moderate', trainCount: 4, trainSpeed: 0.0045, releaseInterval: 4000 },
@@ -229,26 +232,31 @@ const createTrackLayout = (width, height, stationCount = 8) => {
 
 const TrainOfThought = () => {
   const containerRef = useRef(null);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [layout, setLayout] = useState(() => createTrackLayout(1200, 800));
   const [switches, setSwitches] = useState(layout.switches);
   const [trains, setTrains] = useState([]);
-  
-  // GameFrameworkV2 state
-  const [gameState, setGameState] = useState('ready');
-  const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes in seconds
-  const [difficulty, setDifficulty] = useState('Easy');
-  const [correctDeliveries, setCorrectDeliveries] = useState(0);
-  const [wrongDeliveries, setWrongDeliveries] = useState(0);
-  const [timeElapsed, setTimeElapsed] = useState(0); // Internal tracking in ms
-  
+  const [gameState, setGameState] = useState({
+    phase: 'menu',
+    score: 0,
+    timeElapsed: 0,
+    correctDeliveries: 0,
+    wrongDeliveries: 0,
+  });
+  const [countdown, setCountdown] = useState(COUNTDOWN_DURATION);
   const [trainQueue, setTrainQueue] = useState([]);
   const [releasedCount, setReleasedCount] = useState(0);
   const [hoveredSwitch, setHoveredSwitch] = useState(null);
   const [currentDifficulty, setCurrentDifficulty] = useState(null);
   const [isPortrait, setIsPortrait] = useState(false);
+  const [autoStartLevel, setAutoStartLevel] = useState(null);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
 
   const animationRef = useRef();
   const lastTimeRef = useRef(0);
@@ -263,15 +271,10 @@ const TrainOfThought = () => {
       }
     };
 
-    // Initial update with a slight delay to ensure container is rendered
-    const timer = setTimeout(updateDimensions, 100);
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', updateDimensions);
-    };
-  }, [gameState]); // Re-run when gameState changes
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
   useEffect(() => {
     const checkOrientation = () => {
@@ -303,46 +306,94 @@ const TrainOfThought = () => {
     setTrainQueue(shuffled.slice(0, trainCount));
   }, []);
 
-  const handleStart = useCallback(() => {
-    const config = LEVEL_CONFIGS[difficulty.toLowerCase()];
-    setCurrentDifficulty(difficulty.toLowerCase());
+  const startGame = useCallback((difficulty) => {
+    const config = LEVEL_CONFIGS[difficulty];
+    setCurrentDifficulty(difficulty);
     
-    // Use viewport dimensions for layout creation
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const smallScreen = viewportWidth < 900 || viewportHeight < 500;
-    
-    const stationCount = getStationCountForDifficulty(difficulty.toLowerCase(), smallScreen);
-    const newLayout = createTrackLayout(viewportWidth, viewportHeight, stationCount);
+    const stationCount = getStationCountForDifficulty(difficulty, isSmallScreen);
+    const newLayout = createTrackLayout(dimensions.width, dimensions.height, stationCount);
     setLayout(newLayout);
     setSwitches(newLayout.switches);
     setTrains([]);
     setReleasedCount(0);
     trainReleaseTimerRef.current = 0;
     lastTimeRef.current = 0;
+    setCountdown(COUNTDOWN_DURATION);
     
     const availableColors = newLayout.stations.map(s => s.colorName);
     initializeTrainQueue(availableColors, config.trainCount);
     
-    setScore(0);
-    setTimeElapsed(0);
-    setTimeRemaining(300);
-    setCorrectDeliveries(0);
-    setWrongDeliveries(0);
-    setGameState('playing');
-  }, [difficulty, initializeTrainQueue, getStationCountForDifficulty]);
+    setGameState({
+      phase: 'countdown',
+      score: 0,
+      timeElapsed: 0,
+      correctDeliveries: 0,
+      wrongDeliveries: 0,
+    });
+  }, [dimensions, isSmallScreen, initializeTrainQueue, getStationCountForDifficulty]);
 
-  const handleReset = useCallback(() => {
-    setGameState('ready');
-    setScore(0);
-    setTimeRemaining(300);
-    setTimeElapsed(0);
-    setCorrectDeliveries(0);
-    setWrongDeliveries(0);
-    setTrains([]);
-    setCurrentDifficulty(null);
-    setReleasedCount(0);
-  }, []);
+  // Check if game is in daily suggestions
+  useEffect(() => {
+    const checkDailyGame = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location.pathname || '';
+        
+        const normalizePath = (p = '') => {
+          const base = String(p).split('?')[0].split('#')[0].trim();
+          const noTrailing = base.replace(/\/+$/, '');
+          return noTrailing || '/';
+        };
+        
+        const matchedGame = games.find(
+          (g) => normalizePath(g?.gameId?.url) === normalizePath(pathname)
+        );
+        
+        if (matchedGame && matchedGame.difficulty) {
+          const difficulty = matchedGame.difficulty.toLowerCase();
+          if (['easy', 'moderate', 'hard'].includes(difficulty)) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(difficulty);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking daily game:', error);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    
+    checkDailyGame();
+  }, [location.pathname, startGame]);
+
+  // Handle URL parameter for auto-start (only if not daily game)
+  useEffect(() => {
+    if (isDailyGame || checkingDailyGame) return;
+    
+    const levelParam = searchParams.get('level');
+    if (levelParam && ['easy', 'moderate', 'hard'].includes(levelParam.toLowerCase())) {
+      setAutoStartLevel(levelParam.toLowerCase());
+      startGame(levelParam.toLowerCase());
+    }
+  }, [searchParams, startGame, isDailyGame, checkingDailyGame]);
+
+  useEffect(() => {
+    if (gameState.phase !== 'countdown') return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setGameState((s) => ({ ...s, phase: 'playing' }));
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState.phase]);
 
   const getTrack = useCallback((trackId) => {
     return layout.tracks.find((t) => t.id === trackId);
@@ -421,7 +472,7 @@ const TrainOfThought = () => {
   }, [currentDifficulty, releasedCount, trainQueue, layout.stations, layout.entryGate, getTrack, getAngleOnTrack]);
 
   useEffect(() => {
-    if (gameState !== 'playing' || !currentDifficulty) return;
+    if (gameState.phase !== 'playing' || !currentDifficulty) return;
 
     const config = LEVEL_CONFIGS[currentDifficulty];
 
@@ -430,16 +481,16 @@ const TrainOfThought = () => {
       const deltaTime = timestamp - lastTimeRef.current;
       lastTimeRef.current = timestamp;
 
-      setTimeElapsed((prev) => {
-        const newTimeElapsed = prev + deltaTime;
-        const newTimeRemaining = Math.max(0, Math.floor((TIME_LIMIT_MS - newTimeElapsed) / 1000));
-        setTimeRemaining(newTimeRemaining);
-        
-        if (newTimeElapsed >= TIME_LIMIT_MS) {
-          setGameState('finished');
-          return TIME_LIMIT_MS;
+      setGameState((prev) => {
+        const newTimeElapsed = prev.timeElapsed + deltaTime;
+        if (newTimeElapsed >= TIME_LIMIT_MS && prev.phase === 'playing') {
+          return {
+            ...prev,
+            phase: 'ended',
+            timeElapsed: TIME_LIMIT_MS,
+          };
         }
-        return newTimeElapsed;
+        return { ...prev, timeElapsed: newTimeElapsed };
       });
 
       trainReleaseTimerRef.current += deltaTime;
@@ -495,9 +546,12 @@ const TrainOfThought = () => {
           if (arrivedStation) {
             const isCorrect = arrivedStation.colorName === train.colorName;
             
-            setCorrectDeliveries((prev) => prev + (isCorrect ? 1 : 0));
-            setWrongDeliveries((prev) => prev + (isCorrect ? 0 : 1));
-            setScore((prev) => Math.min(200, prev + (isCorrect ? Math.floor(TOTAL_POINTS / trainQueue.length) : 0)));
+            setGameState((prev) => ({
+              ...prev,
+              correctDeliveries: prev.correctDeliveries + (isCorrect ? 1 : 0),
+              wrongDeliveries: prev.wrongDeliveries + (isCorrect ? 0 : 1),
+              score: Math.min(200, prev.score + (isCorrect ? Math.floor(TOTAL_POINTS / trainQueue.length) : 0)),
+            }));
 
             return {
               ...train,
@@ -515,7 +569,13 @@ const TrainOfThought = () => {
           currentTrains.every((t) => t.status === 'arrived' || t.status === 'wrong');
         
         if (allFinished && currentTrains.length > 0) {
-          setGameState('finished');
+          setGameState((prev) => {
+            if (prev.phase === 'ended') return prev;
+            return {
+              ...prev,
+              phase: 'ended',
+            };
+          });
         }
         return currentTrains;
       });
@@ -534,13 +594,38 @@ const TrainOfThought = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [gameState, trainQueue.length, releasedCount, releaseTrain, getTrack, findNextTrack, getPositionOnTrack, getAngleOnTrack, checkStationArrival, currentDifficulty]);
+  }, [gameState.phase, trainQueue.length, releasedCount, releaseTrain, getTrack, findNextTrack, getPositionOnTrack, getAngleOnTrack, checkStationArrival, currentDifficulty]);
+
+  const toggleSwitch = (switchId) => {
+    setSwitches((prev) =>
+      prev.map((sw) =>
+        sw.id === switchId ? { ...sw, state: sw.state === 0 ? 1 : 0 } : sw
+      )
+    );
+  };
+
+  const backToMenu = () => {
+    setGameState((prev) => ({ ...prev, phase: 'menu' }));
+    setCurrentDifficulty(null);
+    setTrains([]);
+  };
+
+  const playAgain = () => {
+    if (currentDifficulty) {
+      startGame(currentDifficulty);
+    }
+  };
 
   const formatTime = (ms) => {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimeRemaining = (ms) => {
+    const remaining = Math.max(0, TIME_LIMIT_MS - ms);
+    return formatTime(remaining);
   };
 
   const getSwitchColor = (sw) => {
@@ -558,79 +643,34 @@ const TrainOfThought = () => {
     return '#4CAF50';
   };
 
-  const toggleSwitch = (switchId) => {
-    setSwitches((prev) =>
-      prev.map((sw) =>
-        sw.id === switchId ? { ...sw, state: sw.state === 0 ? 1 : 0 } : sw
-      )
-    );
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'easy': return { main: '#4CAF50', light: '#81C784', dark: '#2E7D32' };
+      case 'moderate': return { main: '#FF9800', light: '#FFB74D', dark: '#EF6C00' };
+      case 'hard': return { main: '#F44336', light: '#E57373', dark: '#C62828' };
+      default: return { main: '#4CAF50', light: '#81C784', dark: '#2E7D32' };
+    }
   };
 
-  const formatTimeRemaining = (ms) => {
-    const remaining = Math.max(0, TIME_LIMIT_MS - ms);
-    return formatTime(remaining);
-  };
-
-  const timeRemainingMs = TIME_LIMIT_MS - timeElapsed;
+  const timeRemainingMs = TIME_LIMIT_MS - gameState.timeElapsed;
   const isTimeLow = timeRemainingMs < 60000 && timeRemainingMs > 0;
 
   const isCompact = dimensions.width < 700 || dimensions.height < 400;
-  const stationSize = isCompact ? 0.5 : 1;
-  const switchRadius = isCompact ? 15 : 28;
-  const switchRadiusHover = isCompact ? 18 : 32;
-  const trainScale = isCompact ? 0.5 : 1;
+  const stationSize = isCompact ? 0.6 : 1;
+  const switchRadius = isCompact ? 18 : 28;
+  const switchRadiusHover = isCompact ? 22 : 32;
+  const trainScale = isCompact ? 0.7 : 1;
 
-  // Instructions section for GameFrameworkV2
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Route colored trains to their matching color stations by controlling track switches. You have 5 minutes!
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Click switches to change track direction</li>
-          <li>• Watch the train queue to see what's coming</li>
-          <li>• Plan your routes ahead of time</li>
-          <li>• Each train must reach its color station</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Points per correct delivery</li>
-          <li>• No points for wrong deliveries</li>
-          <li>• Maximum score: 200 points</li>
-          <li>• Time limit: 5 minutes</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Difficulty
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Easy: 3 trains, slower speed</li>
-          <li>• Moderate: 4 trains, medium speed</li>
-          <li>• Hard: 5 trains, faster speed</li>
-          <li>• More trains = more planning needed!</li>
-        </ul>
-      </div>
-    </div>
-  );
-
-  // Playing content for GameFrameworkV2
-  const playingContent = (
-    <>
-      {/* Portrait mode warning */}
+  return (
+    <div ref={containerRef} style={{
+      width: '100vw',
+      height: '100vh',
+      background: 'linear-gradient(180deg, #1a4a3a 0%, #0d2a20 100%)',
+      position: 'relative',
+      overflow: 'hidden',
+      fontFamily: '"Segoe UI", system-ui, -apple-system, sans-serif',
+    }}>
+      {/* ROTATE DEVICE OVERLAY */}
       {isPortrait && (
         <div style={{
           position: 'absolute',
@@ -663,16 +703,463 @@ const TrainOfThought = () => {
         </div>
       )}
 
-      {/* Game canvas */}
-      <div ref={containerRef} style={{
-        width: '100vw',
-        height: '100vh',
-        background: 'linear-gradient(180deg, #1a4a3a 0%, #0d2a20 100%)',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        overflow: 'hidden',
-      }}>
+      {/* LEVEL SELECTION MENU */}
+      {gameState.phase === 'menu' && !checkingDailyGame && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(180deg, #1a3a5f 0%, #0a1a2f 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 300,
+        }}>
+          <div style={{
+            textAlign: 'center',
+            color: '#ffffff',
+            maxWidth: '900px',
+            padding: isCompact ? '16px' : '40px',
+          }}>
+            <div style={{ fontSize: isCompact ? '28px' : '52px', marginBottom: '8px', fontWeight: 'bold' }}>
+              🚂 Train of Thought
+            </div>
+            <p style={{ marginBottom: '8px', opacity: 0.8, fontSize: isCompact ? '13px' : '18px' }}>
+              Route colored trains to matching stations by controlling the track switches!
+            </p>
+            <p style={{ marginBottom: isCompact ? '20px' : '40px', opacity: 0.6, fontSize: isCompact ? '11px' : '14px' }}>
+              ⏱️ You have 5 minutes to route all trains correctly.
+              {isSmallScreen && ' (Simplified map for your screen)'}
+            </p>
+
+            {/* Daily Game Badge */}
+            {isDailyGame && dailyGameDifficulty && (
+              <div style={{
+                display: 'inline-block',
+                background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
+                padding: '8px 20px',
+                borderRadius: '20px',
+                marginBottom: '20px',
+                fontSize: isCompact ? '12px' : '14px',
+                fontWeight: 600,
+                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
+              }}>
+                🎯 Daily Challenge: {dailyGameDifficulty.charAt(0).toUpperCase() + dailyGameDifficulty.slice(1)}
+              </div>
+            )}
+
+            <h2 style={{ fontSize: isCompact ? '18px' : '28px', marginBottom: isCompact ? '12px' : '24px', color: '#ffd700' }}>
+              {autoStartLevel 
+                ? `Playing: ${autoStartLevel.charAt(0).toUpperCase() + autoStartLevel.slice(1)}` 
+                : 'Select Difficulty'}
+            </h2>
+            {/* How to Play Button */}
+            {!isDailyGame && (
+              <button
+                onClick={() => setShowInstructions(true)}
+                style={{
+                  position: 'absolute',
+                  top: isCompact ? '16px' : '24px',
+                  right: isCompact ? '16px' : '24px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: isCompact ? '10px 16px' : '12px 24px',
+                  color: '#fff',
+                  fontSize: isCompact ? '13px' : '15px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  transition: 'all 0.3s ease',
+                  zIndex: 301,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                }}
+              >
+                📖 How to Play
+              </button>
+            )}
+
+            <div style={{ display: 'flex', gap: isCompact ? '12px' : '24px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {isDailyGame && dailyGameDifficulty
+                ? [dailyGameDifficulty].map((diff) => {
+                    const colors = getDifficultyColor(diff);
+                    const config = LEVEL_CONFIGS[diff];
+                    const stCount = getStationCountForDifficulty(diff, isSmallScreen);
+                    return (
+                      <button
+                        key={diff}
+                        onClick={() => startGame(diff)}
+                        style={{
+                          background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
+                          border: 'none',
+                          borderRadius: isCompact ? '10px' : '16px',
+                          padding: isCompact ? '14px 24px' : '30px 50px',
+                          cursor: 'pointer',
+                          color: '#fff',
+                          fontSize: isCompact ? '16px' : '22px',
+                          fontWeight: 'bold',
+                          textTransform: 'capitalize',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+                          textAlign: 'center',
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.08) translateY(-4px)';
+                          e.currentTarget.style.boxShadow = `0 10px 30px ${colors.main}55`;
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+                        }}
+                      >
+                        <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
+                          {diff === 'easy' ? '🌱' : diff === 'moderate' ? '⚡' : '🔥'}
+                        </div>
+                        {diff}
+                        <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
+                          {config.trainCount} trains • {stCount} stations
+                        </div>
+                      </button>
+                    );
+                  })
+                : autoStartLevel
+                  ? [autoStartLevel].map((diff) => {
+                      const colors = getDifficultyColor(diff);
+                      const config = LEVEL_CONFIGS[diff];
+                      const stCount = getStationCountForDifficulty(diff, isSmallScreen);
+                      return (
+                        <div
+                          key={diff}
+                          style={{
+                            background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
+                            borderRadius: isCompact ? '10px' : '16px',
+                            padding: isCompact ? '14px 24px' : '30px 50px',
+                            color: '#fff',
+                            fontSize: isCompact ? '16px' : '22px',
+                            fontWeight: 'bold',
+                            textTransform: 'capitalize',
+                            boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
+                            {diff === 'easy' ? '🌱' : diff === 'moderate' ? '⚡' : '🔥'}
+                          </div>
+                          {diff}
+                          <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
+                            {config.trainCount} trains • {stCount} stations
+                          </div>
+                        </div>
+                      );
+                    })
+                  : ['easy', 'moderate', 'hard'].map((diff) => {
+                    const colors = getDifficultyColor(diff);
+                    const config = LEVEL_CONFIGS[diff];
+                    const stCount = getStationCountForDifficulty(diff, isSmallScreen);
+                    return (
+                      <button
+                        key={diff}
+                        onClick={() => startGame(diff)}
+                        style={{
+                          background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
+                          border: 'none',
+                          borderRadius: isCompact ? '10px' : '16px',
+                          padding: isCompact ? '14px 24px' : '30px 50px',
+                          cursor: 'pointer',
+                          color: '#fff',
+                          fontSize: isCompact ? '16px' : '22px',
+                          fontWeight: 'bold',
+                          textTransform: 'capitalize',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.08) translateY(-4px)';
+                          e.currentTarget.style.boxShadow = `0 10px 30px ${colors.main}55`;
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+                        }}
+                      >
+                        <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
+                          {diff === 'easy' ? '🌱' : diff === 'moderate' ? '⚡' : '🔥'}
+                        </div>
+                        {diff}
+                        <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
+                          {config.trainCount} trains • {stCount} stations
+                        </div>
+                      </button>
+                    );
+                  })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Check */}
+      {checkingDailyGame && gameState.phase === 'menu' && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(180deg, #1a3a5f 0%, #0a1a2f 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 300,
+        }}>
+          <div style={{
+            textAlign: 'center',
+            color: '#ffffff',
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚂</div>
+            <div style={{ fontSize: '18px', opacity: 0.8 }}>Loading...</div>
+          </div>
+        </div>
+      )}
+
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }} onClick={() => setShowInstructions(false)}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1a3a5f 0%, #0a1a2f 100%)',
+            borderRadius: '20px',
+            padding: isCompact ? '20px' : '40px',
+            maxWidth: '800px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            color: '#ffffff',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+            position: 'relative',
+          }} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowInstructions(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                color: '#fff',
+                fontSize: '20px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.transform = 'rotate(90deg)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.transform = 'rotate(0deg)';
+              }}
+            >
+              ✕
+            </button>
+
+            <h2 style={{
+              fontSize: isCompact ? '24px' : '32px',
+              fontWeight: 'bold',
+              marginBottom: '8px',
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              🚂 How to Play Train of Thought
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isCompact ? '1fr' : 'repeat(2, 1fr)',
+              gap: '20px',
+              marginTop: '24px',
+            }}>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                padding: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                  color: '#4CAF50',
+                }}>
+                  🎯 Objective
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  opacity: 0.9,
+                }}>
+                  Route colored trains to their matching colored stations by controlling track switches. Get all trains to the correct stations within the time limit!
+                </p>
+              </div>
+
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                padding: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                  color: '#2196F3',
+                }}>
+                  🎮 Controls
+                </h3>
+                <ul style={{
+                  fontSize: '14px',
+                  lineHeight: '1.8',
+                  opacity: 0.9,
+                  paddingLeft: '20px',
+                }}>
+                  <li>Click on switches to change track direction</li>
+                  <li>Each switch has two possible routes</li>
+                  <li>Watch the colored indicators on switches</li>
+                  <li>Plan your route before trains arrive</li>
+                </ul>
+              </div>
+
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                padding: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                  color: '#FF9800',
+                }}>
+                  📊 Scoring
+                </h3>
+                <ul style={{
+                  fontSize: '14px',
+                  lineHeight: '1.8',
+                  opacity: 0.9,
+                  paddingLeft: '20px',
+                }}>
+                  <li>Correct delivery: Earn points</li>
+                  <li>Wrong station: No points</li>
+                  <li>Maximum score: 200 points</li>
+                  <li>Time limit: 5 minutes</li>
+                </ul>
+              </div>
+
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                padding: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                  color: '#9C27B0',
+                }}>
+                  💡 Difficulty Levels
+                </h3>
+                <ul style={{
+                  fontSize: '14px',
+                  lineHeight: '1.8',
+                  opacity: 0.9,
+                  paddingLeft: '20px',
+                }}>
+                  <li><strong>Easy:</strong> 3 trains, slower speed</li>
+                  <li><strong>Moderate:</strong> 4 trains, medium speed</li>
+                  <li><strong>Hard:</strong> 5 trains, faster speed</li>
+                  <li>More trains = higher challenge!</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style={{
+              marginTop: '24px',
+              padding: '16px',
+              background: 'rgba(76, 175, 80, 0.15)',
+              borderRadius: '12px',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+            }}>
+              <p style={{
+                fontSize: '14px',
+                lineHeight: '1.6',
+                opacity: 0.95,
+                textAlign: 'center',
+                fontWeight: 500,
+              }}>
+                💡 <strong>Pro Tip:</strong> Look at the "NEXT" queue at the bottom to see upcoming trains. Plan your switch positions in advance for maximum efficiency!
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowInstructions(false)}
+              style={{
+                width: '100%',
+                marginTop: '24px',
+                padding: '14px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '12px',
+                color: '#fff',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
+            >
+              Got it! Let's Play 🚂
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* GAME CANVAS */}
+      {gameState.phase !== 'menu' && (
         <svg style={{
           width: '100%',
           height: '100%',
@@ -909,131 +1396,150 @@ const TrainOfThought = () => {
             );
           })}
         </svg>
+      )}
 
-        {/* HUD */}
-        {gameState === 'playing' && currentDifficulty && (
-          <>
-            <div style={{
-              position: 'absolute',
-              top: isCompact ? '8px' : '20px',
-              left: isCompact ? '8px' : '20px',
-              display: 'flex',
-              gap: isCompact ? '6px' : '16px',
-              zIndex: 100,
-              flexWrap: 'wrap',
-            }}>
-              {[
-                { icon: '📊', label: 'Difficulty', value: currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1) },
-                { icon: '⏱️', label: 'Time Left', value: formatTimeRemaining(timeElapsed), highlight: isTimeLow },
-                { icon: '🎯', label: 'Delivered', value: `${correctDeliveries}/${trainQueue.length}` },
-                { icon: '⭐', label: 'Score', value: score.toString() },
-              ].map((item, idx) => (
-                <div key={idx} style={{
-                  background: 'rgba(0,0,0,0.85)',
-                  padding: isCompact ? '6px 10px' : '12px 20px',
-                  borderRadius: isCompact ? '8px' : '12px',
-                  border: `2px solid ${item.highlight ? '#F44336' : 'rgba(255,255,255,0.2)'}`,
-                }}>
-                  <div style={{ fontSize: isCompact ? '9px' : '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '2px' }}>
-                    {item.icon} {item.label}
-                  </div>
-                  <div style={{ fontSize: isCompact ? '14px' : '22px', color: item.highlight ? '#F44336' : '#ffffff', fontWeight: 'bold' }}>
-                    {item.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Train Queue */}
-            <div style={{
-              position: 'absolute',
-              bottom: isCompact ? '8px' : '20px',
-              left: isCompact ? '8px' : '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: isCompact ? '6px' : '12px',
-              background: 'rgba(0,0,0,0.85)',
-              padding: isCompact ? '6px 10px' : '12px 20px',
-              borderRadius: isCompact ? '8px' : '12px',
-              border: '2px solid rgba(255,255,255,0.2)',
-              zIndex: 100,
-            }}>
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: isCompact ? '10px' : '14px', fontWeight: 'bold' }}>NEXT:</span>
-              {trainQueue.slice(releasedCount, releasedCount + 5).map((colorName, idx) => {
-                const colors = COLORS[colorName];
-                if (!colors) return null;
-                return (
-                  <div key={idx} style={{ textAlign: 'center' }}>
-                    <div style={{
-                      width: isCompact ? '28px' : '44px',
-                      height: isCompact ? '18px' : '28px',
-                      background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
-                      borderRadius: '4px',
-                      border: '2px solid rgba(255,255,255,0.4)',
-                      opacity: idx === 0 ? 1 : 0.5,
-                      transform: idx === 0 ? 'scale(1.15)' : 'scale(1)',
-                    }} />
-                    {idx === 0 && (
-                      <div style={{ color: '#fff', fontSize: isCompact ? '7px' : '9px', marginTop: '2px', fontWeight: 'bold' }}>
-                        {colorName.toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Instructions */}
-            {!isCompact && (
-              <div style={{
-                position: 'absolute',
-                bottom: '20px',
-                right: '20px',
+      {/* HUD */}
+      {gameState.phase === 'playing' && currentDifficulty && (
+        <>
+          <div style={{
+            position: 'absolute',
+            top: isCompact ? '8px' : '20px',
+            left: isCompact ? '8px' : '20px',
+            display: 'flex',
+            gap: isCompact ? '6px' : '16px',
+            zIndex: 100,
+            flexWrap: 'wrap',
+          }}>
+            {[
+              { icon: '📊', label: 'Difficulty', value: currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1) },
+              { icon: '⏱️', label: 'Time Left', value: formatTimeRemaining(gameState.timeElapsed), highlight: isTimeLow }
+            ].map((item, idx) => (
+              <div key={idx} style={{
                 background: 'rgba(0,0,0,0.85)',
-                padding: '12px 20px',
-                borderRadius: '12px',
-                border: '2px solid rgba(255,255,255,0.2)',
-                color: '#fff',
-                fontSize: '13px',
-                maxWidth: '250px',
-                zIndex: 100,
+                padding: isCompact ? '6px 10px' : '12px 20px',
+                borderRadius: isCompact ? '8px' : '12px',
+                border: `2px solid ${item.highlight ? '#F44336' : 'rgba(255,255,255,0.2)'}`,
               }}>
-                <strong>💡 How to Play:</strong><br/>
-                Click switches to change track direction.<br/>
-                Route each train to its matching color station!
+                <div style={{ fontSize: isCompact ? '9px' : '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '2px' }}>
+                  {item.icon} {item.label}
+                </div>
+                <div style={{ fontSize: isCompact ? '14px' : '22px', color: item.highlight ? '#F44336' : '#ffffff', fontWeight: 'bold' }}>
+                  {item.value}
+                </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
-    </>
-  );
+            ))}
+          </div>
 
-  return (
-    <GameFrameworkV2
-      gameTitle="Train of Thought"
-      gameShortDescription="Route colored trains to matching stations by controlling track switches. Plan ahead and think fast!"
-      category="Puzzle"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{
-        correctDeliveries,
-        wrongDeliveries,
-        totalTrains: trainQueue.length,
-        timeElapsed: formatTime(timeElapsed),
-        difficulty: currentDifficulty || difficulty.toLowerCase(),
-      }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+          {/* Train Queue */}
+          <div style={{
+            position: 'absolute',
+            bottom: isCompact ? '8px' : '20px',
+            left: isCompact ? '8px' : '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: isCompact ? '6px' : '12px',
+            background: 'rgba(0,0,0,0.85)',
+            padding: isCompact ? '6px 10px' : '12px 20px',
+            borderRadius: isCompact ? '8px' : '12px',
+            border: '2px solid rgba(255,255,255,0.2)',
+            zIndex: 100,
+          }}>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: isCompact ? '10px' : '14px', fontWeight: 'bold' }}>NEXT:</span>
+            {trainQueue.slice(releasedCount, releasedCount + 5).map((colorName, idx) => {
+              const colors = COLORS[colorName];
+              if (!colors) return null;
+              return (
+                <div key={idx} style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: isCompact ? '28px' : '44px',
+                    height: isCompact ? '18px' : '28px',
+                    background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
+                    borderRadius: '4px',
+                    border: '2px solid rgba(255,255,255,0.4)',
+                    opacity: idx === 0 ? 1 : 0.5,
+                    transform: idx === 0 ? 'scale(1.15)' : 'scale(1)',
+                  }} />
+                  {idx === 0 && (
+                    <div style={{ color: '#fff', fontSize: isCompact ? '7px' : '9px', marginTop: '2px', fontWeight: 'bold' }}>
+                      {colorName.toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+        
+        </>
+      )}
+      
+      {/* Countdown Overlay */}
+      {gameState.phase === 'countdown' && currentDifficulty && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.85)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 200,
+        }}>
+          <div style={{
+            background: 'linear-gradient(180deg, #1a3a5f 0%, #0a1a2f 100%)',
+            borderRadius: isCompact ? '16px' : '24px',
+            padding: isCompact ? '15px 25px' : '30px 40px',
+            textAlign: 'center',
+            color: '#ffffff',
+            border: '2px solid rgba(255,255,255,0.2)',
+          }}>
+            <div style={{ fontSize: isCompact ? '18px' : '32px', marginBottom: '6px', fontWeight: 'bold' }}>
+              🚂 Train of Thought
+            </div>
+            <div style={{
+              fontSize: isCompact ? '10px' : '14px',
+              marginBottom: '8px',
+              padding: '4px 16px',
+              background: getDifficultyColor(currentDifficulty).main,
+              borderRadius: '16px',
+              display: 'inline-block',
+            }}>
+              {currentDifficulty.toUpperCase()} • {LEVEL_CONFIGS[currentDifficulty].trainCount} Trains • 5 min
+            </div>
+            <p style={{ marginBottom: '12px', opacity: 0.8, fontSize: isCompact ? '10px' : '14px', maxWidth: '400px', lineHeight: 1.4 }}>
+              Route each colored train to its matching station by clicking switches!
+            </p>
+            <div style={{
+              fontSize: isCompact ? '48px' : '80px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+            }}>
+              {countdown}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* End Game Modal */}
+      <GameCompletionModal
+        isVisible={gameState.phase === 'ended'}
+        onClose={backToMenu}
+        gameTitle="Train of Thought"
+        score={gameState.score}
+        moves={null}
+        timeElapsed={gameState.timeElapsed}
+        gameTimeLimit={TIME_LIMIT_MS / 1000}
+        isVictory={gameState.wrongDeliveries === 0 && gameState.correctDeliveries === trainQueue.length}
+        customMessages={{
+          perfectScore: 180,
+          goodScore: 120,
+          maxScore: 200,
+          stats: `✅ Correct: ${gameState.correctDeliveries}/${trainQueue.length} • ❌ Wrong: ${gameState.wrongDeliveries} • ⏱️ Time: ${formatTime(gameState.timeElapsed)}`
+        }}
+      />
+    </div>
   );
 };
 
