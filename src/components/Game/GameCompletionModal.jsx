@@ -257,8 +257,8 @@ const styles = {
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.65)',
-    backdropFilter: 'blur(6px)',
+    background: 'rgba(0,0,0,0.4)',
+    backdropFilter: 'blur(3px)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',

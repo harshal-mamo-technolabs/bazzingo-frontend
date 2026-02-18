@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 /* ─────────────────────── CONSTANTS ─────────────────────── */
 const TOWER_DEFS = {
@@ -18,12 +20,6 @@ const PROJ_SPEED = 8;
 const PARTICLE_MAX = 300;
 const TIME_LIMIT = 180;
 const MAX_SCORE = 200;
-
-const DIFFICULTIES = {
-  Easy: 0,
-  Moderate: 1,
-  Hard: 2,
-};
 
 /* ─────────────────── LEVEL DEFINITIONS ─────────────────── */
 const LEVELS = [
@@ -66,13 +62,10 @@ const LEVELS = [
 
 /* ─────────────────── AUDIO ENGINE ─────────────────── */
 let audioCtx = null;
-let bgMusicAudio = null;
-
 const getAudio = () => {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 };
-
 const playTone = (freq, dur, type='sine', vol=0.15) => {
   try {
     const ctx = getAudio();
@@ -85,7 +78,6 @@ const playTone = (freq, dur, type='sine', vol=0.15) => {
     osc.start(); osc.stop(ctx.currentTime + dur);
   } catch(e) {}
 };
-
 const sfx = {
   place:()=>playTone(120,0.2,'triangle',0.2),
   arrow:()=>playTone(800,0.1,'sawtooth',0.08),
@@ -98,22 +90,6 @@ const sfx = {
   victory:()=>{[523,659,784].forEach((f,i)=>setTimeout(()=>playTone(f,0.3,'sine',0.15),i*200));},
   defeat:()=>{[400,300,200].forEach((f,i)=>setTimeout(()=>playTone(f,0.4,'sawtooth',0.15),i*300));},
 };
-
-function startBackgroundMusic() {
-  if (bgMusicAudio) return;
-  bgMusicAudio = new Audio('/music/lofi.mp3');
-  bgMusicAudio.volume = 0.3;
-  bgMusicAudio.loop = true;
-  bgMusicAudio.play().catch(err => console.log('Audio play failed:', err));
-}
-
-function stopBackgroundMusic() {
-  if (bgMusicAudio) {
-    bgMusicAudio.pause();
-    bgMusicAudio.currentTime = 0;
-    bgMusicAudio = null;
-  }
-}
 
 /* ─────────────────── HELPERS ─────────────────── */
 const dist = (a,b) => Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2);
@@ -136,114 +112,375 @@ const CSS = `
 @keyframes defeatShake{0%{transform:translate(-50%,-50%)}25%{transform:translate(calc(-50% + 5px),-50%)}50%{transform:translate(calc(-50% - 5px),-50%)}75%{transform:translate(calc(-50% + 3px),-50%)}100%{transform:translate(-50%,-50%)}}
 `;
 
-/* ─────────────────── MAIN WRAPPER COMPONENT ─────────────────── */
-export default function CastleDefenderGame() {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
-  const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(TIME_LIMIT);
+/* ─────────────────── COMPONENT ─────────────────── */
+export default function CastleDefender() {
+  const location = useLocation();
+  const [screen, setScreen] = useState('menu');
+  const [levelIdx, setLevelIdx] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [totalScore, setTotalScore] = useState(0);
+  const [levelScores, setLevelScores] = useState([0,0,0]);
+  const [resultData, setResultData] = useState(null);
+  const [dailyGameLevel, setDailyGameLevel] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [gameStartTime, setGameStartTime] = useState(null);
+  const [finalStats, setFinalStats] = useState(null);
 
-  const levelIdx = DIFFICULTIES[difficulty];
-
-  const handleStart = useCallback(() => {
-    getAudio();
-    startBackgroundMusic();
-    setScore(0);
-    setTimeRemaining(TIME_LIMIT);
-    setGameState('playing');
-  }, []);
-
-  const handleReset = useCallback(() => {
-    stopBackgroundMusic();
-    setScore(0);
-    setTimeRemaining(TIME_LIMIT);
-  }, []);
-
+  // Check if game is in daily suggestions
   useEffect(() => {
-    if (gameState === 'finished') {
-      stopBackgroundMusic();
-    }
-  }, [gameState]);
+    const checkDailyGame = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location.pathname || '';
+        
+        const normalizePath = (p = '') => {
+          const base = String(p).split('?')[0].split('#')[0].trim();
+          const noTrailing = base.replace(/\/+$/, '');
+          return noTrailing || '/';
+        };
+        
+        const matchedGame = games.find(
+          (g) => normalizePath(g?.gameId?.url) === normalizePath(pathname)
+        );
+        
+        if (matchedGame && matchedGame.difficulty) {
+          const difficulty = matchedGame.difficulty.toLowerCase();
+          // Map difficulty: easy -> Level 0 (Meadow), moderate -> Level 1 (Forest), hard -> Level 2 (Fortress)
+          const difficultyMap = { 
+            easy: 0, 
+            moderate: 1, 
+            hard: 2 
+          };
+          const mappedLevel = difficultyMap[difficulty];
+          
+          if (mappedLevel !== undefined) {
+            setIsDailyGame(true);
+            setDailyGameLevel(mappedLevel);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking daily game:', error);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    
+    checkDailyGame();
+  }, [location.pathname]);
 
-  // Instructions section
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Defend your castle from waves of enemies by strategically placing towers along the path
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Click tower buttons to select</li>
-          <li>• Place on empty ground tiles</li>
-          <li>• Start waves when ready</li>
-          <li>• Protect your castle!</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Towers
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• 🏹 Archer: Fast attacks (50g)</li>
-          <li>• 💣 Cannon: Splash damage (100g)</li>
-          <li>• ❄️ Ice: Slows enemies (75g)</li>
-          <li>• Earn gold by defeating enemies</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Difficulty
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Easy: Meadow 🌿 (5 waves)</li>
-          <li>• Moderate: Forest 🌲 (7 waves)</li>
-          <li>• Hard: Fortress 🏯 (10 waves)</li>
-          <li>• Time limit: 3 minutes</li>
-        </ul>
-      </div>
-    </div>
-  );
+  const startLevel = (idx) => { 
+    setLevelIdx(idx); 
+    setScreen('game');
+    setGameStartTime(Date.now());
+  };
+  
+  const onLevelEnd = (score, won, stats) => {
+    const ns = [...levelScores]; 
+    ns[levelIdx] = Math.max(ns[levelIdx], score);
+    setLevelScores(ns); 
+    const total = ns.reduce((a,b)=>a+b,0); 
+    setTotalScore(total);
+    setFinalStats(stats);
+    setResultData({ score, won, levelIdx, totalScore: total });
+    setScreen('finished');
+  };
 
-  return (
-    <GameFrameworkV2
-      gameTitle="Castle Defender"
-      gameShortDescription="Defend your castle with strategic tower placement"
-      category="Strategy"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      instructionsSection={instructionsSection}
-      showHeader={false}
-    >
-      <CastleDefenderCore
-        key={levelIdx}
-        levelIdx={levelIdx}
-        gameState={gameState}
-        setGameState={setGameState}
-        score={score}
-        setScore={setScore}
-        timeRemaining={timeRemaining}
-        setTimeRemaining={setTimeRemaining}
+  const handleCloseModal = () => {
+    // Go back to menu when modal closes
+    setScreen('menu');
+    setResultData(null);
+    setFinalStats(null);
+    setGameStartTime(null);
+  };
+
+  if (screen === 'menu') {
+    return (
+      <MenuScreen 
+        startLevel={startLevel} 
+        levelScores={levelScores} 
+        totalScore={totalScore}
+        isDailyGame={isDailyGame}
+        dailyGameLevel={dailyGameLevel}
+        checkingDailyGame={checkingDailyGame}
+        showInstructions={showInstructions}
+        setShowInstructions={setShowInstructions}
       />
-    </GameFrameworkV2>
+    );
+  }
+  
+  const timeElapsed = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+  const level = resultData ? LEVELS[resultData.levelIdx] : LEVELS[levelIdx];
+  
+  return (
+    <>
+      {/* Keep GameScreen visible in background when modal shows */}
+      {(screen === 'game' || screen === 'finished') && (
+        <GameScreen 
+          key={levelIdx} 
+          levelIdx={levelIdx} 
+          onEnd={onLevelEnd} 
+          muted={muted} 
+          setMuted={setMuted} 
+          goMenu={()=>setScreen('menu')} 
+        />
+      )}
+      
+      {/* Game Completion Modal */}
+      <GameCompletionModal
+        isVisible={screen === 'finished' && resultData !== null}
+        onClose={handleCloseModal}
+        gameTitle="Castle Defender"
+        score={resultData?.score || 0}
+        moves={finalStats?.wavesCompleted || 0}
+        timeElapsed={timeElapsed}
+        gameTimeLimit={TIME_LIMIT}
+        isVictory={resultData?.won || false}
+        difficulty={resultData?.levelIdx === 0 ? 'Easy' : resultData?.levelIdx === 1 ? 'Moderate' : 'Hard'}
+        customMessages={{
+          perfectScore: 60,
+          goodScore: 40,
+          maxScore: 200,
+          stats: `🏰 Castle HP: ${finalStats?.castleHP || 0}/${finalStats?.maxHP || 0} • 🌊 Waves: ${finalStats?.wavesCompleted || 0}/${level?.waves || 0} • 💰 Gold Earned: ${finalStats?.goldEarned || 0}`
+        }}
+      />
+    </>
   );
 }
 
-/* ─────────────────── CORE GAME COMPONENT (preserves all original CSS & graphics) ─────────────────── */
-function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore, timeRemaining, setTimeRemaining }) {
+/* ─────────────────── MENU SCREEN ─────────────────── */
+function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGameLevel, checkingDailyGame, showInstructions, setShowInstructions }) {
+  const [orient, setOrient] = useState(true);
+  const [hoveredLevel, setHoveredLevel] = useState(null);
+
+  useEffect(() => {
+    const check = () => setOrient(window.innerWidth >= window.innerHeight || window.innerWidth > 900);
+    check(); window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Deterministic stars - must be called before any conditional returns
+  const stars = useMemo(() => Array.from({length:50}, (_,i) => ({
+    top: ((i*17+7)%100), left: ((i*31+13)%100),
+    size: 1 + (i%3), delay: (i*0.7)%5, dur: 2+(i%4),
+  })), []);
+
+  // Filter levels based on daily game status - must be called before any conditional returns
+  const availableLevels = useMemo(() => {
+    return isDailyGame && dailyGameLevel !== null 
+      ? [LEVELS[dailyGameLevel]]
+      : LEVELS;
+  }, [isDailyGame, dailyGameLevel]);
+  
+  const levelIndices = useMemo(() => {
+    return isDailyGame && dailyGameLevel !== null
+      ? [dailyGameLevel]
+      : [0, 1, 2];
+  }, [isDailyGame, dailyGameLevel]);
+
+  if (!orient) return (
+    <div style={{position:'fixed',inset:0,background:'#0a0a1a',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,zIndex:9999,textAlign:'center',padding:40,flexDirection:'column',gap:16}}>
+      <div style={{fontSize:48}}>📱</div>
+      <div style={{fontWeight:700}}>Please Rotate Your Device</div>
+      <div style={{fontSize:14,color:'#888'}}>This game requires landscape orientation</div>
+    </div>
+  );
+
+
+  if (checkingDailyGame) {
+    return (
+      <div style={{position:'fixed',inset:0,background:'linear-gradient(180deg,#050510 0%,#0d1030 30%,#1a1040 60%,#2a1808 100%)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'"Segoe UI",sans-serif',color:'#fff'}}>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:48,marginBottom:16}}>⚔️</div>
+          <div style={{fontSize:18,color:'#c9952e'}}>Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'linear-gradient(180deg,#050510 0%,#0d1030 30%,#1a1040 60%,#2a1808 100%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',fontFamily:'"Segoe UI",sans-serif',color:'#fff',overflow:'hidden'}}>
+      <style>{CSS}</style>
+
+      {/* How to Play Button */}
+      <button
+        onClick={() => setShowInstructions(true)}
+        style={{
+          position:'absolute',top:20,right:20,zIndex:10,
+          padding:'10px 20px',background:'rgba(201,149,46,0.15)',border:'2px solid rgba(201,149,46,0.4)',
+          borderRadius:10,color:'#c9952e',cursor:'pointer',fontSize:14,fontWeight:700,
+          transition:'all 0.3s',display:'flex',alignItems:'center',gap:8,
+          boxShadow:'0 4px 12px rgba(0,0,0,0.3)'
+        }}
+        onMouseEnter={e=>{e.currentTarget.style.background='rgba(201,149,46,0.25)';e.currentTarget.style.transform='scale(1.05)';}}
+        onMouseLeave={e=>{e.currentTarget.style.background='rgba(201,149,46,0.15)';e.currentTarget.style.transform='scale(1)';}}
+      >
+        📖 How to Play
+      </button>
+
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <div style={{
+          position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(4px)',
+          display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,
+          padding:20
+        }} onClick={() => setShowInstructions(false)}>
+          <div style={{
+            background:'linear-gradient(135deg,#1a1208,#2a1a0a)',border:'2px solid #c9952e',
+            borderRadius:20,padding:32,maxWidth:600,maxHeight:'90vh',overflowY:'auto',
+            color:'#fff',position:'relative',boxShadow:'0 0 40px rgba(201,149,46,0.3)'
+          }} onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setShowInstructions(false)}
+              style={{
+                position:'absolute',top:16,right:16,background:'rgba(255,255,255,0.1)',
+                border:'none',borderRadius:'50%',width:32,height:32,color:'#fff',
+                cursor:'pointer',fontSize:20,display:'flex',alignItems:'center',justifyContent:'center',
+                transition:'all 0.2s'
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.2)'}
+              onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.1)'}
+            >
+              ×
+            </button>
+            <h2 style={{fontSize:28,fontWeight:900,marginBottom:20,color:'#ffd700',textAlign:'center'}}>
+              ⚔️ How to Play Castle Defender
+            </h2>
+            <div style={{fontSize:15,lineHeight:1.8,color:'#ddd'}}>
+              <div style={{marginBottom:20}}>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🎯 Objective</h3>
+                <p>Defend your castle from waves of enemies by strategically placing towers along the path. Survive all waves and keep your castle's HP above zero!</p>
+              </div>
+              <div style={{marginBottom:20}}>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🏹 How to Play</h3>
+                <ul style={{paddingLeft:20,margin:0}}>
+                  <li style={{marginBottom:8}}><strong>Select a Tower:</strong> Click on a tower type at the bottom (Archer 🏹, Cannon 💣, or Ice ❄️)</li>
+                  <li style={{marginBottom:8}}><strong>Place Towers:</strong> Click on empty ground tiles (not on the path) to place your selected tower</li>
+                  <li style={{marginBottom:8}}><strong>Start Waves:</strong> Click "Start Wave" when ready. Towers automatically target and attack enemies</li>
+                  <li style={{marginBottom:8}}><strong>Earn Gold:</strong> Defeat enemies to earn gold, which you can use to buy more towers</li>
+                  <li style={{marginBottom:8}}><strong>Survive:</strong> Complete all waves before time runs out and keep your castle alive!</li>
+                </ul>
+              </div>
+              <div style={{marginBottom:20}}>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🏰 Tower Types</h3>
+                <ul style={{paddingLeft:20,margin:0}}>
+                  <li style={{marginBottom:8}}><strong>Archer 🏹:</strong> Fast attack, moderate damage (50 gold)</li>
+                  <li style={{marginBottom:8}}><strong>Cannon 💣:</strong> Slow but powerful splash damage (100 gold)</li>
+                  <li style={{marginBottom:8}}><strong>Ice ❄️:</strong> Slows enemies by 50% (75 gold)</li>
+                </ul>
+              </div>
+              <div style={{marginBottom:20}}>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>⭐ Scoring</h3>
+                <p>Your score is based on how much castle HP remains at the end. Maximum score is 200 points!</p>
+              </div>
+              <div>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>💡 Pro Tip</h3>
+                <p>Place towers near corners and intersections for maximum coverage. Use Ice towers to slow down tough enemies, and Cannons for groups!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Animated stars */}
+      {stars.map((s,i) => (
+        <div key={i} style={{position:'absolute',top:`${s.top}%`,left:`${s.left}%`,width:s.size,height:s.size,borderRadius:'50%',background:'#fff',animation:`twinkle ${s.dur}s ${s.delay}s infinite alternate`}} />
+      ))}
+
+      {/* Castle silhouette - improved */}
+      <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'min(500px,80vw)',height:220,opacity:0.6}}>
+        {/* Left tower */}
+        <div style={{position:'absolute',bottom:0,left:'15%',width:'12%',height:170,background:'linear-gradient(180deg,#1a1a3a,#12122a)',borderRadius:'3px 3px 0 0'}}>
+          <div style={{position:'absolute',top:-8,left:-4,width:'calc(100% + 8px)',height:12,background:'#1a1a3a',display:'flex',justifyContent:'space-between'}}>
+            {[0,1,2,3].map(i=><div key={i} style={{width:'18%',height:12,background:'#12122a'}} />)}
+          </div>
+        </div>
+        {/* Main gate */}
+        <div style={{position:'absolute',bottom:0,left:'35%',width:'30%',height:130,background:'linear-gradient(180deg,#1a1a3a,#12122a)',borderRadius:'3px 3px 0 0'}}>
+          <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'45%',height:'55%',background:'#06060f',borderRadius:'45% 45% 0 0'}} />
+          <div style={{position:'absolute',top:-8,left:-4,width:'calc(100% + 8px)',height:12,background:'#1a1a3a',display:'flex',justifyContent:'space-between'}}>
+            {[0,1,2,3,4,5].map(i=><div key={i} style={{width:'12%',height:12,background:'#12122a'}} />)}
+          </div>
+        </div>
+        {/* Right tower */}
+        <div style={{position:'absolute',bottom:0,right:'15%',width:'12%',height:190,background:'linear-gradient(180deg,#1a1a3a,#12122a)',borderRadius:'3px 3px 0 0'}}>
+          <div style={{position:'absolute',top:-8,left:-4,width:'calc(100% + 8px)',height:12,background:'#1a1a3a',display:'flex',justifyContent:'space-between'}}>
+            {[0,1,2,3].map(i=><div key={i} style={{width:'18%',height:12,background:'#12122a'}} />)}
+          </div>
+          {/* Flag */}
+          <div style={{position:'absolute',top:-30,left:'50%',width:2,height:28,background:'#555'}}>
+            <div style={{position:'absolute',top:2,left:2,width:16,height:10,background:'linear-gradient(135deg,#c0392b,#e74c3c)',clipPath:'polygon(0 0,100% 50%,0 100%)'}} />
+          </div>
+        </div>
+      </div>
+
+      {/* Moon */}
+      <div style={{position:'absolute',top:'8%',right:'15%',width:60,height:60,borderRadius:'50%',background:'radial-gradient(circle at 40% 40%,#ffeedd,#ddc89a)',boxShadow:'0 0 40px #ffeedd44,0 0 80px #ffeedd22',opacity:0.7}} />
+
+      {/* Title */}
+      <div style={{zIndex:1,textAlign:'center',marginBottom:50}}>
+        <h1 style={{fontSize:'clamp(32px,6vw,64px)',fontWeight:900,textShadow:'0 0 40px rgba(255,180,0,0.4),0 0 80px rgba(255,120,0,0.2),0 4px 12px rgba(0,0,0,0.9)',letterSpacing:4,marginBottom:6,lineHeight:1.1}}>
+          ⚔️ CASTLE DEFENDER
+        </h1>
+        <p style={{fontSize:'clamp(12px,2vw,20px)',color:'#c9952e',fontWeight:700,letterSpacing:8,textTransform:'uppercase',textShadow:'0 0 20px rgba(201,149,46,0.3)'}}>Logic Siege</p>
+        {isDailyGame && (
+          <div style={{marginTop:12,padding:'6px 16px',background:'rgba(201,149,46,0.2)',border:'1px solid rgba(201,149,46,0.4)',borderRadius:20,display:'inline-block',fontSize:13,color:'#ffd700',fontWeight:600}}>
+            🎯 Daily Challenge
+          </div>
+        )}
+      </div>
+
+      {/* Level cards */}
+      <div style={{display:'flex',gap:24,flexWrap:'wrap',justifyContent:'center',zIndex:1,padding:'0 20px'}}>
+        {availableLevels.map((lv,idx) => {
+          const i = levelIndices[idx];
+          const sc = levelScores[i];
+          const st = sc >= 60 ? 3 : sc >= 40 ? 2 : sc > 0 ? 1 : 0;
+          const hovered = hoveredLevel === i;
+          return (
+            <button key={i} onClick={()=>startLevel(i)}
+              onMouseEnter={()=>setHoveredLevel(i)} onMouseLeave={()=>setHoveredLevel(null)}
+              style={{
+                background: hovered ? 'linear-gradient(135deg,#3a2810,#4a3820)' : 'linear-gradient(135deg,#1a1208,#2a1a0a)',
+                border:`2px solid ${hovered ? '#ffd700' : '#5a4418'}`,borderRadius:16,padding:'24px 32px',color:'#fff',cursor:'pointer',minWidth:200,
+                transition:'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transform: hovered ? 'translateY(-6px) scale(1.03)' : 'translateY(0) scale(1)',
+                boxShadow: hovered ? '0 12px 40px rgba(255,180,0,0.2),0 0 0 1px rgba(255,215,0,0.1)' : '0 4px 16px rgba(0,0,0,0.4)',
+                animation:'slideUp 0.5s ease-out both',
+                animationDelay:`${idx*0.12}s`,
+                position:'relative',overflow:'hidden',
+              }}>
+              {/* Shimmer */}
+              {hovered && <div style={{position:'absolute',inset:0,background:'linear-gradient(105deg,transparent 40%,rgba(255,215,0,0.06) 50%,transparent 60%)',pointerEvents:'none'}} />}
+              <div style={{fontSize:32,marginBottom:6}}>{lv.icon}</div>
+              <div style={{fontSize:12,color:'#887755',fontWeight:600,letterSpacing:2,textTransform:'uppercase'}}>Level {i+1}</div>
+              <div style={{fontSize:22,fontWeight:800,marginBottom:6,letterSpacing:1}}>{lv.name}</div>
+              <div style={{fontSize:13,color:'#887755',marginBottom:10}}>{lv.waves} waves • {lv.cols}×{lv.rows}</div>
+              <div style={{fontSize:20,letterSpacing:4}}>
+                {[0,1,2].map(j=><span key={j} style={{filter:j<st?'':'grayscale(1) opacity(0.3)'}}>{j<st?'⭐':'☆'}</span>)}
+              </div>
+              {sc > 0 && <div style={{fontSize:12,color:'#c9952e',marginTop:6,fontWeight:700}}>{sc} pts</div>}
+            </button>
+          );
+        })}
+      </div>
+
+      {totalScore > 0 && (
+        <div style={{marginTop:36,fontSize:15,color:'#887755',zIndex:1,textAlign:'center'}}>
+          Total Score: <span style={{color:'#ffd700',fontWeight:700,fontSize:18}}>{totalScore}</span>
+          <span style={{color:'#555'}}> / {MAX_SCORE}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ─────────────────── GAME SCREEN ─────────────────── */
+function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
   const level = LEVELS[levelIdx];
   const stateRef = useRef(null);
   const animRef = useRef(null);
@@ -262,17 +499,16 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
   useEffect(() => { pathSet.current = new Set(level.path.map(p=>p[0]+','+p[1])); }, [level]);
 
   useEffect(() => {
-    if (gameState !== 'playing') return;
-    
     stateRef.current = {
       phase:'placing', gold:level.startGold, castleHP:level.castleHP, maxHP:level.castleHP,
       wave:0, towers:[], enemies:[], projectiles:[], particles:[],
       selectedTower:null, timeLeft:TIME_LIMIT, score:0,
       spawnQueue:[], spawnTimer:0, lastTime:performance.now(),
       screenShake:0, waveAnnounce:'', waveAnnounceTimer:0, goldPopups:[], killStreak:0, streakTimer:0,
+      totalGoldEarned:0, // Track total gold earned from kills
     };
     forceUpdate(n=>n+1);
-  }, [level, gameState]);
+  }, [level]);
 
   const getTileSize = useCallback(() => {
     if (!containerRef.current) return 48;
@@ -282,15 +518,23 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
     return Math.max(28, Math.min(56, Math.min(tw, th)));
   }, [level]);
 
+  // Track if we've already called onEnd to prevent multiple calls
+  const endCalledRef = useRef(false);
+  
+  // Reset endCalledRef when level changes
+  useEffect(() => {
+    endCalledRef.current = false;
+  }, [levelIdx]);
+
   // ── GAME LOOP ──
   useEffect(() => {
     const s = stateRef.current;
-    if (!s || gameState !== 'playing') return;
+    if (!s) return;
     let running = true;
 
     const tick = (now) => {
       if (!running) return;
-      const dt = Math.min((now - s.lastTime)/1000, 0.05);
+      const dt = Math.min((now - s.lastTime)/1000, 0.02);
       s.lastTime = now;
 
       // Streak decay
@@ -298,12 +542,22 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
 
       if (s.phase==='fighting'||s.phase==='waveComplete') {
         s.timeLeft -= dt;
-        setTimeRemaining(Math.ceil(s.timeLeft));
         if (s.timeLeft <= 0) { 
           s.timeLeft=0; 
           s.phase='gameOver'; 
-          sfx.defeat(); 
-          setGameState('finished');
+          if(!muted)sfx.defeat(); 
+          // Auto-trigger completion modal
+          if (!endCalledRef.current) {
+            endCalledRef.current = true;
+            setTimeout(() => {
+              onEnd(s.score, false, {
+                wavesCompleted: s.wave,
+                castleHP: s.castleHP,
+                maxHP: s.maxHP,
+                goldEarned: s.totalGoldEarned || 0
+              });
+            }, 800);
+          }
           forceUpdate(n=>n+1); 
           return; 
         }
@@ -327,8 +581,23 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
           if (e.slowTimer>0) { e.slowTimer-=dt; if(e.slowTimer<=0) e.slowFactor=1; }
           if (e.progress >= level.path.length-1) {
             e.hp=0; s.castleHP-=1; s.screenShake=0.3;
-            sfx.castleHit();
-            if(s.castleHP<=0) { s.phase='gameOver'; sfx.defeat(); setGameState('finished'); }
+            if(!muted)sfx.castleHit();
+            if(s.castleHP<=0) { 
+              s.phase='gameOver'; 
+              if(!muted)sfx.defeat();
+              // Auto-trigger completion modal
+              if (!endCalledRef.current) {
+                endCalledRef.current = true;
+                setTimeout(() => {
+                  onEnd(s.score, false, {
+                    wavesCompleted: s.wave,
+                    castleHP: s.castleHP,
+                    maxHP: s.maxHP,
+                    goldEarned: s.totalGoldEarned || 0
+                  });
+                }, 800);
+              }
+            }
           }
         }
 
@@ -347,7 +616,7 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
             t.cooldownLeft = def.cooldown;
             const ep=getEnemyPos(best,level.path);
             s.projectiles.push({id:uid(),type:t.type,x:t.col+0.5,y:t.row+0.5,tx:ep[1],ty:ep[0],damage:def.damage,targetId:best.id,special:def.special});
-            if(t.type==='archer')sfx.arrow(); else if(t.type==='cannon')sfx.cannon(); else sfx.ice();
+            if(!muted) { if(t.type==='archer')sfx.arrow(); else if(t.type==='cannon')sfx.cannon(); else sfx.ice(); }
           }
         }
 
@@ -357,7 +626,7 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
           if (d < 0.2) {
             p.hit=true;
             if (p.special==='splash') {
-              for(const e of s.enemies) { if(e.hp<=0)continue; if(dist([p.ty,p.tx],getEnemyPos(e,level.path))<1.5) { e.hp-=p.damage; sfx.hit(); }}
+              for(const e of s.enemies) { if(e.hp<=0)continue; if(dist([p.ty,p.tx],getEnemyPos(e,level.path))<1.5) { e.hp-=p.damage; if(!muted)sfx.hit(); }}
               for(let i=0;i<15;i++) s.particles.push(makeParticle(p.x,p.y,'#ff6600',0.7));
               for(let i=0;i<8;i++) s.particles.push(makeParticle(p.x,p.y,'#ffcc00',0.5));
             } else {
@@ -365,7 +634,7 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
               if(target&&target.hp>0) {
                 target.hp-=p.damage;
                 if(p.special==='slow') { target.slowFactor=0.5; target.slowTimer=2; for(let i=0;i<8;i++) s.particles.push(makeParticle(p.x,p.y,'#4fc3f7',0.5)); }
-                sfx.hit();
+                if(!muted)sfx.hit();
               }
               for(let i=0;i<5;i++) s.particles.push(makeParticle(p.x,p.y,'#ffcc00',0.35));
             }
@@ -379,13 +648,12 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
         for (const e of s.enemies) {
           if (e.hp<=0) {
             if (e.hp!==-999) {
-              s.gold+=e.reward; s.killStreak++; s.streakTimer=2;
-              s.score += e.reward;
-              setScore(s.score);
+              s.gold+=e.reward; s.totalGoldEarned+=e.reward; s.killStreak++; s.streakTimer=2;
               const ep=getEnemyPos(e,level.path);
               s.goldPopups.push({x:ep[1],y:ep[0],amount:e.reward,timer:1.2,streak:s.killStreak});
-              sfx.kill();
+              if(!muted)sfx.kill();
               for(let i=0;i<10;i++) s.particles.push(makeParticle(ep[1],ep[0],e.color,0.6));
+              // Death burst
               for(let i=0;i<6;i++) s.particles.push(makeParticle(ep[1],ep[0],'#fff',0.3));
             }
             e.hp=-999;
@@ -397,12 +665,20 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
         // Wave complete check
         if (s.spawnQueue.length===0 && s.enemies.length===0 && s.phase==='fighting') {
           if (s.wave>=level.waves) {
-            s.phase='levelComplete'; 
-            const finalScore = Math.round(67*(s.castleHP/s.maxHP));
-            s.score = finalScore;
-            setScore(finalScore);
-            sfx.victory();
-            setGameState('finished');
+            s.phase='levelComplete'; s.score=Math.round(200*(s.castleHP/s.maxHP));
+            if(!muted)sfx.victory();
+            // Auto-trigger completion modal
+            if (!endCalledRef.current) {
+              endCalledRef.current = true;
+              setTimeout(() => {
+                onEnd(s.score, true, {
+                  wavesCompleted: s.wave,
+                  castleHP: s.castleHP,
+                  maxHP: s.maxHP,
+                  goldEarned: s.totalGoldEarned || 0
+                });
+              }, 800);
+            }
           } else {
             s.phase='waveComplete'; s.waveAnnounce=`Wave ${s.wave} Complete!`; s.waveAnnounceTimer=2;
           }
@@ -427,14 +703,14 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
     };
     animRef.current=requestAnimationFrame(tick);
     return()=>{running=false;cancelAnimationFrame(animRef.current);};
-  }, [level, getTileSize, gameState, setGameState, setScore, setTimeRemaining]);
+  }, [level, muted, getTileSize]);
 
   const startWave = () => {
     const s=stateRef.current;
     if(!s||(s.phase!=='placing'&&s.phase!=='waveComplete')) return;
     s.wave++; s.spawnQueue=level.waveGen(s.wave); s.spawnTimer=0;
     s.phase='fighting'; s.waveAnnounce=`⚔️ Wave ${s.wave}`; s.waveAnnounceTimer=1.5;
-    sfx.wave(); forceUpdate(n=>n+1);
+    if(!muted)sfx.wave(); forceUpdate(n=>n+1);
   };
 
   const placeTower = (row,col) => {
@@ -447,7 +723,7 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
     if(s.gold<def.cost) return;
     s.gold-=def.cost;
     s.towers.push({id:uid(),type:s.selectedTower,row,col,cooldownLeft:0});
-    sfx.place(); forceUpdate(n=>n+1);
+    if(!muted)sfx.place(); forceUpdate(n=>n+1);
   };
 
   const selectTower = (type) => {
@@ -458,13 +734,12 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
   };
 
   const s = stateRef.current;
-  if (!s || gameState !== 'playing') return null;
+  if (!s) return null;
 
   if (!orient) return (
     <div style={{position:'fixed',inset:0,background:'#0a0a1a',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,zIndex:9999,textAlign:'center',padding:40,flexDirection:'column',gap:16}}>
       <div style={{fontSize:48}}>📱</div>
       <div style={{fontWeight:700}}>Please Rotate Your Device</div>
-      <div style={{fontSize:14,color:'#888'}}>This game requires landscape orientation</div>
     </div>
   );
 
@@ -479,7 +754,7 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
   const timePct = s.timeLeft/TIME_LIMIT;
 
   return (
-    <div style={{position:'fixed',inset:0,background:level.bgGrad,display:'flex',flexDirection:'column',fontFamily:'"Segoe UI",sans-serif',color:'#fff',overflow:'hidden',userSelect:'none'}}>
+    <div style={{position:'fixed',inset:0,background:level.bgGrad,display:'flex',flexDirection:'column',fontFamily:'"Segoe UI",sans-serif',color:'#fff',overflow:'hidden',userSelect:'none',zIndex:1}}>
       <style>{CSS}</style>
 
       {/* ── HUD ── */}
@@ -514,6 +789,16 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
         </div>
         <div style={{display:'flex',alignItems:'center',gap:8}}>
           {s.killStreak>=3 && <span style={{fontSize:13,color:'#ff9800',fontWeight:700,animation:'pulseGlow 1s infinite'}}>🔥 x{s.killStreak}</span>}
+          <button onClick={()=>setMuted(!muted)} style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:8,padding:'5px 12px',color:'#fff',cursor:'pointer',fontSize:14,transition:'all 0.2s'}}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.12)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
+            {muted?'🔇':'🔊'}
+          </button>
+          <button onClick={goMenu} style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:8,padding:'5px 12px',color:'#fff',cursor:'pointer',fontSize:13,fontWeight:600,transition:'all 0.2s'}}
+            onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.12)'}
+            onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
+            ✕ Menu
+          </button>
         </div>
       </div>
 
@@ -597,11 +882,26 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
           {/* Enemies */}
           {s.enemies.map(e => {
             const pos=getEnemyPos(e,level.path);
-            const x=pos[1]*ts,y=pos[0]*ts,sz=ts*e.size;
+            const sz=ts*e.size;
+            const x=pos[1]*ts+ts/2-sz/2,y=pos[0]*ts+ts/2-sz/2;
             const icon=e.type==='soldier'?'🧑‍🌾':e.type==='knight'?'🛡️':'🐏';
             const hpPctE=e.hp/e.maxHp;
             return (
-              <div key={e.id} style={{position:'absolute',left:x+ts/2-sz/2,top:y+ts/2-sz/2,width:sz,height:sz,zIndex:3,pointerEvents:'none',transition:'left 0.05s linear,top 0.05s linear'}}>
+              <div
+                key={e.id}
+                style={{
+                  position:'absolute',
+                  left:0,
+                  top:0,
+                  width:sz,
+                  height:sz,
+                  transform:`translate(${x}px,${y}px)`,
+                  transition:'transform 0.1s linear',
+                  willChange:'transform',
+                  zIndex:3,
+                  pointerEvents:'none',
+                }}
+              >
                 <div style={{fontSize:sz*0.7,textAlign:'center',lineHeight:1,filter:e.slowFactor<1?'hue-rotate(180deg) brightness(1.3)':'',transition:'filter 0.3s'}}>{icon}</div>
                 {/* HP bar */}
                 <div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',width:Math.max(sz,20),height:5,background:'rgba(0,0,0,0.6)',borderRadius:3,overflow:'hidden',border:'1px solid rgba(255,255,255,0.1)'}}>
@@ -648,6 +948,12 @@ function CastleDefenderCore({ levelIdx, gameState, setGameState, score, setScore
           )}
         </div>
       </div>
+
+      {/* ── GAME OVER / LEVEL COMPLETE ── */}
+      {/* Old overlay removed - now using GameCompletionModal */}
+      {(s.phase==='gameOver'||s.phase==='levelComplete') && (
+        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.3)',backdropFilter:'blur(2px)',zIndex:19,pointerEvents:'none'}} />
+      )}
 
       {/* ── TOWER BAR ── */}
       <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px 20px',background:'linear-gradient(0deg,rgba(0,0,0,0.8),rgba(0,0,0,0.6))',borderTop:'1px solid rgba(255,215,0,0.08)',flexWrap:'wrap'}}>
@@ -701,7 +1007,6 @@ function getEnemyPos(enemy, path) {
   if(idx>=path.length-1) return [path[path.length-1][0],path[path.length-1][1]];
   return [lerp(path[idx][0],path[idx+1][0],frac),lerp(path[idx][1],path[idx+1][1],frac)];
 }
-
 function makeParticle(x,y,color,life) {
   return {x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,color,life,maxLife:life};
 }
