@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getDailySuggestions } from '../../services/gameService';
+import { getDailySuggestions, submitGameScore } from '../../services/gameService';
 
 /* ============================================================
    Mask Memory: Carnival Quest
@@ -32,7 +32,7 @@ const LEVELS = [
   { name: 'Masquerade Ball', pairs: 8, cols: 4, rows: 4, peekTime: 2000, bg: '#0f0f23', accent: '#e040fb', desc: '8 pairs • Hard' },
 ];
 
-const TIME_LIMIT = 3;
+const TIME_LIMIT = 180;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -276,6 +276,14 @@ export default function MaskMemory({ onBack }) {
       setDailySuggestionsError('Unable to load daily suggestions.');
     } finally {
       setDailySuggestionsLoading(false);
+    }
+  }, []);
+
+  const submitScore = useCallback(async (score) => {
+    try {
+      await submitGameScore('mask-memory', score);
+    } catch (error) {
+      console.error('Failed to submit score:', error);
     }
   }, []);
 
@@ -802,8 +810,43 @@ export default function MaskMemory({ onBack }) {
           <div style={{
             background: 'linear-gradient(135deg, #1a1a2e, #0f3460)', borderRadius: '20px',
             padding: 'clamp(1.5rem, 3vw, 2.5rem)', textAlign: 'center', maxWidth: '500px',
-            border: '2px solid #2ecc7188',
+            border: '2px solid #2ecc7188', position: 'relative',
           }}>
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                playSound('click');
+                submitScore(score);
+                window.location.href = '/games';
+              }}
+              style={{
+                position: 'absolute',
+                top: 'clamp(0.75rem, 1.5vw, 1rem)',
+                right: 'clamp(0.75rem, 1.5vw, 1rem)',
+                width: 'clamp(24px, 4vw, 32px)',
+                height: 'clamp(24px, 4vw, 32px)',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#fff',
+                fontSize: 'clamp(14px, 2.5vw, 18px)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'rgba(255,255,255,0.2)';
+                e.target.style.transform = 'scale(1.1)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'rgba(255,255,255,0.1)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              ✕
+            </button>
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🏆</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#2ecc71', marginBottom: '0.3rem' }}>Victory!</div>
             <div style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>
@@ -962,22 +1005,12 @@ export default function MaskMemory({ onBack }) {
               <button onClick={() => { 
                 playSound('click'); 
                 submitScore(score);
-                setPhase('menu');
-              }} style={{
-                background: 'linear-gradient(135deg, #6c757d, #495057)', border: 'none', borderRadius: '12px',
-                padding: '0.8rem 1.5rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-              }}>
-                🎭 Play Again
-              </button>
-              <button onClick={() => { 
-                playSound('click'); 
-                submitScore(score);
                 window.location.href = '/games';
               }} style={{
                 background: 'linear-gradient(135deg, #2ecc71, #27ae60)', border: 'none', borderRadius: '12px',
                 padding: '0.8rem 1.5rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
               }}>
-                🎯 More Games
+                � More Games
               </button>
             </div>
           </div>
@@ -994,8 +1027,43 @@ export default function MaskMemory({ onBack }) {
           <div style={{
             background: 'linear-gradient(135deg, #1a1a2e, #4a0e0e)', borderRadius: '20px',
             padding: 'clamp(1.5rem, 3vw, 2.5rem)', textAlign: 'center', maxWidth: '500px',
-            border: '2px solid #e74c3c88',
+            border: '2px solid #e74c3c88', position: 'relative',
           }}>
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                playSound('click');
+                submitScore(score);
+                window.location.href = '/games';
+              }}
+              style={{
+                position: 'absolute',
+                top: 'clamp(0.75rem, 1.5vw, 1rem)',
+                right: 'clamp(0.75rem, 1.5vw, 1rem)',
+                width: 'clamp(24px, 4vw, 32px)',
+                height: 'clamp(24px, 4vw, 32px)',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#fff',
+                fontSize: 'clamp(14px, 2.5vw, 18px)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'rgba(255,255,255,0.2)';
+                e.target.style.transform = 'scale(1.1)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'rgba(255,255,255,0.1)';
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              ✕
+            </button>
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>⏰</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#e74c3c', marginBottom: '0.5rem' }}>Time's Up!</div>
             <div style={{ fontSize: '1rem', marginBottom: '1rem' }}>Score: <strong>{score}</strong>/200</div>
@@ -1148,16 +1216,6 @@ export default function MaskMemory({ onBack }) {
             </div>
             
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button onClick={() => { 
-                playSound('click'); 
-                submitScore(score);
-                setPhase('menu');
-              }} style={{
-                background: 'linear-gradient(135deg, #e74c3c, #c0392b)', border: 'none', borderRadius: '12px',
-                padding: '0.8rem 1.5rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-              }}>
-                🔄 Try Again
-              </button>
               <button onClick={() => { 
                 playSound('click'); 
                 submitScore(score);
