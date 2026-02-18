@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { getDailySuggestions, submitGameScore } from '../../services/gameService';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 /* ============================================================
    Mask Memory: Carnival Quest
@@ -238,6 +239,7 @@ function useConfetti() {
 }
 
 export default function MaskMemory({ onBack }) {
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [phase, setPhase] = useState('menu'); // menu | peek | playing | levelComplete | gameOver | victory
   const [level, setLevel] = useState(0);
@@ -253,39 +255,15 @@ export default function MaskMemory({ onBack }) {
   const [shakeClass, setShakeClass] = useState('');
   const [popups, setPopups] = useState([]);
   const [levelScores, setLevelScores] = useState([0, 0, 0]);
-  const [dailySuggestions, setDailySuggestions] = useState([]);
-  const [dailySuggestionsLoading, setDailySuggestionsLoading] = useState(false);
-  const [dailySuggestionsError, setDailySuggestionsError] = useState('');
-  const [dailySuggestionIndex, setDailySuggestionIndex] = useState(0);
+  const [dailyGameLevel, setDailyGameLevel] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
   const audioRef = useRef(null);
   const lockRef = useRef(false);
   const popupIdRef = useRef(0);
   const { particles, burst } = useParticles();
   const { pieces, launch } = useConfetti();
-
-  const fetchDailySuggestions = useCallback(async () => {
-    setDailySuggestionsLoading(true);
-    setDailySuggestionsError('');
-    try {
-      const result = await getDailySuggestions();
-      const games = result?.data?.suggestion?.games || [];
-      const unplayed = games.filter((g) => !g?.isPlayed);
-      setDailySuggestions(unplayed);
-    } catch (e) {
-      setDailySuggestions([]);
-      setDailySuggestionsError('Unable to load daily suggestions.');
-    } finally {
-      setDailySuggestionsLoading(false);
-    }
-  }, []);
-
-  const submitScore = useCallback(async (score) => {
-    try {
-      await submitGameScore('mask-memory', score);
-    } catch (error) {
-      console.error('Failed to submit score:', error);
-    }
-  }, []);
 
   if (!audioRef.current) audioRef.current = createAudio();
   const audio = audioRef.current;
@@ -293,20 +271,6 @@ export default function MaskMemory({ onBack }) {
   const playSound = useCallback((name) => {
     if (!muted && audio[name]) audio[name]();
   }, [muted, audio]);
-
-  useEffect(() => {
-    if (phase !== 'victory' && phase !== 'gameOver') return;
-    if (dailySuggestionsLoading) return;
-    if (dailySuggestions.length > 0) return;
-    if (dailySuggestionsError) return;
-
-    fetchDailySuggestions();
-  }, [phase, dailySuggestions.length, dailySuggestionsLoading, dailySuggestionsError, fetchDailySuggestions]);
-
-  useEffect(() => {
-    if (phase !== 'victory' && phase !== 'gameOver') return;
-    setDailySuggestionIndex(0);
-  }, [phase]);
 
 
   const initLevel = useCallback((lvl) => {
@@ -335,14 +299,56 @@ export default function MaskMemory({ onBack }) {
     playSound('click');
   }, [initLevel, playSound]);
 
-  // Handle URL parameter for auto-start
+  // Check if game is in daily suggestions
   useEffect(() => {
+    const checkDailyGame = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location.pathname || '';
+        
+        const normalizePath = (p = '') => {
+          const base = String(p).split('?')[0].split('#')[0].trim();
+          const noTrailing = base.replace(/\/+$/, '');
+          return noTrailing || '/';
+        };
+        
+        const matchedGame = games.find(
+          (g) => normalizePath(g?.gameId?.url) === normalizePath(pathname)
+        );
+        
+        if (matchedGame && matchedGame.difficulty) {
+          const difficulty = matchedGame.difficulty.toLowerCase();
+          // Map difficulty to level index: easy=0, moderate=1, hard=2
+          const levelMap = { easy: 0, moderate: 1, hard: 2 };
+          const levelIndex = levelMap[difficulty];
+          
+          if (levelIndex !== undefined) {
+            setIsDailyGame(true);
+            setDailyGameLevel(levelIndex);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking daily game:', error);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    
+    checkDailyGame();
+  }, [location.pathname]);
+
+  // Handle URL parameter for auto-start (only if not daily game)
+  useEffect(() => {
+    if (isDailyGame || checkingDailyGame) return;
+    
     const levelParam = searchParams.get('level');
     if (levelParam && ['easy', 'moderate', 'hard'].includes(levelParam.toLowerCase())) {
       const levelIndex = levelParam.toLowerCase() === 'easy' ? 0 : levelParam.toLowerCase() === 'moderate' ? 1 : 2;
       startGame(levelIndex);
     }
-  }, [searchParams, startGame]);
+  }, [searchParams, startGame, isDailyGame, checkingDailyGame]);
 
   // Timer
   useEffect(() => {
@@ -524,7 +530,15 @@ export default function MaskMemory({ onBack }) {
   };
 
   /* ---- MENU ---- */
-  if (phase === 'menu') {
+  if (phase === 'menu' && !checkingDailyGame) {
+    // Filter levels based on daily game
+    const availableLevels = isDailyGame && dailyGameLevel !== null 
+      ? [LEVELS[dailyGameLevel]]
+      : LEVELS;
+    const availableLevelIndices = isDailyGame && dailyGameLevel !== null
+      ? [dailyGameLevel]
+      : [0, 1, 2];
+
     return (
       <div style={styles.container}>
         <style>{css}</style>
@@ -555,9 +569,58 @@ export default function MaskMemory({ onBack }) {
             Study the masks, then match them from memory!
           </div>
 
+          {/* Daily Game Badge */}
+          {isDailyGame && dailyGameLevel !== null && (
+            <div style={{
+              display: 'inline-block',
+              background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
+              padding: '8px 20px',
+              borderRadius: '20px',
+              marginBottom: '20px',
+              fontSize: 'clamp(12px, 2vw, 14px)',
+              fontWeight: 600,
+              boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
+            }}>
+              🎯 Daily Challenge: {LEVELS[dailyGameLevel].name}
+            </div>
+          )}
+
+          {/* How to Play Button */}
+          <button
+            onClick={() => setShowInstructions(true)}
+            style={{
+              position: 'absolute',
+              top: 'clamp(16px, 3vw, 24px)',
+              right: 'clamp(16px, 3vw, 24px)',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '12px',
+              padding: 'clamp(10px, 2vw, 12px) clamp(16px, 3vw, 24px)',
+              color: '#fff',
+              fontSize: 'clamp(13px, 2vw, 15px)',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              transition: 'all 0.3s ease',
+              zIndex: 10,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            📖 How to Play
+          </button>
+
           {/* Level cards */}
           <div style={{ display: 'flex', gap: 'clamp(0.8rem, 2vw, 1.5rem)', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {LEVELS.map((l, i) => (
+            {availableLevels.map((l, idx) => {
+              const i = availableLevelIndices[idx];
+              return (
               <button key={i} onClick={() => startGame(i)} style={{
                 background: `linear-gradient(135deg, ${l.bg}, ${l.accent}33)`,
                 border: `2px solid ${l.accent}88`,
@@ -581,7 +644,8 @@ export default function MaskMemory({ onBack }) {
                   <div style={{ fontSize: 'clamp(0.7rem, 1.2vw, 0.85rem)', opacity: 0.7 }}>{l.desc}</div>
                 </div>
               </button>
-            ))}
+            );
+            })}
           </div>
 
           {/* Floating masks */}
@@ -599,6 +663,254 @@ export default function MaskMemory({ onBack }) {
               borderRadius: '10px', padding: '0.6rem 1.5rem', color: '#fff', cursor: 'pointer', fontSize: '0.9rem',
             }}>← Back</button>
           )}
+        </div>
+
+        {/* Instructions Modal */}
+        {showInstructions && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }} onClick={() => setShowInstructions(false)}>
+            <div style={{
+              background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%)',
+              borderRadius: '20px',
+              padding: 'clamp(20px, 4vw, 40px)',
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              color: '#ffffff',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              position: 'relative',
+            }} onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  color: '#fff',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.transform = 'rotate(90deg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'rotate(0deg)';
+                }}
+              >
+                ✕
+              </button>
+
+              <h2 style={{
+                fontSize: 'clamp(24px, 4vw, 32px)',
+                fontWeight: 'bold',
+                marginBottom: '8px',
+                textAlign: 'center',
+                background: 'linear-gradient(135deg, #f39c12, #e74c3c)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                🎭 How to Play Mask Memory
+              </h2>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '20px',
+                marginTop: '24px',
+              }}>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#4CAF50',
+                  }}>
+                    🎯 Objective
+                  </h3>
+                  <p style={{
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    opacity: 0.9,
+                  }}>
+                    Memorize the positions of colorful carnival masks, then match pairs by flipping cards. Complete all levels to win!
+                  </p>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#2196F3',
+                  }}>
+                    🎮 How to Play
+                  </h3>
+                  <ul style={{
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    opacity: 0.9,
+                    paddingLeft: '20px',
+                  }}>
+                    <li>Cards are shown face-up briefly at the start</li>
+                    <li>Click cards to flip and reveal masks</li>
+                    <li>Match two identical masks to score</li>
+                    <li>Build combos for bonus points!</li>
+                  </ul>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#FF9800',
+                  }}>
+                    📊 Scoring
+                  </h3>
+                  <ul style={{
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    opacity: 0.9,
+                    paddingLeft: '20px',
+                  }}>
+                    <li>Base match: +10 points</li>
+                    <li>Combo bonus: +3 per streak</li>
+                    <li>Maximum score: 200 points</li>
+                    <li>Time limit: 3 minutes</li>
+                  </ul>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '12px',
+                    color: '#9C27B0',
+                  }}>
+                    💡 Difficulty Levels
+                  </h3>
+                  <ul style={{
+                    fontSize: '14px',
+                    lineHeight: '1.8',
+                    opacity: 0.9,
+                    paddingLeft: '20px',
+                  }}>
+                    <li><strong>Village Fair:</strong> 4 pairs, easy</li>
+                    <li><strong>Grand Carnival:</strong> 6 pairs, medium</li>
+                    <li><strong>Masquerade Ball:</strong> 8 pairs, hard</li>
+                    <li>Complete all 3 levels to win!</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{
+                marginTop: '24px',
+                padding: '16px',
+                background: 'rgba(243, 156, 18, 0.15)',
+                borderRadius: '12px',
+                border: '1px solid rgba(243, 156, 18, 0.3)',
+              }}>
+                <p style={{
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  opacity: 0.95,
+                  textAlign: 'center',
+                  fontWeight: 500,
+                }}>
+                  💡 <strong>Pro Tip:</strong> Pay attention during the peek phase! Remember mask positions and colors. Building combos (matching multiple pairs in a row) gives you bonus points!
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  width: '100%',
+                  marginTop: '24px',
+                  padding: '14px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#fff',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                }}
+              >
+                Got it! Let's Play 🎭
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ---- LOADING STATE ---- */
+  if (checkingDailyGame && phase === 'menu') {
+    return (
+      <div style={styles.container}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          position: 'relative',
+          zIndex: 1,
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎭</div>
+          <div style={{ fontSize: '18px', opacity: 0.8 }}>Loading...</div>
         </div>
       </div>
     );
@@ -801,435 +1113,40 @@ export default function MaskMemory({ onBack }) {
       )}
 
       {/* Victory Overlay */}
-      {phase === 'victory' && (
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', zIndex: 500,
-          animation: 'fadeIn 0.5s ease',
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1a1a2e, #0f3460)', borderRadius: '20px',
-            padding: 'clamp(1.5rem, 3vw, 2.5rem)', textAlign: 'center', maxWidth: '500px',
-            border: '2px solid #2ecc7188', position: 'relative',
-          }}>
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                playSound('click');
-                submitScore(score);
-                window.location.href = '/games';
-              }}
-              style={{
-                position: 'absolute',
-                top: 'clamp(0.75rem, 1.5vw, 1rem)',
-                right: 'clamp(0.75rem, 1.5vw, 1rem)',
-                width: 'clamp(24px, 4vw, 32px)',
-                height: 'clamp(24px, 4vw, 32px)',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: '#fff',
-                fontSize: 'clamp(14px, 2.5vw, 18px)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseOver={(e) => {
-                e.target.style.background = 'rgba(255,255,255,0.2)';
-                e.target.style.transform = 'scale(1.1)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.background = 'rgba(255,255,255,0.1)';
-                e.target.style.transform = 'scale(1)';
-              }}
-            >
-              ✕
-            </button>
-            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🏆</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#2ecc71', marginBottom: '0.3rem' }}>Victory!</div>
-            <div style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>
-              {score >= 180 ? '⭐⭐⭐' : score >= 120 ? '⭐⭐' : '⭐'}
-            </div>
-            <div style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Final Score: <strong>{score}</strong>/200</div>
-            <div style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '1.5rem' }}>Total Moves: {moves} • Time: {formatTime(TIME_LIMIT - timeLeft)}</div>
-            
-            {/* Game Suggestions */}
-            <div style={{
-              background: 'rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem',
-              border: '1px solid rgba(255,255,255,0.2)'
-            }}>
-              <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.8rem', color: '#f39c12' }}>
-                🎮 Daily Game Suggestions
-              </div>
-              {dailySuggestions.length > 0 ? (
-                (() => {
-                  const game = dailySuggestions[Math.min(dailySuggestionIndex, dailySuggestions.length - 1)];
-                  const name = game?.gameId?.name || 'Daily Game';
-                  const category = game?.gameId?.category || 'Challenge yourself';
-                  const thumbnail = game?.gameId?.thumbnail;
-                  return (
-                    <div>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '10px',
-                        marginBottom: '10px',
-                      }}>
-                        <button
-                          type="button"
-                          onClick={() => setDailySuggestionIndex((i) => (i - 1 + dailySuggestions.length) % dailySuggestions.length)}
-                          style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '10px',
-                            border: '1px solid rgba(255,255,255,0.25)',
-                            background: 'rgba(0,0,0,0.25)',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            flex: '0 0 auto',
-                          }}
-                        >
-                          ‹
-                        </button>
-
-                        <div style={{
-                          flex: 1,
-                          background: 'rgba(46,204,113,0.1)',
-                          borderRadius: '12px',
-                          padding: '0.9rem',
-                          border: '1px solid rgba(46,204,113,0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          minWidth: 0,
-                        }}>
-                          <div style={{
-                            width: '52px',
-                            height: '52px',
-                            borderRadius: '10px',
-                            background: 'rgba(255,255,255,0.08)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                            flex: '0 0 auto',
-                          }}>
-                            {thumbnail ? (
-                              <img
-                                src={thumbnail}
-                                alt={name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div style={{ fontSize: '24px' }}>🎯</div>
-                            )}
-                          </div>
-
-                          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div style={{
-                              fontSize: '0.95rem',
-                              fontWeight: 700,
-                              lineHeight: 1.2,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}>
-                              {name}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.75, marginTop: '2px' }}>
-                              {category}
-                            </div>
-                            <div style={{ fontSize: '0.7rem', opacity: 0.6, marginTop: '2px' }}>
-                              Difficulty: {game?.difficulty || 'easy'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setDailySuggestionIndex((i) => (i + 1) % dailySuggestions.length)}
-                          style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '10px',
-                            border: '1px solid rgba(255,255,255,0.25)',
-                            background: 'rgba(0,0,0,0.25)',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            flex: '0 0 auto',
-                          }}
-                        >
-                          ›
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                        {dailySuggestions.slice(0, 8).map((_, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              width: idx === dailySuggestionIndex ? '16px' : '6px',
-                              height: '6px',
-                              borderRadius: '999px',
-                              background: idx === dailySuggestionIndex ? '#f39c12' : 'rgba(255,255,255,0.25)',
-                              transition: 'all 0.2s ease',
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()
-              ) : (
-                <div style={{ 
-                  textAlign: 'center', 
-                  color: 'rgba(255,255,255,0.5)', 
-                  fontSize: '0.9rem',
-                  padding: '1rem'
-                }}>
-                  {dailySuggestionsLoading
-                    ? 'Loading daily suggestions...'
-                    : dailySuggestionsError
-                      ? dailySuggestionsError
-                      : 'No daily games left for today.'}
-                </div>
-              )}
-            </div>
-            
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button onClick={() => { 
-                playSound('click'); 
-                submitScore(score);
-                window.location.href = '/games';
-              }} style={{
-                background: 'linear-gradient(135deg, #2ecc71, #27ae60)', border: 'none', borderRadius: '12px',
-                padding: '0.8rem 1.5rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-              }}>
-                � More Games
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GameCompletionModal
+        isVisible={phase === 'victory'}
+        onClose={() => setPhase('menu')}
+        gameTitle="Mask Memory"
+        score={score}
+        moves={moves}
+        timeElapsed={TIME_LIMIT - timeLeft}
+        gameTimeLimit={TIME_LIMIT}
+        isVictory={true}
+        customMessages={{
+          perfectScore: 180,
+          goodScore: 120,
+          maxScore: 200,
+          stats: `Total Moves: ${moves} • Time: ${formatTime(TIME_LIMIT - timeLeft)}`
+        }}
+      />
 
       {/* Game Over */}
-      {phase === 'gameOver' && (
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', zIndex: 500,
-          animation: 'fadeIn 0.5s ease',
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1a1a2e, #4a0e0e)', borderRadius: '20px',
-            padding: 'clamp(1.5rem, 3vw, 2.5rem)', textAlign: 'center', maxWidth: '500px',
-            border: '2px solid #e74c3c88', position: 'relative',
-          }}>
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                playSound('click');
-                submitScore(score);
-                window.location.href = '/games';
-              }}
-              style={{
-                position: 'absolute',
-                top: 'clamp(0.75rem, 1.5vw, 1rem)',
-                right: 'clamp(0.75rem, 1.5vw, 1rem)',
-                width: 'clamp(24px, 4vw, 32px)',
-                height: 'clamp(24px, 4vw, 32px)',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: '#fff',
-                fontSize: 'clamp(14px, 2.5vw, 18px)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseOver={(e) => {
-                e.target.style.background = 'rgba(255,255,255,0.2)';
-                e.target.style.transform = 'scale(1.1)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.background = 'rgba(255,255,255,0.1)';
-                e.target.style.transform = 'scale(1)';
-              }}
-            >
-              ✕
-            </button>
-            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>⏰</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#e74c3c', marginBottom: '0.5rem' }}>Time's Up!</div>
-            <div style={{ fontSize: '1rem', marginBottom: '1rem' }}>Score: <strong>{score}</strong>/200</div>
-            <div style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '1.5rem' }}>Total Moves: {moves} • Time: {formatTime(TIME_LIMIT - timeLeft)}</div>
-            
-            {/* Game Suggestions */}
-            <div style={{
-              background: 'rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem',
-              border: '1px solid rgba(255,255,255,0.2)'
-            }}>
-              <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.8rem', color: '#f39c12' }}>
-                🎮 Daily Game Suggestions
-              </div>
-              {dailySuggestions.length > 0 ? (
-                (() => {
-                  const game = dailySuggestions[Math.min(dailySuggestionIndex, dailySuggestions.length - 1)];
-                  const name = game?.gameId?.name || 'Daily Game';
-                  const category = game?.gameId?.category || 'Challenge yourself';
-                  const thumbnail = game?.gameId?.thumbnail;
-                  return (
-                    <div>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '10px',
-                        marginBottom: '10px',
-                      }}>
-                        <button
-                          type="button"
-                          onClick={() => setDailySuggestionIndex((i) => (i - 1 + dailySuggestions.length) % dailySuggestions.length)}
-                          style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '10px',
-                            border: '1px solid rgba(255,255,255,0.25)',
-                            background: 'rgba(0,0,0,0.25)',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            flex: '0 0 auto',
-                          }}
-                        >
-                          ‹
-                        </button>
-
-                        <div style={{
-                          flex: 1,
-                          background: 'rgba(52,152,219,0.1)',
-                          borderRadius: '12px',
-                          padding: '0.9rem',
-                          border: '1px solid rgba(52,152,219,0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          minWidth: 0,
-                        }}>
-                          <div style={{
-                            width: '52px',
-                            height: '52px',
-                            borderRadius: '10px',
-                            background: 'rgba(255,255,255,0.08)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                            flex: '0 0 auto',
-                          }}>
-                            {thumbnail ? (
-                              <img
-                                src={thumbnail}
-                                alt={name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div style={{ fontSize: '24px' }}>🎯</div>
-                            )}
-                          </div>
-
-                          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div style={{
-                              fontSize: '0.95rem',
-                              fontWeight: 700,
-                              lineHeight: 1.2,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}>
-                              {name}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.75, marginTop: '2px' }}>
-                              {category}
-                            </div>
-                            <div style={{ fontSize: '0.7rem', opacity: 0.6, marginTop: '2px' }}>
-                              Difficulty: {game?.difficulty || 'easy'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setDailySuggestionIndex((i) => (i + 1) % dailySuggestions.length)}
-                          style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '10px',
-                            border: '1px solid rgba(255,255,255,0.25)',
-                            background: 'rgba(0,0,0,0.25)',
-                            color: '#fff',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            flex: '0 0 auto',
-                          }}
-                        >
-                          ›
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                        {dailySuggestions.slice(0, 8).map((_, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              width: idx === dailySuggestionIndex ? '16px' : '6px',
-                              height: '6px',
-                              borderRadius: '999px',
-                              background: idx === dailySuggestionIndex ? '#f39c12' : 'rgba(255,255,255,0.25)',
-                              transition: 'all 0.2s ease',
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()
-              ) : (
-                <div style={{ 
-                  textAlign: 'center', 
-                  color: 'rgba(255,255,255,0.5)', 
-                  fontSize: '0.9rem',
-                  padding: '1rem'
-                }}>
-                  {dailySuggestionsLoading
-                    ? 'Loading daily suggestions...'
-                    : dailySuggestionsError
-                      ? dailySuggestionsError
-                      : 'No daily games left for today.'}
-                </div>
-              )}
-            </div>
-            
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button onClick={() => { 
-                playSound('click'); 
-                submitScore(score);
-                window.location.href = '/games';
-              }} style={{
-                background: 'linear-gradient(135deg, #6c757d, #495057)', border: 'none', borderRadius: '12px',
-                padding: '0.8rem 1.5rem', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-              }}>
-                🎯 More Games
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GameCompletionModal
+        isVisible={phase === 'gameOver'}
+        onClose={() => setPhase('menu')}
+        gameTitle="Mask Memory"
+        score={score}
+        moves={moves}
+        timeElapsed={TIME_LIMIT - timeLeft}
+        gameTimeLimit={TIME_LIMIT}
+        isVictory={false}
+        customMessages={{
+          icon: '⏰',
+          title: "Time's Up!",
+          maxScore: 200,
+          stats: `Total Moves: ${moves} • Time: ${formatTime(TIME_LIMIT - timeLeft)}`
+        }}
+      />
     </div>
   );
 }

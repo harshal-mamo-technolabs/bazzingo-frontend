@@ -18,7 +18,7 @@ const COLORS = {
   cyan: { main: '#00ACC1', light: '#26C6DA', dark: '#00838F' },
 };
 
-const COUNTDOWN_DURATION = 1;
+const COUNTDOWN_DURATION = 3;
 const TOTAL_POINTS = 200;
 const TIME_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 // const TIME_LIMIT_MS = 1000;
