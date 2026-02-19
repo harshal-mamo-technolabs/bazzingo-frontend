@@ -13,16 +13,18 @@ export function I18nProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
     if (typeof window === 'undefined') return 'de';
     
-    // Check if there's a default language set in access control
+    // User's explicit choice (from previous visit) takes precedence over default
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored && SUPPORTED_LANGS.includes(stored)) {
+      return stored;
+    }
+    
+    // Then use default language from access control if set
     const defaultLang = getDefaultLanguage();
     if (defaultLang && SUPPORTED_LANGS.includes(defaultLang)) {
       return defaultLang;
     }
     
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored && SUPPORTED_LANGS.includes(stored)) {
-      return stored;
-    }
     const browserLang = (navigator.language || 'de').toLowerCase();
     if (browserLang.startsWith('en')) return 'en';
     if (browserLang.startsWith('ro')) return 'ro';
