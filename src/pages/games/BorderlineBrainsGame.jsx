@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 // ─── COUNTRY DATA ───────────────────────────────────────────────────
 const COUNTRIES = [
@@ -268,8 +270,10 @@ function shuffle(arr) {
   return a;
 }
 
+const MAX_SCORE = 200;
+
 // ─── MAIN COMPONENT ────────────────────────────────────────────────
-export default function BorderlineBrains() {
+export default function BorderlineBrains({ onBack }) {
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [screen, setScreen] = useState('menu');
@@ -286,11 +290,23 @@ export default function BorderlineBrains() {
   const [conveyorAnim, setConveyorAnim] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
+  const [appPhase, setAppPhase] = useState('menu'); // menu | playing | gameover
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
 
   const audioRef = useRef(null);
   const timerRef = useRef(null);
   const canvasRef = useRef(null);
   const animRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const scoreRef = useRef(0);
+  const timeLeftRef = useRef(timeLeft);
+  const location = useLocation();
+  scoreRef.current = score;
+  timeLeftRef.current = timeLeft;
 
   // Update timeLeft when difficulty changes (for ready screen display)
   useEffect(() => {
@@ -298,6 +314,48 @@ export default function BorderlineBrains() {
       setTimeLeft(LEVELS[difficulty].timeLimit);
     }
   }, [difficulty, gameState]);
+
+  // Daily game check
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const res = await getDailySuggestions();
+        const games = res?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'Easy', medium: 'Moderate', moderate: 'Moderate', hard: 'Hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setDifficulty(map[d]);
+          } else {
+            setIsDailyGame(false);
+            setDailyGameDifficulty(null);
+          }
+        } else {
+          setIsDailyGame(false);
+          setDailyGameDifficulty(null);
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+        setIsDailyGame(false);
+        setDailyGameDifficulty(null);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setShowInstructions(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // ── Canvas background ──
   useEffect(() => {
@@ -391,6 +449,8 @@ export default function BorderlineBrains() {
 
   const startLevel = (lvl) => {
     const config = LEVELS[lvl];
+    if (!config) return;
+    setCompletionData(null);
     const r = generateRounds(lvl);
     setLevel(lvl);
     setRounds(r);
@@ -407,6 +467,8 @@ export default function BorderlineBrains() {
     setScreen('game');
     setGameState('playing');
     setConveyorAnim(true);
+    setAppPhase('playing');
+    startTimeRef.current = Date.now();
     audioRef.current?.levelStart();
     audioRef.current?.startBg();
   };
@@ -417,13 +479,16 @@ export default function BorderlineBrains() {
 
   const handleReset = useCallback(() => {
     audioRef.current?.stopBg();
-    clearInterval(timerRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+    setCompletionData(null);
+    setAppPhase('menu');
     setGameState('ready');
     setScreen('menu');
     setScore(0);
     setCorrectCount(0);
     setWrongCount(0);
-    setTimeLeft(0);
+    setTimeLeft(LEVELS.Easy.timeLimit);
     setCurrentRound(0);
     setCombo(0);
     setStreak(0);
@@ -431,11 +496,23 @@ export default function BorderlineBrains() {
   }, []);
 
   const endGame = useCallback(() => {
-    clearInterval(timerRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
     setPhase('summary');
     setGameState('finished');
     audioRef.current?.stopBg();
-  }, []);
+    const config = level ? LEVELS[level] : LEVELS.Easy;
+    const finalScore = scoreRef.current;
+    const elapsed = config ? config.timeLimit - timeLeftRef.current : 0;
+    const diffLower = level ? (level === 'Easy' ? 'easy' : level === 'Moderate' ? 'moderate' : 'hard') : 'easy';
+    setCompletionData({
+      score: finalScore,
+      isVictory: finalScore >= MAX_SCORE,
+      difficulty: diffLower,
+      timeElapsed: elapsed,
+    });
+    setAppPhase('gameover');
+  }, [level]);
 
   const handleAnswer = (country) => {
     if (phase !== 'inspect') return;
@@ -484,12 +561,7 @@ export default function BorderlineBrains() {
     }, 1800);
   };
 
-  const backToMenu = () => {
-    audioRef.current?.stopBg();
-    clearInterval(timerRef.current);
-    setScreen('menu');
-    setGameState('ready');
-  };
+  const backToMenu = handleReset;
 
   // Check if game should end due to max score
   useEffect(() => {
@@ -502,50 +574,20 @@ export default function BorderlineBrains() {
     ? Math.round((correctCount / (correctCount + wrongCount)) * 100) 
     : 0;
 
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          You're a customs officer! Examine travelers' belongings and identify their country of origin from visual clues.
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Inspect traveler's belongings</li>
-          <li>• Analyze cultural clues</li>
-          <li>• Select the correct country</li>
-          <li>• Build combos for bonus points</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Correct answers earn points</li>
-          <li>• 3+ combo = 1.5x multiplier</li>
-          <li>• Reach 200 points to win</li>
-          <li>• Time bonus for quick answers</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Strategy
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Study all clues carefully</li>
-          <li>• Look for cultural patterns</li>
-          <li>• Build streaks for multipliers</li>
-          <li>• Higher difficulty = fewer clues</li>
-        </ul>
-      </div>
-    </div>
+  const levelEntries = isDailyGame && dailyGameDifficulty
+    ? [[dailyGameDifficulty, { label: LEVELS[dailyGameDifficulty].label }]].filter(([, c]) => c)
+    : Object.entries(LEVELS).map(([k, v]) => [k, { label: v.label }]);
+  const selectedLevel = isDailyGame ? dailyGameDifficulty : difficulty;
+
+  const instructionsContent = (
+    <>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6, color: '#e2e8f0' }}>
+        <li>You&apos;re a customs officer! Examine travelers&apos; belongings and identify their <strong>country of origin</strong> from visual clues.</li>
+        <li>Inspect the clues, analyze cultural patterns, and select the correct country. Build <strong>combos</strong> (3+) for a 1.5x point multiplier.</li>
+        <li>Correct answers earn points. Reach <strong>200 points</strong> to win. Higher difficulty = fewer clues and less time.</li>
+      </ul>
+    </>
   );
 
   // ─── RENDER ─────────────────────────────────────────────────────
@@ -553,7 +595,7 @@ export default function BorderlineBrains() {
   const round = rounds[currentRound];
 
   const playingContent = (
-    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -715,24 +757,129 @@ export default function BorderlineBrains() {
     </div>
   );
 
+  const wrapperStyle = { minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)', display: 'flex', flexDirection: 'column', fontFamily: "'Segoe UI', system-ui, sans-serif" };
+
   return (
-    <GameFrameworkV2
-      gameTitle="Borderline Brains"
-      gameShortDescription="You're a customs officer! Examine travelers' belongings and identify their country of origin from visual clues."
-      category="Logic"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeLeft}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{ correctCount, wrongCount, accuracy, combo, streak }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <div style={wrapperStyle}>
+      {/* Header */}
+      <div style={{ width: '100%', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: 'rgba(15,23,42,0.9)', borderBottom: '1px solid rgba(59,130,246,0.2)' }}>
+        <button
+          onClick={appPhase === 'menu' ? (onBack ? () => onBack() : () => window.history.back()) : handleReset}
+          style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer' }}
+        >
+          {appPhase === 'menu' ? '←' : '✕'}
+        </button>
+        <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 'clamp(1rem,4vw,1.3rem)' }}>🛂 Borderline Brains</div>
+        {appPhase === 'menu' ? (
+          <button
+            type="button"
+            onClick={() => setShowInstructions(true)}
+            aria-label="How to play"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+              border: '1px solid rgba(148,163,184,0.4)', background: 'rgba(30,41,59,0.8)',
+              color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            ❓ How to Play
+          </button>
+        ) : (
+          <div style={{ color: timeLeft <= 15 ? '#f87171' : '#94a3b8', fontWeight: 700, fontSize: 'clamp(0.85rem,3vw,1.1rem)' }}>
+            ⏱ {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          </div>
+        )}
+      </div>
+
+      {appPhase === 'menu' && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          {showInstructions && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }}
+              onClick={() => setShowInstructions(false)}
+            >
+              <div
+                style={{
+                  background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)',
+                  border: '2px solid rgba(99,102,241,0.45)', borderRadius: 20, padding: 0,
+                  maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+                  color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#818cf8' }}>🛂 Borderline Brains – How to Play</h2>
+                  <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
+                    style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, cursor: 'pointer' }}>×</button>
+                </div>
+                <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>{instructionsContent}</div>
+                <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <button type="button" onClick={() => setShowInstructions(false)}
+                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>Got it</button>
+                </div>
+              </div>
+            </div>
+          )}
+          <div style={{ background: '#1e293b', borderRadius: 20, padding: '32px 24px', maxWidth: 420, width: '100%', textAlign: 'center', border: '2px solid #334155' }}>
+            {isDailyGame && (
+              <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.2)', color: '#a5b4fc', fontSize: 12, fontWeight: 600 }}>📅 Daily Challenge</div>
+            )}
+            <div style={{ fontSize: 48, marginBottom: 8 }}>🛂</div>
+            <h1 style={{ color: '#f1f5f9', fontSize: 'clamp(1.4rem,5vw,2rem)', fontWeight: 800, margin: '0 0 8px' }}>Borderline Brains</h1>
+            <p style={{ color: '#94a3b8', fontSize: 'clamp(0.8rem,3vw,0.95rem)', margin: '0 0 24px', lineHeight: 1.5 }}>
+              Identify the country of origin from travelers&apos; belongings. Build combos for bonus points!
+            </p>
+            {!checkingDailyGame && levelEntries.map(([key, val]) => (
+              <button
+                key={key}
+                onClick={() => !isDailyGame && setDifficulty(key)}
+                style={{
+                  width: '100%', padding: '14px 20px', marginBottom: 10, borderRadius: 12, border: selectedLevel === key ? '3px solid rgba(255,255,255,0.5)' : 'none',
+                  fontSize: 'clamp(0.9rem,3vw,1.05rem)', fontWeight: 700, cursor: isDailyGame ? 'default' : 'pointer',
+                  background: key === 'Easy' ? 'linear-gradient(135deg,#22c55e,#16a34a)' : key === 'Moderate' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#ef4444,#dc2626)',
+                  color: '#fff', transition: 'transform 0.15s', opacity: selectedLevel === key ? 1 : 0.85,
+                }}
+                onMouseEnter={e => !isDailyGame && (e.target.style.transform = 'scale(1.03)')}
+                onMouseLeave={e => (e.target.style.transform = 'scale(1)')}
+              >
+                {val.label}
+              </button>
+            ))}
+            <button
+              disabled={!selectedLevel || checkingDailyGame}
+              onClick={() => startLevel(selectedLevel)}
+              style={{
+                width: '100%', marginTop: 8, padding: '14px 20px', borderRadius: 12, border: 'none',
+                background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 'clamp(0.9rem,3vw,1.05rem)', fontWeight: 700, cursor: (!selectedLevel || checkingDailyGame) ? 'not-allowed' : 'pointer', opacity: (!selectedLevel || checkingDailyGame) ? 0.6 : 1,
+              }}
+            >
+              Start Game
+            </button>
+            <div style={{ marginTop: 20, color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)' }}>Up to 200 pts · Time limit by difficulty</div>
+          </div>
+        </div>
+      )}
+
+      {(appPhase === 'playing' || appPhase === 'gameover') && (
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', pointerEvents: appPhase === 'gameover' ? 'none' : 'auto' }}>
+          {playingContent}
+        </div>
+      )}
+
+      {appPhase === 'gameover' && completionData && (
+        <GameCompletionModal
+          isVisible
+          onClose={handleReset}
+          gameTitle="Borderline Brains"
+          score={completionData.score}
+          timeElapsed={completionData.timeElapsed ?? (config?.timeLimit ?? 120)}
+          gameTimeLimit={config?.timeLimit ?? 120}
+          isVictory={completionData.isVictory}
+          difficulty={completionData.difficulty}
+          customMessages={{ maxScore: MAX_SCORE }}
+        />
+      )}
+    </div>
   );
 }

@@ -41,15 +41,6 @@ export function useAutoScroll(containerRef, enabled, intervalMs = 2000) {
 export const DAILY_GAMES = [
     {
         id: 4,
-        title: 'Probability Prediction',
-        category: 'Numerical Reasoning',
-        difficulty: 'Easy',
-        icon: './games-icon/probability-prediction.png',
-        bgColor: '#ffffff',
-        path: '/games/probability-prediction-game',
-    },
-    {
-        id: 5,
         title: 'Word Chain Logic',
         category: 'Logic',
         difficulty: 'Medium',
@@ -58,12 +49,21 @@ export const DAILY_GAMES = [
         path: '/games/word-chain-logic-game',
     },
     {
+        id: 5,
+        title: 'Logic Grid Solver',
+        category: 'Logic',
+        difficulty: 'Easy',
+        icon: './games-icon/logic-grid-solver.png',
+        bgColor: '#1e293b',
+        path: '/games/logic-grid-solver-game',
+    },
+    {
         id: 6,
-        title: 'Resource Allocation Game',
-        category: 'Critical Thinking',
+        title: 'Number Puzzle',
+        category: 'Numerical Reasoning',
         difficulty: 'Medium',
-        icon: './games-icon/resource-allocation-strategy.png',
-        bgColor: '#FFFFFF',
-        path: '/games/resource-allocation-strategy-game',
+        icon: './games-icon/number-puzzle.png',
+        bgColor: '#ffffff',
+        path: '/games/number-puzzle-game',
     },
 ];

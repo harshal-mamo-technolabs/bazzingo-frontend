@@ -65,8 +65,8 @@ const DailyGameModal = ({ isOpen, onClose, dailyGames, onGameClick }) => {
               ))}
             </div>
 
-            {/* Tablet / Desktop: 3-column grid */}
-            <div className="hidden sm:grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* Tablet / Desktop: 3-column grid - larger gap for zoomed cards + animations */}
+            <div className="hidden sm:grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
               {dailyGames.map(game => (
                 <DailyGameCard
                   key={game.id}
