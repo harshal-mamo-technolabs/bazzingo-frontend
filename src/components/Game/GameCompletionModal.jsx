@@ -257,8 +257,8 @@ const styles = {
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.4)',
-    backdropFilter: 'blur(3px)',
+    background: 'rgba(0,0,0,0.5)',
+    backdropFilter: 'blur(4px)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -270,62 +270,71 @@ const styles = {
   modal: (isVictory) => ({
     width: '100%',
     maxWidth: '480px',
-    background: isVictory
-      ? 'linear-gradient(135deg,#1a1a2e,#0f3460)'
-      : 'linear-gradient(135deg,#1a1a2e,#4a0e0e)',
+    background: '#ffffff',
+    color: '#1a1a2e',
     borderRadius: '16px',
-    padding: '20px',
+    padding: '24px',
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-    border: `2px solid ${isVictory ? '#2ecc71' : '#e74c3c'}`,
-    boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+    border: `2px solid ${isVictory ? '#22c55e' : '#dc2626'}`,
+    boxShadow: '0 24px 48px rgba(0,0,0,0.25)',
     position: 'relative',
   }),
 
   closeBtn: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    background: 'transparent',
+    top: 12,
+    right: 12,
+    background: 'rgba(0,0,0,0.06)',
     border: 'none',
-    color: '#fff',
+    color: '#374151',
     fontSize: '18px',
     cursor: 'pointer',
+    width: 32,
+    height: 32,
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   title: (isVictory) => ({
     fontSize: '1.5rem',
     fontWeight: 700,
     textAlign: 'center',
-    color: isVictory ? '#2ecc71' : '#e74c3c',
+    color: isVictory ? '#15803d' : '#b91c1c',
+    marginTop: 8,
   }),
 
   score: {
     textAlign: 'center',
     fontSize: '1.1rem',
     fontWeight: 600,
+    color: '#1f2937',
   },
 
   stats: {
     textAlign: 'center',
     fontSize: '0.9rem',
-    opacity: 0.8,
+    color: '#4b5563',
   },
 
   suggestionBox: {
-    background: 'rgba(255,255,255,0.06)',
+    background: '#f3f4f6',
     borderRadius: '12px',
-    padding: '12px',
+    padding: '14px',
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
+    border: '1px solid #e5e7eb',
   },
 
   suggestionHeader: {
     fontWeight: 600,
     textAlign: 'center',
     fontSize: '0.95rem',
+    color: '#374151',
   },
 
   card: {
@@ -333,9 +342,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '10px',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
     borderRadius: '10px',
-    padding: '10px',
+    padding: '12px',
+    border: '1px solid #e5e7eb',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
   },
 
   cardContent: {
@@ -355,37 +366,41 @@ const styles = {
   gameName: {
     fontWeight: 600,
     fontSize: '0.95rem',
+    color: '#111827',
   },
 
   gameMeta: {
-    fontSize: '0.75rem',
-    opacity: 0.7,
+    fontSize: '0.8rem',
+    color: '#6b7280',
+    marginTop: 2,
   },
 
   navBtn: {
-    background: 'transparent',
-    border: 'none',
+    background: '#f3f4f6',
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    padding: '6px 10px',
     fontSize: '18px',
-    color: '#fff',
+    color: '#374151',
     cursor: 'pointer',
   },
 
   centerText: {
     textAlign: 'center',
     fontSize: '0.85rem',
-    opacity: 0.7,
+    color: '#6b7280',
   },
 
   mainBtn: (isVictory) => ({
-    padding: '10px',
+    padding: '12px 20px',
     borderRadius: '12px',
     border: 'none',
     fontWeight: 600,
     cursor: 'pointer',
-    background: isVictory
-      ? '#2ecc71'
-      : '#e74c3c',
+    fontSize: '1rem',
+    background: isVictory ? '#22c55e' : '#dc2626',
     color: '#fff',
+    boxShadow: isVictory ? '0 2px 8px rgba(34,197,94,0.3)' : '0 2px 8px rgba(220,38,38,0.3)',
   }),
 };
 
