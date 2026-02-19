@@ -598,6 +598,14 @@ export default function BorderlineBrains({ onBack }) {
   const tBorderlineBullet2 = useTranslateText('Inspect the clues, analyze cultural patterns, and select the correct country. Build combos (3+) for a 1.5x point multiplier.');
   const tBorderlineBullet3 = useTranslateText('Correct answers earn points. Reach 200 points to win. Higher difficulty = fewer clues and less time.');
 
+  const tTravelerBelongings = useTranslateText("Traveler's Belongings — Inspection");
+  const tApproved = useTranslateText('✓ APPROVED');
+  const tDenied = useTranslateText('✕ DENIED');
+  const tCorrectAnswer = useTranslateText('Correct answer:');
+  const tIdentifyCountry = useTranslateText('🛂 Identify the Country of Origin');
+  const tCorrect = useTranslateText('✅ Correct!');
+  const tWrong = useTranslateText('❌ Wrong!');
+
   const instructionsContent = (
     <>
       <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
@@ -680,14 +688,14 @@ export default function BorderlineBrains({ onBack }) {
                     opacity: 0.25, textTransform: 'uppercase', letterSpacing: 4, pointerEvents: 'none',
                     textShadow: `0 0 30px ${selectedAnswer === round.correct.name ? '#22c55e' : '#ef4444'}`,
                   }}>
-                    {selectedAnswer === round.correct.name ? '✓ APPROVED' : '✕ DENIED'}
+                    {selectedAnswer === round.correct.name ? tApproved : tDenied}
                   </div>
                 )}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                   <span style={{ fontSize: 20 }}>🧳</span>
                   <span style={{ color: '#94a3b8', fontSize: 14, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 2 }}>
-                    Traveler's Belongings — Inspection #{currentRound + 1}
+                    {tTravelerBelongings} #{currentRound + 1}
                   </span>
                 </div>
 
@@ -712,7 +720,7 @@ export default function BorderlineBrains({ onBack }) {
 
                 {phase === 'result' && selectedAnswer !== round.correct.name && (
                   <div style={{ textAlign: 'center', marginTop: 8, color: '#94a3b8', fontSize: 14 }}>
-                    Correct answer: <strong style={{ color: '#22c55e' }}>{round.correct.flag} {round.correct.name}</strong>
+                    {tCorrectAnswer} <strong style={{ color: '#22c55e' }}>{round.correct.flag} {round.correct.name}</strong>
                   </div>
                 )}
               </div>
@@ -720,7 +728,7 @@ export default function BorderlineBrains({ onBack }) {
               {/* Choices */}
               <div style={{ maxWidth: 700, width: '100%' }}>
                 <div style={{ color: '#64748b', fontSize: 13, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12, textAlign: 'center' }}>
-                  {phase === 'inspect' ? '🛂 Identify the Country of Origin' : phase === 'result' && selectedAnswer === round.correct.name ? '✅ Correct!' : '❌ Wrong!'}
+                  {phase === 'inspect' ? tIdentifyCountry : phase === 'result' && selectedAnswer === round.correct.name ? tCorrect : tWrong}
                 </div>
                 <div style={{ 
                   display: 'grid', 
@@ -890,7 +898,7 @@ export default function BorderlineBrains({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Borderline Brains"
+          gameTitle={tGameTitle}
           score={completionData.score}
           timeElapsed={completionData.timeElapsed ?? (config?.timeLimit ?? 120)}
           gameTimeLimit={config?.timeLimit ?? 120}

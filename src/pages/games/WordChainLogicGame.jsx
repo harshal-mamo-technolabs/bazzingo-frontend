@@ -317,6 +317,19 @@ export default function WordChainLogic({ onBack }) {
   const tWordChainBullet2 = useTranslateText("You'll see empty slots for the current chain. Tap a word from the pool to place it in the next slot. Use Undo to remove the last pick.");
   const tWordChainBullet3 = useTranslateText("On Easy, a Hint button shows the next word's first letter and length. Wrong picks reset your combo and add to errors.");
   const tWordChainBullet4 = useTranslateText('Complete all chains before time runs out. You have 2 minutes and can score up to 200 points. Consecutive chains build a combo for bonus points.');
+  const tChainComplete = useTranslateText('Chain Complete!');
+  const tBuildTheChain = useTranslateText('Build the chain');
+  const tPickNextWord = useTranslateText('Pick the next word');
+  const tUndo = useTranslateText('↩ Undo');
+  const tHint = useTranslateText('Hint');
+  const tWrongWordTry = useTranslateText('Wrong word — try another!');
+  const tWordsConnectFooter = useTranslateText('Words connect to form compound words or associations. Pick them in order!');
+  const t2Min200Pts = useTranslateText('2 min · 🏆 200 pts max');
+  const tChain = useTranslateText('Chain');
+  const tChainsOf = useTranslateText('chains of');
+  const tNextWordStartsWith = useTranslateText('Next word starts with');
+  const tAndHas = useTranslateText('and has');
+  const tLetters = useTranslateText('letters');
 
   const instructionsContent = (
     <>
@@ -418,7 +431,7 @@ export default function WordChainLogic({ onBack }) {
                 onMouseEnter={e => !isDailyGame && (e.target.style.transform = 'scale(1.03)')}
                 onMouseLeave={e => (e.target.style.transform = 'scale(1)')}
               >
-                {tLevelLabels[key]} — {val.totalChains} chains of {val.chainLen}
+                {tLevelLabels[key]} — {val.totalChains} {tChainsOf} {val.chainLen}
               </button>
             ))}
             <button
@@ -431,7 +444,7 @@ export default function WordChainLogic({ onBack }) {
             >
               {tStartGame}
             </button>
-            <div style={{ marginTop: 20, color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)' }}>⏱ 2 min · 🏆 200 pts max</div>
+            <div style={{ marginTop: 20, color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)' }}>⏱ {t2Min200Pts}</div>
           </div>
         </div>
       )}
@@ -450,7 +463,7 @@ export default function WordChainLogic({ onBack }) {
           {combo > 1 && <span style={{ color: '#f59e0b', marginLeft: 6 }}>🔥{combo}x</span>}
         </div>
         <div style={{ color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.85rem)' }}>
-          Chain {chainIdx + 1}/{cfg?.totalChains ?? 0}
+          {tChain} {chainIdx + 1}/{cfg?.totalChains ?? 0}
         </div>
       </div>
 
@@ -464,7 +477,7 @@ export default function WordChainLogic({ onBack }) {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: '#1e293b', border: '3px solid #22c55e', borderRadius: 16, padding: '24px 32px', textAlign: 'center', animation: 'wcl-chain-done 0.5s forwards' }}>
             <div style={{ fontSize: 36, marginBottom: 4 }}>✅</div>
-            <div style={{ color: '#22c55e', fontWeight: 800, fontSize: 'clamp(1.1rem,4vw,1.4rem)' }}>Chain Complete!</div>
+            <div style={{ color: '#22c55e', fontWeight: 800, fontSize: 'clamp(1.1rem,4vw,1.4rem)' }}>{tChainComplete}</div>
             <div style={{ color: '#94a3b8', fontSize: 'clamp(0.75rem,2.5vw,0.85rem)', marginTop: 4 }}>
               {currentChain?.chain.join(' → ')}
             </div>
@@ -474,7 +487,7 @@ export default function WordChainLogic({ onBack }) {
 
       {/* Chain slots */}
       <div style={{ color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
-        Build the chain ({currentChain?.category})
+        {tBuildTheChain} ({currentChain?.category})
       </div>
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center',
@@ -515,7 +528,7 @@ export default function WordChainLogic({ onBack }) {
 
       {/* Word pool */}
       <div style={{ color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
-        Pick the next word
+        {tPickNextWord}
       </div>
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: 'clamp(6px,2vw,10px)', justifyContent: 'center',
@@ -554,9 +567,9 @@ export default function WordChainLogic({ onBack }) {
             padding: '8px 18px', borderRadius: 8, border: '2px solid #475569',
             background: 'transparent', color: selected.length > 0 && !feedback ? '#94a3b8' : '#334155',
             fontWeight: 700, fontSize: 'clamp(0.8rem,2.5vw,0.9rem)', cursor: selected.length > 0 ? 'pointer' : 'default',
-          }}>
-          ↩ Undo
-        </button>
+}}>
+            {tUndo}
+          </button>
         {cfg.hint && (
           <button onClick={() => setShowHint(true)} disabled={showHint}
             style={{
@@ -564,7 +577,7 @@ export default function WordChainLogic({ onBack }) {
               background: 'transparent', color: showHint ? '#334155' : '#f59e0b',
               fontWeight: 700, fontSize: 'clamp(0.8rem,2.5vw,0.9rem)', cursor: showHint ? 'default' : 'pointer',
             }}>
-            💡 Hint
+            💡 {tHint}
           </button>
         )}
       </div>
@@ -576,7 +589,7 @@ export default function WordChainLogic({ onBack }) {
           borderRadius: 10, padding: '8px 14px', marginBottom: 8, textAlign: 'center',
           color: '#93c5fd', fontSize: 'clamp(0.75rem,2.5vw,0.85rem)',
         }}>
-          💡 Next word starts with "<strong>{currentChain.chain[selected.length]?.[0] || '?'}</strong>" and has {currentChain.chain[selected.length]?.length || '?'} letters
+          💡 {tNextWordStartsWith} "<strong>{currentChain.chain[selected.length]?.[0] || '?'}</strong>" {tAndHas} {currentChain.chain[selected.length]?.length || '?'} {tLetters}
         </div>
       )}
 
@@ -584,14 +597,14 @@ export default function WordChainLogic({ onBack }) {
       <div style={{ minHeight: 24, textAlign: 'center' }}>
         {feedback?.type === 'wrong' && (
           <span style={{ color: '#ef4444', fontWeight: 700, fontSize: 'clamp(0.85rem,3vw,1rem)' }}>
-            ❌ Wrong word — try another!
+            ❌ {tWrongWordTry}
           </span>
         )}
       </div>
 
       {/* Footer */}
       <div style={{ marginTop: 'auto', paddingTop: 12, color: '#475569', fontSize: 'clamp(0.65rem,2vw,0.75rem)', textAlign: 'center', maxWidth: 450 }}>
-        Words connect to form compound words or associations. Pick them in order!
+        {tWordsConnectFooter}
       </div>
       </div>
       )}
@@ -600,7 +613,7 @@ export default function WordChainLogic({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Word Chain Logic"
+          gameTitle={tGameTitle}
           score={completionData.score}
           timeElapsed={completionData.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

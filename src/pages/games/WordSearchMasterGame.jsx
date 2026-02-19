@@ -390,6 +390,11 @@ export default function WordSearchMaster({ onBack }) {
   const tWsmBullet3 = useTranslateText('Drag across letters to select a word. Release to submit.');
   const tWsmBullet4 = useTranslateText('Find all words before time runs out. You have 2 minutes and can score up to 200 points.');
   const tWsmBullet5 = useTranslateText('Consecutive finds build a combo for extra satisfaction. Wrong selections reset the combo.');
+  const tFindHidden = useTranslateText('Find hidden words in the grid.');
+  const tDragLetters = useTranslateText('Drag across letters to select!');
+  const tWords = useTranslateText('words');
+  const tBackToGames = useTranslateText('← Back to Games');
+  const tCombo = useTranslateText('Combo!');
 
   const instructionsModalContent = (
     <>
@@ -529,7 +534,7 @@ export default function WordSearchMaster({ onBack }) {
             <div style={{ fontSize: 'clamp(40px, 10vw, 64px)', marginBottom: 8, animation: 'ws-float 3s ease-in-out infinite' }}>🔤</div>
             <h2 style={{ ...titleGrad, fontSize: 'clamp(22px, 5vw, 32px)', marginBottom: 4 }}>{tGameTitle}</h2>
             <p style={{ color: 'rgba(226,232,240,0.6)', fontSize: 'clamp(12px, 2.5vw, 15px)', marginBottom: 24, lineHeight: 1.5 }}>
-              Find hidden words in the grid.<br />Drag across letters to select!
+              {tFindHidden}<br />{tDragLetters}
             </p>
             {!checkingDailyGame && levelEntries.map(([key, val]) => (
               <button
@@ -541,7 +546,7 @@ export default function WordSearchMaster({ onBack }) {
                 }}
                 onClick={() => !isDailyGame && setLevel(key)}
               >
-                {val.emoji} {tLevelLabels[key]} — {val.gridSize}×{val.gridSize} · {val.wordCount} words
+                {val.emoji} {tLevelLabels[key]} — {val.gridSize}×{val.gridSize} · {val.wordCount} {tWords}
               </button>
             ))}
             <button
@@ -551,7 +556,7 @@ export default function WordSearchMaster({ onBack }) {
             >
               {tStartGame}
             </button>
-            {onBack && <button style={{ ...baseBtn, marginTop: 16, width: '100%', padding: '10px' }} onClick={onBack}>← Back to Games</button>}
+            {onBack && <button style={{ ...baseBtn, marginTop: 16, width: '100%', padding: '10px' }} onClick={onBack}>{tBackToGames}</button>}
           </div>
         </div>
       )}
@@ -629,7 +634,7 @@ export default function WordSearchMaster({ onBack }) {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               animation: 'ws-comboZoom 0.8s ease forwards', pointerEvents: 'none',
               filter: 'drop-shadow(0 0 20px rgba(251, 191, 36, 0.5))',
-            }}>🔥 {combo}x Combo!</div>
+            }}>🔥 {combo}x {tCombo}</div>
           )}
         </div>
       </div>

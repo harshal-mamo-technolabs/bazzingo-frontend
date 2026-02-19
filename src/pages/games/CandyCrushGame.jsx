@@ -61,6 +61,34 @@ export default function CandyCrush() {
 
   const config = level ? LEVELS[level] : null;
 
+  // Translations (before processMatches so combo text can use them)
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Match 3 or more candies of the same type by swapping adjacent candies. Reach 200 points before time runs out!');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tHowToPlayBullet1 = useTranslateText('Tap or click a candy, then tap an adjacent candy to swap them.');
+  const tHowToPlayBullet2 = useTranslateText('Only swaps that create a match of 3+ (horizontal or vertical) are valid.');
+  const tHowToPlayBullet3 = useTranslateText('Chain combos for bonus points when new candies fall and match.');
+  const tHowToPlayBullet4 = useTranslateText('You have 120 seconds. Match fast to score more!');
+  const tScoring = useTranslateText('Scoring');
+  const tScoringDesc = useTranslateText('Points per match. Combos multiply your score. Max score 200.');
+  const tLevels = useTranslateText('Levels');
+  const tLevelsDesc = useTranslateText('Easy: 6×6, 4 candy types. Moderate: 7×7, 5 types. Hard: 8×8, 6 types.');
+  const tCandyHowToPlay = useTranslateText('🍬 Candy Crush – How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tGameTitle = useTranslateText('Candy Crush');
+  const tSubtitle = useTranslateText('Match 3+ candies to score! Swap adjacent candies to create matches. Chain combos for bonus points!');
+  const tCheckingDaily = useTranslateText('Checking daily challenge…');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tEasy = useTranslateText('Easy');
+  const tModerate = useTranslateText('Moderate');
+  const tHard = useTranslateText('Hard');
+  const tStartGame = useTranslateText('Start Game');
+  const tTimePointsHint = useTranslateText('⏱ 2 min · 🏆 200 pts max');
+  const tCombo = useTranslateText('✨ COMBO!');
+  const tAmazing = useTranslateText('⚡ AMAZING!');
+  const tIncredible = useTranslateText('🔥 INCREDIBLE!');
+  const tSwapHint = useTranslateText('Swap adjacent candies to match 3+');
+
   // Responsive sizing
   useEffect(() => {
     const measure = () => {
@@ -377,7 +405,7 @@ export default function CandyCrush() {
     const newCombo = combo + 1;
     setComboCount(newCombo);
     if (newCombo > 1) {
-      setComboText(newCombo >= 4 ? '🔥 INCREDIBLE!' : newCombo >= 3 ? '⚡ AMAZING!' : '✨ COMBO!');
+      setComboText(newCombo >= 4 ? tIncredible : newCombo >= 3 ? tAmazing : tCombo);
       playSound('combo');
     } else {
       playSound('match');
@@ -436,7 +464,7 @@ export default function CandyCrush() {
 
     // Recurse for cascades
     setTimeout(() => processMatches(newGrid, newScore, newMatches, newCombo), 100);
-  }, [config, findMatches, findHint, ensureValidMoves, createGrid, playSound]);
+  }, [config, findMatches, findHint, ensureValidMoves, createGrid, playSound, tCombo, tAmazing, tIncredible]);
 
   // Handle cell click
   const handleCellClick = useCallback((r, c) => {
@@ -515,25 +543,25 @@ export default function CandyCrush() {
   const instructionsModalContent = (
     <>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Objective</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Match 3 or more candies of the same type by swapping adjacent candies. Reach {TOTAL_POINTS} points before time runs out!</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tObjective}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tObjectiveDesc}</p>
       </section>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
         <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-          <li>Tap or click a candy, then tap an adjacent candy to swap them.</li>
-          <li>Only swaps that create a match of 3+ (horizontal or vertical) are valid.</li>
-          <li>Chain combos for bonus points when new candies fall and match.</li>
-          <li>You have {TIME_LIMIT} seconds. Match fast to score more!</li>
+          <li>{tHowToPlayBullet1}</li>
+          <li>{tHowToPlayBullet2}</li>
+          <li>{tHowToPlayBullet3}</li>
+          <li>{tHowToPlayBullet4}</li>
         </ul>
       </section>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Scoring</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Points per match. Combos multiply your score. Max score {TOTAL_POINTS}.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tScoring}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tScoringDesc}</p>
       </section>
       <section>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Levels</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Easy: 6×6, 4 candy types. Moderate: 7×7, 5 types. Hard: 8×8, 6 types.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tLevels}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tLevelsDesc}</p>
       </section>
     </>
   );
@@ -542,6 +570,7 @@ export default function CandyCrush() {
     ? Object.entries(LEVELS).filter(([k]) => k === dailyGameDifficulty)
     : Object.entries(LEVELS);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : (level || 'easy');
+  const levelLabels = { easy: tEasy, moderate: tModerate, hard: tHard };
 
   // CSS keyframes
   const styleTag = `
@@ -596,7 +625,7 @@ export default function CandyCrush() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           }}
         >
-          <span aria-hidden>❓</span> How to Play
+          <span aria-hidden>❓</span> {tHowToPlay}
         </button>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -619,7 +648,7 @@ export default function CandyCrush() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="candy-crush-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#ff6b6b' }}>
-                    🍬 Candy Crush – How to Play
+                    {tCandyHowToPlay}
                   </h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
@@ -627,7 +656,7 @@ export default function CandyCrush() {
                 <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>{instructionsModalContent}</div>
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
-                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Got it</button>
+                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>{tGotIt}</button>
                 </div>
               </div>
             </div>
@@ -638,16 +667,16 @@ export default function CandyCrush() {
             backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent',
             textShadow: 'none', marginBottom: '8px', letterSpacing: '-1px',
             animation: 'cc-glow 2s ease-in-out infinite',
-          }}>🍬 Candy Crush</div>
+          }}>🍬 {tGameTitle}</div>
           <div style={{
             color: 'rgba(255,255,255,0.7)', fontSize: isSmall ? '12px' : '16px',
             marginBottom: isSmall ? '20px' : '36px', textAlign: 'center', maxWidth: '340px',
-          }}>Match 3+ candies to score! Swap adjacent candies to create matches. Chain combos for bonus points!</div>
+          }}>{tSubtitle}</div>
           {checkingDailyGame && (
-            <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 16, fontSize: 13 }}>Checking daily challenge…</p>
+            <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 16, fontSize: 13 }}>{tCheckingDaily}</p>
           )}
           {!checkingDailyGame && isDailyGame && (
-            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(255,107,107,0.2)', border: '1px solid rgba(255,107,107,0.5)', borderRadius: 20, fontSize: 13, color: '#ff6b6b', fontWeight: 600 }}>Daily Challenge</div>
+            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(255,107,107,0.2)', border: '1px solid rgba(255,107,107,0.5)', borderRadius: 20, fontSize: 13, color: '#ff6b6b', fontWeight: 600 }}>{tDailyChallenge}</div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: isSmall ? '10px' : '14px', width: isSmall ? '220px' : '280px' }}>
             {!checkingDailyGame && levelEntries.map(([key, cfg]) => {
@@ -666,7 +695,7 @@ export default function CandyCrush() {
                 onMouseEnter={e => { if (!isDailyGame) { e.target.style.transform = 'translateY(-3px) scale(1.03)'; e.target.style.boxShadow = `0 10px 30px ${colors[key].shadow}`; } }}
                 onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = `0 6px 20px ${colors[key].shadow}`; }}
                 >
-                  {cfg.label} — {cfg.gridSize}×{cfg.gridSize}
+                  {levelLabels[key]} — {cfg.gridSize}×{cfg.gridSize}
                 </button>
               );
             })}
@@ -679,14 +708,14 @@ export default function CandyCrush() {
             }}
             onMouseEnter={e => { e.target.style.transform = 'scale(1.03)'; }}
             onMouseLeave={e => { e.target.style.transform = ''; }}
-            >Start Game</button>
+            >{tStartGame}</button>
           )}
         </div>
 
         <div style={{
           position: 'absolute', bottom: isSmall ? '10px' : '20px',
           color: 'rgba(255,255,255,0.3)', fontSize: '11px',
-        }}>⏱ 2 min · 🏆 200 pts max</div>
+        }}>{tTimePointsHint}</div>
       </div>
     );
   }
@@ -721,7 +750,7 @@ export default function CandyCrush() {
             color: '#fff', fontSize: isSmall ? '14px' : '18px', fontWeight: 800,
             background: 'linear-gradient(135deg, #feca57, #ff9f43)',
             backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          }}>🍬 {LEVELS[level].label}</div>
+          }}>🍬 {levelLabels[level]}</div>
           <div style={{
             color: timeLeft <= 15 ? '#ff6b6b' : 'rgba(255,255,255,0.8)',
             fontSize: isSmall ? '13px' : '16px', fontWeight: 700,
@@ -841,7 +870,7 @@ export default function CandyCrush() {
         color: 'rgba(255,255,255,0.4)', fontSize: isSmall ? '10px' : '12px',
         textAlign: 'center',
       }}>
-        Swap adjacent candies to match 3+
+        {tSwapHint}
       </div>
     </div>
   );
@@ -856,7 +885,7 @@ export default function CandyCrush() {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Candy Crush"
+          gameTitle={tGameTitle}
           score={c.score}
           timeElapsed={c.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

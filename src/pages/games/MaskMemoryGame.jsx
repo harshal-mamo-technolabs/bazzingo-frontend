@@ -283,8 +283,23 @@ export default function MaskMemory({ onBack }) {
   const tGotItPlay = useTranslateText("Got it! Let's Play 🎭");
   const tDailyChallenge = useTranslateText('Daily Challenge');
   const tMaskMemory = useTranslateText('Mask Memory');
+  const tCarnivalQuest = useTranslateText('Carnival Quest');
+  const tStudyMasksDesc = useTranslateText('Study the masks, then match them from memory!');
   const tBack = useTranslateText('← Back');
   const tLoading = useTranslateText('Loading...');
+  const tLevelNames = [useTranslateText('Village Fair'), useTranslateText('Grand Carnival'), useTranslateText('Masquerade Ball')];
+  const tLevelDescs = [useTranslateText('4 pairs • Easy'), useTranslateText('6 pairs • Medium'), useTranslateText('8 pairs • Hard')];
+  const tMemorizeMasks = useTranslateText('Memorize the Masks!');
+  const tCardsFlipIn = useTranslateText('Cards will flip in');
+  const tCardsFlipSuffix = useTranslateText('s...');
+  const tFlip = useTranslateText('FLIP');
+  const tLevelComplete = useTranslateText('Level Complete!');
+  const tMovesLabel = useTranslateText('Moves:');
+  const tBestCombo = useTranslateText('Best Combo:');
+  const tScoreLabel = useTranslateText('Score:');
+  const tNextLevel = useTranslateText('Next Level →');
+  const tTotalMoves = useTranslateText('Total Moves:');
+  const tTimeLabel = useTranslateText('Time:');
   const audioRef = useRef(null);
   const lockRef = useRef(false);
   const popupIdRef = useRef(0);
@@ -585,14 +600,14 @@ export default function MaskMemory({ onBack }) {
           {/* Title */}
           <div style={{ animation: 'float 3s ease-in-out infinite', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, background: 'linear-gradient(135deg, #f39c12, #e74c3c, #9b59b6, #3498db)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: 'none', letterSpacing: '-0.02em' }}>
-              🎭 Mask Memory
+              🎭 {tMaskMemory}
             </span>
           </div>
           <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.5rem)', color: '#f39c12', fontWeight: 600, marginBottom: '0.3rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-            Carnival Quest
+            {tCarnivalQuest}
           </div>
           <div style={{ fontSize: 'clamp(0.75rem, 1.5vw, 0.95rem)', color: 'rgba(255,255,255,0.5)', marginBottom: '2rem' }}>
-            Study the masks, then match them from memory!
+            {tStudyMasksDesc}
           </div>
 
           {/* Daily Game Badge */}
@@ -666,8 +681,8 @@ export default function MaskMemory({ onBack }) {
                 <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, transparent, ${l.accent}22, transparent)`, backgroundSize: '200% 100%', animation: 'shimmer 3s infinite' }} />
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{['🏡', '🎪', '💃'][i]}</div>
-                  <div style={{ fontWeight: 700, fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)', marginBottom: '0.3rem' }}>{l.name}</div>
-                  <div style={{ fontSize: 'clamp(0.7rem, 1.2vw, 0.85rem)', opacity: 0.7 }}>{l.desc}</div>
+                  <div style={{ fontWeight: 700, fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)', marginBottom: '0.3rem' }}>{tLevelNames[i]}</div>
+                  <div style={{ fontSize: 'clamp(0.7rem, 1.2vw, 0.85rem)', opacity: 0.7 }}>{tLevelDescs[i]}</div>
                 </div>
               </button>
             );
@@ -960,7 +975,7 @@ export default function MaskMemory({ onBack }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.5rem, 1.5vw, 1rem)', flexWrap: 'wrap' }}>
           <div style={{ fontWeight: 700, fontSize: 'clamp(0.8rem, 1.5vw, 1rem)', color: lvl.accent }}>
-            {lvl.name}
+            {tLevelNames[level]}
           </div>
           <div style={{
             background: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.2rem 0.6rem',
@@ -1015,8 +1030,8 @@ export default function MaskMemory({ onBack }) {
           border: '2px solid #f1c40f88',
         }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.3rem' }}>👀</div>
-          <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f1c40f' }}>Memorize the Masks!</div>
-          <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>Cards will flip in {(LEVELS[level].peekTime / 1000).toFixed(0)}s...</div>
+          <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f1c40f' }}>{tMemorizeMasks}</div>
+          <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{tCardsFlipIn} {(LEVELS[level].peekTime / 1000).toFixed(0)}{tCardsFlipSuffix}</div>
         </div>
       )}
 
@@ -1046,7 +1061,7 @@ export default function MaskMemory({ onBack }) {
                     flexDirection: 'column',
                   }}>
                     <div style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)' }}>🎭</div>
-                    <div style={{ fontSize: 'clamp(0.5rem, 1vw, 0.7rem)', opacity: 0.5, marginTop: '0.3rem', letterSpacing: '0.1em' }}>FLIP</div>
+                    <div style={{ fontSize: 'clamp(0.5rem, 1vw, 0.7rem)', opacity: 0.5, marginTop: '0.3rem', letterSpacing: '0.1em' }}>{tFlip}</div>
                     {/* Card back pattern */}
                     <div style={{
                       position: 'absolute', inset: 6, borderRadius: 8,
@@ -1124,15 +1139,15 @@ export default function MaskMemory({ onBack }) {
             border: '2px solid #f39c1288',
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎉</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f39c12', marginBottom: '0.5rem' }}>Level Complete!</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f39c12', marginBottom: '0.5rem' }}>{tLevelComplete}</div>
             <div style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '1rem' }}>
-              Moves: {moves} • Best Combo: {bestCombo}x • Score: {score}/200
+              {tMovesLabel} {moves} • {tBestCombo} {bestCombo}x • {tScoreLabel} {score}/200
             </div>
             <button onClick={nextLevel} style={{
               background: 'linear-gradient(135deg, #f39c12, #e74c3c)', border: 'none', borderRadius: '12px',
               padding: '0.8rem 2rem', color: '#fff', fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
             }}>
-              Next Level →
+              {tNextLevel}
             </button>
           </div>
         </div>
@@ -1152,7 +1167,7 @@ export default function MaskMemory({ onBack }) {
           perfectScore: 180,
           goodScore: 120,
           maxScore: 200,
-          stats: `Total Moves: ${moves} • Time: ${formatTime(TIME_LIMIT - timeLeft)}`
+          stats: `${tTotalMoves} ${moves} • ${tTimeLabel} ${formatTime(TIME_LIMIT - timeLeft)}`
         }}
       />
 
@@ -1170,7 +1185,7 @@ export default function MaskMemory({ onBack }) {
           icon: '⏰',
           title: "Time's Up!",
           maxScore: 200,
-          stats: `Total Moves: ${moves} • Time: ${formatTime(TIME_LIMIT - timeLeft)}`
+          stats: `${tTotalMoves} ${moves} • ${tTimeLabel} ${formatTime(TIME_LIMIT - timeLeft)}`
         }}
       />
     </div>

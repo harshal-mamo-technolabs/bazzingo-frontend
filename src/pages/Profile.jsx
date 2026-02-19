@@ -712,8 +712,37 @@ const Profile = () => {
   if (loading) {
     return (
       <MainLayout unreadCount={unreadCount}>
-        <div className="bg-white min-h-screen flex items-center justify-center">
-          <div className="text-gray-600"><TranslatedText text="Loading profile..." /></div>
+        <div className="profile-loading-screen min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-orange-50/20">
+          <div className="profile-loading-content text-center">
+            <div className="profile-loading-avatar" />
+            <p className="text-gray-500 mt-4 text-sm font-medium"><TranslatedText text="Loading profile..." /></p>
+            <div className="profile-loading-dots">
+              <span /><span /><span />
+            </div>
+          </div>
+          <style>{`
+            .profile-loading-screen { font-family: Inter, sans-serif; }
+            .profile-loading-avatar {
+              width: 56px; height: 56px; margin: 0 auto;
+              border-radius: 50%; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+              animation: profileLoadingPulse 1.5s ease-in-out infinite;
+            }
+            .profile-loading-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+            .profile-loading-dots span {
+              width: 6px; height: 6px; border-radius: 50%; background: #f97316;
+              animation: profileLoadingDot 1.2s ease-in-out infinite;
+            }
+            .profile-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+            .profile-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes profileLoadingPulse {
+              0%, 100% { opacity: 0.6; transform: scale(1); }
+              50% { opacity: 1; transform: scale(1.05); }
+            }
+            @keyframes profileLoadingDot {
+              0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+              40% { transform: scale(1.2); opacity: 1; }
+            }
+          `}</style>
         </div>
       </MainLayout>
     );
@@ -721,22 +750,27 @@ const Profile = () => {
 
   return (
     <MainLayout unreadCount={unreadCount}>
-      <div className="bg-white min-h-screen" style={{ fontFamily: 'Inter, sans-serif' }}>
+      <div className="profile-page min-h-screen relative overflow-hidden" style={{ fontFamily: 'Inter, sans-serif' }}>
+        {/* Subtle animated background */}
+        <div className="absolute inset-0 pointer-events-none profile-bg-gradient" aria-hidden />
+        <div className="absolute inset-0 pointer-events-none profile-bg-dots" aria-hidden />
+
         {/* Main Content - Web Layout*/}
-        <div className="hidden lg:block mx-auto px-4 lg:px-12 py-4 lg:py-3">
+        <div className="hidden lg:block mx-auto px-4 lg:px-12 py-4 lg:py-3 relative z-10">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Left Column */}
             <div className="w-full lg:w-[600px] flex flex-col">
-              <div className="order-1 lg:order-none space-y-2.5">
+              <div className="order-1 lg:order-none space-y-2.5 profile-section profile-section-1">
                 {/* Profile Info */}
-                <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Profile Information" /></h3>
-                <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
+                <h3 className="font-semibold text-[15px] mb-2 profile-heading"><TranslatedText text="Profile Information" /></h3>
+                <div className="profile-card bg-[#EEEEEE] p-3 rounded-xl flex items-center justify-between border border-gray-200/80 shadow-sm hover:shadow-md hover:border-gray-300/80 transition-all duration-300">
                   <div className="flex items-center gap-3">
-                    {userData?.avatar ? (
+                    <div className="profile-avatar-wrap relative flex-shrink-0">
+                      {userData?.avatar ? (
                     <img
                       src={userData.avatar}
                       alt="Avatar"
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-white/80 shadow-md"
                       onError={(e) => {
                         // If image fails to load, show initials
                         e.target.style.display = 'none';
@@ -750,10 +784,11 @@ const Profile = () => {
                       }}
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg">
+                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg ring-2 ring-white/80 shadow-md">
                       {(userData?.name || 'A').charAt(0).toUpperCase()}
                     </div>
                   )}
+                    </div>
                     <div>
                       <h2 className="text-[15px] font-normal text-gray-800">
                         {userData?.name || "Alex Johnson"}
@@ -768,18 +803,18 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  <button
+<button
                     onClick={() => setIsEditModalOpen(true)}
-                    className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md"
+                    className="profile-edit-btn bg-black text-white text-[13px] px-4 py-1.5 rounded-lg hover:bg-gray-800 active:scale-[0.98] transition-all duration-200 shadow-sm"
                   >
                     <TranslatedText text="Edit Profile" />
                   </button>
                 </div>
               </div>
 
-              <div 
+              <div
                 ref={certificateRef}
-                className={`order-2 lg:order-none space-y-2.5 transition-all duration-300 ease-out rounded-2xl relative ${
+                className={`profile-section profile-section-2 order-2 lg:order-none space-y-2.5 transition-all duration-300 ease-out rounded-2xl relative ${
                   highlightCertificates 
                     ? 'bg-gradient-to-br from-orange-50/80 to-amber-50/60 lg:p-4 lg:-m-4 p-2 -m-2 shadow-xl shadow-orange-100/50' 
                     : ''
@@ -809,21 +844,22 @@ const Profile = () => {
                 <FinishedCertificates highlight={highlightCertificates} />
               </div>
 
-              <div className="order-4 lg:order-none p-1 space-y-2">
+              <div className="profile-section profile-section-4 order-4 lg:order-none p-1 space-y-2">
                 {/* Settings */}
                 <div className="p-1 space-y-2">
-                  <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Settings" /></h3>
+                  <h3 className="font-semibold text-[15px] mb-2 profile-heading"><TranslatedText text="Settings" /></h3>
                   {settings.map(({ label, icon: Icon, route }, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300 cursor-pointer transition-colors"
+                      className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-xl border border-gray-300 cursor-pointer transition-all duration-300 hover:border-orange-200 hover:shadow-sm"
                       onClick={() => handleSettingClick(route)}
+                      style={{ animationDelay: `${i * 40}ms` }}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className="w-4 h-4 text-gray-500" />
+                        <Icon className="w-4 h-4 text-gray-500 profile-setting-icon transition-all duration-300 group-hover:scale-110 group-hover:text-orange-500" />
                         <span className="text-gray-700 text-[12px]">{label}</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 profile-setting-chevron transition-transform duration-300 group-hover:translate-x-0.5" />
                     </div>
                   ))}
                 </div>
@@ -831,8 +867,8 @@ const Profile = () => {
             </div>
 
             {/* Right Column */}
-            <div className="w-full order-3 lg:order-none lg:w-[550px]">
-              <h3 className="font-semibold text-[16px] mb-2"><TranslatedText text="Achievements" /></h3>
+            <div className="profile-section profile-section-3 w-full order-3 lg:order-none lg:w-[550px]">
+              <h3 className="font-semibold text-[16px] mb-2 profile-heading"><TranslatedText text="Achievements" /></h3>
               <Achievements />
             </div>
 
@@ -840,18 +876,18 @@ const Profile = () => {
         </div>
 
         {/*Mobile Layout*/}
-        <div className="block lg:hidden px-4 py-4 space-y-6">
-
+        <div className="block lg:hidden px-4 py-4 space-y-6 relative z-10">
           {/* Profile */}
-          <div className="space-y-2.5">
-            <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Profile Information" /></h3>
-            <div className="bg-[#EEEEEE] p-3 rounded-lg flex items-center justify-between">
+          <div className="profile-section profile-section-1 space-y-2.5">
+            <h3 className="font-semibold text-[15px] mb-2 profile-heading"><TranslatedText text="Profile Information" /></h3>
+            <div className="profile-card bg-[#EEEEEE] p-3 rounded-xl flex items-center justify-between border border-gray-200/80 shadow-sm">
               <div className="flex items-center gap-3">
+                <div className="profile-avatar-wrap relative flex-shrink-0">
                 {userData?.avatar ? (
                     <img
                       src={userData.avatar}
                       alt="Avatar"
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-white/80 shadow-md"
                       onError={(e) => {
                         // If image fails to load, show initials
                         e.target.style.display = 'none';
@@ -864,11 +900,12 @@ const Profile = () => {
                         }
                       }}
                     />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg">
+) : (
+                    <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-medium text-lg ring-2 ring-white/80 shadow-md">
                       {(userData?.name || 'A').charAt(0).toUpperCase()}
                     </div>
                   )}
+                </div>
                 <div>
                   <h2 className="text-[15px] font-normal text-gray-800">
                     {userData?.name || "Alex Johnson"}
@@ -885,7 +922,7 @@ const Profile = () => {
               </div>
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className="bg-black text-white text-[13px] px-4 py-1.5 rounded-md"
+                className="profile-edit-btn bg-black text-white text-[13px] px-4 py-1.5 rounded-lg hover:bg-gray-800 active:scale-[0.98] transition-all duration-200"
               >
                 <TranslatedText text="Edit Profile" />
               </button>
@@ -893,9 +930,9 @@ const Profile = () => {
           </div>
 
           {/* Certificate */}
-          <div 
+          <div
             ref={certificateMobileRef}
-            className={`space-y-2.5 transition-all duration-300 ease-out rounded-2xl relative ${
+            className={`profile-section profile-section-2 space-y-2.5 transition-all duration-300 ease-out rounded-2xl relative ${
               highlightCertificates 
                 ? 'bg-gradient-to-br from-orange-50/80 to-amber-50/60 p-2 -m-2 shadow-xl shadow-orange-100/50' 
                 : ''
@@ -925,25 +962,25 @@ const Profile = () => {
           </div>
 
           {/* Achievements */}
-          <div className="space-y-2.5">
-            <h3 className="font-semibold text-[16px] mb-2"><TranslatedText text="Achievements" /></h3>
+          <div className="profile-section profile-section-3 space-y-2.5">
+            <h3 className="font-semibold text-[16px] mb-2 profile-heading"><TranslatedText text="Achievements" /></h3>
             <Achievements />
           </div>
 
           {/* Settings */}
-          <div className="space-y-2.5">
-            <h3 className="font-semibold text-[15px] mb-2"><TranslatedText text="Settings" /></h3>
+          <div className="profile-section profile-section-4 space-y-2.5">
+            <h3 className="font-semibold text-[15px] mb-2 profile-heading"><TranslatedText text="Settings" /></h3>
             {settings.map(({ label, icon: Icon, route }, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-md border border-gray-300 cursor-pointer transition-colors"
+                className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-gray-50 rounded-xl border border-gray-300 cursor-pointer transition-all duration-300 hover:border-orange-200 hover:shadow-sm"
                 onClick={() => handleSettingClick(route)}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 text-gray-500" />
+                  <Icon className="w-4 h-4 text-gray-500 transition-all duration-300 group-hover:scale-110 group-hover:text-orange-500" />
                   <span className="text-gray-700 text-[12px]">{label}</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <ChevronRight className="w-4 h-4 text-gray-400 transition-transform duration-300 group-hover:translate-x-0.5" />
               </div>
             ))}
           </div>
@@ -987,6 +1024,37 @@ const Profile = () => {
         .certificate-glow {
           animation: certificateGlow 2s ease-in-out infinite;
         }
+        /* Profile page background layers */
+        .profile-page { position: relative; min-height: 100%; }
+        .profile-bg-gradient {
+          position: absolute; inset: 0; pointer-events: none; z-index: 0;
+          background: linear-gradient(135deg, rgba(255,247,237,0.4) 0%, transparent 40%, transparent 60%, rgba(254,243,199,0.2) 100%);
+        }
+        .profile-bg-dots {
+          position: absolute; inset: 0; pointer-events: none; z-index: 0;
+          background-image: radial-gradient(rgba(251,146,60,0.12) 1px, transparent 1px);
+          background-size: 24px 24px;
+        }
+        /* Staggered section entrance */
+        @keyframes profileSectionEnter {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .profile-section {
+          animation: profileSectionEnter 0.5s ease-out forwards;
+          opacity: 0;
+        }
+        .profile-section-1 { animation-delay: 0.05s; }
+        .profile-section-2 { animation-delay: 0.15s; }
+        .profile-section-3 { animation-delay: 0.25s; }
+        .profile-section-4 { animation-delay: 0.35s; }
+        .profile-heading { letter-spacing: 0.02em; }
+        .profile-card { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+        .profile-avatar-wrap { transition: transform 0.3s ease; }
+        .profile-edit-btn { transition: background-color 0.2s ease, transform 0.2s ease; }
+        .profile-setting-item { transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; }
+        .profile-setting-icon { transition: transform 0.3s ease, color 0.3s ease; }
+        .profile-setting-chevron { transition: transform 0.3s ease; }
       `}</style>
     </MainLayout>
   );

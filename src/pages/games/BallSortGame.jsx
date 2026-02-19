@@ -171,6 +171,34 @@ export default function BallSort() {
   const playingRef = useRef({ moves: 0, timeLeft: TIME_LIMIT, difficulty: null, par: 12 });
   playingRef.current = { moves, timeLeft, difficulty, par: difficulty ? PUZZLES[difficulty].par : 12 };
 
+  const tRotateDevice = useTranslateText('Please Rotate Your Device');
+  const tLandscapeMode = useTranslateText('This game is best played in landscape mode');
+  const tLoading = useTranslateText('Loading...');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGameTitle = useTranslateText('Ball Sort Puzzle');
+  const tHowToPlayTitle = useTranslateText('Ball Sort Puzzle – How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Sort all colored balls into tubes so each tube contains only one color.');
+  const tRules = useTranslateText('Rules');
+  const tRulesDesc = useTranslateText('You can only move the top ball of a tube. You can place a ball on an empty tube or on top of the same color. Complete in fewer moves than par for a higher score.');
+  const tScoring = useTranslateText('Scoring');
+  const tScoringDesc = useTranslateText('Score up to 200. Fewer moves than par = better score. You have 3 minutes; if time runs out, the game ends.');
+  const tSubtitle = useTranslateText('Sort the colored balls into tubes');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tEasy = useTranslateText('Easy');
+  const tMedium = useTranslateText('Medium');
+  const tHard = useTranslateText('Hard');
+  const tDescEasy = useTranslateText('3 colors · 5 tubes');
+  const tDescMedium = useTranslateText('5 colors · 7 tubes');
+  const tDescHard = useTranslateText('7 colors · 9 tubes');
+  const tStartGame = useTranslateText('Start Game');
+  const tMoves = useTranslateText('Moves:');
+  const tPar = useTranslateText('Par:');
+  const tMovesLabel = useTranslateText('Moves');
+  const tParLabel = useTranslateText('par');
+  const tReset = useTranslateText('Reset');
+  const tMenu = useTranslateText('Menu');
+
   useEffect(() => { injectStyles(); }, []);
 
   // Landscape check
@@ -364,8 +392,8 @@ export default function BallSort() {
     return (
       <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0a0a2e, #1a1a4e)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 9999, color: '#fff', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
         <div style={{ fontSize: 64, marginBottom: 20 }}>📱</div>
-        <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Please Rotate Your Device</div>
-        <div style={{ fontSize: 14, opacity: 0.7 }}>This game is best played in landscape mode</div>
+        <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>{tRotateDevice}</div>
+        <div style={{ fontSize: 14, opacity: 0.7 }}>{tLandscapeMode}</div>
       </div>
     );
   }
@@ -375,14 +403,14 @@ export default function BallSort() {
     if (checkingDailyGame) {
       return (
         <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-          <div>Loading...</div>
+          <div>{tLoading}</div>
         </div>
       );
     }
     const levels = [
-      { key: 'easy', label: 'Easy', desc: '3 colors · 5 tubes', emoji: '🟢', color: '#00b894' },
-      { key: 'medium', label: 'Medium', desc: '5 colors · 7 tubes', emoji: '🟡', color: '#f39c12' },
-      { key: 'hard', label: 'Hard', desc: '7 colors · 9 tubes', emoji: '🔴', color: '#e74c3c' }
+      { key: 'easy', label: tEasy, desc: tDescEasy, emoji: '🟢', color: '#00b894' },
+      { key: 'medium', label: tMedium, desc: tDescMedium, emoji: '🟡', color: '#f39c12' },
+      { key: 'hard', label: tHard, desc: tDescHard, emoji: '🔴', color: '#e74c3c' }
     ];
     const availableLevels = isDailyGame && dailyGameDifficulty ? levels.filter(l => l.key === dailyGameDifficulty) : levels;
     return (
@@ -391,16 +419,16 @@ export default function BallSort() {
           onClick={() => setShowInstructions(true)}
           style={{ position: 'absolute', top: 20, right: 20, padding: '10px 20px', borderRadius: 12, border: '2px solid rgba(116,185,255,0.6)', background: 'rgba(116,185,255,0.15)', color: '#74b9ff', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}
         >
-          How to Play
+          {tHowToPlay}
         </button>
         {showInstructions && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowInstructions(false)}>
             <div style={{ background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)', border: '2px solid rgba(116,185,255,0.5)', borderRadius: 20, padding: 28, maxWidth: 480, maxHeight: '90vh', overflowY: 'auto', color: '#e2e8f0' }} onClick={e => e.stopPropagation()}>
               <button onClick={() => setShowInstructions(false)} style={{ float: 'right', background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#e2e8f0' }}>×</button>
-              <h2 style={{ marginTop: 0, color: '#74b9ff' }}>Ball Sort Puzzle – How to Play</h2>
-              <p><strong>Objective:</strong> Sort all colored balls into tubes so each tube contains only one color.</p>
-              <p><strong>Rules:</strong> You can only move the top ball of a tube. You can place a ball on an empty tube or on top of the same color. Complete in fewer moves than par for a higher score.</p>
-              <p><strong>Scoring:</strong> Score up to 200. Fewer moves than par = better score. You have 3 minutes; if time runs out, the game ends.</p>
+              <h2 style={{ marginTop: 0, color: '#74b9ff' }}>{tHowToPlayTitle}</h2>
+              <p><strong>{tObjective}:</strong> {tObjectiveDesc}</p>
+              <p><strong>{tRules}:</strong> {tRulesDesc}</p>
+              <p><strong>{tScoring}:</strong> {tScoringDesc}</p>
             </div>
           </div>
         )}
@@ -418,11 +446,11 @@ export default function BallSort() {
           }} />
         ))}
         <div style={{ fontSize: 48, marginBottom: 8 }}>🧪</div>
-        <h1 style={{ color: '#fff', fontSize: 36, fontWeight: 800, margin: '0 0 6px', letterSpacing: -1, textShadow: '0 0 40px rgba(116,185,255,0.4)' }}>Ball Sort Puzzle</h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 8px' }}>Sort the colored balls into tubes</p>
+        <h1 style={{ color: '#fff', fontSize: 36, fontWeight: 800, margin: '0 0 6px', letterSpacing: -1, textShadow: '0 0 40px rgba(116,185,255,0.4)' }}>{tGameTitle}</h1>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 8px' }}>{tSubtitle}</p>
         {isDailyGame && (
           <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(116,185,255,0.2)', border: '1px solid rgba(116,185,255,0.5)', borderRadius: 20, fontSize: 13, color: '#74b9ff', fontWeight: 600 }}>
-            Daily Challenge
+            {tDailyChallenge}
           </div>
         )}
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -449,7 +477,7 @@ export default function BallSort() {
         </div>
         {isDailyGame && (
           <button onClick={() => startGame(dailyGameDifficulty)} style={{ marginTop: 20, padding: '14px 40px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 16, background: 'linear-gradient(135deg, #74b9ff, #0984e3)', color: '#fff', boxShadow: '0 4px 20px rgba(116,185,255,0.4)' }}>
-            Start Game
+            {tStartGame}
           </button>
         )}
       </div>
@@ -507,11 +535,11 @@ export default function BallSort() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span>👆</span>
-          <span style={{ fontWeight: 600 }}>Moves: {moves}</span>
+          <span style={{ fontWeight: 600 }}>{tMoves} {moves}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span>🎯</span>
-          <span style={{ fontWeight: 600 }}>Par: {par}</span>
+          <span style={{ fontWeight: 600 }}>{tPar} {par}</span>
         </div>
         <button onClick={toggleMute} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '6px 12px', color: '#fff', cursor: 'pointer', fontSize: 18 }}>
           {muted ? '🔇' : '🔊'}
@@ -573,12 +601,12 @@ export default function BallSort() {
         <button onClick={resetPuzzle} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, padding: '8px 20px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
-          🔄 Reset
+          🔄 {tReset}
         </button>
         <button onClick={() => { stopMusic(); handleReset(); }} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, padding: '8px 20px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
-          🏠 Menu
+          🏠 {tMenu}
         </button>
       </div>
     </div>
@@ -586,7 +614,7 @@ export default function BallSort() {
       <GameCompletionModal
         isVisible={screen === 'finished' && completionData != null}
         onClose={handleReset}
-        gameTitle="Ball Sort Puzzle"
+        gameTitle={tGameTitle}
         score={completionData?.score ?? score}
         moves={completionData?.moves ?? moves}
         timeElapsed={timeElapsedForModal}
@@ -595,7 +623,7 @@ export default function BallSort() {
         difficulty={completionData?.difficulty ?? difficulty}
         customMessages={{
           maxScore: 200,
-          stats: completionData != null ? `Moves: ${completionData.moves} / par ${completionData.par} • ${Math.floor((completionData.timeElapsed ?? 0) / 60)}:${String((completionData.timeElapsed ?? 0) % 60).padStart(2, '0')}` : '',
+          stats: completionData != null ? `${tMovesLabel} ${completionData.moves} / ${tParLabel} ${completionData.par} • ${Math.floor((completionData.timeElapsed ?? 0) / 60)}:${String((completionData.timeElapsed ?? 0) % 60).padStart(2, '0')}` : '',
         }}
       />
     </>

@@ -438,6 +438,29 @@ const TowerOfHanoiGame = () => {
 
   const availableDifficulties = isDailyGame && dailyGameDifficulty ? [dailyGameDifficulty] : DIFFICULTIES;
 
+  const tLoading = useTranslateText('Loading...');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tTowerHowToPlay = useTranslateText('Tower of Hanoi – How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tTowerObjective = useTranslateText('Move all disks from tower A to tower C following the classic rules.');
+  const tBullet1 = useTranslateText('Drag and drop disks between towers.');
+  const tBullet2 = useTranslateText('Only move one disk at a time.');
+  const tBullet3 = useTranslateText('Never place a larger disk on a smaller one.');
+  const tBullet4 = useTranslateText('Complete in minimum moves for a bonus.');
+  const tScoring = useTranslateText('Scoring');
+  const tScoringDesc = useTranslateText('Efficiency bonus for optimal moves. Time bonus for quick completion.');
+  const tScoringMax = useTranslateText('Maximum score: 200 points. Optimal moves = 2ⁿ − 1.');
+  const tStrategy = useTranslateText('Strategy');
+  const tStrategyDesc = useTranslateText('Plan moves ahead. Use tower B as temporary storage. Start with the smallest disk.');
+  const tTowerTitle = useTranslateText('Tower of Hanoi');
+  const tClassicPuzzle = useTranslateText('Classic puzzle');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tDisks = useTranslateText('disks');
+  const tEasy = useTranslateText('Easy');
+  const tModerate = useTranslateText('Moderate');
+  const tHard = useTranslateText('Hard');
+
   // Get dragged disk
   const draggedDisk = useMemo(() => {
     if (!dragState.isDragging || dragState.fromTower === null) return null;
@@ -886,7 +909,7 @@ const TowerOfHanoiGame = () => {
     if (checkingDailyGame) {
       return (
         <div style={{ position: 'fixed', inset: 0, background: `linear-gradient(180deg, ${COLORS.skyTop}, ${COLORS.skyBottom})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Segoe UI', sans-serif" }}>
-          <div>Loading...</div>
+          <div>{tLoading}</div>
         </div>
       );
     }
@@ -896,42 +919,42 @@ const TowerOfHanoiGame = () => {
           onClick={() => setShowInstructions(true)}
           style={{ position: 'absolute', top: 20, right: 20, padding: '10px 20px', background: 'rgba(255,107,62,0.2)', border: `2px solid ${COLORS.primary}`, borderRadius: 10, color: COLORS.primary, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}
         >
-          📖 How to Play
+          📖 {tHowToPlay}
         </button>
 
         {showInstructions && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowInstructions(false)}>
             <div style={{ background: 'linear-gradient(180deg, #fff 0%, #f0f4f8 100%)', border: `2px solid ${COLORS.primary}`, borderRadius: 20, padding: 28, maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', color: COLORS.text }} onClick={e => e.stopPropagation()}>
               <button onClick={() => setShowInstructions(false)} style={{ float: 'right', background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: COLORS.text }}>×</button>
-              <h2 style={{ marginTop: 0, color: COLORS.primary }}>🏔️ Tower of Hanoi – How to Play</h2>
-              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>Objective</h3>
-              <p>Move all disks from tower A to tower C following the classic rules.</p>
-              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>How to Play</h3>
+              <h2 style={{ marginTop: 0, color: COLORS.primary }}>🏔️ {tTowerHowToPlay}</h2>
+              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>{tObjective}</h3>
+              <p>{tTowerObjective}</p>
+              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>{tHowToPlay}</h3>
               <ul style={{ paddingLeft: 20 }}>
-                <li>Drag and drop disks between towers.</li>
-                <li>Only move one disk at a time.</li>
-                <li>Never place a larger disk on a smaller one.</li>
-                <li>Complete in minimum moves for a bonus.</li>
+                <li>{tBullet1}</li>
+                <li>{tBullet2}</li>
+                <li>{tBullet3}</li>
+                <li>{tBullet4}</li>
               </ul>
-              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>Scoring</h3>
+              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>{tScoring}</h3>
               <ul style={{ paddingLeft: 20 }}>
-                <li>Efficiency bonus for optimal moves. Time bonus for quick completion.</li>
-                <li>Maximum score: 200 points. Optimal moves = 2ⁿ − 1.</li>
+                <li>{tScoringDesc}</li>
+                <li>{tScoringMax}</li>
               </ul>
-              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>Strategy</h3>
+              <h3 style={{ fontSize: 16, color: COLORS.textLight }}>{tStrategy}</h3>
               <ul style={{ paddingLeft: 20 }}>
-                <li>Plan moves ahead. Use tower B as temporary storage. Start with the smallest disk.</li>
+                <li>{tStrategyDesc}</li>
               </ul>
             </div>
           </div>
         )}
 
         <div style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: 8 }}>🏔️</div>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0, color: COLORS.primary }}>Tower of Hanoi</h1>
-        <p style={{ opacity: 0.8, margin: '0 0 1rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>Classic puzzle</p>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0, color: COLORS.primary }}>{tTowerTitle}</h1>
+        <p style={{ opacity: 0.8, margin: '0 0 1rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>{tClassicPuzzle}</p>
         {isDailyGame && (
           <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(255,107,62,0.2)', border: `1px solid ${COLORS.primary}`, borderRadius: 20, fontSize: 13, color: COLORS.primary, fontWeight: 600 }}>
-            🎯 Daily Challenge
+            🎯 {tDailyChallenge}
           </div>
         )}
 
@@ -949,8 +972,8 @@ const TowerOfHanoiGame = () => {
                   textAlign: 'left', transition: 'all 0.2s', transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{d}</div>
-                <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>{diskCount} disks • {DIFFICULTY_SETTINGS[d].time}s</div>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{d === 'Easy' ? tEasy : d === 'Moderate' ? tModerate : tHard}</div>
+                <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>{diskCount} {tDisks} • {DIFFICULTY_SETTINGS[d].time}s</div>
               </button>
             );
           })}
@@ -960,7 +983,7 @@ const TowerOfHanoiGame = () => {
           onClick={handleStart}
           style={{ marginTop: 24, padding: '14px 48px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', background: `linear-gradient(135deg, ${COLORS.primary}, #e55a2b)`, color: '#fff', boxShadow: `0 4px 20px rgba(255,107,62,0.4)` }}
         >
-          🚀 Start Game
+          🚀 {tStartGame}
         </button>
       </div>
     );
@@ -976,7 +999,7 @@ const TowerOfHanoiGame = () => {
       <GameCompletionModal
         isVisible={gameState === 'finished' && completionData != null}
         onClose={handleReset}
-        gameTitle="Tower of Hanoi"
+        gameTitle={tTowerTitle}
         score={completionData?.score ?? score}
         moves={completionData?.moves ?? moves}
         timeElapsed={timeElapsed}

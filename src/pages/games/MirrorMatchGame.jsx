@@ -202,6 +202,26 @@ export default function MirrorMatch({ onBack }) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tMirrorHowToPlay = useTranslateText('Mirror Match – How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Identify the correct horizontal mirror reflection of the given pattern. Complete all rounds before time runs out.');
+  const tHowToPlayBullet1 = useTranslateText('Look at the "Original Pattern" grid at the top.');
+  const tHowToPlayBullet2 = useTranslateText('Imagine flipping it horizontally (top row becomes bottom, etc.).');
+  const tHowToPlayBullet3 = useTranslateText('Select the option (A, B, C…) that matches the correct mirror image.');
+  const tHowToPlayBullet4 = useTranslateText('Complete all rounds before the timer runs out to maximize your score.');
+  const tScoring = useTranslateText('Scoring');
+  const tScoringDesc = useTranslateText('Points per round. Max score 200. You have 120 seconds total.');
+  const tLevels = useTranslateText('Levels');
+  const tLevelsDesc = useTranslateText('Easy: 4×4 grid, 3 choices, 8 rounds. Moderate: 5×5, 4 choices, 10 rounds. Hard: 6×6, 5 choices, 12 rounds.');
+  const tGotIt = useTranslateText('Got it');
+  const tGameTitle = useTranslateText('Mirror Match');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tBackToMenu = useTranslateText('← Back to Menu');
+  const tBack = useTranslateText('← Back');
+  const levelLabels = { easy: useTranslateText('Easy'), moderate: useTranslateText('Moderate'), hard: useTranslateText('Hard') };
+
   const config = difficulty ? LEVELS[difficulty] : null;
 
   const startGame = useCallback((level) => {
@@ -321,25 +341,25 @@ export default function MirrorMatch({ onBack }) {
   const instructionsModalContent = (
     <>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Objective</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Identify the correct horizontal mirror reflection of the given pattern. Complete all rounds before time runs out.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tObjective}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tObjectiveDesc}</p>
       </section>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
         <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-          <li>Look at the &quot;Original Pattern&quot; grid at the top.</li>
-          <li>Imagine flipping it horizontally (top row becomes bottom, etc.).</li>
-          <li>Select the option (A, B, C…) that matches the correct mirror image.</li>
-          <li>Complete all rounds before the timer runs out to maximize your score.</li>
+          <li>{tHowToPlayBullet1}</li>
+          <li>{tHowToPlayBullet2}</li>
+          <li>{tHowToPlayBullet3}</li>
+          <li>{tHowToPlayBullet4}</li>
         </ul>
       </section>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Scoring</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Points per round. Max score {TOTAL_POINTS}. You have {TIME_LIMIT} seconds total.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tScoring}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tScoringDesc}</p>
       </section>
       <section>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Levels</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Easy: 4×4 grid, 3 choices, 8 rounds. Moderate: 5×5, 4 choices, 10 rounds. Hard: 6×6, 5 choices, 12 rounds.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tLevels}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tLevelsDesc}</p>
       </section>
     </>
   );
@@ -393,7 +413,7 @@ export default function MirrorMatch({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <span aria-hidden>❓</span> How to Play
+            <span aria-hidden>❓</span> {tHowToPlay}
           </button>
           {showInstructions && (
             <div
@@ -414,7 +434,7 @@ export default function MirrorMatch({ onBack }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="mirror-match-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#8b5cf6' }}>
-                    🪞 Mirror Match – How to Play
+                    🪞 {tMirrorHowToPlay}
                   </h2>
                   <button
                     type="button"
@@ -442,14 +462,14 @@ export default function MirrorMatch({ onBack }) {
                       fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(139,92,246,0.35)',
                     }}
                   >
-                    Got it
+                    {tGotIt}
                   </button>
                 </div>
               </div>
             </div>
           )}
           <div style={{ fontSize: 48, marginBottom: 8 }}>🪞</div>
-          <h1 style={{ fontSize: isSmall ? 24 : 32, fontWeight: 800, marginBottom: 4 }}>Mirror Match</h1>
+          <h1 style={{ fontSize: isSmall ? 24 : 32, fontWeight: 800, marginBottom: 4 }}>{tGameTitle}</h1>
           <p style={{ color: '#94a3b8', marginBottom: 24, fontSize: 14 }}>
             Identify the correct horizontal mirror reflection of the given pattern.
           </p>
@@ -458,7 +478,7 @@ export default function MirrorMatch({ onBack }) {
           )}
           {!checkingDailyGame && isDailyGame && (
             <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.5)', borderRadius: 20, fontSize: 13, color: '#a78bfa', fontWeight: 600 }}>
-              Daily Challenge
+              {tDailyChallenge}
             </div>
           )}
           {!checkingDailyGame && levelEntries.map(([key, val]) => (
@@ -492,7 +512,7 @@ export default function MirrorMatch({ onBack }) {
                 color: '#e2e8f0', fontSize: 16, fontWeight: 600, cursor: 'pointer', marginBottom: 12, transition: 'transform 0.15s',
               }}
             >
-              Start Game
+              {tStartGame}
             </button>
           )}
           {onBack && (
@@ -500,7 +520,7 @@ export default function MirrorMatch({ onBack }) {
               marginTop: 12, width: '100%', justifyContent: 'center',
               background: 'rgba(100,116,139,0.3)', border: '1px solid rgba(100,116,139,0.4)',
               color: '#e2e8f0', padding: '10px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 14,
-            }}>← Back to Menu</button>
+            }}>{tBackToMenu}</button>
           )}
         </div>
       </div>
@@ -525,7 +545,7 @@ export default function MirrorMatch({ onBack }) {
           color: '#e2e8f0', padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
           fontSize: isSmall ? 12 : 14, display: 'flex', alignItems: 'center', gap: 6,
         }}>← Back</button>
-        <div style={{ fontSize: isSmall ? 15 : 20, fontWeight: 700 }}>🪞 Mirror Match</div>
+        <div style={{ fontSize: isSmall ? 15 : 20, fontWeight: 700 }}>🪞 {tGameTitle}</div>
         <div style={{ display: 'flex', gap: isSmall ? 6 : 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '4px 10px', fontSize: isSmall ? 11 : 14, display: 'flex', alignItems: 'center', gap: 4 }}>
             <span>⏱️</span>
@@ -628,7 +648,7 @@ export default function MirrorMatch({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Mirror Match"
+          gameTitle={tGameTitle}
           score={c.score}
           timeElapsed={c.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

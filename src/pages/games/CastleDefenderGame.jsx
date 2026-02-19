@@ -129,6 +129,14 @@ export default function CastleDefender() {
   const [gameStartTime, setGameStartTime] = useState(null);
   const [finalStats, setFinalStats] = useState(null);
 
+  const tGameTitle = useTranslateText('Castle Defender');
+  const tEasy = useTranslateText('Easy');
+  const tModerate = useTranslateText('Moderate');
+  const tHard = useTranslateText('Hard');
+  const tCastleHP = useTranslateText('Castle HP:');
+  const tWavesLabel = useTranslateText('Waves:');
+  const tGoldEarned = useTranslateText('Gold Earned:');
+
   // Check if game is in daily suggestions
   useEffect(() => {
     const checkDailyGame = async () => {
@@ -234,18 +242,18 @@ export default function CastleDefender() {
       <GameCompletionModal
         isVisible={screen === 'finished' && resultData !== null}
         onClose={handleCloseModal}
-        gameTitle="Castle Defender"
+        gameTitle={tGameTitle}
         score={resultData?.score || 0}
         moves={finalStats?.wavesCompleted || 0}
         timeElapsed={timeElapsed}
         gameTimeLimit={TIME_LIMIT}
         isVictory={resultData?.won || false}
-        difficulty={resultData?.levelIdx === 0 ? 'Easy' : resultData?.levelIdx === 1 ? 'Moderate' : 'Hard'}
+        difficulty={resultData?.levelIdx === 0 ? tEasy : resultData?.levelIdx === 1 ? tModerate : tHard}
         customMessages={{
           perfectScore: 60,
           goodScore: 40,
           maxScore: 200,
-          stats: `🏰 Castle HP: ${finalStats?.castleHP || 0}/${finalStats?.maxHP || 0} • 🌊 Waves: ${finalStats?.wavesCompleted || 0}/${level?.waves || 0} • 💰 Gold Earned: ${finalStats?.goldEarned || 0}`
+          stats: `🏰 ${tCastleHP} ${finalStats?.castleHP || 0}/${finalStats?.maxHP || 0} • 🌊 ${tWavesLabel} ${finalStats?.wavesCompleted || 0}/${level?.waves || 0} • 💰 ${tGoldEarned} ${finalStats?.goldEarned || 0}`
         }}
       />
     </>
@@ -256,6 +264,46 @@ export default function CastleDefender() {
 function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGameLevel, checkingDailyGame, showInstructions, setShowInstructions }) {
   const [orient, setOrient] = useState(true);
   const [hoveredLevel, setHoveredLevel] = useState(null);
+
+  const tRotate = useTranslateText('Please Rotate Your Device');
+  const tLandscape = useTranslateText('This game requires landscape orientation');
+  const tLoading = useTranslateText('Loading...');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tHowToPlayTitle = useTranslateText('How to Play Castle Defender');
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Defend your castle from waves of enemies by strategically placing towers along the path. Survive all waves and keep your castle\'s HP above zero!');
+  const tSelectTower = useTranslateText('Select a Tower:');
+  const tSelectTowerDesc = useTranslateText('Click on a tower type at the bottom (Archer 🏹, Cannon 💣, or Ice ❄️)');
+  const tPlaceTowers = useTranslateText('Place Towers:');
+  const tPlaceTowersDesc = useTranslateText('Click on empty ground tiles (not on the path) to place your selected tower');
+  const tStartWaves = useTranslateText('Start Waves:');
+  const tStartWavesDesc = useTranslateText('Click "Start Wave" when ready. Towers automatically target and attack enemies');
+  const tEarnGold = useTranslateText('Earn Gold:');
+  const tEarnGoldDesc = useTranslateText('Defeat enemies to earn gold, which you can use to buy more towers');
+  const tSurvive = useTranslateText('Survive:');
+  const tSurviveDesc = useTranslateText('Complete all waves before time runs out and keep your castle alive!');
+  const tTowerTypes = useTranslateText('Tower Types');
+  const tArcherLabel = useTranslateText('Archer 🏹:');
+  const tArcherDesc = useTranslateText('Fast attack, moderate damage (50 gold)');
+  const tCannonLabel = useTranslateText('Cannon 💣:');
+  const tCannonDesc = useTranslateText('Slow but powerful splash damage (100 gold)');
+  const tIceLabel = useTranslateText('Ice ❄️:');
+  const tIceDesc = useTranslateText('Slows enemies by 50% (75 gold)');
+  const tScoring = useTranslateText('Scoring');
+  const tScoringDesc = useTranslateText('Your score is based on how much castle HP remains at the end. Maximum score is 200 points!');
+  const tProTip = useTranslateText('Pro Tip');
+  const tProTipDesc = useTranslateText('Place towers near corners and intersections for maximum coverage. Use Ice towers to slow down tough enemies, and Cannons for groups!');
+  const tCastleDefender = useTranslateText('Castle Defender');
+  const tLogicSiege = useTranslateText('Logic Siege');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tLevel = useTranslateText('Level');
+  const tWaves = useTranslateText('waves');
+  const tPts = useTranslateText('pts');
+  const tTotalScore = useTranslateText('Total Score:');
+  const tMeadow = useTranslateText('Meadow');
+  const tForest = useTranslateText('Forest');
+  const tFortress = useTranslateText('Fortress');
+  const tLevelNames = [tMeadow, tForest, tFortress];
 
   useEffect(() => {
     const check = () => setOrient(window.innerWidth >= window.innerHeight || window.innerWidth > 900);
@@ -285,8 +333,8 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
   if (!orient) return (
     <div style={{position:'fixed',inset:0,background:'#0a0a1a',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,zIndex:9999,textAlign:'center',padding:40,flexDirection:'column',gap:16}}>
       <div style={{fontSize:48}}>📱</div>
-      <div style={{fontWeight:700}}>Please Rotate Your Device</div>
-      <div style={{fontSize:14,color:'#888'}}>This game requires landscape orientation</div>
+      <div style={{fontWeight:700}}>{tRotate}</div>
+      <div style={{fontSize:14,color:'#888'}}>{tLandscape}</div>
     </div>
   );
 
@@ -296,7 +344,7 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
       <div style={{position:'fixed',inset:0,background:'linear-gradient(180deg,#050510 0%,#0d1030 30%,#1a1040 60%,#2a1808 100%)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'"Segoe UI",sans-serif',color:'#fff'}}>
         <div style={{textAlign:'center'}}>
           <div style={{fontSize:48,marginBottom:16}}>⚔️</div>
-          <div style={{fontSize:18,color:'#c9952e'}}>Loading...</div>
+          <div style={{fontSize:18,color:'#c9952e'}}>{tLoading}</div>
         </div>
       </div>
     );
@@ -319,7 +367,7 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
         onMouseEnter={e=>{e.currentTarget.style.background='rgba(201,149,46,0.25)';e.currentTarget.style.transform='scale(1.05)';}}
         onMouseLeave={e=>{e.currentTarget.style.background='rgba(201,149,46,0.15)';e.currentTarget.style.transform='scale(1)';}}
       >
-        📖 How to Play
+        📖 {tHowToPlay}
       </button>
 
       {/* Instructions Modal */}
@@ -348,38 +396,38 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
               ×
             </button>
             <h2 style={{fontSize:28,fontWeight:900,marginBottom:20,color:'#ffd700',textAlign:'center'}}>
-              ⚔️ How to Play Castle Defender
+              ⚔️ {tHowToPlayTitle}
             </h2>
             <div style={{fontSize:15,lineHeight:1.8,color:'#ddd'}}>
               <div style={{marginBottom:20}}>
-                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🎯 Objective</h3>
-                <p>Defend your castle from waves of enemies by strategically placing towers along the path. Survive all waves and keep your castle's HP above zero!</p>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🎯 {tObjective}</h3>
+                <p>{tObjectiveDesc}</p>
               </div>
               <div style={{marginBottom:20}}>
-                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🏹 How to Play</h3>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🏹 {tHowToPlay}</h3>
                 <ul style={{paddingLeft:20,margin:0}}>
-                  <li style={{marginBottom:8}}><strong>Select a Tower:</strong> Click on a tower type at the bottom (Archer 🏹, Cannon 💣, or Ice ❄️)</li>
-                  <li style={{marginBottom:8}}><strong>Place Towers:</strong> Click on empty ground tiles (not on the path) to place your selected tower</li>
-                  <li style={{marginBottom:8}}><strong>Start Waves:</strong> Click "Start Wave" when ready. Towers automatically target and attack enemies</li>
-                  <li style={{marginBottom:8}}><strong>Earn Gold:</strong> Defeat enemies to earn gold, which you can use to buy more towers</li>
-                  <li style={{marginBottom:8}}><strong>Survive:</strong> Complete all waves before time runs out and keep your castle alive!</li>
+                  <li style={{marginBottom:8}}><strong>{tSelectTower}</strong> {tSelectTowerDesc}</li>
+                  <li style={{marginBottom:8}}><strong>{tPlaceTowers}</strong> {tPlaceTowersDesc}</li>
+                  <li style={{marginBottom:8}}><strong>{tStartWaves}</strong> {tStartWavesDesc}</li>
+                  <li style={{marginBottom:8}}><strong>{tEarnGold}</strong> {tEarnGoldDesc}</li>
+                  <li style={{marginBottom:8}}><strong>{tSurvive}</strong> {tSurviveDesc}</li>
                 </ul>
               </div>
               <div style={{marginBottom:20}}>
-                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🏰 Tower Types</h3>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>🏰 {tTowerTypes}</h3>
                 <ul style={{paddingLeft:20,margin:0}}>
-                  <li style={{marginBottom:8}}><strong>Archer 🏹:</strong> Fast attack, moderate damage (50 gold)</li>
-                  <li style={{marginBottom:8}}><strong>Cannon 💣:</strong> Slow but powerful splash damage (100 gold)</li>
-                  <li style={{marginBottom:8}}><strong>Ice ❄️:</strong> Slows enemies by 50% (75 gold)</li>
+                  <li style={{marginBottom:8}}><strong>{tArcherLabel}</strong> {tArcherDesc}</li>
+                  <li style={{marginBottom:8}}><strong>{tCannonLabel}</strong> {tCannonDesc}</li>
+                  <li style={{marginBottom:8}}><strong>{tIceLabel}</strong> {tIceDesc}</li>
                 </ul>
               </div>
               <div style={{marginBottom:20}}>
-                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>⭐ Scoring</h3>
-                <p>Your score is based on how much castle HP remains at the end. Maximum score is 200 points!</p>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>⭐ {tScoring}</h3>
+                <p>{tScoringDesc}</p>
               </div>
               <div>
-                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>💡 Pro Tip</h3>
-                <p>Place towers near corners and intersections for maximum coverage. Use Ice towers to slow down tough enemies, and Cannons for groups!</p>
+                <h3 style={{fontSize:18,fontWeight:700,color:'#c9952e',marginBottom:8}}>💡 {tProTip}</h3>
+                <p>{tProTipDesc}</p>
               </div>
             </div>
           </div>
@@ -424,12 +472,12 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
       {/* Title */}
       <div style={{zIndex:1,textAlign:'center',marginBottom:50}}>
         <h1 style={{fontSize:'clamp(32px,6vw,64px)',fontWeight:900,textShadow:'0 0 40px rgba(255,180,0,0.4),0 0 80px rgba(255,120,0,0.2),0 4px 12px rgba(0,0,0,0.9)',letterSpacing:4,marginBottom:6,lineHeight:1.1}}>
-          ⚔️ CASTLE DEFENDER
+          ⚔️ {tCastleDefender.toUpperCase()}
         </h1>
-        <p style={{fontSize:'clamp(12px,2vw,20px)',color:'#c9952e',fontWeight:700,letterSpacing:8,textTransform:'uppercase',textShadow:'0 0 20px rgba(201,149,46,0.3)'}}>Logic Siege</p>
+        <p style={{fontSize:'clamp(12px,2vw,20px)',color:'#c9952e',fontWeight:700,letterSpacing:8,textTransform:'uppercase',textShadow:'0 0 20px rgba(201,149,46,0.3)'}}>{tLogicSiege}</p>
         {isDailyGame && (
           <div style={{marginTop:12,padding:'6px 16px',background:'rgba(201,149,46,0.2)',border:'1px solid rgba(201,149,46,0.4)',borderRadius:20,display:'inline-block',fontSize:13,color:'#ffd700',fontWeight:600}}>
-            🎯 Daily Challenge
+            🎯 {tDailyChallenge}
           </div>
         )}
       </div>
@@ -457,13 +505,13 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
               {/* Shimmer */}
               {hovered && <div style={{position:'absolute',inset:0,background:'linear-gradient(105deg,transparent 40%,rgba(255,215,0,0.06) 50%,transparent 60%)',pointerEvents:'none'}} />}
               <div style={{fontSize:32,marginBottom:6}}>{lv.icon}</div>
-              <div style={{fontSize:12,color:'#887755',fontWeight:600,letterSpacing:2,textTransform:'uppercase'}}>Level {i+1}</div>
-              <div style={{fontSize:22,fontWeight:800,marginBottom:6,letterSpacing:1}}>{lv.name}</div>
-              <div style={{fontSize:13,color:'#887755',marginBottom:10}}>{lv.waves} waves • {lv.cols}×{lv.rows}</div>
+              <div style={{fontSize:12,color:'#887755',fontWeight:600,letterSpacing:2,textTransform:'uppercase'}}>{tLevel} {i+1}</div>
+              <div style={{fontSize:22,fontWeight:800,marginBottom:6,letterSpacing:1}}>{tLevelNames[i]}</div>
+              <div style={{fontSize:13,color:'#887755',marginBottom:10}}>{lv.waves} {tWaves} • {lv.cols}×{lv.rows}</div>
               <div style={{fontSize:20,letterSpacing:4}}>
                 {[0,1,2].map(j=><span key={j} style={{filter:j<st?'':'grayscale(1) opacity(0.3)'}}>{j<st?'⭐':'☆'}</span>)}
               </div>
-              {sc > 0 && <div style={{fontSize:12,color:'#c9952e',marginTop:6,fontWeight:700}}>{sc} pts</div>}
+              {sc > 0 && <div style={{fontSize:12,color:'#c9952e',marginTop:6,fontWeight:700}}>{sc} {tPts}</div>}
             </button>
           );
         })}
@@ -471,7 +519,7 @@ function MenuScreen({ startLevel, levelScores, totalScore, isDailyGame, dailyGam
 
       {totalScore > 0 && (
         <div style={{marginTop:36,fontSize:15,color:'#887755',zIndex:1,textAlign:'center'}}>
-          Total Score: <span style={{color:'#ffd700',fontWeight:700,fontSize:18}}>{totalScore}</span>
+          {tTotalScore} <span style={{color:'#ffd700',fontWeight:700,fontSize:18}}>{totalScore}</span>
           <span style={{color:'#555'}}> / {MAX_SCORE}</span>
         </div>
       )}
@@ -489,6 +537,13 @@ function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
   const [, forceUpdate] = useState(0);
   const [orient, setOrient] = useState(true);
   const [hoverCell, setHoverCell] = useState(null);
+
+  const tRotate = useTranslateText('Please Rotate Your Device');
+  const tWave = useTranslateText('Wave');
+  const tMenu = useTranslateText('Menu');
+  const tStartWave = useTranslateText('Start Wave');
+  const tTowerNames = { archer: useTranslateText('Archer'), cannon: useTranslateText('Cannon'), ice: useTranslateText('Ice') };
+  const tTowerDescs = { archer: useTranslateText('Fast attack'), cannon: useTranslateText('Splash dmg'), ice: useTranslateText('Slows 50%') };
 
   useEffect(() => {
     const check = () => setOrient(window.innerWidth >= window.innerHeight || window.innerWidth > 900);
@@ -740,7 +795,7 @@ function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
   if (!orient) return (
     <div style={{position:'fixed',inset:0,background:'#0a0a1a',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:20,zIndex:9999,textAlign:'center',padding:40,flexDirection:'column',gap:16}}>
       <div style={{fontSize:48}}>📱</div>
-      <div style={{fontWeight:700}}>Please Rotate Your Device</div>
+      <div style={{fontWeight:700}}>{tRotate}</div>
     </div>
   );
 
@@ -777,7 +832,7 @@ function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
           {/* Wave */}
           <div style={{display:'flex',alignItems:'center',gap:4}}>
             <span style={{fontSize:14}}>🌊</span>
-            <span style={{fontSize:14,fontWeight:700}}>Wave {s.wave}<span style={{color:'#666'}}>/{level.waves}</span></span>
+            <span style={{fontSize:14,fontWeight:700}}>{tWave} {s.wave}<span style={{color:'#666'}}>/{level.waves}</span></span>
           </div>
           {/* Timer */}
           <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -798,7 +853,7 @@ function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
           <button onClick={goMenu} style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:8,padding:'5px 12px',color:'#fff',cursor:'pointer',fontSize:13,fontWeight:600,transition:'all 0.2s'}}
             onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.12)'}
             onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
-            ✕ Menu
+            ✕ {tMenu}
           </button>
         </div>
       </div>
@@ -975,8 +1030,8 @@ function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
               }}>
               <span style={{fontSize:20}}>{icon}</span>
               <div style={{textAlign:'left'}}>
-                <div>{def.name} <span style={{color:afford?'#ffd700':'#555',fontWeight:800}}>{def.cost}g</span></div>
-                <div style={{fontSize:10,color:'#777',fontWeight:400}}>{def.desc}</div>
+                <div>{tTowerNames[key]} <span style={{color:afford?'#ffd700':'#555',fontWeight:800}}>{def.cost}g</span></div>
+                <div style={{fontSize:10,color:'#777',fontWeight:400}}>{tTowerDescs[key]}</div>
               </div>
             </button>
           );
@@ -994,7 +1049,7 @@ function GameScreen({ levelIdx, onEnd, muted, setMuted, goMenu }) {
           }}
           onMouseEnter={e=>{if(canPlace)e.currentTarget.style.transform='scale(1.05)';}}
           onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>
-          ⚔️ Start Wave {s.wave+1}
+          ⚔️ {tStartWave} {s.wave+1}
         </button>
       </div>
     </div>

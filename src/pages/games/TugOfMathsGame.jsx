@@ -341,11 +341,48 @@ const TugOfMathsGame = () => {
 
   const ropePercent = ((ropePosition + ROPE_SEGMENTS) / (2 * ROPE_SEGMENTS)) * 100;
 
+  const tLoading = useTranslateText('Loading...');
+  const tMenu = useTranslateText('☰ Menu');
+  const tTugOfMaths = useTranslateText('Tug of Maths');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tTugHowToPlay = useTranslateText('Tug of Maths – How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tBattleComputer = useTranslateText('Battle the computer in a mental math tug-of-war! Answer correctly to pull the rope your way and win the game.');
+  const tAnswerCorrect = useTranslateText('Answer math questions correctly.');
+  const t10SecPerQuestion = useTranslateText('You have 10 seconds per question.');
+  const tCorrectPull = useTranslateText('Correct answers pull the rope toward you.');
+  const tWrongHelpComputer = useTranslateText('Wrong answers (or time out) help the computer.');
+  const tWinning = useTranslateText('Winning');
+  const tPullRopeOr = useTranslateText('Pull the rope completely to your side, or');
+  const tHighestScore = useTranslateText('Have the highest score when time runs out.');
+  const tMax200Time5 = useTranslateText('Maximum score: 200 points. Time limit: 5 minutes.');
+  const tDifficulty = useTranslateText('Difficulty');
+  const tEasyBullet = useTranslateText('Easy: Addition & Subtraction (1–20)');
+  const tModerateBullet = useTranslateText('Moderate: Multiplication & Division');
+  const tHardBullet = useTranslateText('Hard: Mixed operations, larger numbers. Higher difficulty = more points!');
+  const tAddSub = useTranslateText('Addition & Subtraction (1-20)');
+  const tMultDiv = useTranslateText('Multiplication & Division');
+  const tMixedOps = useTranslateText('Mixed Operations (larger numbers)');
+  const tMentalMathTug = useTranslateText('Mental math tug-of-war');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tComputer = useTranslateText('Computer');
+  const tYou = useTranslateText('You');
+  const tCenter = useTranslateText('CENTER');
+  const tComputerSide = useTranslateText('COMPUTER SIDE');
+  const tYourSide = useTranslateText('YOUR SIDE');
+  const tCorrectPullRope = useTranslateText('Correct! You pull the rope!');
+  const tWrongAnswer = useTranslateText('Wrong! Answer:');
+  const tSolveThis = useTranslateText('Solve this:');
+  const tEasy = useTranslateText('Easy');
+  const tModerate = useTranslateText('Moderate');
+  const tHard = useTranslateText('Hard');
+
   const getDifficultyDesc = (d) => {
     switch (d) {
-      case 'Easy': return 'Addition & Subtraction (1-20)';
-      case 'Moderate': return 'Multiplication & Division';
-      case 'Hard': return 'Mixed Operations (larger numbers)';
+      case 'Easy': return tAddSub;
+      case 'Moderate': return tMultDiv;
+      case 'Hard': return tMixedOps;
       default: return '';
     }
   };
@@ -365,10 +402,10 @@ const TugOfMathsGame = () => {
         padding: '8px 16px', background: 'rgba(0,0,0,0.3)',
       }}>
         <button onClick={handleReset} style={{ background: 'none', border: 'none', color: '#e0e0e0', cursor: 'pointer', fontSize: 14, opacity: 0.8 }}>
-          ☰ Menu
+          {tMenu}
         </button>
         <h1 style={{ fontSize: 18, fontWeight: 700, color: '#FF6B3E', margin: 0 }}>
-          🎯 Tug of Maths
+          🎯 {tTugOfMaths}
         </h1>
         <button onClick={() => setSoundEnabled(!soundEnabled)} style={{
           background: 'none', border: 'none', color: '#e0e0e0', cursor: 'pointer',
@@ -382,7 +419,7 @@ const TugOfMathsGame = () => {
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', padding: '0 16px', maxWidth: 700 }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: '#aaa' }}>🤖 Computer</div>
+                <div style={{ fontSize: 12, color: '#aaa' }}>🤖 {tComputer}</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#ef4444' }}>{Math.min(computerScore, 200)}/200</div>
               </div>
               <div style={{ textAlign: 'center' }}>
@@ -399,7 +436,7 @@ const TugOfMathsGame = () => {
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: '#aaa' }}>🧑 You</div>
+                <div style={{ fontSize: 12, color: '#aaa' }}>🧑 {tYou}</div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#22c55e' }}>{Math.min(score, 200)}/200</div>
               </div>
             </div>
@@ -424,18 +461,18 @@ const TugOfMathsGame = () => {
                 position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
                 fontSize: 10, color: '#FF6B3E', fontWeight: 700, letterSpacing: 1,
                 textTransform: 'uppercase', opacity: 0.7,
-              }}>▼ CENTER ▼</div>
+              }}>▼ {tCenter} ▼</div>
 
               <div style={{
                 position: 'absolute', top: '50%', left: 12, transform: 'translateY(-50%)',
                 fontSize: 13, fontWeight: 800, color: '#ef4444', writingMode: 'vertical-lr',
                 textOrientation: 'mixed', letterSpacing: 2, opacity: 0.7,
-              }}>🤖 COMPUTER SIDE</div>
+              }}>🤖 {tComputerSide}</div>
               <div style={{
                 position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)',
                 fontSize: 13, fontWeight: 800, color: '#22c55e', writingMode: 'vertical-lr',
                 textOrientation: 'mixed', letterSpacing: 2, opacity: 0.7,
-              }}>🧑 YOUR SIDE</div>
+              }}>🧑 {tYourSide}</div>
 
               <img
                 src={tugImage}
@@ -461,7 +498,7 @@ const TugOfMathsGame = () => {
                 color: feedback === 'correct' ? '#22c55e' : '#ef4444',
                 border: `2px solid ${feedback === 'correct' ? '#22c55e' : '#ef4444'}`,
               }}>
-                {feedback === 'correct' ? '✅ Correct! You pull the rope!' : `❌ Wrong! Answer: ${currentQuestion.answer}`}
+                {feedback === 'correct' ? `✅ ${tCorrectPullRope}` : `❌ ${tWrongAnswer} ${currentQuestion.answer}`}
               </div>
             )}
 
@@ -470,7 +507,7 @@ const TugOfMathsGame = () => {
               textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
             }}>
-              <div style={{ fontSize: 12, color: '#aaa', marginBottom: 4 }}>Solve this:</div>
+              <div style={{ fontSize: 12, color: '#aaa', marginBottom: 4 }}>{tSolveThis}</div>
               <div style={{ fontSize: 32, fontWeight: 800, color: 'white' }}>
                 {currentQuestion.text} = ?
               </div>
@@ -513,7 +550,7 @@ const TugOfMathsGame = () => {
     if (checkingDailyGame) {
       return (
         <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(180deg, #1a1a2e, #16213e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e0e0e0', fontFamily: "'Segoe UI', sans-serif" }}>
-          <div>Loading...</div>
+          <div>{tLoading}</div>
         </div>
       );
     }
@@ -523,45 +560,45 @@ const TugOfMathsGame = () => {
           onClick={() => setShowInstructions(true)}
           style={{ position: 'absolute', top: 20, right: 20, padding: '10px 20px', background: 'rgba(255,107,62,0.2)', border: '2px solid rgba(255,107,62,0.5)', borderRadius: 10, color: '#FF6B3E', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}
         >
-          📖 How to Play
+          📖 {tHowToPlay}
         </button>
 
         {showInstructions && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowInstructions(false)}>
             <div style={{ background: 'linear-gradient(180deg, #1a1a2e, #16213e)', border: '2px solid #FF6B3E', borderRadius: 20, padding: 28, maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', color: '#e0e0e0' }} onClick={e => e.stopPropagation()}>
               <button onClick={() => setShowInstructions(false)} style={{ float: 'right', background: 'none', border: 'none', color: '#e0e0e0', fontSize: 24, cursor: 'pointer' }}>×</button>
-              <h2 style={{ marginTop: 0, color: '#FF6B3E' }}>🎯 Tug of Maths – How to Play</h2>
-              <h3 style={{ fontSize: 16, color: '#aaa' }}>Objective</h3>
-              <p>Battle the computer in a mental math tug-of-war! Answer correctly to pull the rope your way and win the game.</p>
-              <h3 style={{ fontSize: 16, color: '#aaa' }}>How to Play</h3>
+              <h2 style={{ marginTop: 0, color: '#FF6B3E' }}>🎯 {tTugHowToPlay}</h2>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>{tObjective}</h3>
+              <p>{tBattleComputer}</p>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>{tHowToPlay}</h3>
               <ul style={{ paddingLeft: 20 }}>
-                <li>Answer math questions correctly.</li>
-                <li>You have 10 seconds per question.</li>
-                <li>Correct answers pull the rope toward you.</li>
-                <li>Wrong answers (or time out) help the computer.</li>
+                <li>{tAnswerCorrect}</li>
+                <li>{t10SecPerQuestion}</li>
+                <li>{tCorrectPull}</li>
+                <li>{tWrongHelpComputer}</li>
               </ul>
-              <h3 style={{ fontSize: 16, color: '#aaa' }}>Winning</h3>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>{tWinning}</h3>
               <ul style={{ paddingLeft: 20 }}>
-                <li>Pull the rope completely to your side, or</li>
-                <li>Have the highest score when time runs out.</li>
-                <li>Maximum score: 200 points. Time limit: 5 minutes.</li>
+                <li>{tPullRopeOr}</li>
+                <li>{tHighestScore}</li>
+                <li>{tMax200Time5}</li>
               </ul>
-              <h3 style={{ fontSize: 16, color: '#aaa' }}>Difficulty</h3>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>{tDifficulty}</h3>
               <ul style={{ paddingLeft: 20 }}>
-                <li><strong>Easy:</strong> Addition &amp; Subtraction (1–20)</li>
-                <li><strong>Moderate:</strong> Multiplication &amp; Division</li>
-                <li><strong>Hard:</strong> Mixed operations, larger numbers. Higher difficulty = more points!</li>
+                <li>{tEasyBullet}</li>
+                <li>{tModerateBullet}</li>
+                <li>{tHardBullet}</li>
               </ul>
             </div>
           </div>
         )}
 
         <div style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: 8 }}>🪢</div>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0, color: '#FF6B3E' }}>Tug of Maths</h1>
-        <p style={{ opacity: 0.7, margin: '0 0 1rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>Mental math tug-of-war</p>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0, color: '#FF6B3E' }}>{tTugOfMaths}</h1>
+        <p style={{ opacity: 0.7, margin: '0 0 1rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>{tMentalMathTug}</p>
         {isDailyGame && (
           <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(255,107,62,0.2)', border: '1px solid rgba(255,107,62,0.4)', borderRadius: 20, fontSize: 13, color: '#FF6B3E', fontWeight: 600 }}>
-            🎯 Daily Challenge
+            🎯 {tDailyChallenge}
           </div>
         )}
 
@@ -578,7 +615,7 @@ const TugOfMathsGame = () => {
                   textAlign: 'left', transition: 'all 0.2s', transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{d}</div>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{d === 'Easy' ? tEasy : d === 'Moderate' ? tModerate : tHard}</div>
                 <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>{getDifficultyDesc(d)}</div>
               </button>
             );
@@ -589,7 +626,7 @@ const TugOfMathsGame = () => {
           onClick={() => handleStart()}
           style={{ marginTop: 24, padding: '14px 48px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', background: 'linear-gradient(135deg, #FF6B3E, #e55a2b)', color: '#fff', boxShadow: '0 4px 20px rgba(255,107,62,0.4)' }}
         >
-          🚀 Start Game
+          🚀 {tStartGame}
         </button>
       </div>
     );
@@ -605,7 +642,7 @@ const TugOfMathsGame = () => {
       <GameCompletionModal
         isVisible={gameState === 'finished' && completionData != null}
         onClose={handleReset}
-        gameTitle="Tug of Maths"
+        gameTitle={tTugOfMaths}
         score={completionData?.score ?? score}
         moves={completionData?.questionNumber ?? questionNumber}
         timeElapsed={timeElapsed}

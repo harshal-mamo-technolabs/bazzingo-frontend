@@ -382,12 +382,55 @@ export default function WhoIs({ onBack }) {
     card: { background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: 20, padding: '24px 28px', maxWidth: 500, width: '92%', textAlign: 'center', border: '1px solid rgba(100,140,255,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto' },
   };
 
+  const tLoading = useTranslateText('Loading...');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tWhoIsHowToPlay = useTranslateText('Who Is? – How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tSolveCase = useTranslateText('Solve each case by analyzing the crime scenario, suspects, and clues to find the guilty party before time runs out.');
+  const tRead = useTranslateText('Read — Study the crime scenario and title at the top.');
+  const tInvestigate = useTranslateText('Investigate — Examine suspects and review clues as they appear. New clues unlock over time.');
+  const tDeduce = useTranslateText('Deduce — Tap a suspect to open their profile (job, appearance, alibi, location).');
+  const tAccuseBullet = useTranslateText('Accuse — When you\'re sure, select the guilty suspect and press Accuse! Correct = points; wrong = penalty.');
+  const tScoringLevels = useTranslateText('Scoring & Levels');
+  const tScoringLevelsText = useTranslateText('Correct accusations earn points; combos multiply your score. Easy: 3 suspects, 4 clues. Medium: 4 suspects, 3 clues. Hard: 5 suspects, 3 clues. Each difficulty has a time limit per case.');
+  const tGotIt = useTranslateText('Got it');
+  const tWhoIs = useTranslateText('Who Is?');
+  const tAnalyzeSuspects = useTranslateText('Analyze suspects & clues to find the guilty party!');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tCase = useTranslateText('Case');
+  const tTime = useTranslateText('Time');
+  const tScore = useTranslateText('Score');
+  const tStreak = useTranslateText('Streak');
+  const tSuspects = useTranslateText('Suspects');
+  const tEvidenceBoard = useTranslateText('Evidence Board');
+  const tMoreEvidence = useTranslateText('More evidence arriving...');
+  const tAccusing = useTranslateText('Accusing:');
+  const tAccuse = useTranslateText('Accuse!');
+  const tAppearance = useTranslateText('Appearance:');
+  const tAccessory = useTranslateText('Accessory:');
+  const tLastSeen = useTranslateText('Last seen:');
+  const tAlibi = useTranslateText('Alibi:');
+  const tClose = useTranslateText('Close');
+  const tSelectAsSuspect = useTranslateText('Select as Suspect');
+  const tCaseSolved = useTranslateText('Case Solved!');
+  const tWrongSuspect = useTranslateText('Wrong Suspect!');
+  const tYouCorrectlyIdentified = useTranslateText('You correctly identified');
+  const tAsCulprit = useTranslateText('as the culprit!');
+  const tRealCulpritWas = useTranslateText('The real culprit was');
+  const tHad = useTranslateText('Had');
+  const tSeenNear = useTranslateText('Seen near');
+  const tViewResults = useTranslateText('View Results');
+  const tCaseNum = useTranslateText('▶ Case');
+  const tBack = useTranslateText('← Back');
+  const levelLabels = { easy: useTranslateText('Easy'), medium: useTranslateText('Medium'), hard: useTranslateText('Hard') };
+  const levelDescs = { easy: useTranslateText('Junior Detective'), medium: useTranslateText('Senior Inspector'), hard: useTranslateText('Master Sleuth') };
+
   // ─── MENU ───
   if (phase === 'menu') {
     if (checkingDailyGame) {
       return (
         <div style={{ ...S.root, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ color: '#e2e8f0', fontSize: 16 }}>Loading...</div>
+          <div style={{ color: '#e2e8f0', fontSize: 16 }}>{tLoading}</div>
         </div>
       );
     }
@@ -398,7 +441,7 @@ export default function WhoIs({ onBack }) {
       <div style={S.root}>
         <canvas ref={canvasRef} style={S.canvas} />
         <div style={S.content}>
-          {onBack && <button style={S.backBtn} onClick={() => { audio.stopMusic(); onBack(); }}>← Back</button>}
+          {onBack && <button style={S.backBtn} onClick={() => { audio.stopMusic(); onBack(); }}>{tBack}</button>}
           <button
             type="button"
             onClick={() => setShowInstructions(true)}
@@ -415,48 +458,48 @@ export default function WhoIs({ onBack }) {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(100,140,255,0.15)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
           >
             <span style={{ fontSize: 16 }} aria-hidden>📖</span>
-            How to Play
+            {tHowToPlay}
           </button>
           {showInstructions && (
             <div role="dialog" aria-modal="true" aria-labelledby="who-is-brain-instructions-title" style={{ ...S.overlay, zIndex: 1000 }} onClick={closeInstructions}>
               <div style={{ ...S.card, padding: 0, maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
-                  <h2 id="who-is-brain-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#93c5fd' }}>🕵️ Who Is? – How to Play</h2>
+                  <h2 id="who-is-brain-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#93c5fd' }}>🕵️ {tWhoIsHowToPlay}</h2>
                   <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                 </div>
                 <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                     <section style={{ background: 'rgba(147,197,253,0.1)', border: '1px solid rgba(147,197,253,0.3)', borderRadius: 12, padding: 16 }}>
-                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#93c5fd' }}>🎯 Objective</h3>
-                      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Solve each case by analyzing the crime scenario, suspects, and clues to find the guilty party before time runs out.</p>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#93c5fd' }}>🎯 {tObjective}</h3>
+                      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>{tSolveCase}</p>
                     </section>
                     <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
-                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🎮 How to Play</h3>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🎮 {tHowToPlay}</h3>
                       <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
-                        <li><strong>Read</strong> — Study the crime scenario and title at the top.</li>
-                        <li><strong>Investigate</strong> — Examine suspects and review clues as they appear. New clues unlock over time.</li>
-                        <li><strong>Deduce</strong> — Tap a suspect to open their profile (job, appearance, alibi, location).</li>
-                        <li><strong>Accuse</strong> — When you're sure, select the guilty suspect and press Accuse! Correct = points; wrong = penalty.</li>
+                        <li>{tRead}</li>
+                        <li>{tInvestigate}</li>
+                        <li>{tDeduce}</li>
+                        <li>{tAccuseBullet}</li>
                       </ul>
                     </section>
                     <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
-                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>📊 Scoring & Levels</h3>
-                      <p style={{ margin: '0 0 8px', fontSize: 14, color: '#cbd5e1' }}>Correct accusations earn points; combos multiply your score. Easy: 3 suspects, 4 clues. Medium: 4 suspects, 3 clues. Hard: 5 suspects, 3 clues. Each difficulty has a time limit per case.</p>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>📊 {tScoringLevels}</h3>
+                      <p style={{ margin: '0 0 8px', fontSize: 14, color: '#cbd5e1' }}>{tScoringLevelsText}</p>
                     </section>
                   </div>
                 </div>
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-                  <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(96,165,250,0.4)' }}>Got it</button>
+                  <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(96,165,250,0.4)' }}>{tGotIt}</button>
                 </div>
               </div>
             </div>
           )}
           <div style={{ fontSize: 52, marginTop: 28 }}>🕵️</div>
-          <h1 style={S.title}>Who Is?</h1>
-          <p style={S.subtitle}>Analyze suspects & clues to find the guilty party!</p>
+          <h1 style={S.title}>{tWhoIs}</h1>
+          <p style={S.subtitle}>{tAnalyzeSuspects}</p>
           {isDailyGame && (
             <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(116,185,255,0.2)', border: '1px solid rgba(116,185,255,0.5)', borderRadius: 20, fontSize: 13, color: '#74b9ff', fontWeight: 600 }}>
-              Daily Challenge
+              {tDailyChallenge}
             </div>
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 8 }}>
@@ -466,8 +509,8 @@ export default function WhoIs({ onBack }) {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = `0 8px 30px ${lv.color}25`; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
                 <div style={{ fontSize: 32, marginBottom: 4 }}>{lv.icon}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: lv.color }}>{lv.label}</div>
-                <div style={{ fontSize: 13, opacity: 0.55, margin: '4px 0' }}>{lv.desc}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: lv.color }}>{levelLabels[key]}</div>
+                <div style={{ fontSize: 13, opacity: 0.55, margin: '4px 0' }}>{levelDescs[key]}</div>
                 <div style={{ fontSize: 12, opacity: 0.35 }}>{lv.suspects} suspects · {lv.clues} initial clues</div>
                 <div style={{ fontSize: 12, opacity: 0.35 }}>{lv.rounds} cases · {lv.timeLimit}s per case</div>
               </div>
@@ -486,14 +529,14 @@ export default function WhoIs({ onBack }) {
       <div style={{ ...S.root, zIndex: 1 }}>
         <canvas ref={canvasRef} style={S.canvas} />
         <div style={S.content}>
-          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); clearInterval(clueTimerRef.current); setPhase('menu'); }}>← Back</button>
+          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); clearInterval(clueTimerRef.current); setPhase('menu'); }}>{tBack}</button>
 
           {/* HUD */}
           <div style={{ ...S.hud, marginTop: 36 }}>
-            <div style={S.hudItem}><div style={S.hudLabel}>Case</div><div style={S.hudValue}>{round+1}/{cfg.rounds}</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Time</div><div style={{ ...S.hudValue, color: timer <= 15 ? '#f87171' : '#60a5fa' }}>{timer}s</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Score</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
-            {combo > 1 && <div style={S.hudItem}><div style={S.hudLabel}>Streak</div><div style={{ ...S.hudValue, color: '#fb923c' }}>🔥 x{combo}</div></div>}
+            <div style={S.hudItem}><div style={S.hudLabel}>{tCase}</div><div style={S.hudValue}>{round+1}/{cfg.rounds}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tTime}</div><div style={{ ...S.hudValue, color: timer <= 15 ? '#f87171' : '#60a5fa' }}>{timer}s</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tScore}</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
+            {combo > 1 && <div style={S.hudItem}><div style={S.hudLabel}>{tStreak}</div><div style={{ ...S.hudValue, color: '#fb923c' }}>🔥 x{combo}</div></div>}
           </div>
 
           {/* Scenario Banner */}
@@ -508,7 +551,7 @@ export default function WhoIs({ onBack }) {
 
             {/* Suspects Grid */}
             <div style={{ flex: '1 1 400px', minWidth: 300 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 8, textAlign: 'center' }}>👥 Suspects</div>
+              <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 8, textAlign: 'center' }}>👥 {tSuspects}</div>
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`, gap: 10 }}>
                 {suspects.map((s, i) => {
                   const isSelected = selectedSuspect === i;
@@ -537,7 +580,7 @@ export default function WhoIs({ onBack }) {
 
             {/* Clues Panel */}
             <div style={{ flex: '1 1 280px', minWidth: 260, maxWidth: 360 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 8, textAlign: 'center' }}>🔎 Evidence Board</div>
+              <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 8, textAlign: 'center' }}>🔎 {tEvidenceBoard}</div>
               <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {revealedClues.map((clue, i) => (
                   <div key={i} style={{
@@ -551,7 +594,7 @@ export default function WhoIs({ onBack }) {
                 ))}
                 {clueIndex < currentCase.clues.length && (
                   <div style={{ fontSize: 11, opacity: 0.3, textAlign: 'center', padding: 4 }}>
-                    ⏳ More evidence arriving...
+                    ⏳ {tMoreEvidence}
                   </div>
                 )}
               </div>
@@ -562,14 +605,14 @@ export default function WhoIs({ onBack }) {
           <div style={{ marginTop: 12, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
             {selectedSuspect !== null && (
               <div style={{ fontSize: 14, opacity: 0.6 }}>
-                Accusing: <b style={{ color: '#60a5fa' }}>{suspects[selectedSuspect].name}</b>
+                {tAccusing} <b style={{ color: '#60a5fa' }}>{suspects[selectedSuspect].name}</b>
               </div>
             )}
             <button
               style={{ ...S.btn(selectedSuspect !== null ? '#ef4444' : '#4b5563'), opacity: selectedSuspect !== null ? 1 : 0.5, cursor: selectedSuspect !== null ? 'pointer' : 'not-allowed' }}
               onClick={selectedSuspect !== null ? accuseSuspect : undefined}
             >
-              ⚖️ Accuse!
+              ⚖️ {tAccuse}
             </button>
           </div>
 
@@ -585,17 +628,17 @@ export default function WhoIs({ onBack }) {
                       <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 2 }}>{s.name}</div>
                       <div style={{ fontSize: 14, opacity: 0.5, marginBottom: 12 }}>{s.job}</div>
                       <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '12px 16px', textAlign: 'left', marginBottom: 12, fontSize: 13, lineHeight: 1.7 }}>
-                        <div><b>Appearance:</b> {s.appearance.desc}</div>
-                        <div><b>Accessory:</b> {s.accessory}</div>
-                        <div><b>Last seen:</b> {s.location}</div>
+                        <div><b>{tAppearance}</b> {s.appearance.desc}</div>
+                        <div><b>{tAccessory}</b> {s.accessory}</div>
+                        <div><b>{tLastSeen}</b> {s.location}</div>
                         <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 8 }}>
-                          <b>Alibi:</b> "{s.alibi}"
+                          <b>{tAlibi}</b> "{s.alibi}"
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button style={S.btn('#3b82f6')} onClick={() => setShowSuspectDetail(null)}>Close</button>
+                        <button style={S.btn('#3b82f6')} onClick={() => setShowSuspectDetail(null)}>{tClose}</button>
                         <button style={S.btn('#ef4444')} onClick={() => { setSelectedSuspect(showSuspectDetail); setShowSuspectDetail(null); }}>
-                          🎯 Select as Suspect
+                          🎯 {tSelectAsSuspect}
                         </button>
                       </div>
                     </>
@@ -623,18 +666,18 @@ export default function WhoIs({ onBack }) {
             <div style={S.card}>
               <div style={{ fontSize: 52, marginBottom: 6 }}>{lastResult?.correct ? '✅' : '❌'}</div>
               <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>
-                {lastResult?.correct ? 'Case Solved!' : 'Wrong Suspect!'}
+                {lastResult?.correct ? tCaseSolved : tWrongSuspect}
               </div>
               <div style={{ fontSize: 14, opacity: 0.55, marginBottom: 8 }}>
                 {lastResult?.correct
-                  ? `You correctly identified ${guilty?.name} as the culprit!`
-                  : `The real culprit was ${guilty?.name} the ${guilty?.job}.`}
+                  ? `${tYouCorrectlyIdentified} ${guilty?.name} ${tAsCulprit}`
+                  : `${tRealCulpritWas} ${guilty?.name} the ${guilty?.job}.`}
               </div>
               {guilty && (
                 <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 13 }}>
                   <div style={{ fontSize: 28, marginBottom: 4 }}>{guilty.appearance.hair}</div>
                   <div><b>{guilty.name}</b> — {guilty.job}</div>
-                  <div style={{ opacity: 0.5, marginTop: 4 }}>Had {guilty.accessory} · Seen near {guilty.location}</div>
+                  <div style={{ opacity: 0.5, marginTop: 4 }}>{tHad} {guilty.accessory} · {tSeenNear} {guilty.location}</div>
                 </div>
               )}
               <div style={{ fontSize: 28, fontWeight: 800, color: lastResult?.correct ? '#4ade80' : '#f87171', marginBottom: 14 }}>
@@ -642,7 +685,7 @@ export default function WhoIs({ onBack }) {
               </div>
               {!isFinished && (
                 <button style={S.btn('#3b82f6')} onClick={() => { audio.select(); nextRound(); }}>
-                  {round + 1 >= LEVELS[level].rounds ? '📊 View Results' : `▶ Case ${round + 2}`}
+                  {round + 1 >= LEVELS[level].rounds ? `📊 ${tViewResults}` : `${tCaseNum} ${round + 2}`}
                 </button>
               )}
             </div>
@@ -652,7 +695,7 @@ export default function WhoIs({ onBack }) {
           <GameCompletionModal
             isVisible
             onClose={handleReset}
-            gameTitle="Who Is?"
+            gameTitle={tWhoIs}
             score={completionData.score}
             timeElapsed={completionData.timeElapsed}
             gameTimeLimit={completionData.gameTimeLimit}

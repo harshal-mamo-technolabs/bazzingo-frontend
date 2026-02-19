@@ -263,6 +263,22 @@ const TrainOfThought = () => {
     moderate: useTranslateText('Moderate'),
     hard: useTranslateText('Hard'),
   };
+  const tRotateDesc = useTranslateText('Train of Thought is best played in landscape mode. Please turn your device sideways to play!');
+  const tMenuSubtitle = useTranslateText('Route colored trains to matching stations by controlling the track switches!');
+  const tMenuTime = useTranslateText('You have 5 minutes to route all trains correctly.');
+  const tSimplifiedMap = useTranslateText('(Simplified map for your screen)');
+  const tTrains = useTranslateText('trains');
+  const tStations = useTranslateText('stations');
+  const tCountdownDesc = useTranslateText('Route each colored train to its matching station by clicking switches!');
+  const tTrainsLabel = useTranslateText('Trains');
+  const t5Min = useTranslateText('5 min');
+  const tNext = useTranslateText('NEXT:');
+  const tGate = useTranslateText('GATE');
+  const tScore = useTranslateText('Score');
+  const tCorrect = useTranslateText('Correct:');
+  const tWrong = useTranslateText('Wrong:');
+  const tTimeLabel = useTranslateText('Time:');
+  const tRotateDevice = useTranslateText('Please Rotate Your Device');
 
   const animationRef = useRef();
   const lastTimeRef = useRef(0);
@@ -662,10 +678,10 @@ const TrainOfThought = () => {
             </div>
             <style>{`@keyframes spin { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }`}</style>
             <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '12px' }}>
-              Please Rotate Your Device
+              {tRotateDevice}
             </div>
             <p style={{ fontSize: '16px', opacity: 0.8, maxWidth: '300px', margin: '0 auto', lineHeight: 1.6 }}>
-              🚂 Train of Thought is best played in landscape mode. Please turn your device sideways to play!
+              🚂 {tRotateDesc}
             </p>
           </div>
         </div>
@@ -692,14 +708,14 @@ const TrainOfThought = () => {
             padding: isCompact ? '16px' : '40px',
           }}>
             <div style={{ fontSize: isCompact ? '28px' : '52px', marginBottom: '8px', fontWeight: 'bold' }}>
-              🚂 Train of Thought
+              🚂 {tGameTitle}
             </div>
             <p style={{ marginBottom: '8px', opacity: 0.8, fontSize: isCompact ? '13px' : '18px' }}>
-              Route colored trains to matching stations by controlling the track switches!
+              {tMenuSubtitle}
             </p>
             <p style={{ marginBottom: isCompact ? '20px' : '40px', opacity: 0.6, fontSize: isCompact ? '11px' : '14px' }}>
-              ⏱️ You have 5 minutes to route all trains correctly.
-              {isSmallScreen && ' (Simplified map for your screen)'}
+              ⏱️ {tMenuTime}
+              {isSmallScreen && ` ${tSimplifiedMap}`}
             </p>
 
             <h2 style={{ fontSize: isCompact ? '18px' : '28px', marginBottom: isCompact ? '12px' : '24px', color: '#ffd700' }}>
@@ -729,9 +745,9 @@ const TrainOfThought = () => {
                         <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
                           {diff === 'easy' ? '🌱' : diff === 'moderate' ? '⚡' : '🔥'}
                         </div>
-                        {diff}
+                        {tLevelLabels[diff]}
                         <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
-                          {config.trainCount} trains • {stCount} stations
+                          {config.trainCount} {tTrains} • {stCount} {tStations}
                         </div>
                       </div>
                     );
@@ -769,9 +785,9 @@ const TrainOfThought = () => {
                         <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
                           {diff === 'easy' ? '🌱' : diff === 'moderate' ? '⚡' : '🔥'}
                         </div>
-                        {diff}
+                        {tLevelLabels[diff]}
                         <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
-                          {config.trainCount} trains • {stCount} stations
+                          {config.trainCount} {tTrains} • {stCount} {tStations}
                         </div>
                       </button>
                     );
@@ -875,7 +891,7 @@ const TrainOfThought = () => {
           <g transform={`translate(${layout.entryGate.x}, ${layout.entryGate.y})`}>
             <rect x={-30 * stationSize} y={-40 * stationSize} width={60 * stationSize} height={80 * stationSize} fill="#2a2a2a" rx="4" stroke="#555" strokeWidth="2" />
             <rect x={-20 * stationSize} y={-10 * stationSize} width={40 * stationSize} height={50 * stationSize} fill="#1a1a1a" rx="2" />
-            <text x={0} y={-25 * stationSize} textAnchor="middle" fill="#ffd700" fontSize={isCompact ? 8 : 10} fontWeight="bold">GATE</text>
+            <text x={0} y={-25 * stationSize} textAnchor="middle" fill="#ffd700" fontSize={isCompact ? 8 : 10} fontWeight="bold">{tGate}</text>
           </g>
 
           {/* Draw stations */}
@@ -1036,7 +1052,7 @@ const TrainOfThought = () => {
             {[
               { icon: '📊', label: tDifficulty, value: tLevelLabels[currentDifficulty] ?? currentDifficulty },
               { icon: '⏱️', label: tTimeLeft, value: formatTimeRemaining(gameState.timeElapsed), highlight: isTimeLow },
-              { icon: '⭐', label: 'Score', value: gameState.score.toString() },
+              { icon: '⭐', label: tScore, value: gameState.score.toString() },
             ].map((item, idx) => (
               <div key={idx} style={{
                 background: 'rgba(0,0,0,0.85)',
@@ -1068,7 +1084,7 @@ const TrainOfThought = () => {
             border: '2px solid rgba(255,255,255,0.2)',
             zIndex: 100,
           }}>
-            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: isCompact ? '10px' : '14px', fontWeight: 'bold' }}>NEXT:</span>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: isCompact ? '10px' : '14px', fontWeight: 'bold' }}>{tNext}</span>
             {trainQueue.slice(releasedCount, releasedCount + 5).map((colorName, idx) => {
               const colors = COLORS[colorName];
               if (!colors) return null;
@@ -1130,10 +1146,10 @@ const TrainOfThought = () => {
               borderRadius: '16px',
               display: 'inline-block',
             }}>
-              {currentDifficulty.toUpperCase()} • {LEVEL_CONFIGS[currentDifficulty].trainCount} Trains • 5 min
+              {currentDifficulty.toUpperCase()} • {LEVEL_CONFIGS[currentDifficulty].trainCount} {tTrainsLabel} • {t5Min}
             </div>
             <p style={{ marginBottom: '12px', opacity: 0.8, fontSize: isCompact ? '10px' : '14px', maxWidth: '400px', lineHeight: 1.4 }}>
-              Route each colored train to its matching station by clicking switches!
+              {tCountdownDesc}
             </p>
             <div style={{
               fontSize: isCompact ? '48px' : '80px',
@@ -1160,7 +1176,7 @@ const TrainOfThought = () => {
           perfectScore: 180,
           goodScore: 120,
           maxScore: 200,
-          stats: `✅ Correct: ${gameState.correctDeliveries}/${trainQueue.length} • ❌ Wrong: ${gameState.wrongDeliveries} • ⏱️ Time: ${formatTime(gameState.timeElapsed)}`
+          stats: `✅ ${tCorrect} ${gameState.correctDeliveries}/${trainQueue.length} • ❌ ${tWrong} ${gameState.wrongDeliveries} • ⏱️ ${tTimeLabel} ${formatTime(gameState.timeElapsed)}`
         }}
       />
     </div>

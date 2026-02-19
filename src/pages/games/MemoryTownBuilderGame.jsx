@@ -445,6 +445,29 @@ export default function MemoryTownBuilder({ onBack }) {
 
   const cellSize = level ? Math.min(Math.floor((Math.min(window.innerWidth * 0.85, 860) - 40) / (phase === 'result' ? LEVELS[level].gridSize * 2 + 1 : LEVELS[level].gridSize)), 72) : 50;
 
+  const tLoading = useTranslateText('Loading...');
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Study the town layout shown on the grid, then recreate it from memory by placing the correct buildings in the right cells.');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tStudyBullet = useTranslateText('Study — Memorize building positions on the grid during the study phase.');
+  const tRecallBullet = useTranslateText('Recall — Select a building type from the palette, then click grid cells to place or remove.');
+  const tMatchBullet = useTranslateText('Match — Recreate the layout as accurately as possible. Submit to see your accuracy and score.');
+  const tLevels = useTranslateText('Levels');
+  const tLevelsDesc = useTranslateText('Easy: 4×4, 5 buildings. Medium: 5×5, 8 buildings. Hard: 6×6, 12 buildings. Each round has a study time and a recall time limit.');
+  const tGotIt = useTranslateText('Got it');
+  const tBack = useTranslateText('← Back');
+  const tMemoryTownTitle = useTranslateText('Memory Town Builder – How to Play');
+  const tSubtitle = useTranslateText('Study the town layout, then recreate it from memory!');
+  const tGameTitle = useTranslateText('Memory Town Builder');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tPhase = useTranslateText('Phase');
+  const tRound = useTranslateText('Round');
+  const tTime = useTranslateText('Time');
+  const tScore = useTranslateText('Score');
+  const tStudy = useTranslateText('Study');
+  const levelLabels = { easy: useTranslateText('Easy'), medium: useTranslateText('Medium'), hard: useTranslateText('Hard') };
+  const levelDescs = { easy: useTranslateText('Small Village'), medium: useTranslateText('Growing Town'), hard: useTranslateText('Busy City') };
+
   // ─── RENDER GRID ───
   const renderGrid = (grid, isTarget = false, comp = null) => {
     const gs = LEVELS[level].gridSize;
@@ -490,7 +513,7 @@ export default function MemoryTownBuilder({ onBack }) {
     if (checkingDailyGame) {
       return (
         <div style={{ ...S.root, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ color: '#e2e8f0', fontSize: 16 }}>Loading...</div>
+          <div style={{ color: '#e2e8f0', fontSize: 16 }}>{tLoading}</div>
         </div>
       );
     }
@@ -500,20 +523,20 @@ export default function MemoryTownBuilder({ onBack }) {
     const instructionsModalContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <section style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 12, padding: 16 }}>
-          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#4ade80' }}>Objective</h3>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Study the town layout shown on the grid, then recreate it from memory by placing the correct buildings in the right cells.</p>
+          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#4ade80' }}>{tObjective}</h3>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>{tObjectiveDesc}</p>
         </section>
         <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
-          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>How to Play</h3>
+          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>{tHowToPlay}</h3>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
-            <li><strong>Study</strong> — Memorize building positions on the grid during the study phase.</li>
-            <li><strong>Recall</strong> — Select a building type from the palette, then click grid cells to place or remove.</li>
-            <li><strong>Match</strong> — Recreate the layout as accurately as possible. Submit to see your accuracy and score.</li>
+            <li>{tStudyBullet}</li>
+            <li>{tRecallBullet}</li>
+            <li>{tMatchBullet}</li>
           </ul>
         </section>
         <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
-          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>Levels</h3>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Easy: 4×4, 5 buildings. Medium: 5×5, 8 buildings. Hard: 6×6, 12 buildings. Each round has a study time and a recall time limit.</p>
+          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>{tLevels}</h3>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>{tLevelsDesc}</p>
         </section>
       </div>
     );
@@ -521,7 +544,7 @@ export default function MemoryTownBuilder({ onBack }) {
       <div style={S.root}>
         <canvas ref={canvasRef} style={S.canvas} />
         <div style={S.content}>
-          {onBack && <button style={S.backBtn} onClick={() => { audio.stopMusic(); onBack(); }}>← Back</button>}
+          {onBack && <button style={S.backBtn} onClick={() => { audio.stopMusic(); onBack(); }}>{tBack}</button>}
           <button
             type="button"
             onClick={() => setShowInstructions(true)}
@@ -537,13 +560,13 @@ export default function MemoryTownBuilder({ onBack }) {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(74,222,128,0.15)'; e.currentTarget.style.transform = ''; }}
           >
             <span style={{ fontSize: 16 }} aria-hidden>📖</span>
-            How to Play
+            {tHowToPlay}
           </button>
           <div style={{ fontSize: 48, marginTop: 30 }}>🏘️</div>
-          <h1 style={S.title}>Memory Town Builder</h1>
-          <p style={S.subtitle}>Study the town layout, then recreate it from memory!</p>
+          <h1 style={S.title}>{tGameTitle}</h1>
+          <p style={S.subtitle}>{tSubtitle}</p>
           {isDailyGame && (
-            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(74,222,128,0.2)', border: '1px solid rgba(74,222,128,0.5)', borderRadius: 20, fontSize: 13, color: '#4ade80', fontWeight: 600 }}>Daily Challenge</div>
+            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(74,222,128,0.2)', border: '1px solid rgba(74,222,128,0.5)', borderRadius: 20, fontSize: 13, color: '#4ade80', fontWeight: 600 }}>{tDailyChallenge}</div>
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 12 }}>
             {levelEntries.map(([key, lv]) => (
@@ -555,8 +578,8 @@ export default function MemoryTownBuilder({ onBack }) {
                 <div style={{ fontSize: 32, marginBottom: 6 }}>
                   {key === 'easy' ? '🏡' : key === 'medium' ? '🏘️' : '🌆'}
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: lv.color }}>{lv.label}</div>
-                <div style={{ fontSize: 13, opacity: 0.6, margin: '4px 0' }}>{lv.desc}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: lv.color }}>{levelLabels[key]}</div>
+                <div style={{ fontSize: 13, opacity: 0.6, margin: '4px 0' }}>{levelDescs[key]}</div>
                 <div style={{ fontSize: 12, opacity: 0.4 }}>{lv.gridSize}×{lv.gridSize} grid · {lv.buildingCount} buildings</div>
                 <div style={{ fontSize: 12, opacity: 0.4 }}>{lv.studyTime}s study · {lv.timeLimit}s limit</div>
               </div>
@@ -566,12 +589,12 @@ export default function MemoryTownBuilder({ onBack }) {
             <div role="dialog" aria-modal="true" aria-labelledby="memory-town-instructions-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }} onClick={closeInstructions}>
               <div style={{ background: 'linear-gradient(180deg, #1e2e1e 0%, #0f1f0f 100%)', border: '2px solid rgba(74,222,128,0.5)', borderRadius: 20, padding: 0, maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
-                  <h2 id="memory-town-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#4ade80' }}>Memory Town Builder – How to Play</h2>
+                  <h2 id="memory-town-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#4ade80' }}>{tMemoryTownTitle}</h2>
                   <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                 </div>
                 <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>{instructionsModalContent}</div>
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-                  <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #4ade80, #22c55e)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Got it</button>
+                  <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #4ade80, #22c55e)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>{tGotIt}</button>
                 </div>
               </div>
             </div>
@@ -587,12 +610,12 @@ export default function MemoryTownBuilder({ onBack }) {
       <div style={S.root}>
         <canvas ref={canvasRef} style={S.canvas} />
         <div style={S.content}>
-          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); setPhase('menu'); }}>← Back</button>
+          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); setPhase('menu'); }}>{tBack}</button>
           <div style={{ ...S.hud, marginTop: 40 }}>
-            <div style={S.hudItem}><div style={S.hudLabel}>Phase</div><div style={{ ...S.hudValue, color: '#60a5fa' }}>📖 Study</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Round</div><div style={S.hudValue}>{round + 1}/{totalRounds}</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Time</div><div style={{ ...S.hudValue, color: studyTimer <= 3 ? '#f87171' : '#facc15', animation: studyTimer <= 3 ? 'pulse 0.5s infinite' : 'none' }}>{studyTimer}s</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Score</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tPhase}</div><div style={{ ...S.hudValue, color: '#60a5fa' }}>📖 {tStudy}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tRound}</div><div style={S.hudValue}>{round + 1}/{totalRounds}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tTime}</div><div style={{ ...S.hudValue, color: studyTimer <= 3 ? '#f87171' : '#facc15', animation: studyTimer <= 3 ? 'pulse 0.5s infinite' : 'none' }}>{studyTimer}s</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tScore}</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
           </div>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: '#60a5fa', textAlign: 'center' }}>
             📋 Memorize this layout!
@@ -620,10 +643,10 @@ export default function MemoryTownBuilder({ onBack }) {
         <div style={S.content}>
           <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); setPhase('menu'); }}>← Back</button>
           <div style={{ ...S.hud, marginTop: 40 }}>
-            <div style={S.hudItem}><div style={S.hudLabel}>Phase</div><div style={{ ...S.hudValue, color: '#facc15' }}>🔨 Build</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Round</div><div style={S.hudValue}>{round + 1}/{totalRounds}</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Time</div><div style={{ ...S.hudValue, color: timer <= 10 ? '#f87171' : '#4ade80' }}>{timer}s</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Score</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tPhase}</div><div style={{ ...S.hudValue, color: '#facc15' }}>🔨 Build</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tRound}</div><div style={S.hudValue}>{round + 1}/{totalRounds}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tTime}</div><div style={{ ...S.hudValue, color: timer <= 10 ? '#f87171' : '#4ade80' }}>{timer}s</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>{tScore}</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
             <div style={S.hudItem}><div style={S.hudLabel}>Placed</div><div style={S.hudValue}>{placedCount}/{targetCount}</div></div>
             {combo > 1 && <div style={S.hudItem}><div style={S.hudLabel}>Combo</div><div style={{ ...S.hudValue, color: '#fb923c' }}>🔥 x{combo}</div></div>}
           </div>
@@ -758,7 +781,7 @@ export default function MemoryTownBuilder({ onBack }) {
           <GameCompletionModal
             isVisible
             onClose={handleReset}
-            gameTitle="Memory Town Builder"
+            gameTitle={tGameTitle}
             score={c.score}
             timeElapsed={c.timeElapsed}
             gameTimeLimit={gameTimeLimit}
