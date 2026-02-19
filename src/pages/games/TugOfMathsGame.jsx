@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Volume2, VolumeX, Clock } from 'lucide-react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 const tugImage = '/tug-of-war-players.png';
 
@@ -86,9 +88,12 @@ const generateQuestion = (difficulty) => {
   };
 };
 
+const DIFFICULTIES = ['Easy', 'Moderate', 'Hard'];
+
 const TugOfMathsGame = () => {
+  const location = useLocation();
   const [difficulty, setDifficulty] = useState('Easy');
-  const [gameState, setGameState] = useState('ready');
+  const [gameState, setGameState] = useState('menu');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [ropePosition, setRopePosition] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -99,10 +104,46 @@ const TugOfMathsGame = () => {
   const [computerScore, setComputerScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [gameStartTime, setGameStartTime] = useState(null);
+  const [completionData, setCompletionData] = useState(null);
 
   const audioContextRef = useRef(null);
   const timerRef = useRef(null);
   const gameTimerRef = useRef(null);
+  const playingStateRef = useRef({ score: 0, computerScore: 0, ropePosition: 0, gameTimeLeft: GAME_DURATION, questionNumber: 0 });
+  playingStateRef.current = { score, computerScore, ropePosition, gameTimeLeft, questionNumber };
+
+  /* Daily game detection */
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setDifficulty(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location.pathname]);
 
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
@@ -224,6 +265,15 @@ const TugOfMathsGame = () => {
         if (prev <= 1) {
           if (gameTimerRef.current) clearInterval(gameTimerRef.current);
           if (timerRef.current) clearInterval(timerRef.current);
+          const s = playingStateRef.current;
+          setCompletionData({
+            score: s.score,
+            computerScore: s.computerScore,
+            isVictory: s.ropePosition >= ROPE_SEGMENTS,
+            difficulty,
+            timeElapsed: GAME_DURATION,
+            questionNumber: s.questionNumber,
+          });
           setGameState('finished');
           return 0;
         }
@@ -231,22 +281,33 @@ const TugOfMathsGame = () => {
       });
     }, 1000);
     return () => { if (gameTimerRef.current) clearInterval(gameTimerRef.current); };
-  }, [gameState]);
+  }, [gameState, difficulty]);
 
   useEffect(() => {
     if (gameState !== 'playing') return;
     if (ropePosition >= ROPE_SEGMENTS || ropePosition <= -ROPE_SEGMENTS) {
       if (timerRef.current) clearInterval(timerRef.current);
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+      const isVictory = ropePosition >= ROPE_SEGMENTS;
+      if (isVictory) playVictorySound();
+      else playGameOverSound();
       setTimeout(() => {
+        setCompletionData({
+          score,
+          computerScore,
+          isVictory,
+          difficulty,
+          timeElapsed: GAME_DURATION - gameTimeLeft,
+          questionNumber,
+        });
         setGameState('finished');
-        if (ropePosition >= ROPE_SEGMENTS) playVictorySound();
-        else playGameOverSound();
       }, 800);
     }
-  }, [ropePosition, gameState, playVictorySound, playGameOverSound]);
+  }, [ropePosition, gameState, score, computerScore, gameTimeLeft, questionNumber, difficulty, playVictorySound, playGameOverSound]);
 
-  const handleStart = () => {
+  const handleStart = (selectedDifficulty) => {
+    const d = selectedDifficulty ?? difficulty;
+    setDifficulty(d);
     initAudio();
     setRopePosition(0);
     setQuestionNumber(0);
@@ -255,6 +316,10 @@ const TugOfMathsGame = () => {
     setGameTimeLeft(GAME_DURATION);
     setFeedback(null);
     setIsTransitioning(false);
+    setCurrentQuestion(null);
+    setCompletionData(null);
+    setGameStartTime(Date.now());
+    setGameState('playing');
     playSound(660, 0.2, 'triangle', 0.1);
   };
 
@@ -269,6 +334,8 @@ const TugOfMathsGame = () => {
     setCurrentQuestion(null);
     setFeedback(null);
     setIsTransitioning(false);
+    setCompletionData(null);
+    setGameState('menu');
   };
 
   const ropePercent = ((ropePosition + ROPE_SEGMENTS) / (2 * ROPE_SEGMENTS)) * 100;
@@ -278,58 +345,15 @@ const TugOfMathsGame = () => {
       case 'Easy': return 'Addition & Subtraction (1-20)';
       case 'Moderate': return 'Multiplication & Division';
       case 'Hard': return 'Mixed Operations (larger numbers)';
+      default: return '';
     }
   };
 
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Battle the computer in a mental math tug-of-war! Answer correctly to pull the rope your way and win the game.
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Answer math questions correctly</li>
-          <li>• You have 10 seconds per question</li>
-          <li>• Correct answers pull rope toward you</li>
-          <li>• Wrong answers help the computer</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🏆 Winning
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Pull rope completely to your side</li>
-          <li>• Or have highest score at time end</li>
-          <li>• Maximum score: 200 points</li>
-          <li>• Time limit: 5 minutes</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Difficulty
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Easy: Addition & Subtraction (1-20)</li>
-          <li>• Moderate: Multiplication & Division</li>
-          <li>• Hard: Mixed operations, larger numbers</li>
-          <li>• Higher difficulty = more points!</li>
-        </ul>
-      </div>
-    </div>
-  );
+  const availableDifficulties = isDailyGame && dailyGameDifficulty ? [dailyGameDifficulty] : DIFFICULTIES;
 
   const playingContent = (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
+      position: 'fixed', inset: 0, zIndex: 1,
       background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
       fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
       overflow: 'hidden', display: 'flex', flexDirection: 'column',
@@ -339,7 +363,9 @@ const TugOfMathsGame = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 16px', background: 'rgba(0,0,0,0.3)',
       }}>
-        <div style={{ width: 80 }} />
+        <button onClick={handleReset} style={{ background: 'none', border: 'none', color: '#e0e0e0', cursor: 'pointer', fontSize: 14, opacity: 0.8 }}>
+          ☰ Menu
+        </button>
         <h1 style={{ fontSize: 18, fontWeight: 700, color: '#FF6B3E', margin: 0 }}>
           🎯 Tug of Maths
         </h1>
@@ -481,23 +507,118 @@ const TugOfMathsGame = () => {
     </div>
   );
 
+  /* ═══ MENU ═══ */
+  if (gameState === 'menu') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(180deg, #1a1a2e, #16213e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e0e0e0', fontFamily: "'Segoe UI', sans-serif" }}>
+          <div>Loading...</div>
+        </div>
+      );
+    }
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#e0e0e0', fontFamily: "'Segoe UI', sans-serif", padding: 20 }}>
+        <button
+          onClick={() => setShowInstructions(true)}
+          style={{ position: 'absolute', top: 20, right: 20, padding: '10px 20px', background: 'rgba(255,107,62,0.2)', border: '2px solid rgba(255,107,62,0.5)', borderRadius: 10, color: '#FF6B3E', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}
+        >
+          📖 How to Play
+        </button>
+
+        {showInstructions && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowInstructions(false)}>
+            <div style={{ background: 'linear-gradient(180deg, #1a1a2e, #16213e)', border: '2px solid #FF6B3E', borderRadius: 20, padding: 28, maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', color: '#e0e0e0' }} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setShowInstructions(false)} style={{ float: 'right', background: 'none', border: 'none', color: '#e0e0e0', fontSize: 24, cursor: 'pointer' }}>×</button>
+              <h2 style={{ marginTop: 0, color: '#FF6B3E' }}>🎯 Tug of Maths – How to Play</h2>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>Objective</h3>
+              <p>Battle the computer in a mental math tug-of-war! Answer correctly to pull the rope your way and win the game.</p>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>How to Play</h3>
+              <ul style={{ paddingLeft: 20 }}>
+                <li>Answer math questions correctly.</li>
+                <li>You have 10 seconds per question.</li>
+                <li>Correct answers pull the rope toward you.</li>
+                <li>Wrong answers (or time out) help the computer.</li>
+              </ul>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>Winning</h3>
+              <ul style={{ paddingLeft: 20 }}>
+                <li>Pull the rope completely to your side, or</li>
+                <li>Have the highest score when time runs out.</li>
+                <li>Maximum score: 200 points. Time limit: 5 minutes.</li>
+              </ul>
+              <h3 style={{ fontSize: 16, color: '#aaa' }}>Difficulty</h3>
+              <ul style={{ paddingLeft: 20 }}>
+                <li><strong>Easy:</strong> Addition &amp; Subtraction (1–20)</li>
+                <li><strong>Moderate:</strong> Multiplication &amp; Division</li>
+                <li><strong>Hard:</strong> Mixed operations, larger numbers. Higher difficulty = more points!</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        <div style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', marginBottom: 8 }}>🪢</div>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, margin: 0, color: '#FF6B3E' }}>Tug of Maths</h1>
+        <p style={{ opacity: 0.7, margin: '0 0 1rem', fontSize: 'clamp(0.8rem, 2.5vw, 1rem)' }}>Mental math tug-of-war</p>
+        {isDailyGame && (
+          <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(255,107,62,0.2)', border: '1px solid rgba(255,107,62,0.4)', borderRadius: 20, fontSize: 13, color: '#FF6B3E', fontWeight: 600 }}>
+            🎯 Daily Challenge
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 360 }}>
+          {availableDifficulties.map((d) => {
+            const isSelected = difficulty === d;
+            return (
+              <button
+                key={d}
+                onClick={() => !isDailyGame && setDifficulty(d)}
+                style={{
+                  padding: '16px 20px', borderRadius: 14, border: isSelected ? '2px solid #FF6B3E' : '2px solid rgba(255,255,255,0.2)',
+                  background: isSelected ? 'rgba(255,107,62,0.15)' : 'rgba(255,255,255,0.06)', color: '#e0e0e0', cursor: isDailyGame ? 'default' : 'pointer',
+                  textAlign: 'left', transition: 'all 0.2s', transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{d}</div>
+                <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>{getDifficultyDesc(d)}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => handleStart()}
+          style={{ marginTop: 24, padding: '14px 48px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', background: 'linear-gradient(135deg, #FF6B3E, #e55a2b)', color: '#fff', boxShadow: '0 4px 20px rgba(255,107,62,0.4)' }}
+        >
+          🚀 Start Game
+        </button>
+      </div>
+    );
+  }
+
+  /* ═══ PLAYING or FINISHED (game + modal) ═══ */
+  const timeElapsed = completionData?.timeElapsed ?? (gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0);
+
   return (
-    <GameFrameworkV2
-      gameTitle="Tug of Maths"
-      gameShortDescription="Battle the computer in a mental math tug-of-war! Answer correctly to pull the rope your way."
-      category="Math"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={gameTimeLeft}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <>
+      {(gameState === 'playing' || gameState === 'finished') && playingContent}
+
+      <GameCompletionModal
+        isVisible={gameState === 'finished' && completionData != null}
+        onClose={handleReset}
+        gameTitle="Tug of Maths"
+        score={completionData?.score ?? score}
+        moves={completionData?.questionNumber ?? questionNumber}
+        timeElapsed={timeElapsed}
+        gameTimeLimit={GAME_DURATION}
+        isVictory={completionData?.isVictory ?? false}
+        difficulty={completionData?.difficulty ?? difficulty}
+        customMessages={{
+          perfectScore: 180,
+          goodScore: 120,
+          maxScore: 200,
+          stats: `🤖 Computer: ${completionData?.computerScore ?? computerScore}/200 • 📊 Questions: ${completionData?.questionNumber ?? questionNumber} • ⏱ ${Math.floor(timeElapsed / 60)}:${(timeElapsed % 60).toString().padStart(2, '0')}`,
+        }}
+      />
+    </>
   );
 };
 
