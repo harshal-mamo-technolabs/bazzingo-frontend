@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const LEVELS = {
   easy: { gridSize: 6, candyTypes: 4, rounds: 8, label: 'Easy' },

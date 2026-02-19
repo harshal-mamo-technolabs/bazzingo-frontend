@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const SYMBOLS = ['●', '▲', '■', '◆', '★', '⬟'];
 const SYM_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#e879f9', '#fb923c'];
@@ -361,14 +362,31 @@ export default function LogicGridSolver({ onBack }) {
     : Object.entries(LEVELS);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : level;
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tGameTitle = useTranslateText('Logic Grid Solver');
+  const tHowToPlayTitle = useTranslateText('Logic Grid Solver – How to Play');
+  const tSubtitle = useTranslateText('Fill the grid so each row and column has unique symbols. Tap a cell, then tap a symbol. Reach max score to win.');
+  const tLevelLabels = { easy: useTranslateText('Easy'), moderate: useTranslateText('Moderate'), hard: useTranslateText('Hard') };
+  const tLogicGridBullet1 = useTranslateText('Fill the grid so each row and column contains each symbol exactly once (like Sudoku with symbols).');
+  const tLogicGridBullet2 = useTranslateText('Tap an empty cell to select it, then pick a symbol from the palette below. Use ✕ to clear your guess.');
+  const tLogicGridBullet3 = useTranslateText('Cells marked 🔒 are given clues and cannot be changed.');
+  const tLogicGridBullet4 = useTranslateText("You have 2 minutes. Maximum score is 200 points. Wrong guesses don't remove filled cells but add to your error count.");
+  const tPickSymbol = useTranslateText('Pick a symbol');
+  const tTapCellToFill = useTranslateText('Tap a cell to fill');
+  const tFilled = useTranslateText('filled');
+  const tErrors = useTranslateText('errors');
+
   const instructionsContent = (
     <>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
       <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-        <li>Fill the grid so each <strong>row</strong> and <strong>column</strong> contains each symbol exactly once (like Sudoku with symbols).</li>
-        <li>Tap an empty cell to select it, then pick a symbol from the palette below. Use ✕ to clear your guess.</li>
-        <li>Cells marked 🔒 are given clues and cannot be changed.</li>
-        <li>You have <strong>2 minutes</strong>. Maximum score is <strong>200</strong> points. Wrong guesses don’t remove filled cells but add to your error count.</li>
+        <li>{tLogicGridBullet1}</li>
+        <li>{tLogicGridBullet2}</li>
+        <li>{tLogicGridBullet3}</li>
+        <li>{tLogicGridBullet4}</li>
       </ul>
     </>
   );
@@ -387,7 +405,7 @@ export default function LogicGridSolver({ onBack }) {
         >
           {phase === 'menu' ? '←' : '✕'}
         </button>
-        <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 'clamp(1rem,4vw,1.3rem)' }}>🧩 Logic Grid</div>
+        <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 'clamp(1rem,4vw,1.3rem)' }}>🧩 {tGameTitle}</div>
         {phase === 'menu' ? (
           <button
             type="button"
@@ -399,7 +417,7 @@ export default function LogicGridSolver({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            ❓ How to Play
+            ❓ {tHowToPlay}
           </button>
         ) : (
           <div style={{ color: low ? '#ef4444' : '#94a3b8', fontWeight: 700, fontSize: 'clamp(0.85rem,3vw,1.1rem)', animation: low ? 'lgs-pulse 1s infinite' : undefined }}>
@@ -427,26 +445,26 @@ export default function LogicGridSolver({ onBack }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#818cf8' }}>🧩 Logic Grid Solver – How to Play</h2>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#818cf8' }}>🧩 {tHowToPlayTitle}</h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, cursor: 'pointer' }}>×</button>
                 </div>
                 <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>{instructionsContent}</div>
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
-                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>Got it</button>
+                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>{tGotIt}</button>
                 </div>
               </div>
             </div>
           )}
           <div style={{ background: '#1e293b', borderRadius: 20, padding: '32px 24px', maxWidth: 420, width: '100%', textAlign: 'center', border: '2px solid #334155' }}>
             {isDailyGame && (
-              <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.2)', color: '#a5b4fc', fontSize: 12, fontWeight: 600 }}>📅 Daily Challenge</div>
+              <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.2)', color: '#a5b4fc', fontSize: 12, fontWeight: 600 }}>📅 {tDailyChallenge}</div>
             )}
             <div style={{ fontSize: 48, marginBottom: 8 }}>🧩</div>
-            <h1 style={{ color: '#f1f5f9', fontSize: 'clamp(1.4rem,5vw,2rem)', fontWeight: 800, margin: '0 0 8px' }}>Logic Grid Solver</h1>
+            <h1 style={{ color: '#f1f5f9', fontSize: 'clamp(1.4rem,5vw,2rem)', fontWeight: 800, margin: '0 0 8px' }}>{tGameTitle}</h1>
             <p style={{ color: '#94a3b8', fontSize: 'clamp(0.8rem,3vw,0.95rem)', margin: '0 0 24px', lineHeight: 1.5 }}>
-              Fill the grid so each row and column contains each symbol exactly once!
+              {tSubtitle}
             </p>
             {!checkingDailyGame && levelEntries.map(([key, val]) => (
               <button
@@ -461,7 +479,7 @@ export default function LogicGridSolver({ onBack }) {
                 onMouseEnter={e => !isDailyGame && (e.target.style.transform = 'scale(1.03)')}
                 onMouseLeave={e => (e.target.style.transform = 'scale(1)')}
               >
-                {val.label} — {val.size}×{val.size} grid
+                {tLevelLabels[key]} — {val.size}×{val.size} grid
               </button>
             ))}
             <button
@@ -472,7 +490,7 @@ export default function LogicGridSolver({ onBack }) {
                 background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 'clamp(0.9rem,3vw,1.05rem)', fontWeight: 700, cursor: (!selectedLevel || checkingDailyGame) ? 'not-allowed' : 'pointer', opacity: (!selectedLevel || checkingDailyGame) ? 0.6 : 1,
               }}
             >
-              Start Game
+              {tStartGame}
             </button>
             <div style={{ marginTop: 20, color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)' }}>⏱ 2 min · 🏆 200 pts max</div>
           </div>
@@ -492,7 +510,7 @@ export default function LogicGridSolver({ onBack }) {
           🏆 {Math.round(score)}/{MAX_SCORE}
         </div>
         <div style={{ color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.85rem)' }}>
-          {filled}/{totalToFill} filled · {errors} errors
+          {filled}/{totalToFill} {tFilled} · {errors} {tErrors}
         </div>
       </div>
 
@@ -549,7 +567,7 @@ export default function LogicGridSolver({ onBack }) {
 
       {/* Symbol picker */}
       <div style={{ color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>
-        {selected ? 'Pick a symbol' : 'Tap a cell to fill'}
+        {selected ? tPickSymbol : tTapCellToFill}
       </div>
       <div style={{ display: 'flex', gap: 'clamp(6px,2vw,10px)', marginBottom: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
         {Array.from({ length: cfg.size }).map((_, i) => (
@@ -610,7 +628,7 @@ export default function LogicGridSolver({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Logic Grid Solver"
+          gameTitle={tGameTitle}
           score={completionData.score}
           timeElapsed={completionData.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

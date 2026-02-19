@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Volume2, VolumeX, Clock } from 'lucide-react';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const tugImage = '/tug-of-war-players.png';
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 // ============================================================================
 // CONSTANTS
@@ -251,6 +252,17 @@ const TrainOfThought = () => {
   const [currentDifficulty, setCurrentDifficulty] = useState(null);
   const [isPortrait, setIsPortrait] = useState(false);
   const [autoStartLevel, setAutoStartLevel] = useState(null);
+
+  const tGameTitle = useTranslateText('Train of Thought');
+  const tSelectDifficulty = useTranslateText('Select Difficulty');
+  const tPlaying = useTranslateText('Playing: ');
+  const tDifficulty = useTranslateText('Difficulty');
+  const tTimeLeft = useTranslateText('Time Left');
+  const tLevelLabels = {
+    easy: useTranslateText('Easy'),
+    moderate: useTranslateText('Moderate'),
+    hard: useTranslateText('Hard'),
+  };
 
   const animationRef = useRef();
   const lastTimeRef = useRef(0);
@@ -691,7 +703,7 @@ const TrainOfThought = () => {
             </p>
 
             <h2 style={{ fontSize: isCompact ? '18px' : '28px', marginBottom: isCompact ? '12px' : '24px', color: '#ffd700' }}>
-              {autoStartLevel ? `Playing: ${autoStartLevel.charAt(0).toUpperCase() + autoStartLevel.slice(1)}` : 'Select Difficulty'}
+              {autoStartLevel ? `${tPlaying}${tLevelLabels[autoStartLevel] ?? autoStartLevel}` : tSelectDifficulty}
             </h2>
             <div style={{ display: 'flex', gap: isCompact ? '12px' : '24px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {autoStartLevel 
@@ -1022,8 +1034,8 @@ const TrainOfThought = () => {
             flexWrap: 'wrap',
           }}>
             {[
-              { icon: '📊', label: 'Difficulty', value: currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1) },
-              { icon: '⏱️', label: 'Time Left', value: formatTimeRemaining(gameState.timeElapsed), highlight: isTimeLow },
+              { icon: '📊', label: tDifficulty, value: tLevelLabels[currentDifficulty] ?? currentDifficulty },
+              { icon: '⏱️', label: tTimeLeft, value: formatTimeRemaining(gameState.timeElapsed), highlight: isTimeLow },
               { icon: '⭐', label: 'Score', value: gameState.score.toString() },
             ].map((item, idx) => (
               <div key={idx} style={{
@@ -1108,7 +1120,7 @@ const TrainOfThought = () => {
             border: '2px solid rgba(255,255,255,0.2)',
           }}>
             <div style={{ fontSize: isCompact ? '18px' : '32px', marginBottom: '6px', fontWeight: 'bold' }}>
-              🚂 Train of Thought
+              🚂 {tGameTitle}
             </div>
             <div style={{
               fontSize: isCompact ? '10px' : '14px',
@@ -1138,7 +1150,7 @@ const TrainOfThought = () => {
       <GameCompletionModal
         isVisible={gameState.phase === 'ended'}
         onClose={backToMenu}
-        gameTitle="Train of Thought"
+        gameTitle={tGameTitle}
         score={gameState.score}
         moves={null}
         timeElapsed={gameState.timeElapsed}

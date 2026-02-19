@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const MAX_SCORE = 200;
 const TIME_LIMIT = 120;
@@ -325,15 +326,28 @@ export default function RecallSequence({ onBack }) {
     : Object.entries(LEVELS);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : level;
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tGameTitle = useTranslateText('Recall Sequence');
+  const tHowToPlayTitle = useTranslateText('Recall Sequence – How to Play');
+  const tLevelLabels = { easy: useTranslateText('Easy'), moderate: useTranslateText('Moderate'), hard: useTranslateText('Hard') };
+  const tSeqBullet1 = useTranslateText('Choose a difficulty (Easy / Moderate / Hard). Each level has more colors and longer sequences.');
+  const tSeqBullet2 = useTranslateText('Watch the sequence as the game flashes the colored buttons in order.');
+  const tSeqBullet3 = useTranslateText('Repeat the same sequence by tapping the buttons in the correct order.');
+  const tSeqBullet4 = useTranslateText('Complete all rounds before time runs out. You have 2 minutes and can score up to 200 points.');
+  const tSeqBullet5 = useTranslateText('Consecutive correct rounds build a combo for bonus points. One wrong tap replays the sequence.');
+
   const instructionsModalContent = (
     <>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
       <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-        <li>Choose a difficulty (Easy / Moderate / Hard). Each level has more colors and longer sequences.</li>
-        <li><strong>Watch</strong> the sequence as the game flashes the colored buttons in order.</li>
-        <li><strong>Repeat</strong> the same sequence by tapping the buttons in the correct order.</li>
-        <li>Complete all rounds before time runs out. You have <strong>2 minutes</strong> and can score up to <strong>200</strong> points.</li>
-        <li>Consecutive correct rounds build a <strong>combo</strong> for bonus points. One wrong tap replays the sequence.</li>
+        <li>{tSeqBullet1}</li>
+        <li>{tSeqBullet2}</li>
+        <li>{tSeqBullet3}</li>
+        <li>{tSeqBullet4}</li>
+        <li>{tSeqBullet5}</li>
       </ul>
     </>
   );
@@ -503,7 +517,7 @@ export default function RecallSequence({ onBack }) {
     <div style={styles.wrapper}>
       <style>{css}</style>
       <div style={styles.header}>
-        <span style={{ fontWeight: 700, fontSize: 15 }}>🧠 Recall Sequence</span>
+        <span style={{ fontWeight: 700, fontSize: 15 }}>🧠 {tGameTitle}</span>
         {phase === 'menu' ? (
           <button
             type="button"
@@ -515,7 +529,7 @@ export default function RecallSequence({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <span aria-hidden>❓</span> How to Play
+            <span aria-hidden>❓</span> {tHowToPlay}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -546,7 +560,7 @@ export default function RecallSequence({ onBack }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="sequence-recall-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#a855f7' }}>
-                    🧠 Recall Sequence – How to Play
+                    🧠 {tHowToPlayTitle}
                   </h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -557,7 +571,7 @@ export default function RecallSequence({ onBack }) {
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
                     style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>
-                    Got it
+                    {tGotIt}
                   </button>
                 </div>
               </div>
@@ -566,10 +580,10 @@ export default function RecallSequence({ onBack }) {
           <div style={styles.menuCard}>
             {isDailyGame && (
               <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(168,85,247,0.2)', color: '#c084fc', fontSize: 12, fontWeight: 600 }}>
-                📅 Daily Challenge
+                📅 {tDailyChallenge}
               </div>
             )}
-            <div style={styles.menuTitle}>Recall Sequence</div>
+            <div style={styles.menuTitle}>{tGameTitle}</div>
             <p style={styles.menuSub}>
               Watch the color sequence flash, then repeat it in order.<br />
               How far can your memory take you?
@@ -586,7 +600,7 @@ export default function RecallSequence({ onBack }) {
                 onMouseLeave={e => { e.target.style.transform = 'scale(1)'; }}
                 onClick={() => !isDailyGame && setLevel(key)}
               >
-                {cfg.label}
+                {tLevelLabels[key]}
                 <div style={styles.levelDesc}>
                   {cfg.colors} colors · Start at {cfg.startLen} · Up to {cfg.maxLen}
                 </div>
@@ -597,7 +611,7 @@ export default function RecallSequence({ onBack }) {
               disabled={!selectedLevel || checkingDailyGame}
               onClick={() => startGame(selectedLevel)}
             >
-              Start Game
+              {tStartGame}
             </button>
           </div>
         </div>
@@ -652,7 +666,7 @@ export default function RecallSequence({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Recall Sequence"
+          gameTitle={tGameTitle}
           score={completionData.score}
           timeElapsed={completionData.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

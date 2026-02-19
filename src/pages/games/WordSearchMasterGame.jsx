@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 /* ─── constants ─── */
 const MAX_SCORE = 200;
@@ -377,15 +378,28 @@ export default function WordSearchMaster({ onBack }) {
     : Object.entries(LEVELS);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : level;
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tGameTitle = useTranslateText('Word Search Master');
+  const tHowToPlayTitle = useTranslateText('Word Search Master – How to Play');
+  const tLevelLabels = { easy: useTranslateText('Easy'), moderate: useTranslateText('Moderate'), hard: useTranslateText('Hard') };
+  const tWsmBullet1 = useTranslateText('Choose a difficulty (Easy / Moderate / Hard). Each has a grid and a set of hidden words.');
+  const tWsmBullet2 = useTranslateText('Words are hidden in a straight line—horizontal, vertical, or diagonal (forward or backward).');
+  const tWsmBullet3 = useTranslateText('Drag across letters to select a word. Release to submit.');
+  const tWsmBullet4 = useTranslateText('Find all words before time runs out. You have 2 minutes and can score up to 200 points.');
+  const tWsmBullet5 = useTranslateText('Consecutive finds build a combo for extra satisfaction. Wrong selections reset the combo.');
+
   const instructionsModalContent = (
     <>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
       <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-        <li>Choose a difficulty (Easy / Moderate / Hard). Each has a grid and a set of hidden words.</li>
-        <li>Words are hidden <strong>in a straight line</strong>—horizontal, vertical, or diagonal (forward or backward).</li>
-        <li><strong>Drag</strong> across letters to select a word. Release to submit.</li>
-        <li>Find all words before time runs out. You have <strong>2 minutes</strong> and can score up to <strong>200</strong> points.</li>
-        <li>Consecutive finds build a <strong>combo</strong> for extra satisfaction. Wrong selections reset the combo.</li>
+        <li>{tWsmBullet1}</li>
+        <li>{tWsmBullet2}</li>
+        <li>{tWsmBullet3}</li>
+        <li>{tWsmBullet4}</li>
+        <li>{tWsmBullet5}</li>
       </ul>
     </>
   );
@@ -444,7 +458,7 @@ export default function WordSearchMaster({ onBack }) {
     <div style={wrapper}>
       {/* Header */}
       <div style={{ width: '100%', maxWidth: 700, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, zIndex: 10 }}>
-        <h1 style={{ ...titleGrad, fontSize: 'clamp(16px, 4vw, 22px)', margin: 0 }}>🔤 Word Search Master</h1>
+        <h1 style={{ ...titleGrad, fontSize: 'clamp(16px, 4vw, 22px)', margin: 0 }}>🔤 {tGameTitle}</h1>
         {phase === 'menu' ? (
           <button
             type="button"
@@ -456,7 +470,7 @@ export default function WordSearchMaster({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <span aria-hidden>❓</span> How to Play
+            <span aria-hidden>❓</span> {tHowToPlay}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 'clamp(12px, 2.5vw, 15px)', fontWeight: 600 }}>
@@ -489,7 +503,7 @@ export default function WordSearchMaster({ onBack }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="word-search-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#a78bfa' }}>
-                    🔤 Word Search Master – How to Play
+                    🔤 {tHowToPlayTitle}
                   </h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -500,7 +514,7 @@ export default function WordSearchMaster({ onBack }) {
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
                     style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>
-                    Got it
+                    {tGotIt}
                   </button>
                 </div>
               </div>
@@ -509,11 +523,11 @@ export default function WordSearchMaster({ onBack }) {
           <div style={menuCard}>
             {isDailyGame && (
               <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(139,92,246,0.2)', color: '#a78bfa', fontSize: 12, fontWeight: 600 }}>
-                📅 Daily Challenge
+                📅 {tDailyChallenge}
               </div>
             )}
             <div style={{ fontSize: 'clamp(40px, 10vw, 64px)', marginBottom: 8, animation: 'ws-float 3s ease-in-out infinite' }}>🔤</div>
-            <h2 style={{ ...titleGrad, fontSize: 'clamp(22px, 5vw, 32px)', marginBottom: 4 }}>Word Search Master</h2>
+            <h2 style={{ ...titleGrad, fontSize: 'clamp(22px, 5vw, 32px)', marginBottom: 4 }}>{tGameTitle}</h2>
             <p style={{ color: 'rgba(226,232,240,0.6)', fontSize: 'clamp(12px, 2.5vw, 15px)', marginBottom: 24, lineHeight: 1.5 }}>
               Find hidden words in the grid.<br />Drag across letters to select!
             </p>
@@ -527,7 +541,7 @@ export default function WordSearchMaster({ onBack }) {
                 }}
                 onClick={() => !isDailyGame && setLevel(key)}
               >
-                {val.emoji} {val.label} — {val.gridSize}×{val.gridSize} · {val.wordCount} words
+                {val.emoji} {tLevelLabels[key]} — {val.gridSize}×{val.gridSize} · {val.wordCount} words
               </button>
             ))}
             <button
@@ -535,7 +549,7 @@ export default function WordSearchMaster({ onBack }) {
               disabled={!selectedLevel || checkingDailyGame}
               onClick={() => startGame(selectedLevel)}
             >
-              Start Game
+              {tStartGame}
             </button>
             {onBack && <button style={{ ...baseBtn, marginTop: 16, width: '100%', padding: '10px' }} onClick={onBack}>← Back to Games</button>}
           </div>
@@ -626,7 +640,7 @@ export default function WordSearchMaster({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Word Search Master"
+          gameTitle={tGameTitle}
           score={completionData.score}
           timeElapsed={completionData.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 import Button from '../../components/Form/Button';
 import { ArrowLeft, Play, Volume2, VolumeX, RotateCcw, Trophy, ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 

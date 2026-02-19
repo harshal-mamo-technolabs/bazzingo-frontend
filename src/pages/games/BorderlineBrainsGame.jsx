@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 // ─── COUNTRY DATA ───────────────────────────────────────────────────
 const COUNTRIES = [
@@ -579,13 +580,31 @@ export default function BorderlineBrains({ onBack }) {
     : Object.entries(LEVELS).map(([k, v]) => [k, { label: v.label }]);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : difficulty;
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tGameTitle = useTranslateText('Borderline Brains');
+  const tHowToPlayTitle = useTranslateText('Borderline Brains – How to Play');
+  const tSubtitle = useTranslateText('Identify the country of origin from travelers\' belongings. Build combos for bonus points!');
+  const tLevelLabels = { Easy: useTranslateText('Easy'), Moderate: useTranslateText('Moderate'), Hard: useTranslateText('Hard') };
+  const tRound = useTranslateText('Round');
+  const tScore = useTranslateText('Score');
+  const tTime = useTranslateText('Time');
+  const tExit = useTranslateText('Exit');
+  const tUpTo = useTranslateText('Up to 200 pts · Time limit by difficulty');
+
+  const tBorderlineBullet1 = useTranslateText("You're a customs officer! Examine travelers' belongings and identify their country of origin from visual clues.");
+  const tBorderlineBullet2 = useTranslateText('Inspect the clues, analyze cultural patterns, and select the correct country. Build combos (3+) for a 1.5x point multiplier.');
+  const tBorderlineBullet3 = useTranslateText('Correct answers earn points. Reach 200 points to win. Higher difficulty = fewer clues and less time.');
+
   const instructionsContent = (
     <>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
       <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6, color: '#e2e8f0' }}>
-        <li>You&apos;re a customs officer! Examine travelers&apos; belongings and identify their <strong>country of origin</strong> from visual clues.</li>
-        <li>Inspect the clues, analyze cultural patterns, and select the correct country. Build <strong>combos</strong> (3+) for a 1.5x point multiplier.</li>
-        <li>Correct answers earn points. Reach <strong>200 points</strong> to win. Higher difficulty = fewer clues and less time.</li>
+        <li>{tBorderlineBullet1}</li>
+        <li>{tBorderlineBullet2}</li>
+        <li>{tBorderlineBullet3}</li>
       </ul>
     </>
   );
@@ -613,7 +632,7 @@ export default function BorderlineBrains({ onBack }) {
                 <button onClick={backToMenu} style={{
                   background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.3)',
                   color: '#f87171', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 13,
-                }}>✕ Exit</button>
+                }}>✕ {tExit}</button>
                 <span style={{ color: '#64748b', fontSize: 13 }}>
                   {LEVELS[level].label.toUpperCase()}
                 </span>
@@ -621,15 +640,15 @@ export default function BorderlineBrains({ onBack }) {
 
               <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Round</div>
+                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>{tRound}</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#e2e8f0' }}>{currentRound + 1}/{config.rounds}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Score</div>
+                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>{tScore}</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#fbbf24' }}>{score}/200</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>Time</div>
+                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>{tTime}</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: timeLeft <= 15 ? '#f87171' : '#34d399' }}>
                     {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
                   </div>
@@ -769,7 +788,7 @@ export default function BorderlineBrains({ onBack }) {
         >
           {appPhase === 'menu' ? '←' : '✕'}
         </button>
-        <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 'clamp(1rem,4vw,1.3rem)' }}>🛂 Borderline Brains</div>
+        <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 'clamp(1rem,4vw,1.3rem)' }}>🛂 {tGameTitle}</div>
         {appPhase === 'menu' ? (
           <button
             type="button"
@@ -781,7 +800,7 @@ export default function BorderlineBrains({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            ❓ How to Play
+            ❓ {tHowToPlay}
           </button>
         ) : (
           <div style={{ color: timeLeft <= 15 ? '#f87171' : '#94a3b8', fontWeight: 700, fontSize: 'clamp(0.85rem,3vw,1.1rem)' }}>
@@ -809,26 +828,26 @@ export default function BorderlineBrains({ onBack }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#818cf8' }}>🛂 Borderline Brains – How to Play</h2>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#818cf8' }}>🛂 {tHowToPlayTitle}</h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, cursor: 'pointer' }}>×</button>
                 </div>
                 <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>{instructionsContent}</div>
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
-                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>Got it</button>
+                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>{tGotIt}</button>
                 </div>
               </div>
             </div>
           )}
           <div style={{ background: '#1e293b', borderRadius: 20, padding: '32px 24px', maxWidth: 420, width: '100%', textAlign: 'center', border: '2px solid #334155' }}>
             {isDailyGame && (
-              <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.2)', color: '#a5b4fc', fontSize: 12, fontWeight: 600 }}>📅 Daily Challenge</div>
+              <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.2)', color: '#a5b4fc', fontSize: 12, fontWeight: 600 }}>📅 {tDailyChallenge}</div>
             )}
             <div style={{ fontSize: 48, marginBottom: 8 }}>🛂</div>
-            <h1 style={{ color: '#f1f5f9', fontSize: 'clamp(1.4rem,5vw,2rem)', fontWeight: 800, margin: '0 0 8px' }}>Borderline Brains</h1>
+            <h1 style={{ color: '#f1f5f9', fontSize: 'clamp(1.4rem,5vw,2rem)', fontWeight: 800, margin: '0 0 8px' }}>{tGameTitle}</h1>
             <p style={{ color: '#94a3b8', fontSize: 'clamp(0.8rem,3vw,0.95rem)', margin: '0 0 24px', lineHeight: 1.5 }}>
-              Identify the country of origin from travelers&apos; belongings. Build combos for bonus points!
+              {tSubtitle}
             </p>
             {!checkingDailyGame && levelEntries.map(([key, val]) => (
               <button
@@ -843,7 +862,7 @@ export default function BorderlineBrains({ onBack }) {
                 onMouseEnter={e => !isDailyGame && (e.target.style.transform = 'scale(1.03)')}
                 onMouseLeave={e => (e.target.style.transform = 'scale(1)')}
               >
-                {val.label}
+                {tLevelLabels[key]}
               </button>
             ))}
             <button
@@ -854,9 +873,9 @@ export default function BorderlineBrains({ onBack }) {
                 background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 'clamp(0.9rem,3vw,1.05rem)', fontWeight: 700, cursor: (!selectedLevel || checkingDailyGame) ? 'not-allowed' : 'pointer', opacity: (!selectedLevel || checkingDailyGame) ? 0.6 : 1,
               }}
             >
-              Start Game
+              {tStartGame}
             </button>
-            <div style={{ marginTop: 20, color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)' }}>Up to 200 pts · Time limit by difficulty</div>
+            <div style={{ marginTop: 20, color: '#64748b', fontSize: 'clamp(0.7rem,2.5vw,0.8rem)' }}>{tUpTo}</div>
           </div>
         </div>
       )}

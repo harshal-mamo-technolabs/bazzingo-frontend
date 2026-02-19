@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const LEVELS = {
   easy: { rows: 8, cols: 8, mines: 10, label: 'Easy', emoji: '🟢' },
@@ -133,6 +134,29 @@ export default function MineSweeper({ onBack }) {
   const location = useLocation();
   timeLeftRef.current = timeLeft;
   scoreRef.current = score;
+
+  const tGameTitle = useTranslateText('Mine Sweeper');
+  const tHowToPlayTitle = useTranslateText('Mine Sweeper – How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Clear all safe cells without revealing any mines. Use numbers and flags to deduce mine positions.');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tBullet1 = useTranslateText('Left-click (or tap) a cell to reveal it.');
+  const tBullet2 = useTranslateText('Numbers show how many mines are in the 8 surrounding cells.');
+  const tBullet3 = useTranslateText('Right-click or use the flag button to mark cells you think contain mines.');
+  const tBullet4 = useTranslateText('Reveal all non-mine cells before time runs out to win.');
+  const tScoringTime = useTranslateText('Scoring & Time');
+  const tScoringDesc = useTranslateText('Score up to 200 points based on revealed cells. You have 120 seconds. Hitting a mine or running out of time ends the game.');
+  const tLevels = useTranslateText('Levels');
+  const tLevelsDesc = useTranslateText('Easy (8×8, 10 mines), Moderate (12×12, 30 mines), Hard (16×16, 55 mines).');
+  const tGotIt = useTranslateText('Got it');
+  const tSubtitle = useTranslateText('Clear the board without hitting mines. Right-click or use flag mode to mark mines.');
+  const tCheckingDaily = useTranslateText('Checking daily challenge…');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tBackToMenu = useTranslateText('← Back to Menu');
+  const tBack = useTranslateText('← Back');
+  const tFooterMobile = useTranslateText('Tap cell to reveal · Toggle 🚩 for flags');
+  const tFooterDesktop = useTranslateText('Left-click to reveal · Right-click to flag · Toggle 🚩 button on mobile');
 
   const queryLevel = useMemo(() => {
     const p = new URLSearchParams(window.location.search);
@@ -455,25 +479,25 @@ export default function MineSweeper({ onBack }) {
   const instructionsModalContent = (
     <>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Objective</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Clear all safe cells without revealing any mines. Use numbers and flags to deduce mine positions.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tObjective}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tObjectiveDesc}</p>
       </section>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
         <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-          <li>Left-click (or tap) a cell to reveal it.</li>
-          <li>Numbers show how many mines are in the 8 surrounding cells.</li>
-          <li>Right-click or use the flag button to mark cells you think contain mines.</li>
-          <li>Reveal all non-mine cells before time runs out to win.</li>
+          <li>{tBullet1}</li>
+          <li>{tBullet2}</li>
+          <li>{tBullet3}</li>
+          <li>{tBullet4}</li>
         </ul>
       </section>
       <section style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Scoring & Time</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Score up to {TOTAL_POINTS} points based on revealed cells. You have {TIME_LIMIT} seconds. Hitting a mine or running out of time ends the game.</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tScoringTime}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tScoringDesc}</p>
       </section>
       <section>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Levels</h3>
-        <p style={{ margin: 0, lineHeight: 1.5 }}>Easy (8×8, 10 mines), Moderate (12×12, 30 mines), Hard (16×16, 55 mines).</p>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tLevels}</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>{tLevelsDesc}</p>
       </section>
     </>
   );
@@ -508,7 +532,7 @@ export default function MineSweeper({ onBack }) {
               cursor: 'pointer',
             }}
           >
-            <span aria-hidden>❓</span> How to Play
+            <span aria-hidden>❓</span> {tHowToPlay}
           </button>
           {showInstructions && (
             <div
@@ -536,7 +560,7 @@ export default function MineSweeper({ onBack }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="minesweeper-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#f59e0b' }}>
-                    💣 Mine Sweeper – How to Play
+                    💣 {tHowToPlayTitle}
                   </h2>
                   <button
                     type="button"
@@ -581,23 +605,23 @@ export default function MineSweeper({ onBack }) {
                       boxShadow: '0 4px 16px rgba(245,158,11,0.35)',
                     }}
                   >
-                    Got it
+                    {tGotIt}
                   </button>
                 </div>
               </div>
             </div>
           )}
           <div style={{ fontSize: 48, marginBottom: 8 }}>💣</div>
-          <h1 style={{ fontSize: isSmall ? 24 : 32, fontWeight: 800, marginBottom: 4 }}>Mine Sweeper</h1>
+          <h1 style={{ fontSize: isSmall ? 24 : 32, fontWeight: 800, marginBottom: 4 }}>{tGameTitle}</h1>
           <p style={{ color: '#94a3b8', marginBottom: 24, fontSize: 14 }}>
-            Clear the board without hitting mines. Right-click or use flag mode to mark mines.
+            {tSubtitle}
           </p>
           {checkingDailyGame && (
-            <p style={{ color: '#94a3b8', marginBottom: 16, fontSize: 13 }}>Checking daily challenge…</p>
+            <p style={{ color: '#94a3b8', marginBottom: 16, fontSize: 13 }}>{tCheckingDaily}</p>
           )}
           {!checkingDailyGame && isDailyGame && (
             <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.5)', borderRadius: 20, fontSize: 13, color: '#f59e0b', fontWeight: 600 }}>
-              Daily Challenge
+              {tDailyChallenge}
             </div>
           )}
           {!checkingDailyGame && levelEntries.map(([key, val]) => (
@@ -619,12 +643,12 @@ export default function MineSweeper({ onBack }) {
               onMouseEnter={e => e.target.style.transform = 'scale(1.03)'}
               onMouseLeave={e => e.target.style.transform = 'scale(1)'}
             >
-              Start Game
+              {tStartGame}
             </button>
           )}
           {onBack && (
             <button style={{ ...styles.backBtn, marginTop: 12, width: '100%', justifyContent: 'center' }}
-              onClick={onBack}>← Back to Menu</button>
+              onClick={onBack}>{tBackToMenu}</button>
           )}
         </div>
       </div>
@@ -636,9 +660,9 @@ export default function MineSweeper({ onBack }) {
       {/* Header */}
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => { clearInterval(timerRef.current); setCompletionData(null); setPhase('menu'); }}>
-          ← Back
+          {tBack}
         </button>
-        <div style={styles.title}>💣 Mine Sweeper</div>
+        <div style={styles.title}>💣 {tGameTitle}</div>
         <div style={styles.statBar}>
           <div style={styles.stat}>
             <span>⏱️</span>
@@ -691,7 +715,7 @@ export default function MineSweeper({ onBack }) {
 
       {/* Footer */}
       <div style={styles.footer}>
-        {isSmall ? 'Tap cell to reveal · Toggle 🚩 for flags' : 'Left-click to reveal · Right-click to flag · Toggle 🚩 button on mobile'}
+        {isSmall ? tFooterMobile : tFooterDesktop}
       </div>
     </div>
   );
@@ -706,7 +730,7 @@ export default function MineSweeper({ onBack }) {
         <GameCompletionModal
           isVisible
           onClose={handleReset}
-          gameTitle="Mine Sweeper"
+          gameTitle={tGameTitle}
           score={c.score}
           timeElapsed={c.timeElapsed ?? TIME_LIMIT}
           gameTimeLimit={TIME_LIMIT}

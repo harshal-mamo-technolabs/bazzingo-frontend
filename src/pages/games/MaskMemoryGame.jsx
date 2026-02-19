@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 /* ============================================================
    Mask Memory: Carnival Quest
@@ -259,6 +260,31 @@ export default function MaskMemory({ onBack }) {
   const [isDailyGame, setIsDailyGame] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+
+  const tHowToPlayMask = useTranslateText('How to Play Mask Memory');
+  const tHowToPlay = useTranslateText('How to Play');
+  const tObjective = useTranslateText('Objective');
+  const tObjectiveDesc = useTranslateText('Memorize the positions of colorful carnival masks, then match pairs by flipping cards. Complete all levels to win!');
+  const tBullet1 = useTranslateText('Cards are shown face-up briefly at the start');
+  const tBullet2 = useTranslateText('Click cards to flip and reveal masks');
+  const tBullet3 = useTranslateText('Match two identical masks to score');
+  const tBullet4 = useTranslateText('Build combos for bonus points!');
+  const tScoring = useTranslateText('Scoring');
+  const tBaseMatch = useTranslateText('Base match: +10 points');
+  const tComboBonus = useTranslateText('Combo bonus: +3 per streak');
+  const tMaxScore = useTranslateText('Maximum score: 200 points');
+  const tTimeLimit3 = useTranslateText('Time limit: 3 minutes');
+  const tDifficultyLevels = useTranslateText('Difficulty Levels');
+  const tVillageFair = useTranslateText('Village Fair: 4 pairs, easy');
+  const tGrandCarnival = useTranslateText('Grand Carnival: 6 pairs, medium');
+  const tMasqueradeBall = useTranslateText('Masquerade Ball: 8 pairs, hard');
+  const tCompleteAll3 = useTranslateText('Complete all 3 levels to win!');
+  const tProTip = useTranslateText('Pro Tip: Pay attention during the peek phase! Remember mask positions and colors. Building combos (matching multiple pairs in a row) gives you bonus points!');
+  const tGotItPlay = useTranslateText("Got it! Let's Play 🎭");
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tMaskMemory = useTranslateText('Mask Memory');
+  const tBack = useTranslateText('← Back');
+  const tLoading = useTranslateText('Loading...');
   const audioRef = useRef(null);
   const lockRef = useRef(false);
   const popupIdRef = useRef(0);
@@ -581,7 +607,7 @@ export default function MaskMemory({ onBack }) {
               fontWeight: 600,
               boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
             }}>
-              🎯 Daily Challenge: {LEVELS[dailyGameLevel].name}
+              {tDailyChallenge}: {LEVELS[dailyGameLevel].name}
             </div>
           )}
 
@@ -613,7 +639,7 @@ export default function MaskMemory({ onBack }) {
               e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
             }}
           >
-            📖 How to Play
+            📖 {tHowToPlay}
           </button>
 
           {/* Level cards */}
@@ -661,7 +687,7 @@ export default function MaskMemory({ onBack }) {
             <button onClick={onBack} style={{
               marginTop: '1.5rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
               borderRadius: '10px', padding: '0.6rem 1.5rem', color: '#fff', cursor: 'pointer', fontSize: '0.9rem',
-            }}>← Back</button>
+            }}>{tBack}</button>
           )}
         </div>
 
@@ -730,7 +756,7 @@ export default function MaskMemory({ onBack }) {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}>
-                🎭 How to Play Mask Memory
+                🎭 {tHowToPlayMask}
               </h2>
 
               <div style={{
@@ -751,14 +777,14 @@ export default function MaskMemory({ onBack }) {
                     marginBottom: '12px',
                     color: '#4CAF50',
                   }}>
-                    🎯 Objective
+                    🎯 {tObjective}
                   </h3>
                   <p style={{
                     fontSize: '14px',
                     lineHeight: '1.6',
                     opacity: 0.9,
                   }}>
-                    Memorize the positions of colorful carnival masks, then match pairs by flipping cards. Complete all levels to win!
+                    {tObjectiveDesc}
                   </p>
                 </div>
 
@@ -774,7 +800,7 @@ export default function MaskMemory({ onBack }) {
                     marginBottom: '12px',
                     color: '#2196F3',
                   }}>
-                    🎮 How to Play
+                    🎮 {tHowToPlay}
                   </h3>
                   <ul style={{
                     fontSize: '14px',
@@ -782,10 +808,10 @@ export default function MaskMemory({ onBack }) {
                     opacity: 0.9,
                     paddingLeft: '20px',
                   }}>
-                    <li>Cards are shown face-up briefly at the start</li>
-                    <li>Click cards to flip and reveal masks</li>
-                    <li>Match two identical masks to score</li>
-                    <li>Build combos for bonus points!</li>
+                    <li>{tBullet1}</li>
+                    <li>{tBullet2}</li>
+                    <li>{tBullet3}</li>
+                    <li>{tBullet4}</li>
                   </ul>
                 </div>
 
@@ -801,7 +827,7 @@ export default function MaskMemory({ onBack }) {
                     marginBottom: '12px',
                     color: '#FF9800',
                   }}>
-                    📊 Scoring
+                    📊 {tScoring}
                   </h3>
                   <ul style={{
                     fontSize: '14px',
@@ -809,10 +835,10 @@ export default function MaskMemory({ onBack }) {
                     opacity: 0.9,
                     paddingLeft: '20px',
                   }}>
-                    <li>Base match: +10 points</li>
-                    <li>Combo bonus: +3 per streak</li>
-                    <li>Maximum score: 200 points</li>
-                    <li>Time limit: 3 minutes</li>
+                    <li>{tBaseMatch}</li>
+                    <li>{tComboBonus}</li>
+                    <li>{tMaxScore}</li>
+                    <li>{tTimeLimit3}</li>
                   </ul>
                 </div>
 
@@ -828,7 +854,7 @@ export default function MaskMemory({ onBack }) {
                     marginBottom: '12px',
                     color: '#9C27B0',
                   }}>
-                    💡 Difficulty Levels
+                    💡 {tDifficultyLevels}
                   </h3>
                   <ul style={{
                     fontSize: '14px',
@@ -836,10 +862,10 @@ export default function MaskMemory({ onBack }) {
                     opacity: 0.9,
                     paddingLeft: '20px',
                   }}>
-                    <li><strong>Village Fair:</strong> 4 pairs, easy</li>
-                    <li><strong>Grand Carnival:</strong> 6 pairs, medium</li>
-                    <li><strong>Masquerade Ball:</strong> 8 pairs, hard</li>
-                    <li>Complete all 3 levels to win!</li>
+                    <li>{tVillageFair}</li>
+                    <li>{tGrandCarnival}</li>
+                    <li>{tMasqueradeBall}</li>
+                    <li>{tCompleteAll3}</li>
                   </ul>
                 </div>
               </div>
@@ -858,7 +884,7 @@ export default function MaskMemory({ onBack }) {
                   textAlign: 'center',
                   fontWeight: 500,
                 }}>
-                  💡 <strong>Pro Tip:</strong> Pay attention during the peek phase! Remember mask positions and colors. Building combos (matching multiple pairs in a row) gives you bonus points!
+                  💡 {tProTip}
                 </p>
               </div>
 
@@ -887,7 +913,7 @@ export default function MaskMemory({ onBack }) {
                   e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
                 }}
               >
-                Got it! Let's Play 🎭
+                {tGotItPlay}
               </button>
             </div>
           </div>
@@ -910,7 +936,7 @@ export default function MaskMemory({ onBack }) {
           zIndex: 1,
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎭</div>
-          <div style={{ fontSize: '18px', opacity: 0.8 }}>Loading...</div>
+          <div style={{ fontSize: '18px', opacity: 0.8 }}>{tLoading}</div>
         </div>
       </div>
     );
@@ -1116,7 +1142,7 @@ export default function MaskMemory({ onBack }) {
       <GameCompletionModal
         isVisible={phase === 'victory'}
         onClose={() => setPhase('menu')}
-        gameTitle="Mask Memory"
+        gameTitle={tMaskMemory}
         score={score}
         moves={moves}
         timeElapsed={TIME_LIMIT - timeLeft}
@@ -1134,7 +1160,7 @@ export default function MaskMemory({ onBack }) {
       <GameCompletionModal
         isVisible={phase === 'gameOver'}
         onClose={() => setPhase('menu')}
-        gameTitle="Mask Memory"
+        gameTitle={tMaskMemory}
         score={score}
         moves={moves}
         timeElapsed={TIME_LIMIT - timeLeft}

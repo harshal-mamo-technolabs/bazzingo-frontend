@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const MAX_SCORE = 200;
 const TIME_LIMIT = 120;
@@ -285,15 +286,28 @@ export default function TapChallenge({ onBack }) {
     : Object.entries(LEVELS);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : level;
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tGameTitle = useTranslateText('Tap Challenge');
+  const tHowToPlayTitle = useTranslateText('Tap Challenge – How to Play');
+  const tLevelLabels = { easy: useTranslateText('Easy'), moderate: useTranslateText('Moderate'), hard: useTranslateText('Hard') };
+  const tTapBullet1 = useTranslateText('Choose a difficulty (Easy / Moderate / Hard). Each has more targets and shorter lifespans.');
+  const tTapBullet2 = useTranslateText('Tap the colored targets as they appear before they disappear. Each target has a countdown ring.');
+  const tTapBullet3 = useTranslateText('Tap as many as you can before time runs out. You have 2 minutes and can score up to 200 points.');
+  const tTapBullet4 = useTranslateText('Consecutive taps build a combo for bonus points. Missing a target (letting it expire) resets the combo.');
+  const tTapBullet5 = useTranslateText('Complete all targets in time for a win. Test your reaction time and accuracy!');
+
   const instructionsModalContent = (
     <>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
       <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-        <li>Choose a difficulty (Easy / Moderate / Hard). Each has more targets and shorter lifespans.</li>
-        <li><strong>Tap</strong> the colored targets as they appear before they disappear. Each target has a countdown ring.</li>
-        <li>Tap as many as you can before time runs out. You have <strong>2 minutes</strong> and can score up to <strong>200</strong> points.</li>
-        <li>Consecutive taps build a <strong>combo</strong> for bonus points. Missing a target (letting it expire) resets the combo.</li>
-        <li>Complete all targets in time for a win. Test your reaction time and accuracy!</li>
+        <li>{tTapBullet1}</li>
+        <li>{tTapBullet2}</li>
+        <li>{tTapBullet3}</li>
+        <li>{tTapBullet4}</li>
+        <li>{tTapBullet5}</li>
       </ul>
     </>
   );
@@ -456,7 +470,7 @@ export default function TapChallenge({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <span aria-hidden>❓</span> How to Play
+            <span aria-hidden>❓</span> {tHowToPlay}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -493,7 +507,7 @@ export default function TapChallenge({ onBack }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="tap-challenge-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#ff6b6b' }}>
-                    👆 Tap Challenge – How to Play
+                    👆 {tHowToPlayTitle}
                   </h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -504,7 +518,7 @@ export default function TapChallenge({ onBack }) {
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
                     style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>
-                    Got it
+                    {tGotIt}
                   </button>
                 </div>
               </div>
@@ -513,10 +527,10 @@ export default function TapChallenge({ onBack }) {
           <div style={s.menuCard}>
             {isDailyGame && (
               <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(255,107,107,0.2)', color: '#fca5a5', fontSize: 12, fontWeight: 600 }}>
-                📅 Daily Challenge
+                📅 {tDailyChallenge}
               </div>
             )}
-            <div style={s.menuTitle}>Tap Challenge</div>
+            <div style={s.menuTitle}>{tGameTitle}</div>
             <p style={s.menuSub}>
               Tap targets as fast as possible before they disappear!<br />
               Test your reaction time and accuracy.
@@ -533,7 +547,7 @@ export default function TapChallenge({ onBack }) {
                 onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                 onClick={() => !isDailyGame && setLevel(key)}
               >
-                {cfg.label}
+                {tLevelLabels[key]}
                 <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.85 }}>
                   {cfg.targetCount} targets · {cfg.lifeMs / 1000}s lifespan · max {cfg.maxActive} active
                 </div>
@@ -544,7 +558,7 @@ export default function TapChallenge({ onBack }) {
               disabled={!selectedLevel || checkingDailyGame}
               onClick={() => startGame(selectedLevel)}
             >
-              Start Game
+              {tStartGame}
             </button>
           </div>
         </div>

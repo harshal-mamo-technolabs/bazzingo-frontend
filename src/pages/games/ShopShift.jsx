@@ -3,6 +3,7 @@ import { ArrowLeft, Volume2, VolumeX, Trophy, Clock, CheckCircle, XCircle } from
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 import grandpaCartImage from '/grandma-cart.png';
 const PRODUCT_TYPES = [

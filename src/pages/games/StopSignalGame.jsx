@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const MAX_SCORE = 200;
 const TIME_LIMIT = 120;
@@ -323,14 +324,26 @@ export default function StopSignalReaction({ onBack }) {
     : Object.entries(LEVELS);
   const selectedLevel = isDailyGame ? dailyGameDifficulty : level;
 
+  const tHowToPlay = useTranslateText('How to Play');
+  const tGotIt = useTranslateText('Got it');
+  const tDailyChallenge = useTranslateText('Daily Challenge');
+  const tStartGame = useTranslateText('Start Game');
+  const tGameTitle = useTranslateText('Stop Signal');
+  const tHowToPlayTitle = useTranslateText('Stop Signal – How to Play');
+  const tLevelLabels = { easy: useTranslateText('Easy'), moderate: useTranslateText('Moderate'), hard: useTranslateText('Hard') };
+  const tStopBullet1 = useTranslateText('Tap when you see the GO signal (a colored shape).');
+  const tStopBullet2 = useTranslateText('If a STOP signal (red with 🛑) appears, do not tap.');
+  const tStopBullet3 = useTranslateText('Earn points for correct GO responses and for successfully inhibiting on STOP trials.');
+  const tStopBullet4 = useTranslateText('You have 2 minutes and can score up to 200 points. Consecutive correct trials build a combo.');
+
   const instructionsModalContent = (
     <>
-      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>{tHowToPlay}</h3>
       <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-        <li>Tap when you see the <strong style={{ color: '#22c55e' }}>GO</strong> signal (a colored shape).</li>
-        <li>If a <strong style={{ color: '#ef4444' }}>STOP</strong> signal (red with 🛑) appears, do <strong>not</strong> tap.</li>
-        <li>Earn points for correct GO responses and for successfully inhibiting on STOP trials.</li>
-        <li>You have <strong>2 minutes</strong> and can score up to <strong>200</strong> points. Consecutive correct trials build a combo.</li>
+        <li>{tStopBullet1}</li>
+        <li>{tStopBullet2}</li>
+        <li>{tStopBullet3}</li>
+        <li>{tStopBullet4}</li>
       </ul>
     </>
   );
@@ -465,7 +478,7 @@ export default function StopSignalReaction({ onBack }) {
               color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <span aria-hidden>❓</span> How to Play
+            <span aria-hidden>❓</span> {tHowToPlay}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -502,7 +515,7 @@ export default function StopSignalReaction({ onBack }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <h2 id="stop-signal-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#ef4444' }}>
-                    🛑 Stop Signal – How to Play
+                    🛑 {tHowToPlayTitle}
                   </h2>
                   <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
                     style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -513,7 +526,7 @@ export default function StopSignalReaction({ onBack }) {
                 <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                   <button type="button" onClick={() => setShowInstructions(false)}
                     style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>
-                    Got it
+                    {tGotIt}
                   </button>
                 </div>
               </div>
@@ -522,10 +535,10 @@ export default function StopSignalReaction({ onBack }) {
           <div style={s.menuCard}>
             {isDailyGame && (
               <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.2)', color: '#fca5a5', fontSize: 12, fontWeight: 600 }}>
-                📅 Daily Challenge
+                📅 {tDailyChallenge}
               </div>
             )}
-            <div style={s.menuTitle}>Stop Signal</div>
+            <div style={s.menuTitle}>{tGameTitle}</div>
             <p style={s.menuSub}>
               Tap when you see the <b style={{ color: '#22c55e' }}>GO</b> signal.<br />
               But <b style={{ color: '#ef4444' }}>STOP</b> yourself if the red signal appears!<br />
@@ -543,7 +556,7 @@ export default function StopSignalReaction({ onBack }) {
                 onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                 onClick={() => !isDailyGame && setLevel(key)}
               >
-                {cfg.label}
+                {tLevelLabels[key]}
                 <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.85 }}>
                   {cfg.trials} trials · {cfg.desc}
                 </div>
@@ -554,7 +567,7 @@ export default function StopSignalReaction({ onBack }) {
               disabled={!selectedLevel || checkingDailyGame}
               onClick={() => startGame(selectedLevel)}
             >
-              Start Game
+              {tStartGame}
             </button>
           </div>
         </div>

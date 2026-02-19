@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Play, RotateCcw, Trophy, Volume2, VolumeX, Chevr
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 // ============================================================================
 // COLORS & THEME

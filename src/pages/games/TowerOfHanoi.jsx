@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Play, RotateCcw, Trophy, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const COLORS = {
   primary: '#FF6B3E',

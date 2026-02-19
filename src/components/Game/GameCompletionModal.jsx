@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getDailySuggestions, submitGameScore } from '../../services/gameService';
+import { useTranslateText } from '../../hooks/useTranslate';
 
 const GameCompletionModal = ({
   isVisible,
@@ -151,6 +152,16 @@ const GameCompletionModal = ({
     else window.location.href = '/games';
   };
 
+  const tVictory = useTranslateText('Victory!');
+  const tTimeUp = useTranslateText("Time's Up!");
+  const tFinalScore = useTranslateText('Final Score:');
+  const tDailySuggestions = useTranslateText('Daily Game Suggestions');
+  const tLoading = useTranslateText('Loading...');
+  const tNoDailyLeft = useTranslateText('No daily games left for today.');
+  const tDifficulty = useTranslateText('Difficulty:');
+  const tMoreGames = useTranslateText('More Games');
+  const tError = useTranslateText(error || '');
+
   if (!isVisible) return null;
 
   const game =
@@ -165,12 +176,12 @@ const GameCompletionModal = ({
 
         {/* Title */}
         <div style={styles.title(isVictory)}>
-          {isVictory ? '🏆 Victory!' : "⏰ Time's Up!"}
+          {isVictory ? `🏆 ${tVictory}` : `⏰ ${tTimeUp}`}
         </div>
 
         {/* Score */}
         <div style={styles.score}>
-          Final Score: <strong>{score}</strong>/
+          {tFinalScore} <strong>{score}</strong>/
           {customMessages.maxScore || '200'}
         </div>
 
@@ -179,16 +190,16 @@ const GameCompletionModal = ({
         {!(allDailyGamesPlayed && !loading && !error) && (
           <div style={styles.suggestionBox}>
             <div style={styles.suggestionHeader}>
-              🎮 Daily Game Suggestions
+              🎮 {tDailySuggestions}
             </div>
 
             {loading ? (
-              <div style={styles.centerText}>Loading...</div>
+              <div style={styles.centerText}>{tLoading}</div>
             ) : error ? (
-              <div style={styles.centerText}>{error}</div>
+              <div style={styles.centerText}>{tError || error}</div>
             ) : dailySuggestions.length === 0 ? (
               <div style={styles.centerText}>
-                No daily games left for today.
+                {tNoDailyLeft}
               </div>
             ) : (
               <>
@@ -222,7 +233,7 @@ const GameCompletionModal = ({
                         {game?.gameId?.category}
                       </div>
                       <div style={styles.gameMeta}>
-                        Difficulty: {game?.difficulty || 'easy'}
+                        {tDifficulty} {game?.difficulty || 'easy'}
                       </div>
                     </div>
                   </div>
@@ -246,7 +257,7 @@ const GameCompletionModal = ({
 
         {/* Button */}
         <button style={styles.mainBtn(isVictory)} onClick={handleMoreGames}>
-          🎯 More Games
+          🎯 {tMoreGames}
         </button>
       </div>
     </div>
