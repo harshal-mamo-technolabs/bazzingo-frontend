@@ -1,527 +1,673 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import GameFramework from '../../components/GameFramework';
-import Header from '../../components/Header';
-import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { difficultySettings, getScenariosByDifficulty, calculateScore } from '../../utils/games/WhoIsBrain';
-import { Eye, Lightbulb, CheckCircle, XCircle, Lock, Unlock, Search, ChevronUp, ChevronDown, Users } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
-const WhoIsBrainGame = () => {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
+// ─── SUSPECT POOL ───
+const NAMES = ['Alex','Jordan','Morgan','Casey','Riley','Sam','Taylor','Quinn','Drew','Blake','Avery','Charlie','Frankie','Harper','Jesse','Logan','Parker','Reese','Skyler','Dakota'];
+const JOBS = ['Chef','Teacher','Doctor','Artist','Banker','Driver','Nurse','Pilot','Lawyer','Writer','Clerk','Guard','Baker','Tailor','Singer'];
+const APPEARANCES = [
+  { hair: '🧑‍🦰', desc: 'red hair' },
+  { hair: '👱', desc: 'blonde hair' },
+  { hair: '🧑‍🦱', desc: 'curly hair' },
+  { hair: '👩‍🦳', desc: 'gray hair' },
+  { hair: '🧑', desc: 'brown hair' },
+  { hair: '👨‍🦲', desc: 'bald' },
+  { hair: '👩‍🦰', desc: 'auburn hair' },
+  { hair: '🧔', desc: 'bearded' },
+];
+const ACCESSORIES = ['glasses 🤓','a hat 🎩','a watch ⌚','a scarf 🧣','gloves 🧤','a ring 💍','earrings','a badge 📛','a tattoo','a cane'];
+const LOCATIONS = ['kitchen','garden','library','garage','office','hallway','rooftop','basement','balcony','lobby','gym','pool','attic','chapel','lab'];
+
+// ─── SCENARIO TEMPLATES ───
+const SCENARIOS = [
+  { type: 'theft', icon: '💎', title: 'The Missing Diamond', desc: 'A priceless diamond has vanished from the museum vault!' },
+  { type: 'theft', icon: '🎨', title: 'The Stolen Painting', desc: 'A masterpiece was taken from the gallery overnight!' },
+  { type: 'theft', icon: '📦', title: 'The Lost Package', desc: 'A top-secret package disappeared from the mailroom!' },
+  { type: 'lie', icon: '🤥', title: 'The False Alibi', desc: 'Someone is lying about where they were last night!' },
+  { type: 'lie', icon: '📝', title: 'The Forged Document', desc: 'A critical document has been tampered with!' },
+  { type: 'lie', icon: '🔑', title: 'The Fake Key', desc: 'Someone made a copy of the master key!' },
+  { type: 'sabotage', icon: '⚙️', title: 'The Broken Machine', desc: 'The power generator was deliberately sabotaged!' },
+  { type: 'sabotage', icon: '🧪', title: 'The Poisoned Well', desc: 'Someone contaminated the water supply!' },
+  { type: 'theft', icon: '💰', title: 'The Bank Heist', desc: 'Money vanished from the vault during the night shift!' },
+  { type: 'lie', icon: '🕵️', title: 'The Double Agent', desc: 'One of the team members is working for the enemy!' },
+  { type: 'sabotage', icon: '🚂', title: 'The Train Delay', desc: 'Someone tampered with the railway signals!' },
+  { type: 'theft', icon: '👑', title: 'The Crown Jewels', desc: 'The royal crown has disappeared from the tower!' },
+  { type: 'lie', icon: '📱', title: 'The Leaked Secret', desc: 'Classified info was shared with an outsider!' },
+  { type: 'sabotage', icon: '🔬', title: 'The Lab Incident', desc: 'Research data was deliberately corrupted!' },
+  { type: 'theft', icon: '🗝️', title: 'The Vault Break-In', desc: 'The high-security vault was breached from inside!' },
+];
+
+// ─── LEVEL CONFIG ───
+const LEVELS = {
+  easy:   { label: 'Easy',   suspects: 3, clues: 4, rounds: 4, timeLimit: 120, color: '#4ade80', desc: 'Junior Detective', icon: '🔍' },
+  medium: { label: 'Medium', suspects: 4, clues: 3, rounds: 4, timeLimit: 150, color: '#facc15', desc: 'Senior Inspector', icon: '🕵️' },
+  hard:   { label: 'Hard',   suspects: 5, clues: 3, rounds: 4, timeLimit: 180, color: '#f87171', desc: 'Master Sleuth', icon: '🏆' },
+};
+
+const MAX_SCORE = 200;
+
+// ─── AUDIO ENGINE ───
+function createAudioEngine() {
+  let ctx = null;
+  const getCtx = () => { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; };
+  let musicInterval = null;
+
+  const playTone = (freq, dur = 0.15, type = 'square', vol = 0.1) => {
+    try {
+      const c = getCtx(), o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, c.currentTime);
+      g.gain.setValueAtTime(vol, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + dur);
+    } catch(e){}
+  };
+
+  return {
+    select:  () => playTone(500, 0.08, 'sine', 0.1),
+    correct: () => { playTone(523,0.12,'sine',0.15); setTimeout(()=>playTone(659,0.12,'sine',0.15),100); setTimeout(()=>playTone(784,0.2,'sine',0.15),200); },
+    wrong:   () => { playTone(200,0.25,'sawtooth',0.1); setTimeout(()=>playTone(160,0.3,'sawtooth',0.1),150); },
+    clue:    () => playTone(660,0.15,'triangle',0.08),
+    tick:    () => playTone(900,0.03,'sine',0.03),
+    reveal:  () => { playTone(440,0.1,'sine',0.1); setTimeout(()=>playTone(554,0.1,'sine',0.1),80); setTimeout(()=>playTone(659,0.15,'sine',0.12),160); },
+    accuse:  () => playTone(300,0.3,'square',0.08),
+    startMusic: () => {
+      try {
+        const c = getCtx();
+        const notes = [220,247,262,294,262,247,220,196];
+        let i = 0;
+        musicInterval = setInterval(() => {
+          const o = c.createOscillator(), g = c.createGain();
+          o.type = 'triangle'; o.frequency.setValueAtTime(notes[i%notes.length], c.currentTime);
+          g.gain.setValueAtTime(0.03, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.5);
+          o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.55);
+          i++;
+        }, 600);
+      } catch(e){}
+    },
+    stopMusic: () => { if (musicInterval) { clearInterval(musicInterval); musicInterval = null; } },
+  };
+}
+
+// ─── SHUFFLE ───
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+// ─── GENERATE CASE ───
+function generateCase(level) {
+  const cfg = LEVELS[level];
+  const scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+  const names = shuffle(NAMES).slice(0, cfg.suspects);
+  const jobs = shuffle(JOBS).slice(0, cfg.suspects);
+  const apps = shuffle(APPEARANCES).slice(0, cfg.suspects);
+  const accs = shuffle(ACCESSORIES).slice(0, cfg.suspects);
+  const locs = shuffle(LOCATIONS).slice(0, cfg.suspects);
+  const guiltyIdx = Math.floor(Math.random() * cfg.suspects);
+
+  const suspects = names.map((name, i) => ({
+    id: i,
+    name,
+    job: jobs[i],
+    appearance: apps[i],
+    accessory: accs[i],
+    location: locs[i],
+    guilty: i === guiltyIdx,
+    alibi: i === guiltyIdx
+      ? `Was supposedly in the ${locs[(i+1)%cfg.suspects]} but no one saw them there.`
+      : `Was seen in the ${locs[i]} by multiple witnesses.`,
+  }));
+
+  const guilty = suspects[guiltyIdx];
+
+  // Build clues that point toward the guilty suspect
+  const allClues = [
+    { text: `The culprit has ${guilty.appearance.desc}.`, icon: '👤', weight: 3 },
+    { text: `A witness saw someone with ${guilty.accessory} near the scene.`, icon: '👁️', weight: 3 },
+    { text: `The culprit works as a ${guilty.job}.`, icon: '💼', weight: 4 },
+    { text: `${guilty.name}'s alibi doesn't check out.`, icon: '❌', weight: 5 },
+    { text: `The culprit was NOT in the ${locs.find(l => l !== guilty.location) || 'garden'}.`, icon: '📍', weight: 2 },
+    { text: `Security footage shows someone with ${guilty.appearance.desc} leaving the area.`, icon: '📹', weight: 3 },
+    { text: `A ${guilty.accessory.split(' ')[0]} was found at the crime scene.`, icon: '🔎', weight: 3 },
+    { text: `The culprit's profession requires access to restricted areas.`, icon: '🚪', weight: 1 },
+    { text: `Witnesses confirm the culprit is NOT ${suspects.find(s=>!s.guilty)?.name}.`, icon: '✅', weight: 2 },
+    { text: `The culprit left traces near the ${guilty.location}.`, icon: '👣', weight: 3 },
+  ];
+
+  const clues = shuffle(allClues).slice(0, cfg.clues + 2); // extra clues revealed over time
+
+  return { scenario, suspects, guiltyIdx, clues, cfg };
+}
+
+// ─── MAIN COMPONENT ───
+export default function WhoIs({ onBack }) {
+  const location = useLocation();
+  const [phase, setPhase] = useState('menu');
+  const [level, setLevel] = useState(null);
+  const [currentCase, setCurrentCase] = useState(null);
+  const [revealedClues, setRevealedClues] = useState([]);
+  const [selectedSuspect, setSelectedSuspect] = useState(null);
+  const [timer, setTimer] = useState(0);
   const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(300);
-  const [currentScenario, setCurrentScenario] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [maxHints, setMaxHints] = useState(3);
-  const [solvedScenarios, setSolvedScenarios] = useState(0);
-  const [totalAttempts, setTotalAttempts] = useState(0);
-  const [totalResponseTime, setTotalResponseTime] = useState(0);
-  const [scenarioStartTime, setScenarioStartTime] = useState(0);
-  const [currentScenarios, setCurrentScenarios] = useState([]);
+  const [round, setRound] = useState(0);
+  const [roundResults, setRoundResults] = useState([]);
+  const [accused, setAccused] = useState(null);
+  const [combo, setCombo] = useState(0);
+  const [clueIndex, setClueIndex] = useState(0);
+  const [showSuspectDetail, setShowSuspectDetail] = useState(null);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+  const closeInstructions = useCallback(() => setShowInstructions(false), []);
+  const canvasRef = useRef(null);
+  const audioRef = useRef(null);
+  const timerRef = useRef(null);
+  const clueTimerRef = useRef(null);
 
-  // Game state
-  const [selectedCharacter, setSelectedCharacter] = useState(null);
-  const [discoveredClues, setDiscoveredClues] = useState([]);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackType, setFeedbackType] = useState('');
-  const [showHint, setShowHint] = useState(false);
-  const [hintMessage, setHintMessage] = useState('');
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
-
-
-  // Update score whenever relevant values change
   useEffect(() => {
-    const newScore = calculateScore(difficulty, solvedScenarios);
-    setScore(newScore);
-  }, [difficulty, solvedScenarios]);
+    if (!showInstructions) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeInstructions(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInstructions, closeInstructions]);
 
-  // Handle clue discovery
-  const handleClueDiscovery = useCallback((characterId, clueType) => {
-    const clueKey = `${characterId}-${clueType}`;
-    if (!discoveredClues.includes(clueKey)) {
-      setDiscoveredClues(prev => [...prev, clueKey]);
-    }
-  }, [discoveredClues]);
-
-  // Handle character selection
-  const handleCharacterSelect = useCallback((characterId) => {
-    if (gameState !== 'playing' || showFeedback || !currentScenarios[currentScenario]) return;
-
-    const responseTime = Date.now() - scenarioStartTime;
-    const currentScenarioData = currentScenarios[currentScenario];
-    const isCorrect = characterId === currentScenarioData.correctAnswer;
-
-    setSelectedCharacter(characterId);
-    setShowFeedback(true);
-    setTotalAttempts(prev => prev + 1);
-    setTotalResponseTime(prev => prev + responseTime);
-
-    if (isCorrect) {
-      setFeedbackType('correct');
-      setSolvedScenarios(prev => prev + 1);
-      setStreak(prev => {
-        const newStreak = prev + 1;
-        setMaxStreak(current => Math.max(current, newStreak));
-        return newStreak;
-      });
-
-      setTimeout(() => {
-        if (currentScenario + 1 >= currentScenarios.length) {
-          setGameState('finished');
-          setShowCompletionModal(true);
-        } else {
-          setCurrentScenario(prev => prev + 1);
-          setSelectedCharacter(null);
-          setDiscoveredClues([]);
-          setShowFeedback(false);
-          setScenarioStartTime(Date.now());
-        }
-      }, 2500);
-    } else {
-      setFeedbackType('incorrect');
-      setStreak(0);
-      setLives(prev => {
-        const newLives = prev - 1;
-        if (newLives <= 0) {
-          setTimeout(() => {
-            setGameState('finished');
-            setShowCompletionModal(true);
-          }, 2000);
-        }
-        return Math.max(0, newLives);
-      });
-
-      setTimeout(() => {
-        if (lives > 1) {
-          setShowFeedback(false);
-          setSelectedCharacter(null);
-        }
-      }, 2500);
-    }
-  }, [gameState, showFeedback, currentScenario, scenarioStartTime, lives, currentScenarios]);
-
-  // Use hint
-  const useHint = () => {
-    if (hintsUsed >= maxHints || gameState !== 'playing' || !currentScenarios[currentScenario]) return;
-
-    setHintsUsed(prev => prev + 1);
-    
-    const currentScenarioData = currentScenarios[currentScenario];
-    const correctCharacter = currentScenarioData.characters.find(char => char.isCorrect);
-    
-    if (correctCharacter) {
-      // Find a suspicious clue that hasn't been discovered
-      const suspiciousClues = Object.entries(correctCharacter.clues)
-        .filter(([clueType, clue]) => {
-          const clueKey = `${correctCharacter.id}-${clueType}`;
-          return clue.suspicious && !discoveredClues.includes(clueKey);
-        });
-
-      if (suspiciousClues.length > 0) {
-        const [clueType] = suspiciousClues[0];
-        const clueKey = `${correctCharacter.id}-${clueType}`;
-        setDiscoveredClues(prev => [...prev, clueKey]);
-        setHintMessage(`Check ${correctCharacter.name}'s ${clueType} - there's something suspicious there!`);
-      } else {
-        setHintMessage(`Focus on ${correctCharacter.name} - they show signs of deception.`);
-      }
-    }
-
-    setShowHint(true);
-    setTimeout(() => {
-      setShowHint(false);
-    }, 4000);
-  };
-
-  // Timer countdown
   useEffect(() => {
-    let interval;
-    if (gameState === 'playing' && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setGameState('finished');
-            setShowCompletionModal(true);
-            return 0;
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'easy', medium: 'medium', moderate: 'medium', hard: 'hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
           }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [gameState, timeRemaining]);
-
-  // Initialize game
-  const initializeGame = useCallback(() => {
-    const settings = difficultySettings[difficulty];
-    const scenarios = getScenariosByDifficulty(difficulty);
-    
-    setCurrentScenarios(scenarios);
-    setScore(0);
-    setTimeRemaining(settings.timeLimit);
-    setCurrentScenario(0);
-    setStreak(0);
-    setMaxStreak(0);
-    setLives(settings.lives);
-    setMaxHints(settings.hints);
-    setHintsUsed(0);
-    setSolvedScenarios(0);
-    setTotalAttempts(0);
-    setTotalResponseTime(0);
-    setSelectedCharacter(null);
-    setDiscoveredClues([]);
-    setShowFeedback(false);
-    setShowHint(false);
-  }, [difficulty]);
-
-  const handleStart = () => {
-    initializeGame();
-    setScenarioStartTime(Date.now());
-  };
-
-  const handleReset = () => {
-    initializeGame();
-  };
-
-  const handleGameComplete = (payload) => {
-  };
-
-  const customStats = {
-    currentScenario: currentScenario + 1,
-    totalScenarios: currentScenarios.length,
-    streak: maxStreak,
-    lives,
-    hintsUsed,
-    solvedScenarios,
-    totalAttempts,
-    averageResponseTime: totalAttempts > 0 ? Math.round(totalResponseTime / totalAttempts / 1000) : 0,
-    cluesDiscovered: discoveredClues.length
-  };
-
-  const currentScenarioData = currentScenarios[currentScenario] || currentScenarios[0];
-
-  return (
-    <div>
-      {gameState === 'ready' && <Header unreadCount={3} />}
-
-      <GameFramework
-        gameTitle="Who Is? Brain Game"
-        gameShortDescription="Identify the brain in various scenarios. Challenge your pattern recognition and cognitive assessment!"
-        gameDescription={
-          <div className="mx-auto px-1 mb-2">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              {/* Header with toggle */}
-              <div
-                className="flex items-center justify-between mb-4 cursor-pointer"
-                onClick={() => setShowInstructions(!showInstructions)}
-              >
-                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Who Is? Brain Game
-                </h3>
-                <span className="text-blue-900 text-xl">
-                  {showInstructions
-                    ? <ChevronUp className="h-5 w-5 text-blue-900" />
-                    : <ChevronDown className="h-5 w-5 text-blue-900" />}
-                </span>
-              </div>
-
-              {/* Toggle Content */}
-              {showInstructions && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🕵️ Objective
-                    </h4>
-                    <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      Analyze characters and discover clues to identify who is lying, stealing, or guilty in each scenario.
-                    </p>
-                  </div>
-
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      🔍 Investigation
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Click on body parts to examine clues</li>
-                      <li>• Look for suspicious evidence</li>
-                      <li>• Compare statements to evidence</li>
-                    </ul>
-                  </div>
-
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📊 Scoring
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 25 points per correct answer</li>
-                      <li>• Moderate: 28 points per correct answer</li>
-                      <li>• Hard: 40 points per correct answer</li>
-                    </ul>
-                  </div>
-
-                  <div className='bg-white p-3 rounded-lg'>
-                    <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      📝 Questions
-                    </h4>
-                    <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                      <li>• Easy: 8 different questions</li>
-                      <li>• Moderate: 7 different questions</li>
-                      <li>• Hard: 5 different questions</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
         }
-        category="Critical Thinking"
-        gameState={gameState}
-        setGameState={setGameState}
-        score={score}
-        timeRemaining={timeRemaining}
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        onStart={handleStart}
-        onReset={handleReset}
-        onGameComplete={handleGameComplete}
-        customStats={customStats}
-      >
-        {/* Game Content */}
-        <div className="flex flex-col items-center">
-          {/* Game Controls */}
-          <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
-            {gameState === 'playing' && (
-              <button
-                onClick={useHint}
-                disabled={hintsUsed >= maxHints}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${hintsUsed >= maxHints
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-yellow-500 text-white hover:bg-yellow-600'
-                  }`}
-                style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}
-              >
-                <Lightbulb className="h-4 w-4" />
-                Hint ({maxHints - hintsUsed})
-              </button>
-            )}
-          </div>
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
 
-          {/* Game Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6 w-full max-w-2xl">
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Question
-              </div>
-              <div className="text-lg font-semibold text-[#FF6B3E]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {currentScenario + 1}/{difficultySettings[difficulty].questionCount}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Lives
-              </div>
-              <div className="text-lg font-semibold text-red-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {'❤️'.repeat(lives)}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Streak
-              </div>
-              <div className="text-lg font-semibold text-green-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {streak}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Clues Found
-              </div>
-              <div className="text-lg font-semibold text-purple-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {discoveredClues.length}
-              </div>
-            </div>
-          </div>
+  if (!audioRef.current) audioRef.current = createAudioEngine();
+  const audio = audioRef.current;
 
-          {/* Scenario Question */}
-          {currentScenarioData && (
-            <div className="w-full max-w-4xl mb-6">
-              <div className="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Search className="h-5 w-5 text-blue-800" />
-                  <span className="font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Mystery #{currentScenario + 1} - {difficulty} Level
-                  </span>
+  // ─── CANVAS BACKGROUND ───
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const cx = canvas.getContext('2d');
+    let animId;
+    let particles = Array.from({ length: 40 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      size: Math.random() * 2.5 + 0.5,
+      alpha: Math.random() * 0.25 + 0.05,
+    }));
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+    const draw = () => {
+      cx.clearRect(0, 0, canvas.width, canvas.height);
+      cx.strokeStyle = 'rgba(80,120,200,0.05)';
+      cx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 50) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, canvas.height); cx.stroke(); }
+      for (let y = 0; y < canvas.height; y += 50) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(canvas.width, y); cx.stroke(); }
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+        cx.beginPath(); cx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        cx.fillStyle = `rgba(100, 140, 255, ${p.alpha})`; cx.fill();
+      });
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+  }, []);
+
+  // ─── TIMER ───
+  useEffect(() => {
+    if (phase !== 'investigate') return;
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) { clearInterval(timerRef.current); clearInterval(clueTimerRef.current); autoFail(); return 0; }
+        if (prev <= 10) audio.tick();
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [phase, round]);
+
+  // ─── PROGRESSIVE CLUE REVEAL ───
+  useEffect(() => {
+    if (phase !== 'investigate' || !currentCase) return;
+    const initialClues = currentCase.clues.slice(0, LEVELS[level].clues);
+    setRevealedClues(initialClues);
+    setClueIndex(LEVELS[level].clues);
+
+    // Reveal extra clues over time
+    clueTimerRef.current = setInterval(() => {
+      setClueIndex(prev => {
+        if (prev >= currentCase.clues.length) { clearInterval(clueTimerRef.current); return prev; }
+        setRevealedClues(rc => [...rc, currentCase.clues[prev]]);
+        audio.clue();
+        return prev + 1;
+      });
+    }, 12000);
+    return () => clearInterval(clueTimerRef.current);
+  }, [phase, round, currentCase]);
+
+  const autoFail = useCallback(() => {
+    clearInterval(timerRef.current);
+    clearInterval(clueTimerRef.current);
+    const result = { round: round + 1, correct: false, timeTaken: 0, score: 0 };
+    setRoundResults(prev => [...prev, result]);
+    setAccused({ suspect: null, correct: false });
+    setCombo(0);
+    audio.wrong();
+    setPhase('result');
+  }, [round, audio]);
+
+  // ─── START LEVEL ───
+  const startLevel = (lv) => {
+    setLevel(lv);
+    setScore(0);
+    setRound(0);
+    setCombo(0);
+    setRoundResults([]);
+    audio.startMusic();
+    startRound(lv, 0);
+  };
+
+  const startRound = (lv, r) => {
+    const newCase = generateCase(lv);
+    setCurrentCase(newCase);
+    setSelectedSuspect(null);
+    setAccused(null);
+    setShowSuspectDetail(null);
+    setRound(r);
+    setTimer(LEVELS[lv].timeLimit);
+    setPhase('investigate');
+    audio.reveal();
+  };
+
+  // ─── ACCUSE ───
+  const accuseSuspect = useCallback(() => {
+    if (selectedSuspect === null || !currentCase) return;
+    clearInterval(timerRef.current);
+    clearInterval(clueTimerRef.current);
+    audio.accuse();
+
+    const suspect = currentCase.suspects[selectedSuspect];
+    const correct = suspect.guilty;
+    const cfg = LEVELS[level];
+    const roundMax = Math.floor(MAX_SCORE / cfg.rounds);
+    const timeBonus = Math.floor((timer / cfg.timeLimit) * 15);
+    const comboBonus = combo * 3;
+    let roundScore = correct ? Math.min(roundMax, roundMax - 5 + timeBonus + comboBonus) : 0;
+
+    const newCombo = correct ? combo + 1 : 0;
+    setCombo(newCombo);
+    const newScore = Math.min(score + roundScore, MAX_SCORE);
+    setScore(newScore);
+
+    const result = { round: round + 1, correct, timeTaken: cfg.timeLimit - timer, score: roundScore, suspectName: suspect.name };
+    setRoundResults(prev => [...prev, result]);
+    setAccused({ suspect, correct });
+
+    if (correct) audio.correct(); else audio.wrong();
+    setPhase('result');
+  }, [selectedSuspect, currentCase, timer, score, combo, round, level, audio]);
+
+  // ─── NEXT ROUND / FINISHED ───
+  const handleReset = useCallback(() => {
+    setPhase('menu');
+    setCompletionData(null);
+  }, []);
+
+  const nextRound = () => {
+    const cfg = LEVELS[level];
+    if (round + 1 >= cfg.rounds) {
+      audio.stopMusic();
+      const solved = roundResults.filter(r => r.correct).length;
+      const total = roundResults.length;
+      const timeElapsed = roundResults.reduce((acc, r) => acc + (r.timeTaken || 0), 0);
+      setCompletionData({
+        score,
+        isVictory: score >= 100,
+        difficulty: level,
+        timeElapsed,
+        gameTimeLimit: cfg.rounds * cfg.timeLimit,
+        casesSolved: solved,
+        totalRounds: total,
+      });
+      setPhase('finished');
+    } else {
+      startRound(level, round + 1);
+    }
+  };
+
+  // ─── STYLES ───
+  const S = {
+    root: { position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #0f172a 100%)', fontFamily: "'Segoe UI', system-ui, sans-serif", color: '#e2e8f0', overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+    canvas: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 },
+    content: { position: 'relative', zIndex: 1, width: '100%', maxWidth: 1100, padding: '10px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' },
+    backBtn: { position: 'absolute', top: 12, left: 16, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 14, zIndex: 10 },
+    title: { fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 800, textAlign: 'center', margin: '8px 0 4px', textShadow: '0 0 20px rgba(100,140,255,0.35)' },
+    subtitle: { fontSize: 'clamp(0.8rem, 2vw, 1rem)', opacity: 0.55, textAlign: 'center', marginBottom: 14 },
+    hud: { display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 10, background: 'rgba(0,0,0,0.35)', borderRadius: 12, padding: '8px 20px', backdropFilter: 'blur(8px)' },
+    hudItem: { textAlign: 'center', minWidth: 55 },
+    hudLabel: { fontSize: 10, opacity: 0.45, textTransform: 'uppercase', letterSpacing: 1 },
+    hudValue: { fontSize: 18, fontWeight: 700 },
+    levelCard: (color) => ({ background: `linear-gradient(135deg, ${color}15, ${color}08)`, border: `2px solid ${color}35`, borderRadius: 16, padding: '20px 24px', cursor: 'pointer', transition: 'all 0.2s', width: '100%', maxWidth: 260, textAlign: 'center' }),
+    btn: (bg = '#3b82f6') => ({ background: `linear-gradient(135deg, ${bg}, ${bg}cc)`, color: '#fff', border: 'none', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 20px ${bg}40`, transition: 'all 0.2s' }),
+    overlay: { position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' },
+    card: { background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: 20, padding: '24px 28px', maxWidth: 500, width: '92%', textAlign: 'center', border: '1px solid rgba(100,140,255,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto' },
+  };
+
+  // ─── MENU ───
+  if (phase === 'menu') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ ...S.root, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ color: '#e2e8f0', fontSize: 16 }}>Loading...</div>
+        </div>
+      );
+    }
+    const levelEntries = isDailyGame && dailyGameDifficulty
+      ? Object.entries(LEVELS).filter(([key]) => key === dailyGameDifficulty)
+      : Object.entries(LEVELS);
+    return (
+      <div style={S.root}>
+        <canvas ref={canvasRef} style={S.canvas} />
+        <div style={S.content}>
+          {onBack && <button style={S.backBtn} onClick={() => { audio.stopMusic(); onBack(); }}>← Back</button>}
+          <button
+            type="button"
+            onClick={() => setShowInstructions(true)}
+            aria-label="How to Play"
+            style={{
+              position: 'absolute', top: 12, right: 16, zIndex: 10,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 18px', borderRadius: 10,
+              border: '2px solid rgba(100,140,255,0.6)', background: 'rgba(100,140,255,0.15)',
+              color: '#93c5fd', cursor: 'pointer', fontSize: 14, fontWeight: 700,
+              transition: 'background 0.2s, transform 0.15s, box-shadow 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(100,140,255,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(100,140,255,0.25)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(100,140,255,0.15)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+          >
+            <span style={{ fontSize: 16 }} aria-hidden>📖</span>
+            How to Play
+          </button>
+          {showInstructions && (
+            <div role="dialog" aria-modal="true" aria-labelledby="who-is-brain-instructions-title" style={{ ...S.overlay, zIndex: 1000 }} onClick={closeInstructions}>
+              <div style={{ ...S.card, padding: 0, maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                  <h2 id="who-is-brain-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#93c5fd' }}>🕵️ Who Is? – How to Play</h2>
+                  <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                 </div>
-                <h3 className="text-xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {currentScenarioData.question}
-                </h3>
-                <p className="text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {currentScenarioData.description}
-                </p>
+                <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                    <section style={{ background: 'rgba(147,197,253,0.1)', border: '1px solid rgba(147,197,253,0.3)', borderRadius: 12, padding: 16 }}>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#93c5fd' }}>🎯 Objective</h3>
+                      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Solve each case by analyzing the crime scenario, suspects, and clues to find the guilty party before time runs out.</p>
+                    </section>
+                    <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🎮 How to Play</h3>
+                      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+                        <li><strong>Read</strong> — Study the crime scenario and title at the top.</li>
+                        <li><strong>Investigate</strong> — Examine suspects and review clues as they appear. New clues unlock over time.</li>
+                        <li><strong>Deduce</strong> — Tap a suspect to open their profile (job, appearance, alibi, location).</li>
+                        <li><strong>Accuse</strong> — When you're sure, select the guilty suspect and press Accuse! Correct = points; wrong = penalty.</li>
+                      </ul>
+                    </section>
+                    <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>📊 Scoring & Levels</h3>
+                      <p style={{ margin: '0 0 8px', fontSize: 14, color: '#cbd5e1' }}>Correct accusations earn points; combos multiply your score. Easy: 3 suspects, 4 clues. Medium: 4 suspects, 3 clues. Hard: 5 suspects, 3 clues. Each difficulty has a time limit per case.</p>
+                    </section>
+                  </div>
+                </div>
+                <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                  <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(96,165,250,0.4)' }}>Got it</button>
+                </div>
               </div>
             </div>
           )}
-
-          {/* Hint Display */}
-          {showHint && (
-            <div className="w-full max-w-2xl mb-6">
-              <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-5 w-5 text-yellow-600" />
-                  <span className="font-semibold text-yellow-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Hint:
-                  </span>
-                </div>
-                <p className="text-yellow-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                  {hintMessage}
-                </p>
-              </div>
+          <div style={{ fontSize: 52, marginTop: 28 }}>🕵️</div>
+          <h1 style={S.title}>Who Is?</h1>
+          <p style={S.subtitle}>Analyze suspects & clues to find the guilty party!</p>
+          {isDailyGame && (
+            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(116,185,255,0.2)', border: '1px solid rgba(116,185,255,0.5)', borderRadius: 20, fontSize: 13, color: '#74b9ff', fontWeight: 600 }}>
+              Daily Challenge
             </div>
           )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 8 }}>
+            {levelEntries.map(([key, lv]) => (
+              <div key={key} style={S.levelCard(lv.color)}
+                onClick={() => { audio.select(); startLevel(key); }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = `0 8px 30px ${lv.color}25`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                <div style={{ fontSize: 32, marginBottom: 4 }}>{lv.icon}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: lv.color }}>{lv.label}</div>
+                <div style={{ fontSize: 13, opacity: 0.55, margin: '4px 0' }}>{lv.desc}</div>
+                <div style={{ fontSize: 12, opacity: 0.35 }}>{lv.suspects} suspects · {lv.clues} initial clues</div>
+                <div style={{ fontSize: 12, opacity: 0.35 }}>{lv.rounds} cases · {lv.timeLimit}s per case</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-          {/* Characters */}
-          {currentScenarioData && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mb-6">
-              {currentScenarioData.characters.map((character) => (
-                <div
-                  key={character.id}
-                  className={`bg-white border-2 rounded-lg p-6 transition-all duration-300 ${
-                    selectedCharacter === character.id
-                      ? character.isCorrect
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-red-500 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } ${showFeedback ? 'pointer-events-none' : 'cursor-pointer hover:shadow-lg'}`}
-                  //onClick={() => handleCharacterSelect(character.id)}
-                >
-                  {/* Character Header */}
-                  <div className="text-center mb-4">
-                    <div className="text-6xl mb-2">{character.emoji}</div>
-                    <h4 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      {character.name}
-                    </h4>
-                    <p className="text-sm text-gray-600 italic mt-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                      "{character.statement}"
-                    </p>
-                  </div>
+  // ─── INVESTIGATE PHASE ───
+  if (phase === 'investigate' && currentCase) {
+    const { scenario, suspects, clues } = currentCase;
+    const cfg = LEVELS[level];
+    return (
+      <div style={{ ...S.root, zIndex: 1 }}>
+        <canvas ref={canvasRef} style={S.canvas} />
+        <div style={S.content}>
+          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); clearInterval(clueTimerRef.current); setPhase('menu'); }}>← Back</button>
 
-                  {/* Clue Investigation */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(character.clues).map(([clueType, clue]) => {
-                      const clueKey = `${character.id}-${clueType}`;
-                      const isDiscovered = discoveredClues.includes(clueKey);
-                      
-                      return (
-                        <button
-                          key={clueType}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleClueDiscovery(character.id, clueType);
-                          }}
-                          disabled={showFeedback}
-                          className={`p-2 rounded border text-xs transition-colors ${
-                            isDiscovered
-                              ? clue.suspicious
-                                ? 'bg-red-100 border-red-300 text-red-800'
-                                : 'bg-green-100 border-green-300 text-green-800'
-                              : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
-                          }`}
-                          style={{ fontFamily: 'Roboto, sans-serif' }}
-                        >
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Eye className="h-3 w-3" />
-                            <span className="capitalize font-medium">{clueType}</span>
-                          </div>
-                          {isDiscovered && (
-                            <div className="text-xs mt-1">
-                              {clue.evidence}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+          {/* HUD */}
+          <div style={{ ...S.hud, marginTop: 36 }}>
+            <div style={S.hudItem}><div style={S.hudLabel}>Case</div><div style={S.hudValue}>{round+1}/{cfg.rounds}</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>Time</div><div style={{ ...S.hudValue, color: timer <= 15 ? '#f87171' : '#60a5fa' }}>{timer}s</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>Score</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
+            {combo > 1 && <div style={S.hudItem}><div style={S.hudLabel}>Streak</div><div style={{ ...S.hudValue, color: '#fb923c' }}>🔥 x{combo}</div></div>}
+          </div>
 
-                  {/* Selection Button */}
-                  {!showFeedback && (
-                    <button
-                      onClick={() => handleCharacterSelect(character.id)}
-                      className="w-full mt-4 bg-[#FF6B3E] text-white py-2 rounded-lg hover:bg-[#e55a35] transition-colors font-medium"
-                      style={{ fontFamily: 'Roboto, sans-serif' }}
+          {/* Scenario Banner */}
+          <div style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04))', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 14, padding: '14px 20px', marginBottom: 12, textAlign: 'center', width: '100%', maxWidth: 700 }}>
+            <div style={{ fontSize: 28, marginBottom: 4 }}>{scenario.icon}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#fca5a5' }}>{scenario.title}</div>
+            <div style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>{scenario.desc}</div>
+          </div>
+
+          {/* Main layout: Suspects + Clues side by side on desktop */}
+          <div style={{ display: 'flex', gap: 16, width: '100%', maxWidth: 960, flexWrap: 'wrap', justifyContent: 'center', flex: 1 }}>
+
+            {/* Suspects Grid */}
+            <div style={{ flex: '1 1 400px', minWidth: 300 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 8, textAlign: 'center' }}>👥 Suspects</div>
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`, gap: 10 }}>
+                {suspects.map((s, i) => {
+                  const isSelected = selectedSuspect === i;
+                  return (
+                    <div key={i}
+                      onClick={() => { setSelectedSuspect(i); setShowSuspectDetail(i); audio.select(); }}
+                      style={{
+                        background: isSelected ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.04)',
+                        border: isSelected ? '2px solid #3b82f6' : '2px solid rgba(255,255,255,0.08)',
+                        borderRadius: 14, padding: '14px 10px', cursor: 'pointer', textAlign: 'center',
+                        transition: 'all 0.2s', position: 'relative',
+                      }}
+                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                     >
-                      Select {character.name}
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <div style={{ fontSize: 36, marginBottom: 4 }}>{s.appearance.hair}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700 }}>{s.name}</div>
+                      <div style={{ fontSize: 11, opacity: 0.5 }}>{s.job}</div>
+                      <div style={{ fontSize: 11, opacity: 0.4, marginTop: 2 }}>Has {s.accessory}</div>
+                      {isSelected && <div style={{ position: 'absolute', top: 6, right: 8, fontSize: 14 }}>🎯</div>}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
 
-          {/* Feedback */}
-          {showFeedback && currentScenarioData && (
-            <div className={`w-full max-w-2xl text-center p-6 rounded-lg ${
-              feedbackType === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                {feedbackType === 'correct' ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <XCircle className="h-6 w-6 text-red-600" />
+            {/* Clues Panel */}
+            <div style={{ flex: '1 1 280px', minWidth: 260, maxWidth: 360 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 8, textAlign: 'center' }}>🔎 Evidence Board</div>
+              <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {revealedClues.map((clue, i) => (
+                  <div key={i} style={{
+                    background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 12px',
+                    border: '1px solid rgba(255,255,255,0.06)', fontSize: 13, lineHeight: 1.5,
+                    animation: i === revealedClues.length - 1 ? 'fadeSlideIn 0.4s ease' : 'none',
+                  }}>
+                    <span style={{ marginRight: 6, fontSize: 16 }}>{clue.icon}</span>
+                    {clue.text}
+                  </div>
+                ))}
+                {clueIndex < currentCase.clues.length && (
+                  <div style={{ fontSize: 11, opacity: 0.3, textAlign: 'center', padding: 4 }}>
+                    ⏳ More evidence arriving...
+                  </div>
                 )}
-                <div className="text-xl font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'correct' ? 'Correct!' : 'Wrong Choice!'}
-                </div>
               </div>
-              <div className="text-sm mb-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {currentScenarioData.explanation}
+            </div>
+          </div>
+
+          {/* Accuse Button */}
+          <div style={{ marginTop: 12, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {selectedSuspect !== null && (
+              <div style={{ fontSize: 14, opacity: 0.6 }}>
+                Accusing: <b style={{ color: '#60a5fa' }}>{suspects[selectedSuspect].name}</b>
               </div>
-              {feedbackType === 'correct' && (
-                <div className="text-green-700 font-medium mb-2">
-                  +{difficultySettings[difficulty].pointsPerQuestion} points earned!
-                </div>
-              )}
-              {feedbackType === 'correct' && currentScenario + 1 < currentScenarios.length && (
-                <p className="text-green-700 font-medium">
-                  Moving to next scenario...
-                </p>
-              )}
-              {feedbackType === 'incorrect' && lives > 1 && (
-                <p className="text-red-700 font-medium">
-                  Lives remaining: {lives - 1}
-                </p>
-              )}
+            )}
+            <button
+              style={{ ...S.btn(selectedSuspect !== null ? '#ef4444' : '#4b5563'), opacity: selectedSuspect !== null ? 1 : 0.5, cursor: selectedSuspect !== null ? 'pointer' : 'not-allowed' }}
+              onClick={selectedSuspect !== null ? accuseSuspect : undefined}
+            >
+              ⚖️ Accuse!
+            </button>
+          </div>
+
+          {/* Suspect Detail Modal */}
+          {showSuspectDetail !== null && (
+            <div style={S.overlay} onClick={() => setShowSuspectDetail(null)}>
+              <div style={S.card} onClick={e => e.stopPropagation()}>
+                {(() => {
+                  const s = suspects[showSuspectDetail];
+                  return (
+                    <>
+                      <div style={{ fontSize: 52, marginBottom: 6 }}>{s.appearance.hair}</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 2 }}>{s.name}</div>
+                      <div style={{ fontSize: 14, opacity: 0.5, marginBottom: 12 }}>{s.job}</div>
+                      <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '12px 16px', textAlign: 'left', marginBottom: 12, fontSize: 13, lineHeight: 1.7 }}>
+                        <div><b>Appearance:</b> {s.appearance.desc}</div>
+                        <div><b>Accessory:</b> {s.accessory}</div>
+                        <div><b>Last seen:</b> {s.location}</div>
+                        <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 8 }}>
+                          <b>Alibi:</b> "{s.alibi}"
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button style={S.btn('#3b82f6')} onClick={() => setShowSuspectDetail(null)}>Close</button>
+                        <button style={S.btn('#ef4444')} onClick={() => { setSelectedSuspect(showSuspectDetail); setShowSuspectDetail(null); }}>
+                          🎯 Select as Suspect
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
+        </div>
+        <style>{`@keyframes fadeSlideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }`}</style>
+      </div>
+    );
+  }
 
-          {/* Instructions */}
-          <div className="text-center max-w-2xl mt-6">
-            <p className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Click on character body parts (hands, face, clothes, behavior) to discover clues.
-              Look for suspicious evidence that contradicts their statements.
-              Use hints wisely to reveal important clues when you're stuck.
-            </p>
-            <div className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].questionCount} questions | 
-              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:
-              {String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit |
-              {difficultySettings[difficulty].lives} lives | {difficultySettings[difficulty].hints} hints |
-              {difficultySettings[difficulty].pointsPerQuestion} points per correct answer
+  // ─── RESULT PHASE (and finished: same frame behind modal) ───
+  if (phase === 'result' || phase === 'finished') {
+    const lastResult = roundResults[roundResults.length - 1];
+    const guilty = currentCase?.suspects?.[currentCase.guiltyIdx];
+    const isFinished = phase === 'finished';
+    return (
+      <>
+        <div style={{ ...S.root, zIndex: 1 }}>
+          <canvas ref={canvasRef} style={S.canvas} />
+          <div style={S.overlay}>
+            <div style={S.card}>
+              <div style={{ fontSize: 52, marginBottom: 6 }}>{lastResult?.correct ? '✅' : '❌'}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>
+                {lastResult?.correct ? 'Case Solved!' : 'Wrong Suspect!'}
+              </div>
+              <div style={{ fontSize: 14, opacity: 0.55, marginBottom: 8 }}>
+                {lastResult?.correct
+                  ? `You correctly identified ${guilty?.name} as the culprit!`
+                  : `The real culprit was ${guilty?.name} the ${guilty?.job}.`}
+              </div>
+              {guilty && (
+                <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 13 }}>
+                  <div style={{ fontSize: 28, marginBottom: 4 }}>{guilty.appearance.hair}</div>
+                  <div><b>{guilty.name}</b> — {guilty.job}</div>
+                  <div style={{ opacity: 0.5, marginTop: 4 }}>Had {guilty.accessory} · Seen near {guilty.location}</div>
+                </div>
+              )}
+              <div style={{ fontSize: 28, fontWeight: 800, color: lastResult?.correct ? '#4ade80' : '#f87171', marginBottom: 14 }}>
+                +{lastResult?.score ?? 0} pts
+              </div>
+              {!isFinished && (
+                <button style={S.btn('#3b82f6')} onClick={() => { audio.select(); nextRound(); }}>
+                  {round + 1 >= LEVELS[level].rounds ? '📊 View Results' : `▶ Case ${round + 2}`}
+                </button>
+              )}
             </div>
           </div>
         </div>
-      </GameFramework>
-      
-      <GameCompletionModal
-        isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
-        score={score}
-      />
-    </div>
-  );
-};
+        {isFinished && completionData != null && (
+          <GameCompletionModal
+            isVisible
+            onClose={handleReset}
+            gameTitle="Who Is?"
+            score={completionData.score}
+            timeElapsed={completionData.timeElapsed}
+            gameTimeLimit={completionData.gameTimeLimit}
+            isVictory={completionData.isVictory}
+            difficulty={completionData.difficulty}
+            customMessages={{
+              maxScore: MAX_SCORE,
+              stats: completionData.casesSolved != null && completionData.totalRounds != null
+                ? `Cases solved: ${completionData.casesSolved}/${completionData.totalRounds}`
+                : undefined,
+            }}
+          />
+        )}
+      </>
+    );
+  }
 
-export default WhoIsBrainGame;
+  return null;
+}

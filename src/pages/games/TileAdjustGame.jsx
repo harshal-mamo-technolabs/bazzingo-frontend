@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 /* ───────── constants ───────── */
 const COLORS = [
@@ -163,8 +165,11 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
+const MAX_SCORE = 200;
+
 /* ───────── main component ───────── */
 const TileAdjustGame = () => {
+  const location = useLocation();
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [grid, setGrid] = useState([]);
@@ -172,9 +177,43 @@ const TileAdjustGame = () => {
   const [timeRemaining, setTimeRemaining] = useState(TIME_LIMIT);
   const [particles, setParticles] = useState([]);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
   const particleId = useRef(0);
+  const scoreRef = useRef(0);
+  scoreRef.current = score;
 
   useEffect(() => { injectStyles(); }, []);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'Easy', moderate: 'Moderate', medium: 'Moderate', hard: 'Hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setDifficulty(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -209,8 +248,10 @@ const TileAdjustGame = () => {
 
   const handleReset = useCallback(() => {
     stopBackgroundMusic();
+    setGameState('ready');
     initGame();
     setTimeRemaining(TIME_LIMIT);
+    setCompletionData(null);
   }, [initGame]);
 
   // Timer
@@ -219,6 +260,12 @@ const TileAdjustGame = () => {
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
+          setCompletionData({
+            score: scoreRef.current,
+            isVictory: false,
+            difficulty,
+            timeElapsed: TIME_LIMIT,
+          });
           setGameState('finished');
           return 0;
         }
@@ -226,16 +273,21 @@ const TileAdjustGame = () => {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [gameState, timeRemaining]);
+  }, [gameState, timeRemaining, difficulty]);
 
-  // Check for game over
+  // Check for game over (no moves or max score)
   useEffect(() => {
-    if (gameState === 'playing' && grid.length > 0) {
-      if (!hasValidMoves(grid, settings.rows, settings.cols) || score >= 200) {
-        setGameState('finished');
-      }
+    if (gameState !== 'playing' || grid.length === 0) return;
+    if (!hasValidMoves(grid, settings.rows, settings.cols) || score >= MAX_SCORE) {
+      setCompletionData({
+        score: Math.min(MAX_SCORE, score),
+        isVictory: score >= MAX_SCORE,
+        difficulty,
+        timeElapsed: TIME_LIMIT - timeRemaining,
+      });
+      setGameState('finished');
     }
-  }, [grid, gameState, settings, score]);
+  }, [grid, gameState, settings, score, timeRemaining, difficulty]);
 
   const spawnParticles = useCallback((x, y, color) => {
     const newP = Array.from({ length: 8 }, () => ({
@@ -275,50 +327,49 @@ const TileAdjustGame = () => {
     }
   }, [gameState, grid, settings, spawnParticles]);
 
-  // Instructions section
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Clear groups of 2+ matching tiles to score points before time runs out
+  const closeInstructions = useCallback(() => setShowInstructions(false), []);
+
+  useEffect(() => {
+    if (!showInstructions) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeInstructions(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInstructions, closeInstructions]);
+
+  // How to Play modal content – dark theme, readable
+  const instructionsModalContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <section style={{ background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#00d4ff' }}>🎯 Objective</h3>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>
+          Clear groups of 2 or more matching tiles to score points before time runs out. Reach 200 points to win!
         </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Tap groups of 2+ matching tiles</li>
-          <li>• Tiles fall down to fill gaps</li>
-          <li>• Columns collapse when empty</li>
-          <li>• Larger groups = more points!</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🎮 How to Play</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>Tap any tile that is part of a group of 2+ same-color tiles to clear the whole group.</li>
+          <li>Tiles above fall down to fill gaps; empty columns collapse to the left.</li>
+          <li>Larger groups give more points — aim for big clusters!</li>
+          <li>You have 3 minutes. No valid moves or max score ends the game.</li>
         </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Points = tiles × tiles × 0.5</li>
-          <li>• 2 tiles = 2 points</li>
-          <li>• 5 tiles = 12 points</li>
-          <li>• Maximum score: 200 points</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>📊 Scoring</h3>
+        <p style={{ margin: '0 0 8px', fontSize: 14, color: '#cbd5e1' }}>Points = tiles × tiles × 0.5 (rounded).</p>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>2 tiles → 2 pts · 5 tiles → 12 pts · Max score: 200</li>
         </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Difficulty
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Easy: 8×8 grid, 3 colors</li>
-          <li>• Moderate: 10×10 grid, 4 colors</li>
-          <li>• Hard: 12×12 grid, 5 colors</li>
-          <li>• Time limit: 3 minutes</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>💡 Difficulty</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li><strong>Easy:</strong> 8×8 grid, 3 colors</li>
+          <li><strong>Moderate:</strong> 10×10 grid, 4 colors</li>
+          <li><strong>Hard:</strong> 12×12 grid, 5 colors</li>
+          <li>Time limit: 3 minutes for all</li>
         </ul>
-      </div>
+      </section>
     </div>
   );
 
@@ -470,23 +521,205 @@ const TileAdjustGame = () => {
     </div>
   );
 
+  // Menu when ready
+  if (gameState === 'ready') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #1a1a2e, #16213e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+          <div>Loading...</div>
+        </div>
+      );
+    }
+    const difficulties = [
+      { key: 'Easy', label: 'Easy', desc: '8×8 · 3 colors', emoji: '🟢', color: '#22c55e' },
+      { key: 'Moderate', label: 'Moderate', desc: '10×10 · 4 colors', emoji: '🟡', color: '#eab308' },
+      { key: 'Hard', label: 'Hard', desc: '12×12 · 5 colors', emoji: '🔴', color: '#ef4444' },
+    ];
+    const availableDifficulties = isDailyGame && dailyGameDifficulty ? difficulties.filter(d => d.key === dailyGameDifficulty) : difficulties;
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden' }}>
+        <button
+          type="button"
+          onClick={() => setShowInstructions(true)}
+          aria-label="How to Play"
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '12px 20px',
+            borderRadius: 12,
+            border: '2px solid rgba(0,212,255,0.6)',
+            background: 'rgba(0,212,255,0.12)',
+            color: '#00d4ff',
+            cursor: 'pointer',
+            fontSize: 15,
+            fontWeight: 700,
+            transition: 'background 0.2s, transform 0.15s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(0,212,255,0.25)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,212,255,0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(0,212,255,0.12)';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+          onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(0.98)'; }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-1px) scale(1)'; }}
+        >
+          <span style={{ fontSize: 18 }} aria-hidden>📖</span>
+          How to Play
+        </button>
+        {showInstructions && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tile-adjust-instructions-title"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }}
+            onClick={closeInstructions}
+          >
+            <div
+              style={{
+                background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)',
+                border: '2px solid rgba(0,212,255,0.45)',
+                borderRadius: 20,
+                padding: 0,
+                maxWidth: 480,
+                width: '100%',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                color: '#e2e8f0',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                <h2 id="tile-adjust-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#00d4ff' }}>
+                  🧩 Tile Adjust – How to Play
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeInstructions}
+                  aria-label="Close"
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#e2e8f0',
+                    fontSize: 22,
+                    lineHeight: 1,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                {instructionsModalContent}
+              </div>
+              <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={closeInstructions}
+                  style={{
+                    width: '100%',
+                    padding: '12px 24px',
+                    borderRadius: 12,
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #00d4ff, #0099ff)',
+                    color: '#fff',
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(0,212,255,0.35)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🧩</div>
+        <h1 style={{ color: '#fff', fontSize: 36, fontWeight: 800, margin: '0 0 6px', letterSpacing: -1, textShadow: '0 0 40px rgba(0,212,255,0.4)' }}>Tile Adjust</h1>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 8px' }}>Clear matching tile groups to score points!</p>
+        {isDailyGame && (
+          <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(0,212,255,0.2)', border: '1px solid rgba(0,212,255,0.5)', borderRadius: 20, fontSize: 13, color: '#00d4ff', fontWeight: 600 }}>
+            Daily Challenge
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {availableDifficulties.map(d => (
+            <button
+              key={d.key}
+              onClick={() => !isDailyGame && setDifficulty(d.key)}
+              style={{
+                background: (isDailyGame ? d.key === dailyGameDifficulty : difficulty === d.key) ? `${d.color}22` : 'rgba(255,255,255,0.06)',
+                border: `2px solid ${d.color}44`,
+                borderRadius: 16,
+                padding: '24px 32px',
+                cursor: isDailyGame ? 'default' : 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                minWidth: 160,
+                transition: 'all 0.2s',
+                color: '#fff'
+              }}
+              onMouseEnter={e => { if (!isDailyGame) { e.currentTarget.style.background = `${d.color}22`; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = `${d.color}88`; } }}
+              onMouseLeave={e => { e.currentTarget.style.background = (isDailyGame ? d.key === dailyGameDifficulty : difficulty === d.key) ? `${d.color}22` : 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = `${d.color}44`; }}
+            >
+              <span style={{ fontSize: 32 }}>{d.emoji}</span>
+              <span style={{ fontSize: 20, fontWeight: 700 }}>{d.label}</span>
+              <span style={{ fontSize: 12, opacity: 0.6 }}>{d.desc}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={() => handleStart()} style={{ marginTop: 20, padding: '14px 40px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 16, background: 'linear-gradient(135deg, #00d4ff, #0099ff)', color: '#fff', boxShadow: '0 4px 20px rgba(0,212,255,0.4)' }}>
+          Start Game
+        </button>
+      </div>
+    );
+  }
+
+  // Playing or finished: game layer with zIndex 1
+  const timeElapsedForModal = completionData?.timeElapsed ?? (gameState === 'finished' ? TIME_LIMIT : TIME_LIMIT - timeRemaining);
+  const c = completionData || {};
+
   return (
-    <GameFrameworkV2
-      gameTitle="Tile Adjust"
-      gameShortDescription="Clear matching tile groups to score points"
-      category="Puzzle"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+        {playingContent}
+        {gameState === 'playing' && (
+          <button onClick={handleReset} style={{ position: 'absolute', top: 12, left: 12, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600, zIndex: 20 }}>
+            Menu
+          </button>
+        )}
+      </div>
+      {gameState === 'finished' && completionData != null && (
+        <GameCompletionModal
+          isVisible
+          onClose={handleReset}
+          gameTitle="Tile Adjust"
+          score={c.score}
+          timeElapsed={timeElapsedForModal}
+          gameTimeLimit={TIME_LIMIT}
+          isVictory={c.isVictory}
+          difficulty={c.difficulty}
+          customMessages={{ maxScore: MAX_SCORE }}
+        />
+      )}
+    </>
   );
 };
 

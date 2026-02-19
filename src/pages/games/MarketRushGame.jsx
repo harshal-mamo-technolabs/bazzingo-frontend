@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 import happyShopkeeper from '/happy-shopkeeper.png'
 import confusedShopkeeper from '/confused-shopkeeper.png';
 import happyCustomer from '/happy-customer.png';
@@ -203,6 +205,7 @@ function BazaarCanvas() {
 
 // ─── Main Game Component ─────────────────────────────────────────
 export default function MarketRush() {
+  const location = useLocation();
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [phase, setPhase] = useState('peek');
@@ -225,9 +228,56 @@ export default function MarketRush() {
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+
+  const closeInstructions = useCallback(() => setShowInstructions(false), []);
+
+  useEffect(() => {
+    if (!showInstructions) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeInstructions(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInstructions, closeInstructions]);
 
   const timerRef = useRef(null);
   const peekTimerRef = useRef(null);
+  const scoreRef = useRef(0);
+  const correctCountRef = useRef(0);
+  const wrongCountRef = useRef(0);
+  scoreRef.current = score;
+  correctCountRef.current = correctCount;
+  wrongCountRef.current = wrongCount;
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setDifficulty(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
 
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -236,6 +286,14 @@ export default function MarketRush() {
       setTimeLeft(t => { 
         if (t <= 1) { 
           clearInterval(timerRef.current); 
+          setCompletionData({
+            score: scoreRef.current,
+            isVictory: false,
+            difficulty,
+            timeElapsed: TIME_LIMIT,
+            correctCount: correctCountRef.current,
+            wrongCount: wrongCountRef.current,
+          });
           setGameState('finished');
           sfx('lose'); 
           return 0; 
@@ -244,7 +302,7 @@ export default function MarketRush() {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [gameState, phase]);
+  }, [gameState, phase, difficulty]);
 
   const generateOrder = useCallback((lvl) => {
     const pool = ITEMS.slice(0, lvl.itemPool);
@@ -281,6 +339,7 @@ export default function MarketRush() {
     setTimeLeft(TIME_LIMIT);
     setRound(0);
     setCombo(0);
+    setCompletionData(null);
   }, []);
 
   const startRound = (lvl, rnd) => {
@@ -354,7 +413,15 @@ export default function MarketRush() {
   const continueGame = () => {
     const lvl = LEVELS[difficulty]; 
     const nextRound = round + 1;
-    if (nextRound >= lvl.totalRounds || score >= MAX_SCORE) { 
+    if (nextRound >= lvl.totalRounds || score >= MAX_SCORE) {
+      setCompletionData({
+        score,
+        isVictory: true,
+        difficulty,
+        timeElapsed: TIME_LIMIT - timeLeft,
+        correctCount,
+        wrongCount,
+      });
       setGameState('finished'); 
       sfx('win'); 
     }
@@ -401,54 +468,49 @@ export default function MarketRush() {
   // Check if game should end due to max score
   useEffect(() => {
     if (gameState === 'playing' && score >= MAX_SCORE) {
+      setCompletionData({
+        score,
+        isVictory: true,
+        difficulty,
+        timeElapsed: TIME_LIMIT - timeLeft,
+        correctCount,
+        wrongCount,
+      });
       setGameState('finished');
       sfx('win');
     }
-  }, [gameState, score]);
+  }, [gameState, score, difficulty, timeLeft]);
 
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Memorize customer orders and serve them correctly from your shop inventory before time runs out!
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Customer shows their order</li>
-          <li>• Memorize items and quantities</li>
-          <li>• Select items from inventory</li>
-          <li>• Serve when tray is complete</li>
+  const instructionsModalContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <section style={{ background: 'rgba(116,185,255,0.1)', border: '1px solid rgba(116,185,255,0.3)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#74b9ff' }}>🎯 Objective</h3>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Memorize customer orders and serve them correctly from your shop inventory before time runs out. Reach 200 points to win!</p>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🎮 How to Play</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>The customer shows their order in a speech bubble during <strong>peek time</strong> (watch the timer).</li>
+          <li>Memorize each item and quantity. When peek ends, the order hides.</li>
+          <li>Select items from the <strong>inventory shelf</strong>, set quantity with +/−, then <strong>Add to Tray</strong>.</li>
+          <li>When your tray matches the order, tap <strong>Serve to Customer</strong>. Perfect order = full points!</li>
         </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Perfect orders earn full points</li>
-          <li>• Combo multiplier for streaks</li>
-          <li>• Partial credit for some correct</li>
-          <li>• Reach 200 points to win!</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>📊 Scoring</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>Perfect orders earn full points; partial credit when some items are correct.</li>
+          <li>Build a <strong>combo</strong> (consecutive correct orders) for a score multiplier.</li>
+          <li>Wrong or incomplete orders break the combo. Reach 200 points to win!</li>
         </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Strategy
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Focus during peek time</li>
-          <li>• Remember both item & quantity</li>
-          <li>• Build combos for bonus points</li>
-          <li>• Higher difficulty = less time</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>💡 Strategy</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>Focus during peek time — remember both <strong>item and quantity</strong>.</li>
+          <li>Higher difficulty = bigger orders, shorter peek time, and less time per round.</li>
         </ul>
-      </div>
+      </section>
     </div>
   );
 
@@ -657,24 +719,129 @@ export default function MarketRush() {
     </>
   );
 
+  // Menu when ready
+  if (gameState === 'ready') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0a0a2e, #1a1a4e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+          <div>Loading...</div>
+        </div>
+      );
+    }
+    const difficulties = [
+      { key: 'Easy', label: 'Easy', desc: 'Fewer items, more time', emoji: '🟢', color: '#00b894' },
+      { key: 'Moderate', label: 'Moderate', desc: 'Medium challenge', emoji: '🟡', color: '#f39c12' },
+      { key: 'Hard', label: 'Hard', desc: 'More items, less time', emoji: '🔴', color: '#e74c3c' },
+    ];
+    const availableDifficulties = isDailyGame && dailyGameDifficulty ? difficulties.filter(d => d.key === dailyGameDifficulty) : difficulties;
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0d0d35 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden' }}>
+        <button
+          type="button"
+          onClick={() => setShowInstructions(true)}
+          aria-label="How to Play"
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '12px 20px', borderRadius: 12,
+            border: '2px solid rgba(116,185,255,0.6)', background: 'rgba(116,185,255,0.15)',
+            color: '#74b9ff', cursor: 'pointer', fontSize: 15, fontWeight: 700,
+            transition: 'background 0.2s, transform 0.15s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(116,185,255,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(116,185,255,0.3)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(116,185,255,0.15)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+        >
+          <span style={{ fontSize: 18 }} aria-hidden>📖</span>
+          How to Play
+        </button>
+        {showInstructions && (
+          <div role="dialog" aria-modal="true" aria-labelledby="market-rush-instructions-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }} onClick={closeInstructions}>
+            <div style={{ background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)', border: '2px solid rgba(116,185,255,0.5)', borderRadius: 20, padding: 0, maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                <h2 id="market-rush-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#74b9ff' }}>🏪 Market Rush – How to Play</h2>
+                <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              </div>
+              <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>{instructionsModalContent}</div>
+              <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #74b9ff, #0984e3)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(116,185,255,0.4)' }}>Got it</button>
+              </div>
+            </div>
+          </div>
+        )}
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🏪</div>
+        <h1 style={{ color: '#fff', fontSize: 36, fontWeight: 800, margin: '0 0 6px', letterSpacing: -1, textShadow: '0 0 40px rgba(116,185,255,0.4)' }}>Market Rush</h1>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 8px' }}>Memorize customer orders and serve them correctly!</p>
+        {isDailyGame && (
+          <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(116,185,255,0.2)', border: '1px solid rgba(116,185,255,0.5)', borderRadius: 20, fontSize: 13, color: '#74b9ff', fontWeight: 600 }}>
+            Daily Challenge
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {availableDifficulties.map(d => (
+            <button
+              key={d.key}
+              onClick={() => !isDailyGame && setDifficulty(d.key)}
+              style={{
+                background: (isDailyGame ? d.key === dailyGameDifficulty : difficulty === d.key) ? `${d.color}22` : 'rgba(255,255,255,0.06)',
+                border: `2px solid ${d.color}44`,
+                borderRadius: 16,
+                padding: '24px 32px',
+                cursor: isDailyGame ? 'default' : 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                minWidth: 160,
+                transition: 'all 0.2s',
+                color: '#fff'
+              }}
+              onMouseEnter={e => { if (!isDailyGame) { e.currentTarget.style.background = `${d.color}22`; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = `${d.color}88`; } }}
+              onMouseLeave={e => { e.currentTarget.style.background = (isDailyGame ? d.key === dailyGameDifficulty : difficulty === d.key) ? `${d.color}22` : 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = `${d.color}44`; }}
+            >
+              <span style={{ fontSize: 32 }}>{d.emoji}</span>
+              <span style={{ fontSize: 20, fontWeight: 700 }}>{d.label}</span>
+              <span style={{ fontSize: 12, opacity: 0.6 }}>{d.desc}</span>
+            </button>
+          ))}
+        </div>
+        {isDailyGame ? (
+          <button onClick={() => handleStart()} style={{ marginTop: 20, padding: '14px 40px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 16, background: 'linear-gradient(135deg, #74b9ff, #0984e3)', color: '#fff', boxShadow: '0 4px 20px rgba(116,185,255,0.4)' }}>
+            Start Game
+          </button>
+        ) : (
+          <button onClick={() => handleStart()} style={{ marginTop: 20, padding: '14px 40px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 16, background: 'linear-gradient(135deg, #74b9ff, #0984e3)', color: '#fff', boxShadow: '0 4px 20px rgba(116,185,255,0.4)' }}>
+            Start Game
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Playing or finished: game layer with zIndex 1
+  const timeElapsedForModal = completionData?.timeElapsed ?? (gameState === 'finished' ? TIME_LIMIT : TIME_LIMIT - timeLeft);
+  const c = completionData || {};
+  const statsStr = [c.correctCount != null && c.wrongCount != null && `Correct: ${c.correctCount} · Wrong: ${c.wrongCount}`].filter(Boolean).join(' ');
+
   return (
-    <GameFrameworkV2
-      gameTitle="Market Rush"
-      gameShortDescription="Memorize customer orders and serve them correctly from your shop inventory!"
-      category="Memory"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeLeft}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{ correctCount, wrongCount, accuracy, combo }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+        {playingContent}
+        {gameState === 'playing' && (
+          <button onClick={handleReset} style={{ position: 'absolute', top: 12, left: 12, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+            Menu
+          </button>
+        )}
+      </div>
+      {gameState === 'finished' && completionData != null && (
+        <GameCompletionModal
+          isVisible
+          onClose={handleReset}
+          gameTitle="Market Rush"
+          score={c.score}
+          timeElapsed={timeElapsedForModal}
+          gameTimeLimit={TIME_LIMIT}
+          isVictory={c.isVictory}
+          difficulty={c.difficulty}
+          customMessages={{ maxScore: MAX_SCORE, stats: statsStr }}
+        />
+      )}
+    </>
   );
 }

@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
-
-const DIFFICULTIES = {
-  Easy: 0,
-  Moderate: 1,
-  Hard: 2,
-};
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 // ─── CONSTANTS ────────────────────────────────────────────
 const MAX_SCORE = 200;
-const TIME_LIMIT = 180;
 const LEVELS = [
   {
     name: 'Calm Lagoon',
@@ -147,113 +142,8 @@ const playSound = (type) => {
   } catch (e) {}
 };
 
-/* ─────────────────── MAIN WRAPPER COMPONENT ─────────────────── */
-export default function FishermansCatchGame() {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
-  const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(TIME_LIMIT);
-
-  const levelIdx = DIFFICULTIES[difficulty];
-
-  const handleStart = useCallback(() => {
-    getAudioCtx();
-    setScore(0);
-    setTimeRemaining(TIME_LIMIT);
-    setGameState('playing');
-  }, []);
-
-  const handleReset = useCallback(() => {
-    setScore(0);
-    setTimeRemaining(TIME_LIMIT);
-  }, []);
-
-  useEffect(() => {
-    if (gameState === 'finished') {
-      // Cleanup if needed
-    }
-  }, [gameState]);
-
-  // Instructions section
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Cast your fishing line and catch the target number of fish before time runs out!
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Click on water to cast your line</li>
-          <li>• Use ← → or A/D to move boat</li>
-          <li>• Press Space for quick cast</li>
-          <li>• Catch fish, avoid junk!</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• 🐟 Blue Fish: +10 pts</li>
-          <li>• 🐠 Tropical: +15 pts</li>
-          <li>• 🐡 Puffer: +20 pts</li>
-          <li>• 🦈 Shark: +30 pts</li>
-          <li>• Junk items: negative points!</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Difficulty
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Easy: 🏝️ Calm Lagoon (8 fish)</li>
-          <li>• Moderate: 🌊 Open Sea (12 fish)</li>
-          <li>• Hard: 🐙 Deep Abyss (16 fish)</li>
-          <li>• Build combos for bonus points!</li>
-        </ul>
-      </div>
-    </div>
-  );
-
-  return (
-    <GameFrameworkV2
-      gameTitle="Fisherman's Catch"
-      gameShortDescription="Cast your line and catch fish before time runs out"
-      category="Arcade"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      instructionsSection={instructionsSection}
-      showHeader={false}
-    >
-      <FishermansCatchCore
-        key={levelIdx}
-        levelIdx={levelIdx}
-        gameState={gameState}
-        setGameState={setGameState}
-        score={score}
-        setScore={setScore}
-        timeRemaining={timeRemaining}
-        setTimeRemaining={setTimeRemaining}
-      />
-    </GameFrameworkV2>
-  );
-}
-
-/* ─────────────────── CORE GAME COMPONENT (preserves all original CSS & graphics) ─────────────────── */
-function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScore, timeRemaining, setTimeRemaining }) {
+export default function FishermansCatch({ onBack }) {
+  const location = useLocation();
   const containerRef = useRef(null);
   const rafRef = useRef(null);
   const lastTimeRef = useRef(0);
@@ -295,13 +185,74 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
     };
   }, []);
 
+  const [screen, setScreen] = useState('menu'); // menu | playing | finished
+  const [selectedLevel, setSelectedLevel] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [levelScores, setLevelScores] = useState([null, null, null]);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyLevelIndex, setDailyLevelIndex] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+  const [needsRotation, setNeedsRotation] = useState(false);
+
+  const closeInstructions = useCallback(() => setShowInstructions(false), []);
+
   useEffect(() => {
-    if (gameState === 'playing' && !stateRef.current) {
-      stateRef.current = initGame(levelIdx);
-      lastTimeRef.current = 0;
-      forceUpdate(n => n + 1);
-    }
-  }, [gameState, levelIdx, initGame]);
+    const check = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      setNeedsRotation(w < 500 || h > w);
+    };
+    check();
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+    return () => {
+      window.removeEventListener('resize', check);
+      window.removeEventListener('orientationchange', check);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showInstructions) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeInstructions(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInstructions, closeInstructions]);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 0, medium: 1, moderate: 1, hard: 2 };
+          if (map[d] != null) {
+            setIsDailyGame(true);
+            setDailyLevelIndex(map[d]);
+            setSelectedLevel(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
+
+  const startLevel = useCallback((idx) => {
+    stateRef.current = initGame(idx);
+    setSelectedLevel(idx);
+    setScreen('playing');
+    lastTimeRef.current = 0;
+  }, [initGame]);
 
   // ─── INPUT ────────────────────────────────────────────
   useEffect(() => {
@@ -341,7 +292,7 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
 
   // ─── GAME LOOP ────────────────────────────────────────
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (screen !== 'playing') return;
 
     const loop = (timestamp) => {
       if (!lastTimeRef.current) lastTimeRef.current = timestamp;
@@ -361,12 +312,10 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
 
       // Timer
       s.timeLeft -= dt;
-      setTimeRemaining(Math.ceil(s.timeLeft));
       if (s.timeLeft <= 0) {
         s.timeLeft = 0;
         s.phase = 'done';
         play('lose');
-        setGameState('finished');
       }
 
       // Combo timer
@@ -412,7 +361,6 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
                 play('junk');
               }
               s.score = Math.max(0, s.score + pts);
-              setScore(s.score);
               s.popups.push({
                 x: s.boat.x, y: boatY - 20,
                 text: pts > 0 ? `+${pts}` : `${pts}`,
@@ -446,7 +394,6 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
             if (s.caught >= s.targetCount) {
               s.phase = 'done';
               play('win');
-              setGameState('finished');
             }
           }
         } else {
@@ -512,7 +459,7 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
 
     rafRef.current = requestAnimationFrame(loop);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [gameState, play, spawnItem, setGameState, setScore, setTimeRemaining]);
+  }, [screen, play, spawnItem]);
 
   // ─── CAST LINE ────────────────────────────────────────
   const castLine = useCallback((targetY) => {
@@ -534,7 +481,7 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
   // Space to cast
   useEffect(() => {
     const handler = (e) => {
-      if (e.code === 'Space' && gameState === 'playing') {
+      if (e.code === 'Space' && screen === 'playing') {
         e.preventDefault();
         const s = stateRef.current;
         if (s) castLine(s.h * 0.55);
@@ -542,7 +489,7 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [gameState, castLine]);
+  }, [screen, castLine]);
 
   // Touch
   const handleTouchStart = useCallback((e) => {
@@ -556,29 +503,257 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
   }, []);
   const handleTouchEnd = useCallback(() => { touchRef.current.active = false; }, []);
 
+  // ─── FINISH LEVEL ─────────────────────────────────────
+  useEffect(() => {
+    const s = stateRef.current;
+    if (!s || s.phase !== 'done') return;
+    const lvl = LEVELS[s.level];
+    const catchRatio = Math.min(s.caught / lvl.targetCount, 1);
+    const timeRatio = s.timeLeft / lvl.timeLimit;
+    const raw = Math.round(catchRatio * lvl.maxPoints * 0.7 + timeRatio * lvl.maxPoints * 0.3);
+    const pts = Math.min(raw, lvl.maxPoints);
+    const newScores = [...levelScores];
+    newScores[s.level] = Math.max(newScores[s.level] || 0, pts);
+    const newTotal = newScores.reduce((a, b) => a + (b || 0), 0);
+    setLevelScores(newScores);
+    setTotalScore(newTotal);
+    setCompletionData({
+      score: newTotal,
+      isVictory: s.caught >= lvl.targetCount,
+      difficulty: lvl.name,
+      timeElapsed: lvl.timeLimit - s.timeLeft,
+      caught: s.caught,
+      targetCount: lvl.targetCount,
+    });
+    setScreen('finished');
+  }, [stateRef.current?.phase]);
+
+  const handleReset = useCallback(() => {
+    setScreen('menu');
+    setCompletionData(null);
+  }, []);
+
   // ─── RENDER ───────────────────────────────────────────
   const s = stateRef.current;
 
-  if (!s || gameState !== 'playing') return null;
+  // ─── MENU ─────────────────────────────────────────────
+  if (screen === 'menu') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg, #87ceeb 0%, #1a5276 100%)', color: '#fff', fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
+          Loading...
+        </div>
+      );
+    }
+    const availableLevels = isDailyGame && dailyLevelIndex != null ? [LEVELS[dailyLevelIndex]] : LEVELS;
+    const levelIndices = isDailyGame && dailyLevelIndex != null ? [dailyLevelIndex] : [0, 1, 2];
+    return (
+      <div style={{
+        width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(180deg, #87ceeb 0%, #3498db 40%, #1a5276 100%)',
+        fontFamily: "'Segoe UI', Tahoma, sans-serif",
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <button
+          type="button"
+          onClick={() => setShowInstructions(true)}
+          aria-label="How to Play"
+          style={{
+            position: 'absolute', top: 16, right: 16, zIndex: 3,
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '12px 20px', borderRadius: 12,
+            border: '2px solid rgba(244,208,63,0.8)', background: 'rgba(244,208,63,0.18)',
+            color: '#f4d03f', cursor: 'pointer', fontSize: 15, fontWeight: 700,
+            transition: 'background 0.2s, transform 0.15s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,208,63,0.35)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(244,208,63,0.3)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(244,208,63,0.18)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+        >
+          <span style={{ fontSize: 18 }} aria-hidden>📖</span>
+          How to Play
+        </button>
+        {showInstructions && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="fisherman-instructions-title"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }}
+            onClick={closeInstructions}
+          >
+            <div
+              style={{
+                background: 'linear-gradient(180deg, #1a5276 0%, #0b2545 100%)',
+                border: '2px solid rgba(244,208,63,0.5)',
+                borderRadius: 20, padding: 0, maxWidth: 480, width: '100%',
+                maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                <h2 id="fisherman-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#f4d03f' }}>
+                  🎣 Fisherman's Catch – How to Play
+                </h2>
+                <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  ×
+                </button>
+              </div>
+              <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <section style={{ background: 'rgba(244,208,63,0.1)', border: '1px solid rgba(244,208,63,0.3)', borderRadius: 12, padding: 16 }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#f4d03f' }}>🎯 Objective</h3>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Cast your line and catch the target number of fish before time runs out. Avoid junk (tires, boots, jellyfish) — they cost points!</p>
+                  </section>
+                  <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🎮 Controls</h3>
+                    <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+                      <li><strong>Move boat:</strong> Arrow keys (← →) or touch/drag left and right</li>
+                      <li><strong>Cast & reel:</strong> Space bar or tap to cast; tap again to reel in. Catch fish, avoid junk!</li>
+                    </ul>
+                  </section>
+                  <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>📊 Scoring</h3>
+                    <p style={{ margin: '0 0 8px', fontSize: 14, color: '#cbd5e1' }}>Fish give points (e.g. Blue +10, Yellow +15, Puffer +20, Shark +30). Junk subtracts points. Each level has a target catch count and time limit. Score up to 200.</p>
+                  </section>
+                  <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>🌊 Levels</h3>
+                    <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+                      <li><strong>Calm Lagoon:</strong> 8 fish, 60s · <strong>Open Sea:</strong> 12 fish, 75s · <strong>Deep Abyss:</strong> 16 fish, 90s</li>
+                    </ul>
+                  </section>
+                </div>
+              </div>
+              <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #f4d03f, #f39c12)', color: '#1a5276', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(244,208,63,0.4)' }}>
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Animated water bg */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%',
+          background: 'linear-gradient(180deg, rgba(41,128,185,0.6) 0%, rgba(26,82,118,0.9) 100%)',
+        }} />
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            left: `${10 + (i * 17) % 80}%`,
+            bottom: `${5 + (i * 13) % 40}%`,
+            width: 8 + (i % 4) * 4, height: 8 + (i % 4) * 4,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.15)',
+            animation: `fishBubbleFloat ${3 + i % 3}s ease-in-out infinite`,
+            animationDelay: `${i * 0.3}s`,
+          }} />
+        ))}
+
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+          <div style={{ fontSize: 64, marginBottom: 8 }}>🎣</div>
+          <h1 style={{
+            fontSize: 48, fontWeight: 900, color: '#fff',
+            textShadow: '3px 3px 0 #1a5276, 0 0 20px rgba(52,152,219,0.5)',
+            margin: '0 0 8px',
+            letterSpacing: 2,
+          }}>
+            Fisherman's Catch
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, margin: '0 0 8px' }}>
+            Cast your line & catch the targets! · Total: {totalScore}/{MAX_SCORE}
+          </p>
+          {isDailyGame && (
+            <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(244,208,63,0.2)', border: '1px solid rgba(244,208,63,0.5)', borderRadius: 20, fontSize: 13, color: '#f4d03f', fontWeight: 600, display: 'inline-block' }}>
+              Daily Challenge
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center', marginTop: 24 }}>
+            {availableLevels.map((lvl, idx) => {
+              const i = levelIndices[idx];
+              return (
+              <div key={i} onClick={() => startLevel(i)}
+                style={{
+                  width: 200, padding: '20px 16px',
+                  background: 'rgba(255,255,255,0.12)',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255,255,255,0.2)',
+                  borderRadius: 16, cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  color: '#fff', textAlign: 'center',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05) translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+              >
+                <div style={{ fontSize: 36, marginBottom: 8 }}>{lvl.icon}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>Level {i + 1}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, color: '#f4d03f' }}>{lvl.name}</div>
+                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>{lvl.description}</div>
+                <div style={{ fontSize: 12, opacity: 0.6 }}>⏱ {lvl.timeLimit}s · 🎯 {lvl.targetCount} fish</div>
+                {levelScores[i] != null && (
+                  <div style={{ marginTop: 8, fontSize: 14, fontWeight: 700, color: '#2ecc71' }}>
+                    ⭐ {levelScores[i]} pts
+                  </div>
+                )}
+              </div>
+            ); })}
+          </div>
+
+          {onBack && (
+            <button onClick={onBack} style={{
+              marginTop: 24, padding: '10px 28px', fontSize: 14, fontWeight: 600,
+              background: 'rgba(255,255,255,0.15)', color: '#fff',
+              border: '1px solid rgba(255,255,255,0.3)', borderRadius: 10, cursor: 'pointer',
+            }}>
+              ← Back
+            </button>
+          )}
+        </div>
+
+        <style>{`
+          @keyframes fishBubbleFloat {
+            0%, 100% { transform: translateY(0); opacity: 0.3; }
+            50% { transform: translateY(-20px); opacity: 0.6; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ─── PLAYING (and finished: game visible behind modal) ─
+  if (!s) return null;
   const lvl = LEVELS[s.level];
   const waterTop = s.h * 0.2;
   const boatY = waterTop - 10;
   const timePercent = s.timeLeft / lvl.timeLimit;
   const catchPercent = s.caught / lvl.targetCount;
+  const timeElapsedForModal = completionData?.timeElapsed ?? (lvl.timeLimit - s.timeLeft);
 
   return (
+    <>
+      {(screen === 'playing' || screen === 'finished') && (
     <div ref={containerRef}
       onClick={handleClick}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{
+        style={{
         width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', cursor: 'crosshair',
         background: `linear-gradient(180deg, ${lvl.skyColor1} 0%, ${lvl.skyColor2} ${20}%, ${lvl.waterColor1} ${22}%, ${lvl.waterColor2} 100%)`,
         fontFamily: "'Segoe UI', Tahoma, sans-serif",
         userSelect: 'none',
+        zIndex: 1,
       }}
     >
+      {needsRotation && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg, #1a5276 0%, #0b2545 100%)', color: '#fff', padding: 24, textAlign: 'center', boxSizing: 'border-box',
+        }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>📱</div>
+          <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Rotate your device</div>
+          <div style={{ fontSize: 15, opacity: 0.9, maxWidth: 280 }}>Please turn your phone to landscape mode for the best playing experience.</div>
+        </div>
+      )}
       {/* Sun/Moon */}
       <div style={{
         position: 'absolute', top: 20, right: 80,
@@ -803,6 +978,14 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
         }}>
           {muted ? '🔇' : '🔊'}
         </button>
+
+        {/* Menu */}
+        <button onClick={(e) => { e.stopPropagation(); handleReset(); }} style={{
+          background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8,
+          padding: '4px 10px', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+        }}>
+          ☰ Menu
+        </button>
       </div>
 
       {/* Bottom hint */}
@@ -839,5 +1022,21 @@ function FishermansCatchCore({ levelIdx, gameState, setGameState, score, setScor
         }
       `}</style>
     </div>
+      )}
+      <GameCompletionModal
+        isVisible={screen === 'finished' && completionData != null}
+        onClose={handleReset}
+        gameTitle="Fisherman's Catch"
+        score={completionData?.score ?? totalScore}
+        timeElapsed={timeElapsedForModal}
+        gameTimeLimit={completionData ? LEVELS[selectedLevel]?.timeLimit : lvl?.timeLimit}
+        isVictory={completionData?.isVictory ?? false}
+        difficulty={completionData?.difficulty ?? lvl?.name}
+        customMessages={{
+          maxScore: MAX_SCORE,
+          stats: completionData != null ? `🐟 ${completionData.caught ?? s?.caught ?? 0}/${completionData.targetCount ?? lvl?.targetCount ?? 0} caught • ${Math.floor((completionData.timeElapsed ?? 0) / 60)}:${String((completionData.timeElapsed ?? 0) % 60).padStart(2, '0')}` : '',
+        }}
+      />
+    </>
   );
 }

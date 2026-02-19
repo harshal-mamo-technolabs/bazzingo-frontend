@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 /* ───── CONSTANTS ───── */
 const TIME_LIMIT = 120;
 const MAX_SCORE = 200;
 
-const LEVELS = {
-  Easy: {
+const LEVELS = [
+  {
     name: 'Easy',
     subtitle: 'Basic Packets',
     desc: 'Remember a short sequence of data packets flowing through the stream.',
@@ -16,8 +18,8 @@ const LEVELS = {
     bg: ['#0a1628', '#162544'],
     accent: '#00e5ff',
   },
-  Moderate: {
-    name: 'Moderate',
+  {
+    name: 'Medium',
     subtitle: 'Encrypted Flow',
     desc: 'Longer sequences with more packet types. Stay sharp!',
     seqLength: 6,
@@ -26,7 +28,7 @@ const LEVELS = {
     bg: ['#1a0a2e', '#2d1b4e'],
     accent: '#b388ff',
   },
-  Hard: {
+  {
     name: 'Hard',
     subtitle: 'Firewall Breach',
     desc: 'Long sequences, more types, faster flow. Can you crack it?',
@@ -36,7 +38,7 @@ const LEVELS = {
     bg: ['#2e0a0a', '#4e1b1b'],
     accent: '#ff5252',
   },
-};
+];
 
 /* ───── AUDIO ───── */
 function playSound(type) {
@@ -156,10 +158,9 @@ function StreamCanvas({ colors, accent }) {
 }
 
 /* ───── MAIN COMPONENT ───── */
-export default function DataStreamSecurity() {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
-  const [phase, setPhase] = useState('menu'); // menu | watching | answering | win | lose
+export default function DataStreamSecurity({ onBack }) {
+  const location = useLocation();
+  const [phase, setPhase] = useState('menu'); // menu | watching | answering | finished
   const [levelIdx, setLevelIdx] = useState(0);
   const [sequence, setSequence] = useState([]);
   const [currentShow, setCurrentShow] = useState(-1);
@@ -171,18 +172,43 @@ export default function DataStreamSecurity() {
   const [roundSeqLen, setRoundSeqLen] = useState(0);
   const [feedback, setFeedback] = useState(null); // { type: 'correct' | 'wrong', idx }
   const [showRules, setShowRules] = useState(false);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyLevelIndex, setDailyLevelIndex] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [completionData, setCompletionData] = useState(null);
   const timerRef = useRef(null);
+  const scoreRef = useRef(0);
+  scoreRef.current = score;
 
-  const level = LEVELS[difficulty];
+  const level = LEVELS[levelIdx];
 
-  // Update timeLeft when difficulty changes (for ready screen display)
+  /* Daily game detection */
   useEffect(() => {
-    if (gameState === 'ready') {
-      setTimeLeft(TIME_LIMIT);
-    }
-  }, [difficulty, gameState]);
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 0, medium: 1, moderate: 1, hard: 2 };
+          if (map[d] != null) {
+            setIsDailyGame(true);
+            setDailyLevelIndex(map[d]);
+            setLevelIdx(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
 
   /* Generate a sequence */
   const genSeq = useCallback((len, symbols) => {
@@ -194,42 +220,22 @@ export default function DataStreamSecurity() {
   }, []);
 
   /* Start a level */
-  const startLevel = (diff) => {
+  const startLevel = (idx) => {
     playSound('click');
-    setDifficulty(diff);
+    setLevelIdx(idx);
     setPhase('watching');
     setScore(0);
     setRound(1);
     setTimeLeft(TIME_LIMIT);
     setPlayerSeq([]);
     setFeedback(null);
-    setCorrectCount(0);
-    setWrongCount(0);
-    const lvl = LEVELS[diff];
+    const lvl = LEVELS[idx];
     const len = lvl.seqLength;
     setRoundSeqLen(len);
     const seq = genSeq(len, lvl.symbols);
     setSequence(seq);
     setCurrentShow(0);
-    setGameState('playing');
   };
-
-  const handleStart = useCallback(() => {
-    startLevel(difficulty);
-  }, [difficulty]);
-
-  const handleReset = useCallback(() => {
-    setGameState('ready');
-    setPhase('menu');
-    setScore(0);
-    setCorrectCount(0);
-    setWrongCount(0);
-    setTimeLeft(TIME_LIMIT);
-    setRound(1);
-    setPlayerSeq([]);
-    setFeedback(null);
-    clearInterval(timerRef.current);
-  }, []);
 
   /* Show sequence one by one */
   useEffect(() => {
@@ -249,22 +255,26 @@ export default function DataStreamSecurity() {
 
   /* Timer */
   useEffect(() => {
-    if (gameState !== 'playing') return;
     if (phase !== 'watching' && phase !== 'answering') return;
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
-          setPhase('lose');
-          setGameState('finished');
           playSound('lose');
+          setCompletionData({
+            score: scoreRef.current,
+            isVictory: false,
+            difficulty: level.name,
+            timeElapsed: TIME_LIMIT,
+          });
+          setPhase('finished');
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [gameState, phase]);
+  }, [phase, score, level.name]);
 
   /* Handle player tap */
   const handleTap = (symbol) => {
@@ -278,20 +288,17 @@ export default function DataStreamSecurity() {
       // Wrong
       playSound('wrong');
       setFeedback({ type: 'wrong', idx });
-      setWrongCount(c => c + 1);
       setTimeout(() => {
         setFeedback(null);
-        // Move to next round or end
         if (round >= totalRounds) {
           if (score > 0) {
-            setPhase('win');
-            setGameState('finished');
             playSound('win');
+            setCompletionData({ score, isVictory: true, difficulty: level.name, timeElapsed: TIME_LIMIT - timeLeft });
           } else {
-            setPhase('lose');
-            setGameState('finished');
             playSound('lose');
+            setCompletionData({ score: 0, isVictory: false, difficulty: level.name, timeElapsed: TIME_LIMIT - timeLeft });
           }
+          setPhase('finished');
         } else {
           nextRound(score);
         }
@@ -306,16 +313,15 @@ export default function DataStreamSecurity() {
     if (newSeq.length === sequence.length) {
       // Full sequence correct!
       playSound('correct');
-      setCorrectCount(c => c + 1);
       const roundScore = Math.round((MAX_SCORE / totalRounds) * (timeLeft / TIME_LIMIT + 0.5));
       const newScore = Math.min(MAX_SCORE, score + roundScore);
       setScore(newScore);
 
       setTimeout(() => {
-        if (round >= totalRounds || newScore >= MAX_SCORE) {
-          setPhase('win');
-          setGameState('finished');
+        if (round >= totalRounds) {
           playSound('win');
+          setCompletionData({ score: newScore, isVictory: true, difficulty: level.name, timeElapsed: TIME_LIMIT - timeLeft });
+          setPhase('finished');
         } else {
           nextRound(newScore);
         }
@@ -341,68 +347,22 @@ export default function DataStreamSecurity() {
   const goMenu = () => {
     playSound('click');
     setPhase('menu');
-    setGameState('ready');
+    setCompletionData(null);
     clearInterval(timerRef.current);
   };
 
-  // Check if game should end due to max score
-  useEffect(() => {
-    if (gameState === 'playing' && score >= MAX_SCORE) {
-      setPhase('win');
-      setGameState('finished');
-      playSound('win');
-    }
-  }, [gameState, score]);
+  const handleReset = goMenu;
 
-  const accuracy = correctCount + wrongCount > 0 
-    ? Math.round((correctCount / (correctCount + wrongCount)) * 100) 
-    : 0;
-
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Watch data packets flow across the stream, memorize their order, then reproduce the exact sequence!
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Watch packets flow in sequence</li>
-          <li>• Memorize the exact order</li>
-          <li>• Tap symbols to reproduce</li>
-          <li>• Complete {totalRounds} rounds to win</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Correct sequences earn points</li>
-          <li>• Faster completion = more points</li>
-          <li>• Max {MAX_SCORE} points per level</li>
-          <li>• Wrong answer moves to next round</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Strategy
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Focus during packet flow</li>
-          <li>• Use memory techniques</li>
-          <li>• Sequences grow longer each round</li>
-          <li>• Higher difficulty = faster flow</li>
-        </ul>
-      </div>
-    </div>
-  );
+  /* ───── STYLES ───── */
+  const containerStyle = {
+    position: 'relative',
+    width: '100vw',
+    height: '100vh',
+    overflow: 'hidden',
+    fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
+    color: '#fff',
+    userSelect: 'none',
+  };
 
   const glassStyle = {
     background: 'rgba(0,0,0,0.45)',
@@ -445,20 +405,16 @@ export default function DataStreamSecurity() {
   /* Format time */
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const playingContent = (
-    <div style={{
-      position: 'relative',
-      width: '100vw',
-      height: '100vh',
-      overflow: 'hidden',
-      fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
-      color: '#fff',
-      userSelect: 'none',
-    }}>
+  /* ───── RENDER ───── */
+  const timeElapsedForModal = completionData?.timeElapsed ?? (phase === 'finished' ? TIME_LIMIT : TIME_LIMIT - timeLeft);
+
+  return (
+    <>
+    <div style={{ ...containerStyle, zIndex: phase === 'menu' ? undefined : 1 }}>
       <StreamCanvas colors={currentColors} accent={currentAccent} />
 
       {/* HUD */}
-      {(phase === 'watching' || phase === 'answering') && (
+      {(phase === 'watching' || phase === 'answering' || phase === 'finished') && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -480,6 +436,95 @@ export default function DataStreamSecurity() {
             </div>
             <div style={{ fontSize: 14, color: level.accent }}>Score: {score}/{MAX_SCORE}</div>
           </div>
+        </div>
+      )}
+
+      {/* ─── MENU ─── */}
+      {phase === 'menu' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: 20,
+        }}>
+          {checkingDailyGame ? (
+            <div style={{ color: '#fff', fontSize: 18 }}>Loading...</div>
+          ) : (
+            <>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>🛡️</div>
+            <h1 style={{
+              fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 900,
+              background: 'linear-gradient(135deg, #00e5ff, #b388ff)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              marginBottom: 8,
+            }}>
+              Data Stream Security
+            </h1>
+            <p style={{ opacity: 0.7, fontSize: 15, maxWidth: 400 }}>
+              Watch the data packets flow, memorize the pattern, then predict the sequence!
+            </p>
+            <button
+              onClick={() => setShowRules(true)}
+              style={{ ...btnStyle('#b388ff'), marginTop: 12, padding: '8px 20px', fontSize: 14 }}
+            >
+              📜 How to Play
+            </button>
+          </div>
+
+          {isDailyGame && (
+            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(0,229,255,0.2)', border: '1px solid rgba(0,229,255,0.5)', borderRadius: 20, fontSize: 13, color: '#00e5ff', fontWeight: 600 }}>
+              Daily Challenge
+            </div>
+          )}
+
+          {onBack && (
+            <button onClick={onBack} style={{ ...btnStyle('#888'), marginBottom: 20, padding: '8px 20px', fontSize: 14 }}>
+              ← Back
+            </button>
+          )}
+
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 16, width: '100%', maxWidth: 750,
+          }}>
+            {(isDailyGame && dailyLevelIndex != null ? [LEVELS[dailyLevelIndex]] : LEVELS).map((lv, i) => {
+              const idx = isDailyGame ? dailyLevelIndex : i;
+              return (
+              <div key={idx} onClick={() => startLevel(idx)} style={{
+                ...glassStyle,
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                textAlign: 'center',
+                border: `1px solid ${lv.accent}44`,
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = `0 0 30px ${lv.accent}33`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontSize: 36, marginBottom: 8 }}>
+                  {i === 0 ? '📡' : i === 1 ? '🔐' : '🔥'}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: lv.accent }}>{lv.name}</div>
+                <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 8 }}>{lv.subtitle}</div>
+                <div style={{ fontSize: 12, opacity: 0.5, marginBottom: 12 }}>{lv.desc}</div>
+                <div style={{
+                  display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap', marginBottom: 12,
+                }}>
+                  {lv.symbols.map((s, j) => (
+                    <span key={j} style={{ fontSize: 18 }}>{s}</span>
+                  ))}
+                </div>
+                <div style={{
+                  padding: '8px 16px', borderRadius: 8,
+                  background: lv.accent + '22', border: `1px solid ${lv.accent}`,
+                  fontSize: 14, fontWeight: 700,
+                }}>
+                  ▶ Play
+                </div>
+              </div>
+            ); })}
+          </div>
+            </>
+          )}
         </div>
       )}
 
@@ -600,27 +645,50 @@ export default function DataStreamSecurity() {
           </div>
         </div>
       )}
-    </div>
-  );
 
-  return (
-    <GameFrameworkV2
+      {/* ─── RULES OVERLAY ─── */}
+      {showRules && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 50,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)',
+          padding: 20,
+        }} onClick={() => setShowRules(false)}>
+          <div style={{ ...glassStyle, maxWidth: 500, maxHeight: '80vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 16, textAlign: 'center' }}>
+              📜 How to Play
+            </h2>
+            <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.9 }}>
+              <p><strong>1. Watch</strong> — Data packets flow across the stream. Memorize their order!</p>
+              <p><strong>2. Predict</strong> — Once the stream ends, tap the symbols in the exact order you saw them.</p>
+              <p><strong>3. Score</strong> — Correct sequences earn points. Faster = more points. Max {MAX_SCORE} per level.</p>
+              <p><strong>4. Rounds</strong> — Each level has {totalRounds} rounds. Sequences may grow longer!</p>
+              <p><strong>5. Time</strong> — You have {TIME_LIMIT / 60} minutes. If time runs out, the game ends.</p>
+            </div>
+            <button onClick={() => setShowRules(false)} style={{
+              ...btnStyle('#00e5ff'), width: '100%', marginTop: 16, textAlign: 'center',
+            }}>
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+    <GameCompletionModal
+      isVisible={phase === 'finished' && completionData != null}
+      onClose={handleReset}
       gameTitle="Data Stream Security"
-      gameShortDescription="Watch data packets flow across the stream, memorize their order, then reproduce the exact sequence!"
-      category="Memory"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeLeft}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{ correctCount, wrongCount, accuracy, round, totalRounds }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+      score={completionData?.score ?? score}
+      timeElapsed={timeElapsedForModal}
+      gameTimeLimit={TIME_LIMIT}
+      isVictory={completionData?.isVictory ?? false}
+      difficulty={completionData?.difficulty ?? level?.name}
+      customMessages={{
+        maxScore: MAX_SCORE,
+        stats: completionData != null ? `${level?.name ?? ''} • Round ${round}/${totalRounds} • ${Math.floor((completionData.timeElapsed ?? 0) / 60)}:${String((completionData.timeElapsed ?? 0) % 60).padStart(2, '0')}` : '',
+      }}
+    />
+    </>
   );
 }
