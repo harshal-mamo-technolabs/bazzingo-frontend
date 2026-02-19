@@ -43,7 +43,6 @@ import ProbabilityPredictionGame from './games/ProbabilityPredictionGame';
 import LogicGridSolverGame from './games/LogicGridSolverGame';
 import WordSearchMaster from './games/WordSearchMasterGame';
 import TicTacToeGame from './games/TicTacToeGame';
-import TwentyFortyEightGame from './games/TwentyFortyEightGame';
 import SudokuMasterGame from './games/SudokuMasterGame';
 import TapChallengeGame from './games/TapChallengeGame';
 import TapMinesweeperGame from './games/MineSweeperGame';
@@ -84,6 +83,7 @@ import BallSortGame from './games/BallSortGame.jsx';
 import CocktailSortGame from './games/CocktailSortGame.jsx';
 import TileAdjustGame from './games/TileAdjustGame.jsx';
 import FillTracksGame from './games/FillTracks.jsx';
+import NumberPuzzleGame from './games/NumberPuzzle';
  
 /*
 // Unused Game imports
@@ -177,7 +177,6 @@ export {
   LogicGridSolverGame,
   WordSearchMaster, // <- this still has inconsistent name, fix if needed
   TicTacToeGame,
-  TwentyFortyEightGame,
   SudokuMasterGame,
   TapChallengeGame,
   TapMinesweeperGame,
@@ -217,7 +216,8 @@ export {
   BallSortGame,
   CocktailSortGame,
   TileAdjustGame,
-  FillTracksGame
+  FillTracksGame,
+  NumberPuzzleGame
  
 /*
   // 🚫 Unused game pages

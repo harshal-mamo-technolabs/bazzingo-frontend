@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2.jsx';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 const COLORS = {
   orange: '#FF6B3E',
@@ -12,6 +14,8 @@ const COLORS = {
 
 const TILE_COLORS = [COLORS.orange, COLORS.gray, COLORS.cream];
 
+const MAX_SCORE = 200;
+
 const difficultySettings = {
   'Easy': { time: 180, totalRounds: 10, gridSize: 4, pointsPerMatch: 20 },
   'Moderate': { time: 150, totalRounds: 10, gridSize: 4, pointsPerMatch: 20 },
@@ -19,6 +23,7 @@ const difficultySettings = {
 };
 
 const PatternMatchGame = () => {
+  const location = useLocation();
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
   const [score, setScore] = useState(0);
@@ -32,9 +37,57 @@ const PatternMatchGame = () => {
   const [currentInstruction, setCurrentInstruction] = useState('Find the matching tiles!');
   const [feedbackState, setFeedbackState] = useState('none');
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+
   const timerRef = useRef(null);
   const audioContextRef = useRef(null);
+  const scoreRef = useRef(0);
+  const timeRemainingRef = useRef(180);
+
+  const closeInstructions = useCallback(() => setShowInstructions(false), []);
+
+  useEffect(() => {
+    scoreRef.current = score;
+    timeRemainingRef.current = timeRemaining;
+  }, [score, timeRemaining]);
+
+  useEffect(() => {
+    if (!showInstructions) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeInstructions(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInstructions, closeInstructions]);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'Easy', medium: 'Moderate', moderate: 'Moderate', hard: 'Hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setDifficulty(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
 
   const settings = difficultySettings[difficulty];
 
@@ -184,12 +237,14 @@ const PatternMatchGame = () => {
     setCurrentInstruction('Tiles can contain multiple colors, find the matching tiles.');
     setFeedbackState('none');
     setIsProcessing(false);
+    setGameState('playing');
   }, [settings, generateRoundTiles]);
 
-  // Reset game
+  // Reset / back to menu
   const handleReset = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     setGameState('ready');
+    setCompletionData(null);
     setScore(0);
     setTimeRemaining(settings.time);
     setTiles([]);
@@ -206,6 +261,12 @@ const PatternMatchGame = () => {
   const loadNextRound = useCallback(() => {
     if (currentRound >= settings.totalRounds) {
       playSound('complete');
+      setCompletionData({
+        score: scoreRef.current,
+        isVictory: scoreRef.current >= MAX_SCORE,
+        difficulty,
+        timeElapsed: settings.time - timeRemainingRef.current,
+      });
       setGameState('finished');
     } else {
       setCurrentRound(prev => prev + 1);
@@ -214,7 +275,7 @@ const PatternMatchGame = () => {
       setFeedbackState('none');
       setIsProcessing(false);
     }
-  }, [currentRound, settings.totalRounds, generateRoundTiles, playSound]);
+  }, [currentRound, settings.totalRounds, settings.time, difficulty, generateRoundTiles, playSound]);
 
   // Handle tile click
   const handleTileClick = useCallback((tileIndex) => {
@@ -263,28 +324,38 @@ const PatternMatchGame = () => {
 
   // Timer
   useEffect(() => {
-    if (gameState === 'playing' && timeRemaining > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            playSound('complete');
-            setGameState('finished');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [gameState, playSound]);
+    if (gameState !== 'playing') return;
+    if (timeRemaining <= 0) return;
+    const id = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          setCompletionData({
+            score: scoreRef.current,
+            isVictory: false,
+            difficulty,
+            timeElapsed: settings.time,
+          });
+          playSound('complete');
+          setGameState('finished');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    timerRef.current = id;
+    return () => { clearInterval(id); timerRef.current = null; };
+  }, [gameState, timeRemaining, playSound, difficulty, settings.time]);
 
   useEffect(() => {
-    if (gameState === 'playing' && score >= 200) {
-      setGameState('finished');
-    }
-  }, [gameState, score]);
+    if (gameState !== 'playing' || score < MAX_SCORE) return;
+    setCompletionData({
+      score: MAX_SCORE,
+      isVictory: true,
+      difficulty,
+      timeElapsed: settings.time - timeRemainingRef.current,
+    });
+    setGameState('finished');
+  }, [gameState, score, difficulty, settings.time]);
  
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -292,40 +363,31 @@ const PatternMatchGame = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
  
-  const instructionsSection = (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Rules</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• Select exactly 2 tiles per round</li>
-          <li>• Matching pair awards points; non-matching deducts</li>
-          <li>• Ends on time out, 200 score, or all rounds</li>
+  const instructionsModalContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <section style={{ background: 'rgba(255,107,62,0.1)', border: '1px solid rgba(255,107,62,0.3)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#FF6B3E' }}>Objective</h3>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Find the two tiles that have the same pattern among four tiles each round. Complete all rounds or reach 200 points before time runs out.</p>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>How to Play</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>Select exactly <strong>2 tiles</strong> per round. A matching pair awards points; a wrong pair deducts points.</li>
+          <li>Game ends on time out, 200 score, or when all rounds are completed.</li>
         </ul>
-      </div>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Scoring</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• Correct pair: +20 points</li>
-          <li>• Wrong pair: -10 points (min 0)</li>
-          <li>• Max score: 200</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>Scoring</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>Correct pair: +20 points. Wrong pair: -10 points (score never goes below 0). Max score: 200.</li>
         </ul>
-      </div>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Levels</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• {settings.totalRounds} rounds total</li>
-          <li>• Level increases after each attempt</li>
-          <li>• Grid size: {settings.gridSize}×{settings.gridSize}</li>
+      </section>
+      <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>Difficulty</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+          <li>Easy: 180s, 4×4 grid. Moderate: 150s, 4×4. Hard: 120s, 5×5 grid.</li>
         </ul>
-      </div>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Difficulty</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• Easy: 180s, 4×4</li>
-          <li>• Moderate: 150s, 4×4</li>
-          <li>• Hard: 120s, 5×5</li>
-        </ul>
-      </div>
+      </section>
     </div>
   );
 
@@ -489,35 +551,115 @@ const PatternMatchGame = () => {
     </>
   );
  
-  const accuracy = (correctMatches + wrongAttempts) > 0
-    ? Math.round((correctMatches / (correctMatches + wrongAttempts)) * 100)
-    : 0;
- 
+  if (gameState === 'ready') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #1a1a2e, #16213e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+          <div>Loading...</div>
+        </div>
+      );
+    }
+    const difficulties = [
+      { key: 'Easy', label: 'Easy', desc: '180s · 4×4', emoji: '🟢', color: '#22C55E' },
+      { key: 'Moderate', label: 'Moderate', desc: '150s · 4×4', emoji: '🟡', color: '#EAB308' },
+      { key: 'Hard', label: 'Hard', desc: '120s · 5×5', emoji: '🔴', color: '#EF4444' },
+    ];
+    const availableDifficulties = isDailyGame && dailyGameDifficulty ? difficulties.filter((d) => d.key === dailyGameDifficulty) : difficulties;
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden' }}>
+        <button
+          type="button"
+          onClick={() => setShowInstructions(true)}
+          aria-label="How to Play"
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '12px 20px', borderRadius: 12,
+            border: '2px solid rgba(255,107,62,0.6)', background: 'rgba(255,107,62,0.15)',
+            color: '#FF6B3E', cursor: 'pointer', fontSize: 15, fontWeight: 700,
+            transition: 'background 0.2s, transform 0.15s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,107,62,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,107,62,0.3)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,107,62,0.15)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+        >
+          <span style={{ fontSize: 18 }} aria-hidden>📖</span>
+          How to Play
+        </button>
+        {showInstructions && (
+          <div role="dialog" aria-modal="true" aria-labelledby="pattern-match-instructions-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }} onClick={closeInstructions}>
+            <div style={{ background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)', border: '2px solid rgba(255,107,62,0.5)', borderRadius: 20, padding: 0, maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                <h2 id="pattern-match-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#FF6B3E' }}>Pattern Match – How to Play</h2>
+                <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              </div>
+              <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>{instructionsModalContent}</div>
+              <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #FF6B3E, #e55a2b)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(255,107,62,0.4)' }}>Got it</button>
+              </div>
+            </div>
+          </div>
+        )}
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🧩</div>
+        <h1 style={{ color: '#fff', fontSize: 36, fontWeight: 800, margin: '0 0 6px', letterSpacing: -1, textShadow: '0 0 40px rgba(255,107,62,0.4)' }}>Pattern Match</h1>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 8px' }}>Find the 2 matching tiles among 4 in each round!</p>
+        {isDailyGame && (
+          <div style={{ marginBottom: 20, padding: '6px 16px', background: 'rgba(255,107,62,0.2)', border: '1px solid rgba(255,107,62,0.5)', borderRadius: 20, fontSize: 13, color: '#FF6B3E', fontWeight: 600 }}>Daily Challenge</div>
+        )}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {availableDifficulties.map((d) => (
+            <button
+              key={d.key}
+              onClick={() => !isDailyGame && setDifficulty(d.key)}
+              style={{
+                background: (isDailyGame ? d.key === dailyGameDifficulty : difficulty === d.key) ? `${d.color}22` : 'rgba(255,255,255,0.06)',
+                border: `2px solid ${d.color}44`,
+                borderRadius: 16,
+                padding: '24px 32px',
+                cursor: isDailyGame ? 'default' : 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                minWidth: 160,
+                transition: 'all 0.2s',
+                color: '#fff',
+              }}
+              onMouseEnter={(e) => { if (!isDailyGame) { e.currentTarget.style.background = `${d.color}22`; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = `${d.color}88`; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = (isDailyGame ? d.key === dailyGameDifficulty : difficulty === d.key) ? `${d.color}22` : 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = `${d.color}44`; }}
+            >
+              <span style={{ fontSize: 32 }}>{d.emoji}</span>
+              <span style={{ fontSize: 20, fontWeight: 700 }}>{d.label}</span>
+              <span style={{ fontSize: 12, opacity: 0.6 }}>{d.desc}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={handleStart} style={{ marginTop: 20, padding: '14px 40px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 16, background: 'linear-gradient(135deg, #FF6B3E, #e55a2b)', color: '#fff', boxShadow: '0 4px 20px rgba(255,107,62,0.4)' }}>Start Game</button>
+      </div>
+    );
+  }
+
+  const c = completionData || {};
+  const timeElapsedForModal = c.timeElapsed ?? (gameState === 'finished' ? settings.time : settings.time - timeRemaining);
+
   return (
-    <GameFrameworkV2
-      gameTitle="Pattern Match"
-      gameShortDescription={`Find the 2 matching tiles among 4 tiles in each round. Complete ${settings.totalRounds} rounds!`}
-      category="Pattern Recognition"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{
-        correctMatches,
-        wrongAttempts,
-        roundsCompleted: Math.min(currentRound - 1, settings.totalRounds),
-        totalRounds: settings.totalRounds,
-        accuracy
-      }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+        {playingContent}
+        {gameState === 'playing' && (
+          <button onClick={handleReset} style={{ position: 'absolute', top: 12, left: 12, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600, zIndex: 20 }}>Menu</button>
+        )}
+      </div>
+      {gameState === 'finished' && completionData != null && (
+        <GameCompletionModal
+          isVisible
+          onClose={handleReset}
+          gameTitle="Pattern Match"
+          score={c.score}
+          timeElapsed={timeElapsedForModal}
+          gameTimeLimit={settings.time}
+          isVictory={c.isVictory}
+          difficulty={c.difficulty}
+          customMessages={{ maxScore: MAX_SCORE }}
+        />
+      )}
+    </>
   );
 };
  

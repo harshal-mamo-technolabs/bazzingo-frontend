@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useLocation } from 'react-router-dom';
-import { getDailySuggestions } from '../../services/gameService';
+import { useSearchParams } from 'react-router-dom';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 // ============================================================================
@@ -18,10 +17,10 @@ const COLORS = {
   cyan: { main: '#00ACC1', light: '#26C6DA', dark: '#00838F' },
 };
 
-const COUNTDOWN_DURATION = 3;
+const COUNTDOWN_DURATION = 8;
 const TOTAL_POINTS = 200;
 const TIME_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
-// const TIME_LIMIT_MS = 1000;
+
 const LEVEL_CONFIGS = {
   easy: { difficulty: 'easy', trainCount: 3, trainSpeed: 0.003, releaseInterval: 5000 },
   moderate: { difficulty: 'moderate', trainCount: 4, trainSpeed: 0.0045, releaseInterval: 4000 },
@@ -232,7 +231,6 @@ const createTrackLayout = (width, height, stationCount = 8) => {
 
 const TrainOfThought = () => {
   const containerRef = useRef(null);
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -253,10 +251,6 @@ const TrainOfThought = () => {
   const [currentDifficulty, setCurrentDifficulty] = useState(null);
   const [isPortrait, setIsPortrait] = useState(false);
   const [autoStartLevel, setAutoStartLevel] = useState(null);
-  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
-  const [isDailyGame, setIsDailyGame] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
 
   const animationRef = useRef();
   const lastTimeRef = useRef(0);
@@ -332,52 +326,14 @@ const TrainOfThought = () => {
     });
   }, [dimensions, isSmallScreen, initializeTrainQueue, getStationCountForDifficulty]);
 
-  // Check if game is in daily suggestions
+  // Handle URL parameter for auto-start
   useEffect(() => {
-    const checkDailyGame = async () => {
-      try {
-        setCheckingDailyGame(true);
-        const result = await getDailySuggestions();
-        const games = result?.data?.suggestion?.games || [];
-        const pathname = location.pathname || '';
-        
-        const normalizePath = (p = '') => {
-          const base = String(p).split('?')[0].split('#')[0].trim();
-          const noTrailing = base.replace(/\/+$/, '');
-          return noTrailing || '/';
-        };
-        
-        const matchedGame = games.find(
-          (g) => normalizePath(g?.gameId?.url) === normalizePath(pathname)
-        );
-        
-        if (matchedGame && matchedGame.difficulty) {
-          const difficulty = matchedGame.difficulty.toLowerCase();
-          if (['easy', 'moderate', 'hard'].includes(difficulty)) {
-            setIsDailyGame(true);
-            setDailyGameDifficulty(difficulty);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking daily game:', error);
-      } finally {
-        setCheckingDailyGame(false);
-      }
-    };
-    
-    checkDailyGame();
-  }, [location.pathname, startGame]);
-
-  // Handle URL parameter for auto-start (only if not daily game)
-  useEffect(() => {
-    if (isDailyGame || checkingDailyGame) return;
-    
     const levelParam = searchParams.get('level');
     if (levelParam && ['easy', 'moderate', 'hard'].includes(levelParam.toLowerCase())) {
       setAutoStartLevel(levelParam.toLowerCase());
       startGame(levelParam.toLowerCase());
     }
-  }, [searchParams, startGame, isDailyGame, checkingDailyGame]);
+  }, [searchParams, startGame]);
 
   useEffect(() => {
     if (gameState.phase !== 'countdown') return;
@@ -704,7 +660,7 @@ const TrainOfThought = () => {
       )}
 
       {/* LEVEL SELECTION MENU */}
-      {gameState.phase === 'menu' && !checkingDailyGame && (
+      {gameState.phase === 'menu' && (
         <div style={{
           position: 'absolute',
           top: 0,
@@ -734,91 +690,28 @@ const TrainOfThought = () => {
               {isSmallScreen && ' (Simplified map for your screen)'}
             </p>
 
-            {/* Daily Game Badge */}
-            {isDailyGame && dailyGameDifficulty && (
-              <div style={{
-                display: 'inline-block',
-                background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
-                padding: '8px 20px',
-                borderRadius: '20px',
-                marginBottom: '20px',
-                fontSize: isCompact ? '12px' : '14px',
-                fontWeight: 600,
-                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
-              }}>
-                🎯 Daily Challenge: {dailyGameDifficulty.charAt(0).toUpperCase() + dailyGameDifficulty.slice(1)}
-              </div>
-            )}
-
             <h2 style={{ fontSize: isCompact ? '18px' : '28px', marginBottom: isCompact ? '12px' : '24px', color: '#ffd700' }}>
-              {autoStartLevel 
-                ? `Playing: ${autoStartLevel.charAt(0).toUpperCase() + autoStartLevel.slice(1)}` 
-                : 'Select Difficulty'}
+              {autoStartLevel ? `Playing: ${autoStartLevel.charAt(0).toUpperCase() + autoStartLevel.slice(1)}` : 'Select Difficulty'}
             </h2>
-            {/* How to Play Button */}
-            {!isDailyGame && (
-              <button
-                onClick={() => setShowInstructions(true)}
-                style={{
-                  position: 'absolute',
-                  top: isCompact ? '16px' : '24px',
-                  right: isCompact ? '16px' : '24px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: isCompact ? '10px 16px' : '12px 24px',
-                  color: '#fff',
-                  fontSize: isCompact ? '13px' : '15px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-                  transition: 'all 0.3s ease',
-                  zIndex: 301,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-                }}
-              >
-                📖 How to Play
-              </button>
-            )}
-
             <div style={{ display: 'flex', gap: isCompact ? '12px' : '24px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {isDailyGame && dailyGameDifficulty
-                ? [dailyGameDifficulty].map((diff) => {
+              {autoStartLevel 
+                ? [autoStartLevel].map((diff) => {
                     const colors = getDifficultyColor(diff);
                     const config = LEVEL_CONFIGS[diff];
                     const stCount = getStationCountForDifficulty(diff, isSmallScreen);
                     return (
-                      <button
+                      <div
                         key={diff}
-                        onClick={() => startGame(diff)}
                         style={{
                           background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
-                          border: 'none',
                           borderRadius: isCompact ? '10px' : '16px',
                           padding: isCompact ? '14px 24px' : '30px 50px',
-                          cursor: 'pointer',
                           color: '#fff',
                           fontSize: isCompact ? '16px' : '22px',
                           fontWeight: 'bold',
                           textTransform: 'capitalize',
-                          transition: 'all 0.2s ease',
                           boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
                           textAlign: 'center',
-                        }}
-                        onMouseOver={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.08) translateY(-4px)';
-                          e.currentTarget.style.boxShadow = `0 10px 30px ${colors.main}55`;
-                        }}
-                        onMouseOut={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
                         }}
                       >
                         <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
@@ -828,40 +721,10 @@ const TrainOfThought = () => {
                         <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
                           {config.trainCount} trains • {stCount} stations
                         </div>
-                      </button>
+                      </div>
                     );
                   })
-                : autoStartLevel
-                  ? [autoStartLevel].map((diff) => {
-                      const colors = getDifficultyColor(diff);
-                      const config = LEVEL_CONFIGS[diff];
-                      const stCount = getStationCountForDifficulty(diff, isSmallScreen);
-                      return (
-                        <div
-                          key={diff}
-                          style={{
-                            background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.main} 50%, ${colors.dark} 100%)`,
-                            borderRadius: isCompact ? '10px' : '16px',
-                            padding: isCompact ? '14px 24px' : '30px 50px',
-                            color: '#fff',
-                            fontSize: isCompact ? '16px' : '22px',
-                            fontWeight: 'bold',
-                            textTransform: 'capitalize',
-                            boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
-                            textAlign: 'center',
-                          }}
-                        >
-                          <div style={{ fontSize: isCompact ? '24px' : '40px', marginBottom: '4px' }}>
-                            {diff === 'easy' ? '🌱' : diff === 'moderate' ? '⚡' : '🔥'}
-                          </div>
-                          {diff}
-                          <div style={{ fontSize: isCompact ? '10px' : '13px', opacity: 0.9, marginTop: '4px', fontWeight: 'normal' }}>
-                            {config.trainCount} trains • {stCount} stations
-                          </div>
-                        </div>
-                      );
-                    })
-                  : ['easy', 'moderate', 'hard'].map((diff) => {
+                : ['easy', 'moderate', 'hard'].map((diff) => {
                     const colors = getDifficultyColor(diff);
                     const config = LEVEL_CONFIGS[diff];
                     const stCount = getStationCountForDifficulty(diff, isSmallScreen);
@@ -902,258 +765,6 @@ const TrainOfThought = () => {
                     );
                   })}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Loading Check */}
-      {checkingDailyGame && gameState.phase === 'menu' && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(180deg, #1a3a5f 0%, #0a1a2f 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 300,
-        }}>
-          <div style={{
-            textAlign: 'center',
-            color: '#ffffff',
-          }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚂</div>
-            <div style={{ fontSize: '18px', opacity: 0.8 }}>Loading...</div>
-          </div>
-        </div>
-      )}
-
-      {/* Instructions Modal */}
-      {showInstructions && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px',
-        }} onClick={() => setShowInstructions(false)}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1a3a5f 0%, #0a1a2f 100%)',
-            borderRadius: '20px',
-            padding: isCompact ? '20px' : '40px',
-            maxWidth: '800px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            color: '#ffffff',
-            border: '2px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-            position: 'relative',
-          }} onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setShowInstructions(false)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
-                color: '#fff',
-                fontSize: '20px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                e.currentTarget.style.transform = 'rotate(90deg)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.transform = 'rotate(0deg)';
-              }}
-            >
-              ✕
-            </button>
-
-            <h2 style={{
-              fontSize: isCompact ? '24px' : '32px',
-              fontWeight: 'bold',
-              marginBottom: '8px',
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>
-              🚂 How to Play Train of Thought
-            </h2>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: isCompact ? '1fr' : 'repeat(2, 1fr)',
-              gap: '20px',
-              marginTop: '24px',
-            }}>
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                borderRadius: '12px',
-                padding: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}>
-                <h3 style={{
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                  color: '#4CAF50',
-                }}>
-                  🎯 Objective
-                </h3>
-                <p style={{
-                  fontSize: '14px',
-                  lineHeight: '1.6',
-                  opacity: 0.9,
-                }}>
-                  Route colored trains to their matching colored stations by controlling track switches. Get all trains to the correct stations within the time limit!
-                </p>
-              </div>
-
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                borderRadius: '12px',
-                padding: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}>
-                <h3 style={{
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                  color: '#2196F3',
-                }}>
-                  🎮 Controls
-                </h3>
-                <ul style={{
-                  fontSize: '14px',
-                  lineHeight: '1.8',
-                  opacity: 0.9,
-                  paddingLeft: '20px',
-                }}>
-                  <li>Click on switches to change track direction</li>
-                  <li>Each switch has two possible routes</li>
-                  <li>Watch the colored indicators on switches</li>
-                  <li>Plan your route before trains arrive</li>
-                </ul>
-              </div>
-
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                borderRadius: '12px',
-                padding: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}>
-                <h3 style={{
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                  color: '#FF9800',
-                }}>
-                  📊 Scoring
-                </h3>
-                <ul style={{
-                  fontSize: '14px',
-                  lineHeight: '1.8',
-                  opacity: 0.9,
-                  paddingLeft: '20px',
-                }}>
-                  <li>Correct delivery: Earn points</li>
-                  <li>Wrong station: No points</li>
-                  <li>Maximum score: 200 points</li>
-                  <li>Time limit: 5 minutes</li>
-                </ul>
-              </div>
-
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                borderRadius: '12px',
-                padding: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}>
-                <h3 style={{
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                  color: '#9C27B0',
-                }}>
-                  💡 Difficulty Levels
-                </h3>
-                <ul style={{
-                  fontSize: '14px',
-                  lineHeight: '1.8',
-                  opacity: 0.9,
-                  paddingLeft: '20px',
-                }}>
-                  <li><strong>Easy:</strong> 3 trains, slower speed</li>
-                  <li><strong>Moderate:</strong> 4 trains, medium speed</li>
-                  <li><strong>Hard:</strong> 5 trains, faster speed</li>
-                  <li>More trains = higher challenge!</li>
-                </ul>
-              </div>
-            </div>
-
-            <div style={{
-              marginTop: '24px',
-              padding: '16px',
-              background: 'rgba(76, 175, 80, 0.15)',
-              borderRadius: '12px',
-              border: '1px solid rgba(76, 175, 80, 0.3)',
-            }}>
-              <p style={{
-                fontSize: '14px',
-                lineHeight: '1.6',
-                opacity: 0.95,
-                textAlign: 'center',
-                fontWeight: 500,
-              }}>
-                💡 <strong>Pro Tip:</strong> Look at the "NEXT" queue at the bottom to see upcoming trains. Plan your switch positions in advance for maximum efficiency!
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowInstructions(false)}
-              style={{
-                width: '100%',
-                marginTop: '24px',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none',
-                borderRadius: '12px',
-                color: '#fff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-              }}
-            >
-              Got it! Let's Play 🚂
-            </button>
           </div>
         </div>
       )}
@@ -1412,7 +1023,8 @@ const TrainOfThought = () => {
           }}>
             {[
               { icon: '📊', label: 'Difficulty', value: currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1) },
-              { icon: '⏱️', label: 'Time Left', value: formatTimeRemaining(gameState.timeElapsed), highlight: isTimeLow }
+              { icon: '⏱️', label: 'Time Left', value: formatTimeRemaining(gameState.timeElapsed), highlight: isTimeLow },
+              { icon: '⭐', label: 'Score', value: gameState.score.toString() },
             ].map((item, idx) => (
               <div key={idx} style={{
                 background: 'rgba(0,0,0,0.85)',

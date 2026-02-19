@@ -162,7 +162,7 @@ export default function Games() {
 
   return (
     <MainLayout unreadCount={unread}>
-      <div className="text-[12px] relative min-h-screen overflow-hidden" style={{ fontFamily: 'Roboto, sans-serif' }}>
+      <div className="text-[12px] relative min-h-screen overflow-x-hidden w-full max-w-[100vw] box-border" style={{ fontFamily: 'Roboto, sans-serif' }}>
         {/* Gamified animated background */}
         <div className="fixed inset-0 -z-10 overflow-hidden">
           {/* Base gradient */}
@@ -227,7 +227,7 @@ export default function Games() {
           <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-pink-400/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-glow animation-delay-4000"></div>
         </div>
 
-        <div className="mx-auto px-4 lg:px-12 py-4 relative">
+        <div className="mx-auto px-4 lg:px-12 py-4 relative w-full max-w-full overflow-x-hidden box-border">
           <FilterBar
             categories={categories}
             activeCategory={activeCategory}

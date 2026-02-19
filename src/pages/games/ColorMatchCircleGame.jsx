@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2.jsx';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 import Button from '../../components/Form/Button';
 import { ArrowLeft, Play, Volume2, VolumeX, RotateCcw, Trophy, ChevronRight, ChevronLeft, Clock } from 'lucide-react';
 
@@ -499,11 +500,13 @@ const FloatingBackground = () => {
 // MAIN COMPONENT
 // ============================================================================
 const ColorMatchCircleGame = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
   const audioContextRef = useRef(null);
   const canvasRef = useRef(null);
   const isDrawingRef = useRef(false);
   const lastSoundTimeRef = useRef(0);
+  const scoreRef = useRef(0);
+  const timeRemainingRef = useRef(180);
 
   const [gameState, setGameState] = useState('ready');
   const [difficulty, setDifficulty] = useState('Easy');
@@ -516,6 +519,14 @@ const ColorMatchCircleGame = () => {
   const [timeRemaining, setTimeRemaining] = useState(180);
   const [score, setScore] = useState(0);
   const [levelsCompleted, setLevelsCompleted] = useState(0);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+
+  scoreRef.current = score;
+  timeRemainingRef.current = timeRemaining;
 
   const settings = DIFFICULTY_SETTINGS[difficulty];
   const maxLevels = settings.levels;
@@ -540,6 +551,39 @@ const ColorMatchCircleGame = () => {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'Easy', medium: 'Moderate', moderate: 'Moderate', hard: 'Hard' };
+          if (map[d] && DIFFICULTY_SETTINGS[map[d]]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setDifficulty(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setShowInstructions(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Timer effect
   useEffect(() => {
     if (gameState !== 'playing' || showLevelComplete) return;
@@ -548,6 +592,12 @@ const ColorMatchCircleGame = () => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
           playSound(audioContextRef.current, 'timeout', isMuted);
+          setCompletionData({
+            score: scoreRef.current,
+            isVictory: false,
+            difficulty,
+            timeElapsed: settings.time,
+          });
           setGameState('finished');
           return 0;
         }
@@ -556,7 +606,7 @@ const ColorMatchCircleGame = () => {
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [gameState, showLevelComplete, isMuted]);
+  }, [gameState, showLevelComplete, isMuted, difficulty, settings.time]);
 
   const toPixel = useCallback((percent) => {
     return (percent / 100) * canvasSize;
@@ -718,8 +768,14 @@ const ColorMatchCircleGame = () => {
     setTimeRemaining(settings.time);
     setScore(0);
     setLevelsCompleted(0);
+    setCompletionData(null);
     setGameState('playing');
   }, [settings.time]);
+
+  const handleReset = useCallback(() => {
+    setCompletionData(null);
+    setGameState('ready');
+  }, []);
 
   const nextLevel = useCallback(() => {
     if (currentLevel < maxLevels - 1) {
@@ -730,10 +786,17 @@ const ColorMatchCircleGame = () => {
     } else {
       // Game complete - add time bonus
       const timeBonus = Math.floor(timeRemaining / 2);
-      setScore(prev => Math.min(200, prev + timeBonus));
+      const finalScore = Math.min(200, score + timeBonus);
+      setScore(finalScore);
+      setCompletionData({
+        score: finalScore,
+        isVictory: true,
+        difficulty,
+        timeElapsed: settings.time - timeRemaining,
+      });
       setGameState('finished');
     }
-  }, [currentLevel, maxLevels, timeRemaining]);
+  }, [currentLevel, maxLevels, timeRemaining, score, difficulty, settings.time]);
 
   const resetLevel = useCallback(() => {
     setPaths([]);
@@ -775,40 +838,36 @@ const ColorMatchCircleGame = () => {
     });
   }, [paths, activePath]);
 
-  const instructionsSection = (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">How to Play</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• Press Start to begin</li>
-          <li>• Drag from an emoji to its matching pair</li>
-          <li>• Release to complete the path</li>
-          <li>• Paths cannot cross or leave the circle</li>
+  const instructionsModalContent = (
+    <>
+      <section style={{ marginBottom: 20 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Objective</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>Connect matching emoji pairs by drawing paths between them. Complete all levels before time runs out.</p>
+      </section>
+      <section style={{ marginBottom: 20 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+        <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+          <li>Press Start to begin.</li>
+          <li>Drag from one emoji to its matching pair (same emoji).</li>
+          <li>Release to complete the path.</li>
+          <li>Paths cannot cross each other or leave the circle.</li>
         </ul>
-      </div>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Scoring</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• Level bonus increases each level</li>
-          <li>• Final time adds bonus</li>
-        </ul>
-      </div>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Levels</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• {DIFFICULTY_SETTINGS.Easy.levels}–{DIFFICULTY_SETTINGS.Hard.levels} levels</li>
-          <li>• Increasing complexity</li>
-        </ul>
-      </div>
-      <div className="bg-white rounded-lg p-3">
-        <div className="text-sm font-semibold text-blue-900">Difficulty</div>
-        <ul className="text-sm text-blue-700 space-y-1 mt-2">
-          <li>• Easy {formatTime(DIFFICULTY_SETTINGS.Easy.time)}</li>
-          <li>• Hard {formatTime(DIFFICULTY_SETTINGS.Hard.time)}</li>
-        </ul>
-      </div>
-    </div>
+      </section>
+      <section style={{ marginBottom: 20 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Scoring</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>Level bonus increases each level. Remaining time at the end adds a bonus. Max score 200.</p>
+      </section>
+      <section>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Levels & difficulty</h3>
+        <p style={{ margin: 0, lineHeight: 1.5 }}>Easy: {DIFFICULTY_SETTINGS.Easy.levels} levels, {formatTime(DIFFICULTY_SETTINGS.Easy.time)}. Moderate: {DIFFICULTY_SETTINGS.Moderate.levels} levels, {formatTime(DIFFICULTY_SETTINGS.Moderate.time)}. Hard: {DIFFICULTY_SETTINGS.Hard.levels} levels, {formatTime(DIFFICULTY_SETTINGS.Hard.time)}.</p>
+      </section>
+    </>
   );
+
+  const difficultyEntries = isDailyGame && dailyGameDifficulty
+    ? Object.entries(DIFFICULTY_SETTINGS).filter(([k]) => k === dailyGameDifficulty)
+    : Object.entries(DIFFICULTY_SETTINGS);
+  const selectedDifficulty = isDailyGame ? dailyGameDifficulty : difficulty;
 
   const playingContent = (
     <div className="relative w-full min-h-screen overflow-hidden" style={{ background: COLORS.background, fontFamily: 'Roboto, sans-serif' }}>
@@ -816,7 +875,7 @@ const ColorMatchCircleGame = () => {
       <div className="animated-bg"></div>
       <FloatingBackground />
       <div className="relative z-10 flex items-center justify-between p-3 bg-black/30 backdrop-blur-sm rounded-lg">
-        <Button variant="ghost" size="icon" onClick={() => setGameState('ready')} className="text-white hover:bg-white/20">
+        <Button variant="ghost" size="icon" onClick={handleReset} className="text-white hover:bg-white/20">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2 sm:gap-4">
@@ -877,25 +936,131 @@ const ColorMatchCircleGame = () => {
     </div>
   );
 
+  if (gameState === 'ready') {
+    return (
+      <div className="relative w-full min-h-screen overflow-hidden flex items-center justify-center p-4" style={{ background: COLORS.background, fontFamily: 'Roboto, sans-serif' }}>
+        <style>{gameStyles}</style>
+        <div className="animated-bg" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+        <div className="relative z-10 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center border border-white/10 shadow-2xl" style={{ background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
+          <button
+            type="button"
+            onClick={() => setShowInstructions(true)}
+            aria-label="How to play"
+            className="absolute top-4 right-4 flex items-center gap-2 px-3 py-2 rounded-xl border border-white/20 bg-white/5 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
+          >
+            <span aria-hidden>❓</span> How to Play
+          </button>
+          {showInstructions && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="connect-quest-instructions-title"
+              className="fixed inset-0 flex items-center justify-center p-4 z-[1000]"
+              style={{ background: 'rgba(0,0,0,0.88)' }}
+              onClick={() => setShowInstructions(false)}
+            >
+              <div
+                className="rounded-2xl flex flex-col max-h-[90vh] w-full max-w-md text-left"
+                style={{ background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)', border: '2px solid rgba(255, 107, 62, 0.45)', color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/10 flex-shrink-0">
+                  <h2 id="connect-quest-instructions-title" className="m-0 text-lg font-extrabold" style={{ color: '#FF6B3E' }}>
+                    Connect Quest – How to Play
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowInstructions(false)}
+                    aria-label="Close"
+                    className="w-10 h-10 rounded-xl border border-white/20 bg-white/10 text-white text-xl flex items-center justify-center cursor-pointer hover:bg-white/20"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="px-5 py-4 overflow-y-auto flex-1 min-h-0">
+                  {instructionsModalContent}
+                </div>
+                <div className="px-5 pb-5 pt-4 border-t border-white/10 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowInstructions(false)}
+                    className="w-full py-3 rounded-xl border-none text-white text-[15px] font-bold cursor-pointer"
+                    style={{ background: 'linear-gradient(135deg, #FF6B3E, #e55a2b)', boxShadow: '0 4px 16px rgba(255, 107, 62, 0.35)' }}
+                  >
+                    Got it
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="text-4xl mb-2">🎯</div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1">Connect Quest</h1>
+          <p className="text-white/70 text-sm mb-6">Draw paths to connect matching emojis without crossing lines. Complete all levels before time runs out.</p>
+          {checkingDailyGame && (
+            <p className="text-white/60 text-sm mb-4">Checking daily challenge…</p>
+          )}
+          {!checkingDailyGame && isDailyGame && (
+            <div className="mb-4 py-2 px-4 rounded-full text-sm font-semibold inline-block" style={{ background: 'rgba(255, 107, 62, 0.2)', border: '1px solid rgba(255, 107, 62, 0.5)', color: '#FF6B3E' }}>
+              Daily Challenge
+            </div>
+          )}
+          {!checkingDailyGame && (
+            <div className="flex flex-wrap gap-3 justify-center mb-4">
+              {difficultyEntries.map(([key, val]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => !isDailyGame && setDifficulty(key)}
+                  disabled={isDailyGame}
+                  className="rounded-xl px-5 py-4 min-w-[120px] flex flex-col items-center gap-1 transition-all border-2 cursor-pointer disabled:cursor-default"
+                  style={{
+                    background: (isDailyGame ? key === dailyGameDifficulty : difficulty === key) ? `${COLORS.primary}22` : 'rgba(255,255,255,0.06)',
+                    borderColor: `${COLORS.primary}44`,
+                    color: '#fff',
+                  }}
+                >
+                  <span className="text-2xl">{key === 'Easy' ? '🟢' : key === 'Moderate' ? '🟡' : '🔴'}</span>
+                  <span className="font-bold">{val.label}</span>
+                  <span className="text-xs opacity-70">{val.levels} levels · {formatTime(val.time)}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {!checkingDailyGame && (
+            <Button
+              onClick={startGame}
+              className="w-full mt-4 py-4 rounded-xl font-bold text-base border-none cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #FF6B3E, #e55a2b)', color: '#fff', boxShadow: '0 4px 20px rgba(255, 107, 62, 0.4)' }}
+            >
+              <Play className="h-5 w-5 mr-2 inline" />
+              Start Game
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const c = completionData || {};
   return (
-    <GameFrameworkV2
-      gameTitle="Connect Quest"
-      gameShortDescription="Draw paths to connect matching emojis without crossing lines. Complete all levels before time runs out."
-      category="Spatial Reasoning"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeRemaining}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={startGame}
-      onReset={() => setGameState('ready')}
-      customStats={{ levelsCompleted, maxLevels, currentLevel: currentLevel + 1 }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+        {playingContent}
+      </div>
+      {gameState === 'finished' && completionData != null && (
+        <GameCompletionModal
+          isVisible
+          onClose={handleReset}
+          gameTitle="Connect Quest"
+          score={c.score}
+          timeElapsed={c.timeElapsed ?? settings.time}
+          gameTimeLimit={settings.time}
+          isVictory={c.isVictory}
+          difficulty={c.difficulty}
+          customMessages={{ maxScore: 200 }}
+        />
+      )}
+    </>
   );
 };
 

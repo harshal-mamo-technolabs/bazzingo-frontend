@@ -15,15 +15,9 @@ const GamesGrid = ({ games, pillConfig, activeCategory }) => {
   };
 
   return (
-    <div className="mt-6 grid gap-3
-                    grid-cols-2        /* mobile: 2 columns */
-                    sm:grid-cols-2     /* small: 2 columns */
-                    md:grid-cols-3     /* tablet: 3 columns */
-                    lg:grid-cols-6     /* desktop: 6 columns */
-                    auto-rows-fr"      /* Equal height rows */
-      style={{
-        gridAutoRows: 'minmax(150px, auto)'
-      }}>
+    <div
+      className="mt-6 w-full min-w-0 max-w-full grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 overflow-hidden"
+    >
       {games.map(game => (
         <GameCard
           key={game.id}

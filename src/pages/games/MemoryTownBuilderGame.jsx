@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import GameFrameworkV2 from '../../components/GameFrameworkV2';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
 // ─── BUILDING TYPES ───
 const BUILDINGS = [
@@ -17,9 +19,9 @@ const BUILDINGS = [
 
 // ─── LEVEL CONFIG ───
 const LEVELS = {
-  Easy:     { label: 'Easy',     gridSize: 4, buildingCount: 5,  studyTime: 12, timeLimit: 60,  typesUsed: 4,  color: '#4ade80', desc: 'Small Village' },
-  Moderate: { label: 'Moderate', gridSize: 5, buildingCount: 8,  studyTime: 10, timeLimit: 90,  typesUsed: 6,  color: '#facc15', desc: 'Growing Town' },
-  Hard:     { label: 'Hard',     gridSize: 6, buildingCount: 12, studyTime: 8,  timeLimit: 120, typesUsed: 8,  color: '#f87171', desc: 'Busy City' },
+  easy:   { label: 'Easy',   gridSize: 4, buildingCount: 5,  studyTime: 12, timeLimit: 60,  typesUsed: 4,  color: '#4ade80', desc: 'Small Village' },
+  medium: { label: 'Medium', gridSize: 5, buildingCount: 8,  studyTime: 10, timeLimit: 90,  typesUsed: 6,  color: '#facc15', desc: 'Growing Town' },
+  hard:   { label: 'Hard',   gridSize: 6, buildingCount: 12, studyTime: 8,  timeLimit: 120, typesUsed: 8,  color: '#f87171', desc: 'Busy City' },
 };
 
 const MAX_SCORE = 200;
@@ -112,26 +114,65 @@ function generatePuzzle(level) {
 }
 
 // ─── MAIN COMPONENT ───
-export default function MemoryTownBuilder() {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
-  const [phase, setPhase] = useState('study'); // study | recall | result
+export default function MemoryTownBuilder({ onBack }) {
+  const location = useLocation();
+  const [phase, setPhase] = useState('menu'); // menu | study | recall | result | summary
+  const [level, setLevel] = useState(null);
   const [targetGrid, setTargetGrid] = useState([]);
   const [playerGrid, setPlayerGrid] = useState([]);
   const [selectedBuilding, setSelectedBuilding] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timer, setTimer] = useState(0);
   const [studyTimer, setStudyTimer] = useState(0);
   const [score, setScore] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
   const [round, setRound] = useState(0);
   const [totalRounds] = useState(3);
   const [roundResults, setRoundResults] = useState([]);
   const [comparison, setComparison] = useState(null);
   const [combo, setCombo] = useState(0);
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+
   const canvasRef = useRef(null);
   const audioRef = useRef(null);
   const timerRef = useRef(null);
+
+  const closeInstructions = useCallback(() => setShowInstructions(false), []);
+
+  useEffect(() => {
+    if (!showInstructions) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') closeInstructions(); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showInstructions, closeInstructions]);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const result = await getDailySuggestions();
+        const games = result?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'easy', medium: 'medium', moderate: 'medium', hard: 'hard' };
+          if (map[d]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+          }
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+      } finally {
+        setCheckingDailyGame(false);
+      }
+    };
+    check();
+  }, [location?.pathname]);
 
   if (!audioRef.current) audioRef.current = createAudioEngine();
   const audio = audioRef.current;
@@ -180,10 +221,8 @@ export default function MemoryTownBuilder() {
 
   // ─── TIMER ───
   useEffect(() => {
-    if (gameState !== 'playing') return;
-    
     if (phase === 'study') {
-      const cfg = LEVELS[difficulty];
+      const cfg = LEVELS[level];
       setStudyTimer(cfg.studyTime);
       timerRef.current = setInterval(() => {
         setStudyTimer(prev => {
@@ -191,7 +230,7 @@ export default function MemoryTownBuilder() {
             clearInterval(timerRef.current);
             audio.start();
             setPhase('recall');
-            setTimeLeft(cfg.timeLimit);
+            setTimer(cfg.timeLimit);
             return 0;
           }
           if (prev <= 4) audio.tick();
@@ -202,7 +241,7 @@ export default function MemoryTownBuilder() {
     }
     if (phase === 'recall') {
       timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
+        setTimer(prev => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             checkAnswer();
@@ -214,32 +253,22 @@ export default function MemoryTownBuilder() {
       }, 1000);
       return () => clearInterval(timerRef.current);
     }
-  }, [gameState, phase, difficulty, round]);
-  
-  // Update timeLeft when difficulty changes
-  useEffect(() => {
-    if (gameState === 'ready') {
-      setTimeLeft(LEVELS[difficulty].timeLimit);
-    }
-  }, [difficulty, gameState]);
+  }, [phase, level, round]);
 
   // ─── START LEVEL ───
-  const handleStart = useCallback(() => {
+  const startLevel = (lv) => {
+    setLevel(lv);
     setScore(0);
-    setCorrectCount(0);
-    setWrongCount(0);
     setRound(0);
     setCombo(0);
     setRoundResults([]);
-    setTimeLeft(LEVELS[difficulty].timeLimit);
     audio.startMusic();
-    startRound(0);
-    setGameState('playing');
-  }, [difficulty]);
+    startRound(lv, 0);
+  };
 
-  const startRound = (r) => {
-    const grid = generatePuzzle(difficulty);
-    const cfg = LEVELS[difficulty];
+  const startRound = (lv, r) => {
+    const grid = generatePuzzle(lv);
+    const cfg = LEVELS[lv];
     setTargetGrid(grid);
     setPlayerGrid(Array.from({ length: cfg.gridSize }, () => Array(cfg.gridSize).fill(null)));
     setSelectedBuilding(null);
@@ -248,24 +277,11 @@ export default function MemoryTownBuilder() {
     setPhase('study');
     audio.reveal();
   };
-  
-  const handleReset = useCallback(() => {
-    audio.stopMusic();
-    clearInterval(timerRef.current);
-    setGameState('ready');
-    setScore(0);
-    setCorrectCount(0);
-    setWrongCount(0);
-    setTimeLeft(LEVELS[difficulty].timeLimit);
-    setPhase('study');
-    setRound(0);
-    setRoundResults([]);
-  }, [difficulty]);
 
   // ─── CHECK ANSWER ───
   const checkAnswer = useCallback(() => {
     clearInterval(timerRef.current);
-    const cfg = LEVELS[difficulty];
+    const cfg = LEVELS[level];
     let correct = 0;
     let total = 0;
     const comp = Array.from({ length: cfg.gridSize }, () => Array(cfg.gridSize).fill('empty'));
@@ -290,7 +306,7 @@ export default function MemoryTownBuilder() {
 
     const accuracy = total > 0 ? correct / total : 0;
     const roundMaxScore = Math.floor(MAX_SCORE / totalRounds);
-    const timeBonus = timeLeft > 0 ? Math.floor((timeLeft / LEVELS[difficulty].timeLimit) * 10) : 0;
+    const timeBonus = timer > 0 ? Math.floor((timer / LEVELS[level].timeLimit) * 10) : 0;
     const comboBonus = combo * 2;
     let roundScore = Math.floor(accuracy * roundMaxScore) + timeBonus + comboBonus;
     roundScore = Math.min(roundScore, roundMaxScore);
@@ -301,9 +317,6 @@ export default function MemoryTownBuilder() {
     const newScore = Math.min(score + roundScore, MAX_SCORE);
     setScore(newScore);
     setComparison(comp);
-    
-    setCorrectCount(prev => prev + correct);
-    setWrongCount(prev => prev + (total - correct));
 
     const result = { round: round + 1, correct, total, accuracy, roundScore };
     const newResults = [...roundResults, result];
@@ -312,17 +325,29 @@ export default function MemoryTownBuilder() {
     if (accuracy >= 0.5) audio.correct(); else audio.wrong();
 
     setPhase('result');
-  }, [difficulty, targetGrid, playerGrid, timeLeft, score, combo, round, roundResults, totalRounds]);
+  }, [level, targetGrid, playerGrid, timer, score, combo, round, roundResults, totalRounds]);
 
   // ─── NEXT ROUND / SUMMARY ───
   const nextRound = () => {
     if (round + 1 >= totalRounds) {
       audio.stopMusic();
-      setGameState('finished');
+      setPhase('summary');
     } else {
-      startRound(round + 1);
+      startRound(level, round + 1);
     }
   };
+
+  // Set completion data once when entering summary (for GameCompletionModal)
+  useEffect(() => {
+    if (phase !== 'summary' || level == null) return;
+    const cfg = LEVELS[level];
+    setCompletionData((prev) => prev != null ? prev : {
+      score,
+      isVictory: score >= 160,
+      difficulty: cfg.label,
+      timeElapsed: totalRounds * (cfg.studyTime + cfg.timeLimit),
+    });
+  }, [phase, level, score, totalRounds]);
 
   // ─── CELL CLICK ───
   const handleCellClick = (r, c) => {
@@ -345,7 +370,7 @@ export default function MemoryTownBuilder() {
   const getBuilding = (id) => BUILDINGS.find(b => b.id === id);
 
   // ─── AVAILABLE TYPES ───
-  const availableTypes = BUILDINGS.slice(0, LEVELS[difficulty].typesUsed);
+  const availableTypes = level ? BUILDINGS.slice(0, LEVELS[level].typesUsed) : [];
 
   // ─── COUNT PLACED ───
   const placedCount = playerGrid.flat().filter(Boolean).length;
@@ -417,15 +442,11 @@ export default function MemoryTownBuilder() {
     },
   };
 
-  const cellSize = Math.min(Math.floor((Math.min(window.innerWidth * 0.85, 860) - 40) / (phase === 'result' ? LEVELS[difficulty].gridSize * 2 + 1 : LEVELS[difficulty].gridSize)), 72);
-  
-  const accuracy = correctCount + wrongCount > 0 
-    ? Math.round((correctCount / (correctCount + wrongCount)) * 100) 
-    : 0;
+  const cellSize = level ? Math.min(Math.floor((Math.min(window.innerWidth * 0.85, 860) - 40) / (phase === 'result' ? LEVELS[level].gridSize * 2 + 1 : LEVELS[level].gridSize)), 72) : 50;
 
   // ─── RENDER GRID ───
   const renderGrid = (grid, isTarget = false, comp = null) => {
-    const gs = LEVELS[difficulty].gridSize;
+    const gs = LEVELS[level].gridSize;
     return (
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${gs}, ${cellSize}px)`, gap: 3 }}>
         {grid.map((row, r) => row.map((cell, c) => {
@@ -458,59 +479,114 @@ export default function MemoryTownBuilder() {
     );
   };
 
-  const instructionsSection = (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎯 Objective
-        </h4>
-        <p className="text-sm text-blue-700">
-          Study the town layout during the study phase, then recreate it from memory as accurately as possible.
-        </p>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          🎮 How to Play
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Study: Memorize building positions</li>
-          <li>• Recall: Select buildings from palette</li>
-          <li>• Place: Click grid cells to position</li>
-          <li>• Submit: Complete 3 rounds</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          📊 Scoring
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Points for correct placements</li>
-          <li>• Time bonus for quick completion</li>
-          <li>• Combo bonus for 80%+ accuracy</li>
-          <li>• Max 200 points across 3 rounds</li>
-        </ul>
-      </div>
-      <div className="bg-white p-3 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
-          💡 Strategy
-        </h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Focus during study phase</li>
-          <li>• Remember building patterns</li>
-          <li>• Use eraser to fix mistakes</li>
-          <li>• Build combos for bonus points</li>
-        </ul>
-      </div>
-    </div>
-  );
+  const handleReset = useCallback(() => {
+    setPhase('menu');
+    setCompletionData(null);
+  }, []);
 
-  const playingContent = (
-    <div style={S.root}>
+  // ─── MENU ───
+  if (phase === 'menu') {
+    if (checkingDailyGame) {
+      return (
+        <div style={{ ...S.root, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ color: '#e2e8f0', fontSize: 16 }}>Loading...</div>
+        </div>
+      );
+    }
+    const levelEntries = isDailyGame && dailyGameDifficulty
+      ? Object.entries(LEVELS).filter(([key]) => key === dailyGameDifficulty)
+      : Object.entries(LEVELS);
+    const instructionsModalContent = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <section style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 12, padding: 16 }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#4ade80' }}>Objective</h3>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Study the town layout shown on the grid, then recreate it from memory by placing the correct buildings in the right cells.</p>
+        </section>
+        <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>How to Play</h3>
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#cbd5e1' }}>
+            <li><strong>Study</strong> — Memorize building positions on the grid during the study phase.</li>
+            <li><strong>Recall</strong> — Select a building type from the palette, then click grid cells to place or remove.</li>
+            <li><strong>Match</strong> — Recreate the layout as accurately as possible. Submit to see your accuracy and score.</li>
+          </ul>
+        </section>
+        <section style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: 16 }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: '#e2e8f0' }}>Levels</h3>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#cbd5e1' }}>Easy: 4×4, 5 buildings. Medium: 5×5, 8 buildings. Hard: 6×6, 12 buildings. Each round has a study time and a recall time limit.</p>
+        </section>
+      </div>
+    );
+    return (
+      <div style={S.root}>
         <canvas ref={canvasRef} style={S.canvas} />
         <div style={S.content}>
-          <button style={S.backBtn} onClick={handleReset}>← Back</button>
-          {phase === 'study' && (
-            <>
+          {onBack && <button style={S.backBtn} onClick={() => { audio.stopMusic(); onBack(); }}>← Back</button>}
+          <button
+            type="button"
+            onClick={() => setShowInstructions(true)}
+            aria-label="How to Play"
+            style={{
+              position: 'absolute', top: 12, right: 16, zIndex: 10,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 18px', borderRadius: 10,
+              border: '2px solid rgba(74,222,128,0.6)', background: 'rgba(74,222,128,0.15)',
+              color: '#4ade80', cursor: 'pointer', fontSize: 14, fontWeight: 700,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(74,222,128,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(74,222,128,0.15)'; e.currentTarget.style.transform = ''; }}
+          >
+            <span style={{ fontSize: 16 }} aria-hidden>📖</span>
+            How to Play
+          </button>
+          <div style={{ fontSize: 48, marginTop: 30 }}>🏘️</div>
+          <h1 style={S.title}>Memory Town Builder</h1>
+          <p style={S.subtitle}>Study the town layout, then recreate it from memory!</p>
+          {isDailyGame && (
+            <div style={{ marginBottom: 16, padding: '6px 16px', background: 'rgba(74,222,128,0.2)', border: '1px solid rgba(74,222,128,0.5)', borderRadius: 20, fontSize: 13, color: '#4ade80', fontWeight: 600 }}>Daily Challenge</div>
+          )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 12 }}>
+            {levelEntries.map(([key, lv]) => (
+              <div key={key} style={S.levelCard(lv.color)}
+                onClick={() => { audio.select(); startLevel(key); }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = `0 8px 30px ${lv.color}30`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontSize: 32, marginBottom: 6 }}>
+                  {key === 'easy' ? '🏡' : key === 'medium' ? '🏘️' : '🌆'}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: lv.color }}>{lv.label}</div>
+                <div style={{ fontSize: 13, opacity: 0.6, margin: '4px 0' }}>{lv.desc}</div>
+                <div style={{ fontSize: 12, opacity: 0.4 }}>{lv.gridSize}×{lv.gridSize} grid · {lv.buildingCount} buildings</div>
+                <div style={{ fontSize: 12, opacity: 0.4 }}>{lv.studyTime}s study · {lv.timeLimit}s limit</div>
+              </div>
+            ))}
+          </div>
+          {showInstructions && (
+            <div role="dialog" aria-modal="true" aria-labelledby="memory-town-instructions-title" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }} onClick={closeInstructions}>
+              <div style={{ background: 'linear-gradient(180deg, #1e2e1e 0%, #0f1f0f 100%)', border: '2px solid rgba(74,222,128,0.5)', borderRadius: 20, padding: 0, maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                  <h2 id="memory-town-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#4ade80' }}>Memory Town Builder – How to Play</h2>
+                  <button type="button" onClick={closeInstructions} aria-label="Close" style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                </div>
+                <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>{instructionsModalContent}</div>
+                <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                  <button type="button" onClick={closeInstructions} style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #4ade80, #22c55e)', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Got it</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STUDY PHASE ───
+  if (phase === 'study') {
+    return (
+      <div style={S.root}>
+        <canvas ref={canvasRef} style={S.canvas} />
+        <div style={S.content}>
+          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); setPhase('menu'); }}>← Back</button>
           <div style={{ ...S.hud, marginTop: 40 }}>
             <div style={S.hudItem}><div style={S.hudLabel}>Phase</div><div style={{ ...S.hudValue, color: '#60a5fa' }}>📖 Study</div></div>
             <div style={S.hudItem}><div style={S.hudLabel}>Round</div><div style={S.hudValue}>{round + 1}/{totalRounds}</div></div>
@@ -526,17 +602,26 @@ export default function MemoryTownBuilder() {
           <div style={{ fontSize: 13, opacity: 0.4, marginTop: 8, textAlign: 'center' }}>
             {targetCount} buildings to remember
           </div>
-            <div style={{ width: '100%', maxWidth: 400, height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, marginTop: 10, overflow: 'hidden' }}>
-              <div style={{ width: `${(studyTimer / LEVELS[difficulty].studyTime) * 100}%`, height: '100%', background: studyTimer <= 3 ? '#f87171' : '#60a5fa', borderRadius: 3, transition: 'width 1s linear' }} />
-            </div>
-          </>
-        )}
-        {phase === 'recall' && (
-          <>
+          {/* Study timer bar */}
+          <div style={{ width: '100%', maxWidth: 400, height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, marginTop: 10, overflow: 'hidden' }}>
+            <div style={{ width: `${(studyTimer / LEVELS[level].studyTime) * 100}%`, height: '100%', background: studyTimer <= 3 ? '#f87171' : '#60a5fa', borderRadius: 3, transition: 'width 1s linear' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── RECALL PHASE ───
+  if (phase === 'recall') {
+    return (
+      <div style={S.root}>
+        <canvas ref={canvasRef} style={S.canvas} />
+        <div style={S.content}>
+          <button style={S.backBtn} onClick={() => { audio.stopMusic(); clearInterval(timerRef.current); setPhase('menu'); }}>← Back</button>
           <div style={{ ...S.hud, marginTop: 40 }}>
             <div style={S.hudItem}><div style={S.hudLabel}>Phase</div><div style={{ ...S.hudValue, color: '#facc15' }}>🔨 Build</div></div>
             <div style={S.hudItem}><div style={S.hudLabel}>Round</div><div style={S.hudValue}>{round + 1}/{totalRounds}</div></div>
-            <div style={S.hudItem}><div style={S.hudLabel}>Time</div><div style={{ ...S.hudValue, color: timeLeft <= 10 ? '#f87171' : '#4ade80' }}>{timeLeft}s</div></div>
+            <div style={S.hudItem}><div style={S.hudLabel}>Time</div><div style={{ ...S.hudValue, color: timer <= 10 ? '#f87171' : '#4ade80' }}>{timer}s</div></div>
             <div style={S.hudItem}><div style={S.hudLabel}>Score</div><div style={{ ...S.hudValue, color: '#4ade80' }}>{score}</div></div>
             <div style={S.hudItem}><div style={S.hudLabel}>Placed</div><div style={S.hudValue}>{placedCount}/{targetCount}</div></div>
             {combo > 1 && <div style={S.hudItem}><div style={S.hudLabel}>Combo</div><div style={{ ...S.hudValue, color: '#fb923c' }}>🔥 x{combo}</div></div>}
@@ -568,19 +653,24 @@ export default function MemoryTownBuilder() {
             {renderGrid(playerGrid)}
           </div>
 
-            <button style={S.serveBtn} onClick={checkAnswer}>
-              ✅ Submit Layout ({placedCount}/{targetCount})
-            </button>
-          </>
-        )}
-        {phase === 'result' && (() => {
-          const lastResult = roundResults[roundResults.length - 1];
-          const pct = Math.round(lastResult.accuracy * 100);
-          return (
-          <>
-            <div style={S.resultOverlay}>
-              <div style={{ ...S.resultCard, maxHeight: '90vh', overflowY: 'auto' }}>
-                <div style={{ fontSize: 48, marginBottom: 8 }}>{pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '😅'}</div>
+          <button style={S.serveBtn} onClick={checkAnswer}>
+            ✅ Submit Layout ({placedCount}/{targetCount})
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── RESULT PHASE ───
+  if (phase === 'result') {
+    const lastResult = roundResults[roundResults.length - 1];
+    const pct = Math.round(lastResult.accuracy * 100);
+    return (
+      <div style={S.root}>
+        <canvas ref={canvasRef} style={S.canvas} />
+        <div style={S.resultOverlay}>
+          <div style={{ ...S.resultCard, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>{pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '😅'}</div>
             <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
               Round {lastResult.round} Complete
             </div>
@@ -607,39 +697,78 @@ export default function MemoryTownBuilder() {
               <span>🟩 Correct</span><span>🟥 Wrong</span><span>🟨 Missed</span>
             </div>
 
-                <button
-                  style={S.serveBtn}
-                  onClick={() => { audio.select(); nextRound(); }}
-                >
-                  {round + 1 >= totalRounds ? '📊 View Results' : `▶ Round ${round + 2}`}
+            <button
+              style={S.serveBtn}
+              onClick={() => { audio.select(); nextRound(); }}
+            >
+              {round + 1 >= totalRounds ? '📊 View Results' : `▶ Round ${round + 2}`}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── SUMMARY ───
+  if (phase === 'summary') {
+    const avgAcc = roundResults.reduce((s, r) => s + r.accuracy, 0) / roundResults.length;
+    const rating = score >= 160 ? '⭐⭐⭐' : score >= 100 ? '⭐⭐' : score >= 40 ? '⭐' : '—';
+    const c = completionData || {};
+    const cfg = level != null ? LEVELS[level] : null;
+    const gameTimeLimit = cfg ? totalRounds * (cfg.studyTime + cfg.timeLimit) : 0;
+    return (
+      <>
+        <div style={{ ...S.root, zIndex: 1 }}>
+          <canvas ref={canvasRef} style={S.canvas} />
+          <div style={{ ...S.content, justifyContent: 'center', minHeight: '100vh' }}>
+            <div style={S.summaryCard}>
+              <div style={{ fontSize: 52, marginBottom: 8 }}>🏘️</div>
+              <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Town Complete!</div>
+              <div style={{ fontSize: 14, opacity: 0.5, marginBottom: 16 }}>{LEVELS[level].label} — {LEVELS[level].desc}</div>
+              <div style={{ fontSize: 42, fontWeight: 900, color: '#4ade80', marginBottom: 4 }}>{score}<span style={{ fontSize: 18, opacity: 0.5 }}>/{MAX_SCORE}</span></div>
+              <div style={{ fontSize: 22, marginBottom: 16 }}>{rating}</div>
+
+              <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+                {roundResults.map((r, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: i < roundResults.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                    <span style={{ opacity: 0.6 }}>Round {r.round}</span>
+                    <span>{r.correct}/{r.total} ({Math.round(r.accuracy * 100)}%)</span>
+                    <span style={{ color: '#4ade80', fontWeight: 700 }}>+{r.roundScore}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ fontSize: 13, opacity: 0.5, marginBottom: 16 }}>
+                Average accuracy: {Math.round(avgAcc * 100)}%
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button style={{ ...S.serveBtn, background: 'linear-gradient(135deg, #60a5fa, #3b82f6)' }} onClick={() => { setCompletionData(null); startLevel(level); }}>
+                  🔄 Retry
+                </button>
+                <button style={S.serveBtn} onClick={handleReset}>
+                  📋 Levels
                 </button>
               </div>
             </div>
-          </>
-          );
-        })()}
-      </div>
-    </div>
-  );
+          </div>
+        </div>
+        {completionData != null && (
+          <GameCompletionModal
+            isVisible
+            onClose={handleReset}
+            gameTitle="Memory Town Builder"
+            score={c.score}
+            timeElapsed={c.timeElapsed}
+            gameTimeLimit={gameTimeLimit}
+            isVictory={c.isVictory}
+            difficulty={c.difficulty}
+            customMessages={{ maxScore: MAX_SCORE }}
+          />
+        )}
+      </>
+    );
+  }
 
-  return (
-    <GameFrameworkV2
-      gameTitle="Memory Town Builder"
-      gameShortDescription="Study the town layout, then recreate it from memory!"
-      category="Memory"
-      gameState={gameState}
-      setGameState={setGameState}
-      score={score}
-      timeRemaining={timeLeft}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
-      onStart={handleStart}
-      onReset={handleReset}
-      customStats={{ correctCount, wrongCount, accuracy, round: round + 1, totalRounds, combo }}
-      enableCompletionModal={true}
-      instructionsSection={instructionsSection}
-    >
-      {playingContent}
-    </GameFrameworkV2>
-  );
+  return null;
 }

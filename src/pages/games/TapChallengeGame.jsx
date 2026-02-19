@@ -1,899 +1,612 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import GameFramework from '../../components/GameFramework';
-import Header from '../../components/Header';
-import GameCompletionModal from '../../components/games/GameCompletionModal';
-import { Target, Zap, Timer, ChevronUp, ChevronDown, CheckCircle, XCircle, Award, Lightbulb, Star, Flame, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { getDailySuggestions } from '../../services/gameService';
+import GameCompletionModal from '../../components/Game/GameCompletionModal';
 
-const TapChallengeGame = () => {
-  const [gameState, setGameState] = useState('ready');
-  const [difficulty, setDifficulty] = useState('Easy');
+const MAX_SCORE = 200;
+const TIME_LIMIT = 120;
+
+const LEVELS = {
+  easy: { label: 'Easy', targetCount: 20, minSize: 70, maxSize: 90, spawnMs: 1800, lifeMs: 2500, maxActive: 2 },
+  moderate: { label: 'Moderate', targetCount: 28, minSize: 50, maxSize: 70, spawnMs: 1200, lifeMs: 1800, maxActive: 3 },
+  hard: { label: 'Hard', targetCount: 36, minSize: 35, maxSize: 55, spawnMs: 800, lifeMs: 1200, maxActive: 4 },
+};
+
+const TARGET_STYLES = [
+  { bg: 'radial-gradient(circle at 35% 35%, #ff6b6b, #ee5a24)', glow: '#ff6b6b', emoji: '🎯' },
+  { bg: 'radial-gradient(circle at 35% 35%, #48dbfb, #0abde3)', glow: '#48dbfb', emoji: '💎' },
+  { bg: 'radial-gradient(circle at 35% 35%, #feca57, #ff9f43)', glow: '#feca57', emoji: '⭐' },
+  { bg: 'radial-gradient(circle at 35% 35%, #ff9ff3, #f368e0)', glow: '#ff9ff3', emoji: '🌸' },
+  { bg: 'radial-gradient(circle at 35% 35%, #55efc4, #00b894)', glow: '#55efc4', emoji: '🍀' },
+  { bg: 'radial-gradient(circle at 35% 35%, #a29bfe, #6c5ce7)', glow: '#a29bfe', emoji: '🔮' },
+];
+
+const audioCtxRef = { current: null };
+function getAudioCtx() {
+  if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtxRef.current;
+}
+function playTone(freq, dur = 0.1, type = 'sine') {
+  try {
+    const ctx = getAudioCtx();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + dur);
+  } catch (e) {}
+}
+function playPop() { playTone(600 + Math.random() * 400, 0.08); }
+function playMiss() { playTone(180, 0.15, 'sawtooth'); }
+function playSuccess() { [523, 659, 784].forEach((f, i) => setTimeout(() => playTone(f, 0.12), i * 80)); }
+function playWin() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.18), i * 100)); }
+
+let idCounter = 0;
+
+export default function TapChallenge({ onBack }) {
+  const [phase, setPhase] = useState('menu');
+  const [level, setLevel] = useState(null);
   const [score, setScore] = useState(0);
-  const [finalScore, setFinalScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(60);
-  const [gameStartTime, setGameStartTime] = useState(0);
-  const [gameDuration, setGameDuration] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
+  const [targets, setTargets] = useState([]);
+  const [combo, setCombo] = useState(0);
+  const [tapped, setTapped] = useState(0);
+  const [missed, setMissed] = useState(0);
+  const [totalTargets, setTotalTargets] = useState(0);
+  const [spawned, setSpawned] = useState(0);
+  const [result, setResult] = useState(null);
+  const [ripples, setRipples] = useState([]);
+  const [areaSize, setAreaSize] = useState({ w: 400, h: 400 });
+  const [isDailyGame, setIsDailyGame] = useState(false);
+  const [dailyGameDifficulty, setDailyGameDifficulty] = useState(null);
+  const [checkingDailyGame, setCheckingDailyGame] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
 
-  // Game statistics
-  const [totalTaps, setTotalTaps] = useState(0);
-  const [correctTaps, setCorrectTaps] = useState(0);
-  const [missedTargets, setMissedTargets] = useState(0);
-  const [currentLevel, setCurrentLevel] = useState(1);
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
-  const [totalReactionTime, setTotalReactionTime] = useState(0);
-  const [targetsHit, setTargetsHit] = useState(0);
-  const [targetsSpawned, setTargetsSpawned] = useState(0);
+  const areaRef = useRef(null);
+  const timerRef = useRef(null);
+  const spawnRef = useRef(null);
+  const scoreRef = useRef(0);
+  const tappedRef = useRef(0);
+  const spawnedRef = useRef(0);
+  const phaseRef = useRef('menu');
+  const targetsRef = useRef([]);
+  const timeLeftRef = useRef(TIME_LIMIT);
+  const location = useLocation();
 
-  // Game state
-  const [activeTargets, setActiveTargets] = useState([]);
-  const [nextTargetId, setNextTargetId] = useState(0);
-  const [targetSpawnRate, setTargetSpawnRate] = useState(2000);
-  const [targetLifetime, setTargetLifetime] = useState(3000);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [feedbackType, setFeedbackType] = useState('');
-  const [showInstructions, setShowInstructions] = useState(true);
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [comboMultiplier, setComboMultiplier] = useState(1);
-  const [lastHitTime, setLastHitTime] = useState(0);
-  const [hitEffects, setHitEffects] = useState([]);
-  const [nextEffectId, setNextEffectId] = useState(0);
-  const [gameAreaSize, setGameAreaSize] = useState({ width: 600, height: 400 });
+  timeLeftRef.current = timeLeft;
 
-  // Difficulty settings
-  const difficultySettings = {
-    Easy: {
-      timeLimit: 90,
-      spawnRate: 2500,
-      targetLifetime: 4000,
-      maxTargets: 3,
-      targetSize: 'large',
-      speedVariation: 0.5,
-      description: 'Slow targets, 4s lifetime, max 3 on screen'
-    },
-    Moderate: {
-      timeLimit: 75,
-      spawnRate: 2000,
-      targetLifetime: 3000,
-      maxTargets: 4,
-      targetSize: 'medium',
-      speedVariation: 0.7,
-      description: 'Medium speed, 3s lifetime, max 4 on screen'
-    },
-    Hard: {
-      timeLimit: 60,
-      spawnRate: 1500,
-      targetLifetime: 2000,
-      maxTargets: 5,
-      targetSize: 'small',
-      speedVariation: 1.0,
-      description: 'Fast targets, 2s lifetime, max 5 on screen'
-    }
-  };
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { tappedRef.current = tapped; }, [tapped]);
+  useEffect(() => { spawnedRef.current = spawned; }, [spawned]);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => { targetsRef.current = targets; }, [targets]);
 
-  // Generate random position for target
-  const generateRandomPosition = () => {
-    const settings = difficultySettings[difficulty];
-    const targetSize = settings.targetSize === 'large' ? 80 : settings.targetSize === 'medium' ? 60 : 40;
-
-    return {
-      x: Math.random() * (gameAreaSize.width - targetSize),
-      y: Math.random() * (gameAreaSize.height - targetSize),
-    };
-  };
-
-  // Spawn new target
-  const spawnTarget = useCallback(() => {
-    if (gameState !== 'playing') return;
-
-    const settings = difficultySettings[difficulty];
-    if (activeTargets.length >= settings.maxTargets) return;
-
-    const position = generateRandomPosition();
-    const targetTypes = ['normal', 'bonus', 'penalty'];
-    const typeWeights = [0.7, 0.25, 0.05]; // 70% normal, 25% bonus, 5% penalty
-
-    let targetType = 'normal';
-    const random = Math.random();
-    let cumulative = 0;
-
-    for (let i = 0; i < typeWeights.length; i++) {
-      cumulative += typeWeights[i];
-      if (random <= cumulative) {
-        targetType = targetTypes[i];
-        break;
+  useEffect(() => {
+    const check = async () => {
+      try {
+        setCheckingDailyGame(true);
+        const res = await getDailySuggestions();
+        const games = res?.data?.suggestion?.games || [];
+        const pathname = location?.pathname || '';
+        const normalizePath = (p = '') => (String(p).split('?')[0].split('#')[0].trim().replace(/\/+$/, '') || '/');
+        const matched = games.find((g) => normalizePath(g?.gameId?.url) === normalizePath(pathname));
+        if (matched?.difficulty) {
+          const d = String(matched.difficulty).toLowerCase();
+          const map = { easy: 'easy', medium: 'moderate', moderate: 'moderate', hard: 'hard' };
+          if (map[d] && LEVELS[map[d]]) {
+            setIsDailyGame(true);
+            setDailyGameDifficulty(map[d]);
+            setLevel(map[d]);
+          } else {
+            setIsDailyGame(false);
+            setDailyGameDifficulty(null);
+            setLevel(null);
+          }
+        } else {
+          setIsDailyGame(false);
+          setDailyGameDifficulty(null);
+          setLevel(null);
+        }
+      } catch (e) {
+        console.error('Daily check failed', e);
+        setIsDailyGame(false);
+        setDailyGameDifficulty(null);
+        setLevel(null);
+      } finally {
+        setCheckingDailyGame(false);
       }
+    };
+    check();
+  }, [location?.pathname]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setShowInstructions(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    const measure = () => {
+      if (!areaRef.current) return;
+      const r = areaRef.current.getBoundingClientRect();
+      setAreaSize({ w: r.width, h: r.height });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [phase]);
+
+  const handleReset = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (spawnRef.current) clearTimeout(spawnRef.current);
+    timerRef.current = null;
+    spawnRef.current = null;
+    setCompletionData(null);
+    setPhase('menu');
+  }, []);
+
+  const startGame = (lvl) => {
+    const cfg = LEVELS[lvl];
+    if (!cfg) return;
+    setCompletionData(null);
+    setLevel(lvl); setScore(0); setTimeLeft(TIME_LIMIT);
+    setTargets([]); setCombo(0); setTapped(0); setMissed(0);
+    setSpawned(0); setTotalTargets(cfg.targetCount);
+    setResult(null); setRipples([]);
+    scoreRef.current = 0; tappedRef.current = 0; spawnedRef.current = 0;
+    targetsRef.current = [];
+    setPhase('playing');
+    setTimeout(() => beginSpawning(lvl), 500);
+  };
+
+  const beginSpawning = (lvl) => {
+    const cfg = LEVELS[lvl];
+    const spawn = () => {
+      if (phaseRef.current !== 'playing') return;
+      if (spawnedRef.current >= cfg.targetCount) {
+        if (targetsRef.current.length === 0) endGame('win');
+        return;
+      }
+      if (targetsRef.current.length < cfg.maxActive) {
+        const size = cfg.minSize + Math.random() * (cfg.maxSize - cfg.minSize);
+        const style = TARGET_STYLES[Math.floor(Math.random() * TARGET_STYLES.length)];
+        const id = ++idCounter;
+        const t = {
+          id, x: Math.random() * 80 + 5, y: Math.random() * 75 + 5,
+          size, style, born: Date.now(), life: cfg.lifeMs,
+        };
+        setTargets(prev => { const n = [...prev, t]; targetsRef.current = n; return n; });
+        setSpawned(s => s + 1);
+        spawnedRef.current++;
+
+        setTimeout(() => {
+          if (phaseRef.current !== 'playing') return;
+          setTargets(prev => {
+            if (!prev.find(tt => tt.id === id)) return prev;
+            setMissed(m => m + 1);
+            setCombo(0);
+            playMiss();
+            const n = prev.filter(tt => tt.id !== id);
+            targetsRef.current = n;
+            if (spawnedRef.current >= cfg.targetCount && n.length === 0) {
+              setTimeout(() => endGame('done'), 100);
+            }
+            return n;
+          });
+        }, cfg.lifeMs);
+      }
+      spawnRef.current = setTimeout(spawn, cfg.spawnMs * (0.8 + Math.random() * 0.4));
+    };
+    spawn();
+  };
+
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    timerRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.current);
+          if (spawnRef.current) clearTimeout(spawnRef.current);
+          spawnRef.current = null;
+          setPhase('gameover');
+          setCompletionData({
+            score: scoreRef.current,
+            isVictory: false,
+            difficulty: level,
+            timeElapsed: TIME_LIMIT,
+          });
+          return 0;
+        }
+        if (t <= 11) playTone(880, 0.05);
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [phase, level]);
+
+  const handleTap = (target, e) => {
+    if (phase !== 'playing') return;
+    e.stopPropagation();
+    playPop();
+    const newCombo = combo + 1;
+    setCombo(newCombo);
+
+    const cfg = LEVELS[level];
+    const ppr = Math.floor(MAX_SCORE / cfg.targetCount);
+    const tappedNow = tappedRef.current + 1;
+    const isLast = tappedNow >= cfg.targetCount;
+    const earned = isLast ? MAX_SCORE - ppr * (cfg.targetCount - 1) : ppr;
+    const bonus = Math.min(newCombo - 1, 5);
+    const ns = Math.min(scoreRef.current + earned + bonus, MAX_SCORE);
+    setScore(ns); scoreRef.current = ns;
+    setTapped(tappedNow); tappedRef.current = tappedNow;
+
+    const rect = areaRef.current?.getBoundingClientRect();
+    if (rect) {
+      const rx = e.clientX - rect.left, ry = e.clientY - rect.top;
+      const rid = Date.now() + Math.random();
+      setRipples(prev => [...prev, { id: rid, x: rx, y: ry, color: target.style.glow }]);
+      setTimeout(() => setRipples(prev => prev.filter(r => r.id !== rid)), 600);
     }
 
-    const newTarget = {
-      id: nextTargetId,
-      x: position.x,
-      y: position.y,
-      type: targetType,
-      spawnTime: Date.now(),
-      lifetime: settings.targetLifetime,
-      size: settings.targetSize,
-      points: targetType === 'bonus' ? 15 : targetType === 'penalty' ? -10 : 10,
-      moving: Math.random() > 0.6, // 40% chance of moving targets
-      direction: Math.random() * 2 * Math.PI,
-      speed: (Math.random() * settings.speedVariation + 0.3) * 50,
-    };
-
-    setActiveTargets(prev => [...prev, newTarget]);
-    setNextTargetId(prev => prev + 1);
-    setTargetsSpawned(prev => prev + 1);
-  }, [gameState, difficulty, activeTargets.length, nextTargetId]);
-
-  // Update target positions and remove expired targets
-  const updateTargets = useCallback(() => {
-    if (gameState !== 'playing') return;
-
-    setActiveTargets(prev => {
-      const now = Date.now();
-
-      return prev
-        .map(target => {
-          if (target.moving) {
-            let newX = target.x + Math.cos(target.direction) * target.speed * 0.016;
-            let newY = target.y + Math.sin(target.direction) * target.speed * 0.016;
-
-            // Bounce off walls
-            if (newX <= 0 || newX >= gameAreaSize.width - 60) {
-              target.direction = Math.PI - target.direction;
-              newX = Math.max(0, Math.min(gameAreaSize.width - 60, newX));
-            }
-            if (newY <= 0 || newY >= gameAreaSize.height - 60) {
-              target.direction = -target.direction;
-              newY = Math.max(0, Math.min(gameAreaSize.height - 60, newY));
-            }
-
-            return { ...target, x: newX, y: newY };
-          }
-          return target;
-        })
-        .filter(target => {
-          const age = now - target.spawnTime;
-          if (age > target.lifetime) {
-            setMissedTargets(prev => prev + 1);
-            setStreak(0);
-            setComboMultiplier(1);
-            return false;
-          }
-          return true;
-        });
+    setTargets(prev => {
+      const n = prev.filter(t => t.id !== target.id);
+      targetsRef.current = n;
+      if (isLast || ns >= MAX_SCORE) {
+        setTimeout(() => endGame('win'), 200);
+      } else if (spawnedRef.current >= cfg.targetCount && n.length === 0) {
+        setTimeout(() => endGame('done'), 200);
+      }
+      return n;
     });
-  }, [gameState, gameAreaSize]);
-
-  // Handle target tap
-  const handleTargetTap = (targetId, event) => {
-    event.stopPropagation();
-
-    if (gameState !== 'playing') return;
-
-    const target = activeTargets.find(t => t.id === targetId);
-    if (!target) return;
-
-    const now = Date.now();
-    const reactionTime = now - target.spawnTime;
-    setTotalReactionTime(prev => prev + reactionTime);
-    setTotalTaps(prev => prev + 1);
-
-    // Remove the tapped target
-    setActiveTargets(prev => prev.filter(t => t.id !== targetId));
-
-    // Add hit effect
-    const rect = event.target.getBoundingClientRect();
-    const gameArea = event.target.closest('.game-area');
-    const gameRect = gameArea.getBoundingClientRect();
-
-    const effect = {
-      id: nextEffectId,
-      x: rect.left - gameRect.left + rect.width / 2,
-      y: rect.top - gameRect.top + rect.height / 2,
-      type: target.type,
-      points: target.points,
-      timestamp: now
-    };
-
-    setHitEffects(prev => [...prev, effect]);
-    setNextEffectId(prev => prev + 1);
-
-    if (target.type === 'penalty') {
-      // Penalty target
-      setStreak(0);
-      setComboMultiplier(1);
-      setFeedbackMessage('Penalty Target! -10 points');
-      setFeedbackType('error');
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 1000);
-    } else {
-      // Successful hit
-      setCorrectTaps(prev => prev + 1);
-      setTargetsHit(prev => prev + 1);
-
-      // Update streak and combo
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      setMaxStreak(prev => Math.max(prev, newStreak));
-
-      // Combo multiplier increases every 5 hits in quick succession
-      if (now - lastHitTime < 1000 && newStreak % 5 === 0) {
-        setComboMultiplier(prev => Math.min(prev + 0.5, 3));
-      }
-      setLastHitTime(now);
-
-      // Level progression
-      if (newStreak % 10 === 0) {
-        setCurrentLevel(prev => prev + 1);
-        setFeedbackMessage(`Level Up! Level ${currentLevel + 1}`);
-        setFeedbackType('success');
-        setShowFeedback(true);
-        setTimeout(() => setShowFeedback(false), 1500);
-      }
-
-      // Show feedback for bonus targets
-      if (target.type === 'bonus') {
-        setFeedbackMessage('Bonus Target! +15 points');
-        setFeedbackType('bonus');
-        setShowFeedback(true);
-        setTimeout(() => setShowFeedback(false), 1000);
-      }
-    }
   };
 
-  // Clean up hit effects
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHitEffects(prev => prev.filter(effect => Date.now() - effect.timestamp < 1000));
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Handle window resize for responsiveness
-  useEffect(() => {
-    const updateGameAreaSize = () => {
-      const width = window.innerWidth;
-      const padding = 32; // Account for container padding
-      const maxWidth = Math.min(width - padding, 600);
-
-      if (width < 480) {
-        // Very small screens (phones in portrait)
-        setGameAreaSize({ width: Math.max(280, maxWidth), height: 200 });
-      } else if (width < 640) {
-        // Small screens (phones in landscape)
-        setGameAreaSize({ width: Math.max(320, maxWidth), height: 240 });
-      } else if (width < 768) {
-        // Tablets in portrait
-        setGameAreaSize({ width: Math.max(400, maxWidth), height: 280 });
-      } else if (width < 1024) {
-        // Tablets in landscape
-        setGameAreaSize({ width: Math.max(500, maxWidth), height: 320 });
-      } else {
-        // Desktop
-        setGameAreaSize({ width: 600, height: 400 });
-      }
-    };
-
-    updateGameAreaSize();
-    window.addEventListener('resize', updateGameAreaSize);
-    return () => window.removeEventListener('resize', updateGameAreaSize);
-  }, []);
-
-  // Handle missed tap (clicking empty area)
-  const handleMissedTap = () => {
-    if (gameState !== 'playing') return;
-
-    setTotalTaps(prev => prev + 1);
-    setStreak(0);
-    setComboMultiplier(1);
+  const endGame = (reason) => {
+    clearInterval(timerRef.current);
+    if (spawnRef.current) clearTimeout(spawnRef.current);
+    spawnRef.current = null;
+    if (reason === 'win') playWin(); else playSuccess();
+    setResult(reason);
+    setCompletionData({
+      score: scoreRef.current,
+      isVictory: reason === 'win' || reason === 'done',
+      difficulty: level,
+      timeElapsed: TIME_LIMIT - timeLeftRef.current,
+    });
+    setPhase('gameover');
   };
 
-  // Calculate score
-  const calculateScore = useCallback(() => {
-    if (targetsSpawned === 0 || gameState !== 'playing') return score;
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const accuracy = tapped + missed > 0 ? Math.round((tapped / (tapped + missed)) * 100) : 0;
 
-    const settings = difficultySettings[difficulty];
-    const accuracy = targetsSpawned > 0 ? targetsHit / targetsSpawned : 0;
-    const hitRate = totalTaps > 0 ? correctTaps / totalTaps : 0;
-    const avgReactionTime = correctTaps > 0 ? totalReactionTime / correctTaps / 1000 : 0;
+  const levelEntries = isDailyGame && dailyGameDifficulty
+    ? [[dailyGameDifficulty, LEVELS[dailyGameDifficulty]]].filter(([, c]) => c)
+    : Object.entries(LEVELS);
+  const selectedLevel = isDailyGame ? dailyGameDifficulty : level;
 
-    // Base score from accuracy and hit rate (0-80 points)
-    let baseScore = (accuracy * 0.6 + hitRate * 0.4) * 80;
+  const instructionsModalContent = (
+    <>
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>How to Play</h3>
+      <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+        <li>Choose a difficulty (Easy / Moderate / Hard). Each has more targets and shorter lifespans.</li>
+        <li><strong>Tap</strong> the colored targets as they appear before they disappear. Each target has a countdown ring.</li>
+        <li>Tap as many as you can before time runs out. You have <strong>2 minutes</strong> and can score up to <strong>200</strong> points.</li>
+        <li>Consecutive taps build a <strong>combo</strong> for bonus points. Missing a target (letting it expire) resets the combo.</li>
+        <li>Complete all targets in time for a win. Test your reaction time and accuracy!</li>
+      </ul>
+    </>
+  );
 
-    // Reaction time bonus (max 30 points)
-    const idealTime = difficulty === 'Easy' ? 1.5 : difficulty === 'Moderate' ? 1.2 : 1.0;
-    const reactionBonus = Math.max(0, Math.min(30, (idealTime * 2 - avgReactionTime) * 15));
+  const css = `
+    @keyframes tc-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes tc-pop{0%{transform:translate(-50%,-50%) scale(0);opacity:1}60%{transform:translate(-50%,-50%) scale(1.15)}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+    @keyframes tc-ripple{0%{transform:translate(-50%,-50%) scale(0);opacity:.6}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+    @keyframes tc-float{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-6px)}}
+    @keyframes tc-shrink{0%{stroke-dashoffset:0}100%{stroke-dashoffset:283}}
+    @keyframes tc-comboPop{0%{transform:translateX(-50%) scale(.5);opacity:0}50%{transform:translateX(-50%) scale(1.2)}100%{transform:translateX(-50%) scale(1);opacity:1}}
+  `;
 
-    // Streak bonus (max 25 points)
-    const streakBonus = Math.min(maxStreak * 1.5, 25);
-
-    // Level progression bonus (max 20 points)
-    const levelBonus = Math.min(currentLevel * 1.2, 20);
-
-    // Combo multiplier bonus (max 15 points)
-    const comboBonus = Math.min((comboMultiplier - 1) * 10, 15);
-
-    // Time remaining bonus (max 15 points)
-    const timeRemainingBonus = Math.min(15, (timeRemaining / settings.timeLimit) * 15);
-
-    // Difficulty multiplier
-    const difficultyMultiplier = difficulty === 'Easy' ? 0.8 : difficulty === 'Moderate' ? 1.0 : 1.3;
-
-    // Consistency bonus (max 10 points)
-    const consistencyBonus = accuracy > 0.8 ? 10 : accuracy > 0.6 ? 5 : 0;
-
-    // Miss penalty
-    const missPenalty = Math.min(missedTargets * 2, 20);
-
-    let finalScore = (baseScore + reactionBonus + streakBonus + levelBonus + comboBonus + timeRemainingBonus + consistencyBonus - missPenalty) * difficultyMultiplier;
-
-    // Apply final modifier to make 200 very challenging
-    finalScore = finalScore * 0.75;
-
-    return Math.round(Math.max(0, Math.min(200, finalScore)));
-  }, [correctTaps, totalTaps, totalReactionTime, currentLevel, maxStreak, targetsHit, targetsSpawned, missedTargets, timeRemaining, difficulty, gameState, score, comboMultiplier]);
-
-  // Update score during gameplay
-  useEffect(() => {
-    if (gameState === 'playing') {
-      const newScore = calculateScore();
-      setScore(newScore);
-    }
-  }, [calculateScore, gameState]);
-
-  // Target spawning interval
-  useEffect(() => {
-    let spawnInterval;
-    if (gameState === 'playing') {
-      const settings = difficultySettings[difficulty];
-      spawnInterval = setInterval(spawnTarget, settings.spawnRate);
-    }
-    return () => clearInterval(spawnInterval);
-  }, [gameState, difficulty, spawnTarget]);
-
-  // Target update interval
-  useEffect(() => {
-    let updateInterval;
-    if (gameState === 'playing') {
-      updateInterval = setInterval(updateTargets, 16); // ~60fps
-    }
-    return () => clearInterval(updateInterval);
-  }, [gameState, updateTargets]);
-
-  // Timer countdown
-  useEffect(() => {
-    let interval;
-    if (gameState === 'playing' && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            const endTime = Date.now();
-            const duration = Math.floor((endTime - gameStartTime) / 1000);
-            setGameDuration(duration);
-            setFinalScore(score);
-            setGameState('finished');
-            setShowCompletionModal(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [gameState, timeRemaining, gameStartTime, score]);
-
-  // Initialize game
-  const initializeGame = useCallback(() => {
-    const settings = difficultySettings[difficulty];
-    setScore(0);
-    setFinalScore(0);
-    setTimeRemaining(settings.timeLimit);
-    setCurrentLevel(1);
-    setStreak(0);
-    setMaxStreak(0);
-    setTotalTaps(0);
-    setCorrectTaps(0);
-    setMissedTargets(0);
-    setTotalReactionTime(0);
-    setTargetsHit(0);
-    setTargetsSpawned(0);
-    setActiveTargets([]);
-    setNextTargetId(0);
-    setShowFeedback(false);
-    setComboMultiplier(1);
-    setLastHitTime(0);
-    setTargetSpawnRate(settings.spawnRate);
-    setTargetLifetime(settings.targetLifetime);
-  }, [difficulty]);
-
-  const handleStart = () => {
-    initializeGame();
-    setGameStartTime(Date.now());
-  };
-
-  const handleReset = () => {
-    initializeGame();
-    setShowCompletionModal(false);
-  };
-
-  const handleGameComplete = (payload) => {
-  };
-
-  // Prevent difficulty change during gameplay
-  const handleDifficultyChange = (newDifficulty) => {
-    if (gameState === 'ready') {
-      setDifficulty(newDifficulty);
-    }
-  };
-
-  const customStats = {
-    currentLevel,
-    streak: maxStreak,
-    totalTaps,
-    correctTaps,
-    missedTargets,
-    targetsHit,
-    targetsSpawned,
-    accuracy: targetsSpawned > 0 ? Math.round((targetsHit / targetsSpawned) * 100) : 0,
-    hitRate: totalTaps > 0 ? Math.round((correctTaps / totalTaps) * 100) : 0,
-    averageReactionTime: correctTaps > 0 ? Math.round(totalReactionTime / correctTaps) : 0,
-    comboMultiplier: comboMultiplier.toFixed(1)
-  };
-
-  const getTargetStyle = (target) => {
-    const baseSizeMap = { large: 80, medium: 60, small: 40 };
-    let size = baseSizeMap[target.size];
-
-    // Responsive sizing
-    if (gameAreaSize.width < 320) {
-      size = Math.max(size * 0.6, 30); // Minimum 30px for touch targets
-    } else if (gameAreaSize.width < 400) {
-      size = Math.max(size * 0.7, 35);
-    } else if (gameAreaSize.width < 500) {
-      size = Math.max(size * 0.85, 40);
-    }
-
-    const age = Date.now() - target.spawnTime;
-    const lifePercent = age / target.lifetime;
-
-    let backgroundColor = '#3B82F6'; // Blue for normal
-    if (target.type === 'bonus') backgroundColor = '#10B981'; // Green for bonus
-    if (target.type === 'penalty') backgroundColor = '#EF4444'; // Red for penalty
-
-    // Fade out as target ages
-    const opacity = Math.max(0.4, 1 - lifePercent * 0.6);
-    const scale = target.moving ? 1.05 + Math.sin(age * 0.01) * 0.05 : 1;
-    const pulse = target.type === 'bonus' ? `scale(${1 + Math.sin(age * 0.008) * 0.1})` : `scale(${scale})`;
-
-    // Ensure targets stay within bounds
-    const maxX = gameAreaSize.width - size;
-    const maxY = gameAreaSize.height - size;
-    const constrainedX = Math.max(0, Math.min(target.x, maxX));
-    const constrainedY = Math.max(0, Math.min(target.y, maxY));
-
-    return {
-      position: 'absolute',
-      left: `${constrainedX}px`,
-      top: `${constrainedY}px`,
-      width: `${size}px`,
-      height: `${size}px`,
-      backgroundColor,
-      opacity,
-      borderRadius: '50%',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: `${Math.max(size * 0.25, 12)}px`,
-      fontWeight: 'bold',
-      color: 'white',
-      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-      transform: pulse,
-      boxShadow: target.type === 'bonus' ? '0 0 20px rgba(16, 185, 129, 0.6), 0 4px 12px rgba(0,0,0,0.3)' :
-        target.type === 'penalty' ? '0 0 20px rgba(239, 68, 68, 0.6), 0 4px 12px rgba(0,0,0,0.3)' :
-          '0 0 15px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0,0,0,0.3)',
-      zIndex: 10,
-      filter: target.type === 'bonus' ? 'brightness(1.1)' : target.type === 'penalty' ? 'brightness(1.1)' : 'brightness(1)',
-      // Improve touch targets on mobile
-      minWidth: '44px',
-      minHeight: '44px',
-    };
+  const s = {
+    wrapper: {
+      position: 'fixed', inset: 0,
+      background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1040 40%, #0d0d2b 100%)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      fontFamily: "'Segoe UI', system-ui, sans-serif",
+      color: '#e2e8f0', overflow: 'hidden',
+    },
+    header: {
+      width: '100%', padding: '12px 16px',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
+      borderBottom: '1px solid rgba(255,255,255,0.08)', zIndex: 10, flexShrink: 0,
+    },
+    backBtn: {
+      background: 'rgba(255,255,255,0.1)', border: 'none', color: '#e2e8f0',
+      padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 14,
+    },
+    scoreBox: {
+      background: 'rgba(255,255,255,0.08)', padding: '4px 14px', borderRadius: 12,
+      fontSize: 15, fontWeight: 700,
+    },
+    timerBox: (u) => ({
+      padding: '4px 14px', borderRadius: 12, fontSize: 15, fontWeight: 700,
+      background: u ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.08)',
+      color: u ? '#fca5a5' : '#e2e8f0',
+      animation: u ? 'tc-pulse 1s infinite' : 'none',
+    }),
+    content: {
+      flex: 1, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      width: '100%', maxWidth: 900, padding: 16,
+    },
+    area: {
+      position: 'relative', width: '100%', flex: 1,
+      borderRadius: 20, overflow: 'hidden',
+      background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.08) 0%, transparent 70%)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      minHeight: 200,
+    },
+    target: (t) => {
+      const age = (Date.now() - t.born) / t.life;
+      const opacity = age > 0.7 ? 1 - (age - 0.7) / 0.3 : 1;
+      return {
+        position: 'absolute',
+        left: `${t.x}%`, top: `${t.y}%`,
+        transform: 'translate(-50%, -50%)',
+        width: t.size, height: t.size,
+        borderRadius: '50%',
+        background: t.style.bg,
+        boxShadow: `0 0 20px ${t.style.glow}60, 0 0 40px ${t.style.glow}30, inset 0 -3px 6px rgba(0,0,0,0.3)`,
+        cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: t.size * 0.4,
+        animation: 'tc-pop 0.3s ease-out, tc-float 2s ease-in-out infinite',
+        opacity: Math.max(0.2, opacity),
+        transition: 'opacity 0.2s',
+        userSelect: 'none', WebkitTapHighlightColor: 'transparent',
+        zIndex: 5,
+      };
+    },
+    timerRing: (t) => ({
+      position: 'absolute', inset: -3,
+      pointerEvents: 'none',
+    }),
+    ripple: (r) => ({
+      position: 'absolute', left: r.x, top: r.y,
+      width: 40, height: 40, borderRadius: '50%',
+      background: `${r.color}40`,
+      border: `2px solid ${r.color}80`,
+      animation: 'tc-ripple 0.6s ease-out forwards',
+      pointerEvents: 'none', zIndex: 3,
+    }),
+    statsRow: {
+      display: 'flex', gap: 16, marginTop: 12, fontSize: 13, color: '#94a3b8',
+    },
+    menuCard: {
+      background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(16px)',
+      borderRadius: 24, padding: '40px 32px',
+      border: '1px solid rgba(255,255,255,0.1)',
+      textAlign: 'center', maxWidth: 420, width: '90%',
+    },
+    menuTitle: {
+      fontSize: 'clamp(24px, 6vw, 36px)', fontWeight: 900,
+      background: 'linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb)',
+      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+      marginBottom: 8,
+    },
+    menuSub: { fontSize: 14, color: '#94a3b8', marginBottom: 28, lineHeight: 1.5 },
+    levelBtn: (i) => {
+      const g = [
+        'linear-gradient(135deg, #22c55e, #16a34a)',
+        'linear-gradient(135deg, #eab308, #f59e0b)',
+        'linear-gradient(135deg, #ef4444, #dc2626)',
+      ];
+      return {
+        width: '100%', padding: '14px 0', borderRadius: 14,
+        background: g[i], border: 'none', color: '#fff',
+        fontSize: 16, fontWeight: 700, cursor: 'pointer',
+        marginBottom: 10, boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+        transition: 'transform 0.15s',
+      };
+    },
+    resultCard: {
+      background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(16px)',
+      borderRadius: 24, padding: '36px 28px',
+      border: '1px solid rgba(255,255,255,0.1)',
+      textAlign: 'center', maxWidth: 380, width: '90%',
+    },
+    resultEmoji: { fontSize: 56, marginBottom: 12 },
+    resultTitle: { fontSize: 28, fontWeight: 800, marginBottom: 8 },
+    resultScore: {
+      fontSize: 40, fontWeight: 900,
+      background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+      marginBottom: 16,
+    },
+    playAgainBtn: {
+      padding: '12px 32px', borderRadius: 14,
+      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+      border: 'none', color: '#fff', fontSize: 16, fontWeight: 700,
+      cursor: 'pointer', marginBottom: 8, width: '100%',
+    },
+    menuBtn: {
+      padding: '10px 32px', borderRadius: 14,
+      background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
+      color: '#e2e8f0', fontSize: 14, cursor: 'pointer', width: '100%',
+    },
   };
 
   return (
-    <div>
-      {gameState === 'ready' && <Header unreadCount={3} />}
-
-      <GameFramework
-        gameTitle="Tap Challenge"
-        gameShortDescription="Tap targets as fast as possible. Challenge your reaction time and hand-eye coordination!"
-        gameDescription={
-          <div className="mx-auto px-1 mb-2">
-            <div className="bg-[#E8E8E8] rounded-lg p-6">
-              {/* Header with toggle icon */}
-              <div
-                className="flex items-center justify-between mb-4 cursor-pointer hover:bg-white hover:bg-opacity-50 rounded-lg p-2 transition-all duration-200"
-                onClick={() => setShowInstructions(!showInstructions)}
-              >
-                <h3 className="text-lg font-semibold text-blue-900" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  How to Play Tap Challenge
-                </h3>
-                <span className="text-blue-900 text-xl">
-                  {showInstructions
-                    ? <ChevronUp className="h-5 w-5 text-blue-900" />
-                    : <ChevronDown className="h-5 w-5 text-blue-900" />}
-                </span>
-              </div>
-
-              {/* Instructions */}
-              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 transition-all duration-300 ${showInstructions ? 'opacity-100 max-h-96' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Objective
-                  </h4>
-                  <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    Tap the targets as quickly as possible before they disappear. Avoid red penalty targets!
-                  </p>
-                </div>
-
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🎯 Target Types
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• <span className="text-blue-600">Blue:</span> Normal (+10 pts)</li>
-                    <li>• <span className="text-green-600">Green:</span> Bonus (+15 pts)</li>
-                    <li>• <span className="text-red-600">Red:</span> Penalty (-10 pts)</li>
-                  </ul>
-                </div>
-
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    📊 Scoring
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Accuracy and speed bonuses</li>
-                    <li>• Streak multipliers</li>
-                    <li>• Combo bonuses for quick hits</li>
-                  </ul>
-                </div>
-
-                <div className='bg-white p-3 rounded-lg'>
-                  <h4 className="text-sm font-medium text-blue-800 mb-2" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    🧠 Strategy
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                    <li>• Focus on accuracy over speed</li>
-                    <li>• Avoid penalty targets</li>
-                    <li>• Build streaks for multipliers</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+    <div style={s.wrapper}>
+      <style>{css}</style>
+      <div style={s.header}>
+        <button style={s.backBtn} onClick={phase === 'menu' ? (onBack ? () => onBack() : () => window.history.back()) : handleReset}>
+          {phase === 'menu' ? '← Home' : '← Menu'}
+        </button>
+        <span style={{ fontWeight: 700, fontSize: 15 }}>👆 Tap Challenge</span>
+        {phase === 'menu' ? (
+          <button
+            type="button"
+            onClick={() => setShowInstructions(true)}
+            aria-label="How to play"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+              border: '1px solid rgba(148,163,184,0.4)', background: 'rgba(30,41,59,0.8)',
+              color: '#e2e8f0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            <span aria-hidden>❓</span> How to Play
+          </button>
+        ) : (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={s.scoreBox}>⭐ {score}/{MAX_SCORE}</div>
+            {combo > 1 && (
+              <span style={{
+                background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                padding: '2px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700,
+              }}>🔥 {combo}x</span>
+            )}
+            <div style={s.timerBox(timeLeft <= 10)}>⏱ {fmt(timeLeft)}</div>
           </div>
-        }
-        category="Gameacy"
-        gameState={gameState}
-        setGameState={setGameState}
-        score={gameState === 'finished' ? finalScore : score}
-        timeRemaining={timeRemaining}
-        difficulty={difficulty}
-        setDifficulty={handleDifficultyChange}
-        onStart={handleStart}
-        onReset={handleReset}
-        onGameComplete={handleGameComplete}
-        customStats={customStats}
-      >
-        {/* Game Content */}
-        <div className="flex flex-col items-center">
-          {/* Game Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 w-full max-w-4xl">
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Level
-              </div>
-              <div className="text-lg sm:text-xl font-semibold text-[#FF6B3E] flex items-center justify-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <TrendingUp className="h-4 w-4" />
-                {currentLevel}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Streak
-              </div>
-              <div className="text-lg sm:text-xl font-semibold text-green-600 flex items-center justify-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <Flame className="h-4 w-4" />
-                {streak}
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Accuracy
-              </div>
-              <div className="text-lg sm:text-xl font-semibold text-purple-600 flex items-center justify-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <Target className="h-4 w-4" />
-                {customStats.accuracy}%
-              </div>
-            </div>
-            <div className="text-center bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Combo
-              </div>
-              <div className="text-lg sm:text-xl font-semibold text-blue-600 flex items-center justify-center gap-1" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <Star className="h-4 w-4" />
-                {customStats.comboMultiplier}x
-              </div>
-            </div>
-          </div>
+        )}
+      </div>
 
-          {/* Game Status */}
-          <div className="w-full max-w-2xl mb-6 px-4 sm:px-0">
-            <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-300 rounded-lg p-4 text-center shadow-sm">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Target className="h-5 w-5 text-blue-600" />
-                <h3 className="text-base sm:text-lg font-semibold text-blue-800" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Tap the Targets!
-                </h3>
-              </div>
-              <p className="text-sm text-blue-700" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                Hit: {targetsHit} | Missed: {missedTargets} | Active: {activeTargets.length}
-              </p>
-            </div>
-          </div>
-
-          {/* Game Area */}
-          <div className="w-full mb-6 px-2 sm:px-4">
+      {phase === 'menu' && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          {showInstructions && (
             <div
-              className="game-area bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 rounded-xl shadow-xl border-2 border-gray-300 relative overflow-hidden cursor-crosshair mx-auto transition-all duration-300 hover:shadow-2xl touch-manipulation"
-              style={{
-                height: `${gameAreaSize.height}px`,
-                width: `${gameAreaSize.width}px`,
-                background: 'linear-gradient(135deg, #f1f5f9 0%, #e0f2fe 50%, #e0e7ff 100%)',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1), 0 8px 32px rgba(0,0,0,0.15)',
-                maxWidth: '100%'
-              }}
-              onClick={handleMissedTap}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tap-challenge-instructions-title"
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }}
+              onClick={() => setShowInstructions(false)}
             >
-              {/* Background pattern */}
-              <div className="absolute inset-0 opacity-20">
-                <div className="grid h-full w-full" style={{
-                  gridTemplateColumns: `repeat(${Math.max(1, Math.floor(gameAreaSize.width / 40))}, 1fr)`,
-                  gridTemplateRows: `repeat(${Math.max(1, Math.floor(gameAreaSize.height / 40))}, 1fr)`
-                }}>
-                  {Array.from({ length: Math.max(1, Math.floor(gameAreaSize.width / 40)) * Math.max(1, Math.floor(gameAreaSize.height / 40)) }).map((_, i) => (
-                    <div key={i} className="border border-blue-200"></div>
-                  ))}
+              <div
+                style={{
+                  background: 'linear-gradient(180deg, #1e1e2e 0%, #0f1629 100%)',
+                  border: '2px solid rgba(255,107,107,0.45)', borderRadius: 20, padding: 0,
+                  maxWidth: 480, width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+                  color: '#e2e8f0', boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                  <h2 id="tap-challenge-instructions-title" style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#ff6b6b' }}>
+                    👆 Tap Challenge – How to Play
+                  </h2>
+                  <button type="button" onClick={() => setShowInstructions(false)} aria-label="Close"
+                    style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', fontSize: 22, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    ×
+                  </button>
                 </div>
-              </div>
-
-              {/* Animated background particles */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {Array.from({ length: Math.min(8, Math.floor(gameAreaSize.width / 75)) }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute w-2 h-2 bg-blue-300 rounded-full opacity-30 animate-pulse"
-                    style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      animationDelay: `${i * 0.5}s`,
-                      animationDuration: `${2 + Math.random() * 2}s`
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Active Targets */}
-              {activeTargets.map((target) => (
-                <div
-                  key={target.id}
-                  style={getTargetStyle(target)}
-                  onClick={(e) => handleTargetTap(target.id, e)}
-                  className="hover:scale-110 active:scale-95 transition-transform duration-150 select-none"
-                  onTouchStart={(e) => e.preventDefault()} // Prevent touch delay
-                >
-                  <div className="relative">
-                    {target.type === 'bonus' ? (
-                      <Star className="fill-current animate-spin" style={{
-                        animationDuration: '2s',
-                        width: `${Math.max(16, Math.min(24, gameAreaSize.width / 25))}px`,
-                        height: `${Math.max(16, Math.min(24, gameAreaSize.width / 25))}px`
-                      }} />
-                    ) : target.type === 'penalty' ? (
-                      <XCircle className="animate-pulse" style={{
-                        width: `${Math.max(16, Math.min(24, gameAreaSize.width / 25))}px`,
-                        height: `${Math.max(16, Math.min(24, gameAreaSize.width / 25))}px`
-                      }} />
-                    ) : (
-                      <div
-                        className="bg-white rounded-full opacity-90"
-                        style={{
-                          width: `${Math.max(12, Math.min(16, gameAreaSize.width / 37.5))}px`,
-                          height: `${Math.max(12, Math.min(16, gameAreaSize.width / 37.5))}px`
-                        }}
-                      ></div>
-                    )}
-                  </div>
-                  {target.moving && (
-                    <div
-                      className="absolute bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-bounce shadow-lg flex items-center justify-center"
-                      style={{
-                        top: '-8px',
-                        right: '-8px',
-                        width: `${Math.max(16, Math.min(20, gameAreaSize.width / 30))}px`,
-                        height: `${Math.max(16, Math.min(20, gameAreaSize.width / 30))}px`
-                      }}
-                    >
-                      <Zap className="text-white" style={{
-                        width: `${Math.max(10, Math.min(14, gameAreaSize.width / 42))}px`,
-                        height: `${Math.max(10, Math.min(14, gameAreaSize.width / 42))}px`
-                      }} />
-                    </div>
-                  )}
+                <div style={{ padding: 20, overflowY: 'auto', flex: 1, minHeight: 0 }}>{instructionsModalContent}</div>
+                <div style={{ padding: '16px 20px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                  <button type="button" onClick={() => setShowInstructions(false)}
+                    style={{ width: '100%', padding: '12px 24px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}>
+                    Got it
+                  </button>
                 </div>
-              ))}
-
-              {/* Hit Effects */}
-              {hitEffects.map((effect) => {
-                const age = Date.now() - effect.timestamp;
-                const progress = age / 1000;
-                const opacity = Math.max(0, 1 - progress);
-                const scale = 1 + progress * 2;
-                const effectSize = Math.max(20, Math.min(40, gameAreaSize.width / 15));
-
-                return (
-                  <div
-                    key={effect.id}
-                    className="absolute pointer-events-none flex items-center justify-center"
-                    style={{
-                      left: effect.x - effectSize / 2,
-                      top: effect.y - effectSize / 2,
-                      width: `${effectSize}px`,
-                      height: `${effectSize}px`,
-                      opacity,
-                      transform: `scale(${scale})`,
-                      transition: 'all 0.1s ease-out'
-                    }}
-                  >
-                    <div className={`font-bold ${effect.type === 'bonus' ? 'text-green-600' :
-                      effect.type === 'penalty' ? 'text-red-600' : 'text-blue-600'
-                      }`} style={{ fontSize: `${Math.max(14, Math.min(18, gameAreaSize.width / 33))}px` }}>
-                      {effect.points > 0 ? `+${effect.points}` : effect.points}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Center crosshair */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-30">
-                <div
-                  className="border-2 border-blue-400 rounded-full animate-pulse"
-                  style={{
-                    width: `${Math.max(24, Math.min(32, gameAreaSize.width / 18.75))}px`,
-                    height: `${Math.max(24, Math.min(32, gameAreaSize.width / 18.75))}px`
-                  }}
-                ></div>
-                <div
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-400 rounded-full"
-                  style={{
-                    width: `${Math.max(6, Math.min(8, gameAreaSize.width / 75))}px`,
-                    height: `${Math.max(6, Math.min(8, gameAreaSize.width / 75))}px`
-                  }}
-                ></div>
-              </div>
-
-              {/* Corner decorations */}
-              <div className="absolute top-2 left-2 border-l-2 border-t-2 border-blue-300 opacity-50" style={{
-                width: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`,
-                height: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`
-              }}></div>
-              <div className="absolute top-2 right-2 border-r-2 border-t-2 border-blue-300 opacity-50" style={{
-                width: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`,
-                height: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`
-              }}></div>
-              <div className="absolute bottom-2 left-2 border-l-2 border-b-2 border-blue-300 opacity-50" style={{
-                width: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`,
-                height: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`
-              }}></div>
-              <div className="absolute bottom-2 right-2 border-r-2 border-b-2 border-blue-300 opacity-50" style={{
-                width: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`,
-                height: `${Math.max(8, Math.min(12, gameAreaSize.width / 50))}px`
-              }}></div>
-            </div>
-          </div>
-
-          {/* Progress Indicators */}
-          <div className="w-full max-w-2xl mb-6 px-2 sm:px-4">
-            <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-4 shadow-inner">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  Level Progress
-                </span>
-                <span className="text-sm text-gray-600" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {streak}/10 to next level
-                </span>
-              </div>
-              <div className="w-full bg-gray-300 rounded-full h-3 overflow-hidden shadow-inner">
-                <div
-                  className="bg-gradient-to-r from-[#FF6B3E] to-[#FF8A65] h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
-                  style={{ width: `${(streak % 10) * 10}%` }}
-                >
-                  <div className="h-full bg-white bg-opacity-30 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Feedback */}
-          {showFeedback && (
-            <div className={`w-full max-w-2xl text-center p-4 rounded-lg mb-4 mx-2 sm:mx-4 transform transition-all duration-300 animate-bounce ${feedbackType === 'success' ? 'bg-green-100 text-green-800' :
-              feedbackType === 'bonus' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                {feedbackType === 'success' ? (
-                  <Award className="h-6 w-6 text-green-600" />
-                ) : feedbackType === 'bonus' ? (
-                  <Zap className="h-6 w-6 text-yellow-600" />
-                ) : (
-                  <XCircle className="h-6 w-6 text-red-600" />
-                )}
-                <div className="text-lg font-semibold" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  {feedbackType === 'success' ? 'Level Up!' : feedbackType === 'bonus' ? 'Bonus!' : 'Penalty!'}
-                </div>
-              </div>
-              <div className="text-sm" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-                {feedbackMessage}
               </div>
             </div>
           )}
-
-          {/* Instructions */}
-          <div className="text-center max-w-3xl px-2 sm:px-4">
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed" style={{ fontFamily: 'Roboto, sans-serif', fontWeight: '400' }}>
-              Tap the colored targets before they disappear! Blue targets give 10 points, green bonus targets give 15 points,
-              but avoid red penalty targets that subtract 10 points. Build streaks for combo multipliers!
-            </p>
-            <div className="mt-3 text-xs sm:text-sm text-gray-500 bg-gray-50 rounded-lg p-3 border" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-4 text-center">
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  Normal (+10)
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  Bonus (+15)
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  Penalty (-10)
-                </span>
-                <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3 text-yellow-500" />
-                  Moving
-                </span>
+          <div style={s.menuCard}>
+            {isDailyGame && (
+              <div style={{ marginBottom: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(255,107,107,0.2)', color: '#fca5a5', fontSize: 12, fontWeight: 600 }}>
+                📅 Daily Challenge
               </div>
-            </div>
-            <div className="mt-2 text-xs text-gray-500 opacity-75" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              {difficulty} Mode: {difficultySettings[difficulty].description} |
-              {Math.floor(difficultySettings[difficulty].timeLimit / 60)}:{String(difficultySettings[difficulty].timeLimit % 60).padStart(2, '0')} time limit
-            </div>
+            )}
+            <div style={s.menuTitle}>Tap Challenge</div>
+            <p style={s.menuSub}>
+              Tap targets as fast as possible before they disappear!<br />
+              Test your reaction time and accuracy.
+            </p>
+            {!checkingDailyGame && levelEntries.map(([key, cfg], idx) => (
+              <button
+                key={key}
+                style={{
+                  ...s.levelBtn(idx),
+                  opacity: selectedLevel === key ? 1 : 0.85,
+                  border: selectedLevel === key ? '3px solid rgba(255,255,255,0.5)' : 'none',
+                }}
+                onMouseEnter={e => e.target.style.transform = 'scale(1.03)'}
+                onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                onClick={() => !isDailyGame && setLevel(key)}
+              >
+                {cfg.label}
+                <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.85 }}>
+                  {cfg.targetCount} targets · {cfg.lifeMs / 1000}s lifespan · max {cfg.maxActive} active
+                </div>
+              </button>
+            ))}
+            <button
+              style={{ ...s.levelBtn(0), marginTop: 8, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}
+              disabled={!selectedLevel || checkingDailyGame}
+              onClick={() => startGame(selectedLevel)}
+            >
+              Start Game
+            </button>
           </div>
         </div>
-      </GameFramework>
+      )}
 
-      <GameCompletionModal
-        isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
-        score={finalScore}
-        difficulty={difficulty}
-        duration={gameDuration}
-        customStats={{
-          accuracy: customStats.accuracy,
-          correctTaps: targetsHit
-        }}
-      />
+      {(phase === 'playing' || phase === 'gameover') && (
+      <div style={{ ...s.content, pointerEvents: phase === 'gameover' ? 'none' : 'auto' }}>
+        <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>
+          Tapped: {tapped}/{totalTargets} · Missed: {missed} · Accuracy: {accuracy}%
+        </div>
+        <div style={{
+          width: '80%', maxWidth: 400, height: 6, borderRadius: 3,
+          background: 'rgba(255,255,255,0.1)', overflow: 'hidden', marginBottom: 12,
+        }}>
+          <div style={{
+            height: '100%', borderRadius: 3,
+            background: 'linear-gradient(90deg, #6366f1, #a855f7)',
+            transition: 'width 0.3s', width: `${(score / MAX_SCORE) * 100}%`,
+          }} />
+        </div>
+        <div ref={areaRef} style={s.area}>
+          {targets.map(t => (
+            <div key={t.id} style={s.target(t)} onPointerDown={(e) => handleTap(t, e)}>
+              {t.style.emoji}
+              <svg style={{ position: 'absolute', inset: -3, pointerEvents: 'none' }}
+                width={t.size + 6} height={t.size + 6} viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none"
+                  stroke={t.style.glow} strokeWidth="2" strokeOpacity="0.4"
+                  strokeDasharray="283"
+                  style={{
+                    animation: `tc-shrink ${t.life}ms linear forwards`,
+                    animationDelay: `-${Date.now() - t.born}ms`,
+                  }}
+                />
+              </svg>
+            </div>
+          ))}
+          {ripples.map(r => <div key={r.id} style={s.ripple(r)} />)}
+          {targets.length === 0 && spawnedRef.current < (level ? LEVELS[level].targetCount : 999) && (
+            <div style={{
+              position: 'absolute', inset: 0, display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              color: '#64748b', fontSize: 16,
+            }}>Get ready...</div>
+          )}
+        </div>
+      </div>
+      )}
+
+      {phase === 'gameover' && completionData && (
+        <GameCompletionModal
+          isVisible
+          onClose={handleReset}
+          gameTitle="Tap Challenge"
+          score={completionData.score}
+          timeElapsed={completionData.timeElapsed ?? TIME_LIMIT}
+          gameTimeLimit={TIME_LIMIT}
+          isVictory={completionData.isVictory}
+          difficulty={completionData.difficulty}
+          customMessages={{ maxScore: MAX_SCORE }}
+        />
+      )}
     </div>
   );
-};
-
-export default TapChallengeGame;
+}

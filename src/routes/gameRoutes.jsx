@@ -15,7 +15,6 @@ import {
   LogicGridSolverGame,
   WordSearchMaster,
   TicTacToeGame,
-  TwentyFortyEightGame,
   SudokuMasterGame,
   TapMinesweeperGame,
   AnagramSolverGame,
@@ -54,7 +53,8 @@ import {
   BallSortGame,
   CocktailSortGame,
   TileAdjustGame,
-  FillTracksGame
+  FillTracksGame,
+  NumberPuzzleGame
   //ShadowMatchGame,
   //MazeLogicGame,
   //ShapeRotationGame,
@@ -166,11 +166,6 @@ export const gameRoutes = [
     path: "/games/tic-tac-toe-game",
     element: <TicTacToeGame />,
     name: "Tic Tac Toe Game"
-  },
-  {
-    path: "/games/2048-game",
-    element: <TwentyFortyEightGame />,
-    name: "2048 game"
   },
   {
     path: "/games/sudoku-master-game",
@@ -371,5 +366,10 @@ export const gameRoutes = [
     path: "/games/fill-tracks-game",
     element: <FillTracksGame />,
     name: "Fill Tracks Game"
+  },
+  {
+    path: "/games/number-puzzle-game",
+    element: <NumberPuzzleGame />,
+    name: "Number Sum Puzzle"
   }
 ];
