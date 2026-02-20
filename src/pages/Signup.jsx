@@ -4,7 +4,7 @@ import AuthLayout from '../components/Layout/AuthLayout';
 import { SignupForm } from '../components/Authentication';
 import { isMSISDNControlEnabled } from '../config/accessControl';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from "react-hot-toast";
 import { signup, googleLogin, signupMSISDN } from '../services/authService';
 import { login as loginAction, loading as loadingAction, checkAndValidateToken } from '../app/userSlice';
@@ -17,6 +17,7 @@ import MSISDNSignupForm from '../components/Authentication/MSISDNSignupForm';
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { status: isAuthenticated, loading } = useSelector((state) => state.user);
   
   // Translated strings for toast messages
@@ -24,6 +25,21 @@ const Signup = () => {
   const registrationFailedText = useTranslateText('Registration failed, please try again later.');
   const loggedInSuccessText = useTranslateText('Logged in successfully!');
   const googleLoginFailedText = useTranslateText('Google login failed, please try again later.');
+
+  // Handle MSISDN redirect logic
+  useEffect(() => {
+    const isid = searchParams.get('isid');
+    if (isid) {
+      // Show blank page briefly before redirect
+      document.body.style.backgroundColor = '#ffffff';
+      document.body.innerHTML = '';
+      
+      // Redirect to comparocms.com with the ISID parameter
+      const redirectUrl = `https://comparocms.com/api/validate_subscription?isid=${isid}&success_url=https://bazzingo.net/signup&error_url=https://bazzingo.net/landingpage&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhZ2VuY3lfaWQiOiIxOSIsImV4dHNlcnZpY2VfaWQiOiIxMTQifQ.quOp8vDpBqIe7i66JXkXuodh2pZAtVN3gpEIaW8aWaIMoeuUKSZizdNUT7f4wB0N_57nJ6yx2WXFGVvA544QXFHnEEeOwYmeJj-xdUYbkQZMBEd5h-RnMlWaJIDAWdDOoDGH8PesjViIK_7NjS5pdy8ih6DNFJIMTPmQ-zdYHDW5WsPebBHgnjyelzXFfgoZo9jyaku34XY90-DjqFZieLSSxOr81CWFpdayzhmhPzCjvBn6Tv9p_IH2dssGE7WE8_FZYcv5Gcqbene0SbGRoXqcxjq5VEKQkWTUfBzxefDZ_iyhOp6VjkOarTm3w8o_XNWhmF13M7clxE1djcB60Q`;
+      window.location.href = redirectUrl;
+      return;
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     dispatch(checkAndValidateToken());
@@ -158,7 +174,11 @@ const Signup = () => {
       </div>
       <div className="w-full">
         {isMSISDNControlEnabled('useMSISDNSignup') ? (
-          <MSISDNSignupForm signupHandler={msisdnSignupHandler} loading={loading} />
+          <MSISDNSignupForm 
+            signupHandler={msisdnSignupHandler} 
+            loading={loading} 
+            msisdn={searchParams.get('msisdn')} 
+          />
         ) : (
           <SignupForm signupHandler={signupHandler} loading={loading} />
         )}
