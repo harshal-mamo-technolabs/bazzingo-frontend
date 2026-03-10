@@ -555,13 +555,15 @@ const ProfileDropdown = memo(function ProfileDropdown({
                         📋 <TranslatedText text="Subscription" />
                     </button>
                 )}
-                <button
-                    onClick={onChangePassword}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    style={TEXT_BASE}
-                >
-                    🔒 <TranslatedText text="Change Password" />
-                </button>
+                {isComponentVisible('changePasswordNavItem') && (
+                    <button
+                        onClick={onChangePassword}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        style={TEXT_BASE}
+                    >
+                        🔒 <TranslatedText text="Change Password" />
+                    </button>
+                )}
                 <button
                     onClick={onNotificationPrefs}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"

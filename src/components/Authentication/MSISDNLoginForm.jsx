@@ -9,14 +9,29 @@ export default function MSISDNLoginForm({ loginHandler, loading = false }) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      msisdn: '01',
+    },
+  });
 
   // Translated strings for validation messages
   const msisdnRequiredText = useTranslateText('Phone number is required');
   const invalidMSISDNFormatText = useTranslateText('Invalid phone number format');
 
+  const onSubmit = (data) => {
+    let raw = data.msisdn || '';
+    raw = String(raw).trim().replace(/\D/g, '');
+    if (raw.startsWith('01')) {
+      raw = raw.slice(2);
+    }
+    const formattedMsisdn = `00491${raw}`;
+
+    loginHandler({ ...data, msisdn: formattedMsisdn });
+  };
+
   return (
-    <form onSubmit={handleSubmit(loginHandler)} className="flex flex-col gap-5 md:gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 md:gap-6">
       <div className="flex flex-col gap-3 md:gap-4">
         {/* MSISDN Field */}
         <div>
@@ -31,10 +46,6 @@ export default function MSISDNLoginForm({ loginHandler, loading = false }) {
               className="w-full pl-12 pr-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px]"
               {...register("msisdn", {
                 required: msisdnRequiredText,
-                pattern: {
-                  value: /^\+?[1-9]\d{1,14}$/,
-                  message: invalidMSISDNFormatText,
-                },
               })}
             />
           </div>

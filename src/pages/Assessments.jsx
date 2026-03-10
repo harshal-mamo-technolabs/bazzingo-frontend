@@ -96,28 +96,17 @@ const Assessments = () => {
     };
 
     const handleStartCertifiedTest = async (assessment) => {
-        // When payment flow is disabled from accessControl,
-        // we still want the "start test" confirmation modal
-        // for already-purchased assessments, but skip any
-        // purchase / Stripe flow for unpaid ones.
-        if (!assessmentPaymentsEnabled) {
-            if (assessment?.isAssessmentPurchased) {
-                setSelectedAssessmentForConfirmation(assessment);
-                setIsConfirmationModalOpen(true);
-            } else {
-                handleDirectStart(assessment);
-            }
-            return;
-        }
-
-        // If already purchased, show confirmation modal
+        // If already purchased, always show confirmation modal
         if (assessment?.isAssessmentPurchased) {
             setSelectedAssessmentForConfirmation(assessment);
             setIsConfirmationModalOpen(true);
             return;
         }
 
-        // If not purchased, show purchase modal
+        // If not purchased:
+        // - when payments are enabled, open purchase + payment flow
+        // - when payments are disabled, still show the information modal
+        //   but start the assessment directly from there (no payment)
         setSelectedAssessmentForPurchase(assessment);
         setIsPurchaseModalOpen(true);
     };
@@ -126,6 +115,15 @@ const Assessments = () => {
         // Close the info modal and open Stripe Elements payment modal
         setIsPurchaseModalOpen(false);
         setIsStripeElementsModalOpen(true);
+    };
+
+    const handleStartAssessmentAfterInfo = () => {
+        const assessment = selectedAssessmentForPurchase;
+        if (assessment) {
+            setIsPurchaseModalOpen(false);
+            setSelectedAssessmentForPurchase(null);
+            handleDirectStart(assessment);
+        }
     };
 
     const handleClosePurchaseModal = () => {
@@ -285,8 +283,9 @@ const Assessments = () => {
                     isOpen={isPurchaseModalOpen}
                     assessment={selectedAssessmentForPurchase}
                     onClose={handleClosePurchaseModal}
-                    onBuy={handlePurchaseAssessment}
+                    onBuy={assessmentPaymentsEnabled ? handlePurchaseAssessment : handleStartAssessmentAfterInfo}
                     isProcessing={false}
+                    paymentsEnabled={assessmentPaymentsEnabled}
                 />
 
                 <AssessmentStripeElementsModal

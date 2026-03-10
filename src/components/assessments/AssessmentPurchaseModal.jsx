@@ -1,7 +1,14 @@
 import React from 'react';
 import { X, CheckCircle, FileText, Award } from 'lucide-react';
 
-const AssessmentPurchaseModal = ({ isOpen, onClose, onBuy, assessment, isProcessing }) => {
+const AssessmentPurchaseModal = ({
+  isOpen,
+  onClose,
+  onBuy,
+  assessment,
+  isProcessing,
+  paymentsEnabled = true,
+}) => {
   if (!isOpen || !assessment) return null;
 
   const hasCertificate = assessment?.isAvailCertification;
@@ -45,8 +52,9 @@ const AssessmentPurchaseModal = ({ isOpen, onClose, onBuy, assessment, isProcess
               {assessment.title || 'Certified Assessment'}
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              To access this comprehensive cognitive assessment, you'll need to purchase it. 
-              This premium assessment will provide you with detailed insights into your cognitive abilities.
+              {paymentsEnabled
+                ? 'To access this comprehensive cognitive assessment, you\'ll need to purchase it. This premium assessment will provide you with detailed insights into your cognitive abilities.'
+                : 'This comprehensive cognitive assessment will provide you with detailed insights into your cognitive abilities.'}
             </p>
           </div>
 
@@ -122,8 +130,10 @@ const AssessmentPurchaseModal = ({ isOpen, onClose, onBuy, assessment, isProcess
                   <span className="inline-block w-4 h-4 mr-2 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                   Processing...
                 </span>
-              ) : (
+              ) : paymentsEnabled ? (
                 'Buy Now'
+              ) : (
+                'Start Assessment'
               )}
             </button>
           </div>

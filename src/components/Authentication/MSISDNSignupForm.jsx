@@ -15,7 +15,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
     setValue,
   } = useForm({
     defaultValues: {
-      msisdn: msisdn || ''
+      msisdn: msisdn || '01'
     }
   });
 
@@ -28,15 +28,31 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
   const fullNameRequiredText = useTranslateText('Full name is required');
   const nameMinLengthText = useTranslateText('Name must be at least 2 characters long');
   const msisdnRequiredText = useTranslateText('Phone number is required');
-  const invalidMSISDNFormatText = useTranslateText('Invalid phone number format');
   const ageRequiredText = useTranslateText('Age is required');
   const ageMinText = useTranslateText('You must be at least 13 years old');
   const ageMaxText = useTranslateText('Please enter a valid age');
   const countryRequiredText = useTranslateText('Country is required');
   const selectCountryPlaceholder = useTranslateText('Select your country');
 
+  const onSubmit = (data) => {
+    // If msisdn prop is provided, keep the exact value coming from props/input
+    if (msisdn) {
+      signupHandler(data);
+      return;
+    }
+
+    let raw = data.msisdn || '';
+    raw = String(raw).trim().replace(/\D/g, '');
+    if (raw.startsWith('01')) {
+      raw = raw.slice(2);
+    }
+    const formattedMsisdn = `00491${raw}`;
+
+    signupHandler({ ...data, msisdn: formattedMsisdn });
+  };
+
   return (
-    <form onSubmit={handleSubmit(signupHandler)} className="flex flex-col gap-5 md:gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 md:gap-6">
       <div className="flex flex-col gap-3 md:gap-4">
         {/* Name Field */}
         <div>
@@ -71,10 +87,6 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
               className={`w-full pl-12 pr-5 py-2 md:py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 text-[14px] md:text-[16px] ${msisdn ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               {...register("msisdn", {
                 required: msisdnRequiredText,
-                pattern: {
-                  value: /^\+?[1-9]\d{1,14}$/,
-                  message: invalidMSISDNFormatText,
-                },
               })}
               readOnly={!!msisdn}
             />
