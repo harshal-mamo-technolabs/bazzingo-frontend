@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { getDefaultLanguage } from '../config/accessControl';
 
 const STORAGE_KEY = 'bazzingo.lang';
-const SUPPORTED_LANGS = ['en', 'de', 'ro'];
+const SUPPORTED_LANGS = ['en', 'de', 'ro', 'sk'];
 
 export const  I18nContext = createContext({
   language: 'de',

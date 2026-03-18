@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, CheckCircle, FileText, Award } from 'lucide-react';
+import TranslatedText from '../TranslatedText.jsx';
 
 const AssessmentPurchaseModal = ({
   isOpen,
@@ -39,8 +40,8 @@ const AssessmentPurchaseModal = ({
               <Award className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Premium Assessment</h2>
-              <p className="text-white/90 text-sm">Unlock your cognitive potential</p>
+              <h2 className="text-xl font-bold"><TranslatedText text="Premium Assessment" /></h2>
+              <p className="text-white/90 text-sm"><TranslatedText text="Unlock your cognitive potential" /></p>
             </div>
           </div>
         </div>
@@ -49,26 +50,26 @@ const AssessmentPurchaseModal = ({
         <div className="p-6">
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              {assessment.title || 'Certified Assessment'}
+              {assessment.title || <TranslatedText text="Certified Assessment" />}
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed">
               {paymentsEnabled
-                ? 'To access this comprehensive cognitive assessment, you\'ll need to purchase it. This premium assessment will provide you with detailed insights into your cognitive abilities.'
-                : 'This comprehensive cognitive assessment will provide you with detailed insights into your cognitive abilities.'}
+                ? <TranslatedText text="To access this comprehensive cognitive assessment, you'll need to purchase it. This premium assessment will provide you with detailed insights into your cognitive abilities." />
+                : <TranslatedText text="This comprehensive cognitive assessment will provide you with detailed insights into your cognitive abilities." />}
             </p>
           </div>
 
           {/* Benefits */}
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">What you'll get:</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3"><TranslatedText text="What you'll get" />:</h4>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
                   <CheckCircle className="w-3 h-3 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Comprehensive Assessment</p>
-                  <p className="text-xs text-gray-600">Detailed evaluation of your cognitive abilities</p>
+                  <p className="text-sm font-medium text-gray-800"><TranslatedText text="Comprehensive Assessment" /></p>
+                  <p className="text-xs text-gray-600"><TranslatedText text="Detailed evaluation of your cognitive abilities" /></p>
                 </div>
               </div>
 
@@ -78,8 +79,8 @@ const AssessmentPurchaseModal = ({
                     <Award className="w-3 h-3 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">Official Certificate</p>
-                    <p className="text-xs text-gray-600">Receive a verified certificate upon completion</p>
+                    <p className="text-sm font-medium text-gray-800"><TranslatedText text="Official Certificate" /></p>
+                    <p className="text-xs text-gray-600"><TranslatedText text="Receive a verified certificate upon completion" /></p>
                   </div>
                 </div>
               )}
@@ -90,8 +91,8 @@ const AssessmentPurchaseModal = ({
                     <FileText className="w-3 h-3 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">Detailed Report</p>
-                    <p className="text-xs text-gray-600">Get comprehensive insights and recommendations</p>
+                    <p className="text-sm font-medium text-gray-800"><TranslatedText text="Detailed Report" /></p>
+                    <p className="text-xs text-gray-600"><TranslatedText text="Get comprehensive insights and recommendations" /></p>
                   </div>
                 </div>
               )}
@@ -101,8 +102,8 @@ const AssessmentPurchaseModal = ({
                   <CheckCircle className="w-3 h-3 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Instant Access</p>
-                  <p className="text-xs text-gray-600">Start your assessment immediately after purchase</p>
+                  <p className="text-sm font-medium text-gray-800"><TranslatedText text="Instant Access" /></p>
+                  <p className="text-xs text-gray-600"><TranslatedText text="Start your assessment immediately after purchase" /></p>
                 </div>
               </div>
             </div>
@@ -114,7 +115,7 @@ const AssessmentPurchaseModal = ({
               onClick={onClose}
               className="flex-1 px-4 py-3 text-gray-600 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition-colors"
             >
-              Close
+              <TranslatedText text="Close" />
             </button>
             <button
               onClick={onBuy}
@@ -128,12 +129,12 @@ const AssessmentPurchaseModal = ({
               {isProcessing ? (
                 <span className="inline-flex items-center justify-center">
                   <span className="inline-block w-4 h-4 mr-2 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
-                  Processing...
+                  <TranslatedText text="Processing..." />
                 </span>
               ) : paymentsEnabled ? (
-                'Buy Now'
+                <TranslatedText text="Buy Now" />
               ) : (
-                'Start Assessment'
+                <TranslatedText text="Start Assessment" />
               )}
             </button>
           </div>

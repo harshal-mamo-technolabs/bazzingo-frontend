@@ -3,6 +3,10 @@
 // the API key from environment and never expose it to the browser.
 
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
+import {
+  staticTranslations,
+  ensureLanguageLoaded,
+} from '../data/staticTranslations/index';
 
 const DEFAULT_ENDPOINT = '/translate';
 
@@ -25,22 +29,12 @@ function getAuthHeaders() {
 
     return {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     };
   } catch {
     return { 'Content-Type': 'application/json' };
   }
 }
-
-// -------- Static translation dictionary (overrides API translations) --------
-// Import comprehensive static translations from data file
-import { staticTranslations as importedStaticTranslations } from '../data/staticTranslations';
-
-// Use imported translations, fallback to empty object if import fails
-const staticTranslations = importedStaticTranslations || {
-  'de': {},
-  'ro': {},
-};
 
 
 function getStaticTranslation(text, targetLang) {
@@ -88,6 +82,9 @@ async function flushBatch(langKey) {
     if (queue) queue.timer = null;
     return;
   }
+
+  // Ensure static translations for this language are loaded (if available)
+  await ensureLanguageLoaded(langKey);
 
   const { items } = queue;
   queue.items = [];
@@ -221,12 +218,6 @@ export function translateText(text, targetLang, sourceLang = 'en') {
   // For now we only support translating from English
   if (sourceLang !== 'en') {
     return Promise.resolve(text);
-  }
-
-  // Check for static translation first
-  const staticTranslation = getStaticTranslation(text, targetLang);
-  if (staticTranslation !== null) {
-    return Promise.resolve(staticTranslation);
   }
 
   // Log when a single translation requires API call (not batched yet)

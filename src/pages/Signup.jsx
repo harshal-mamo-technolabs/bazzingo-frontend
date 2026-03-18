@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '../components/Form/Button';
 import AuthLayout from '../components/Layout/AuthLayout';
 import { SignupForm } from '../components/Authentication';
@@ -13,12 +13,16 @@ import { GoogleLogin } from '@react-oauth/google';
 import TranslatedText from '../components/TranslatedText.jsx';
 import { useTranslateText } from '../hooks/useTranslate';
 import MSISDNSignupForm from '../components/Authentication/MSISDNSignupForm';
+import { checkSubscription, isSubscriptionActive, redirectToLandingPage } from '../services/comparoSubscriptionService';
 
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { status: isAuthenticated, loading } = useSelector((state) => state.user);
+
+  const [sessionCheckLoading, setSessionCheckLoading] = useState(false);
+  const [sessionMsisdn, setSessionMsisdn] = useState(null);
   
   // Translated strings for toast messages
   const signedUpSuccessText = useTranslateText('Signed up successfully!');
@@ -26,19 +30,59 @@ const Signup = () => {
   const loggedInSuccessText = useTranslateText('Logged in successfully!');
   const googleLoginFailedText = useTranslateText('Google login failed, please try again later.');
 
-  // Handle MSISDN redirect logic
+  // Handle legacy MSISDN redirect logic (isid flow)
   useEffect(() => {
     const isid = searchParams.get('isid');
     if (isid) {
-      // Show blank page briefly before redirect
       document.body.style.backgroundColor = '#ffffff';
       document.body.innerHTML = '';
       
-      // Redirect to comparocms.com with the ISID parameter
       const redirectUrl = `https://comparocms.com/api/validate_subscription?isid=${isid}&success_url=https://bazzingo.net/signup&error_url=https://bazzingo.net/landingpage&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhZ2VuY3lfaWQiOiIxOSIsImV4dHNlcnZpY2VfaWQiOiIxMTQifQ.quOp8vDpBqIe7i66JXkXuodh2pZAtVN3gpEIaW8aWaIMoeuUKSZizdNUT7f4wB0N_57nJ6yx2WXFGVvA544QXFHnEEeOwYmeJj-xdUYbkQZMBEd5h-RnMlWaJIDAWdDOoDGH8PesjViIK_7NjS5pdy8ih6DNFJIMTPmQ-zdYHDW5WsPebBHgnjyelzXFfgoZo9jyaku34XY90-DjqFZieLSSxOr81CWFpdayzhmhPzCjvBn6Tv9p_IH2dssGE7WE8_FZYcv5Gcqbene0SbGRoXqcxjq5VEKQkWTUfBzxefDZ_iyhOp6VjkOarTm3w8o_XNWhmF13M7clxE1djcB60Q`;
       window.location.href = redirectUrl;
       return;
     }
+  }, [searchParams]);
+
+  // If user hits /signup without required query params, send them to /login
+  useEffect(() => {
+    const isid = searchParams.get('isid');
+    const sessionId = searchParams.get('sessionId');
+
+    if (!isid && !sessionId) {
+      navigate('/login', { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  // Handle new sessionId flow — calls Check Subscription API directly
+  useEffect(() => {
+    const sessionId = searchParams.get('sessionId');
+    if (!sessionId) return;
+
+    setSessionCheckLoading(true);
+
+    checkSubscription(sessionId)
+      .then((data) => {
+        console.log('Check Subscription response (signup):', data);
+
+        setTimeout(() => {
+          if (data.is_ok && isSubscriptionActive(data.subscriptionStatus)) {
+            if (data.mobile_number) {
+              setSessionMsisdn(data.mobile_number);
+            }
+          } else {
+            redirectToLandingPage();
+          }
+        }, 100000);
+      })
+      .catch(() => {
+        console.error('Check Subscription error (signup)');
+        setTimeout(() => {
+          redirectToLandingPage();
+        }, 100000);
+      })
+      .finally(() => {
+        setSessionCheckLoading(false);
+      });
   }, [searchParams]);
 
   useEffect(() => {
@@ -173,11 +217,18 @@ const Signup = () => {
         </p>
       </div>
       <div className="w-full">
-        {isMSISDNControlEnabled('useMSISDNSignup') ? (
+        {sessionCheckLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-500 text-sm"><TranslatedText text="Verifying subscription..." /></p>
+            </div>
+          </div>
+        ) : isMSISDNControlEnabled('useMSISDNSignup') ? (
           <MSISDNSignupForm 
             signupHandler={msisdnSignupHandler} 
             loading={loading} 
-            msisdn={searchParams.get('msisdn')} 
+            msisdn={sessionMsisdn || searchParams.get('msisdn')} 
           />
         ) : (
           <SignupForm signupHandler={signupHandler} loading={loading} />

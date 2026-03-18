@@ -1,149 +1,352 @@
-  export const SUBSCRIPTION_GATES = {
-    /**
-     * Master kill switch – set to false to disable every subscription gate.
-     */
-    enabled: false,
+// ---------------------------------------------------------------------------
+// SUBSCRIPTION_GATES
+// Controls feature access that requires an active subscription.
+// - Set `enabled` to false to disable ALL subscription-gated features.
+// - Individual keys (e.g. `leaderboard`, `statistics`) gate specific areas.
+// - Use `isSubscriptionGateEnabled('leaderboard')` in UI or logic.
+// ---------------------------------------------------------------------------
+export const SUBSCRIPTION_GATES = {
+  enabled: false,
+  leaderboard: false,
+  statistics: false,
+};
 
-    /**
-     * Individual gates (extend this list as needed).
-     */
-    leaderboard: false,
-    statistics: false,
-  };
+export const isSubscriptionGateEnabled = (gate) =>
+  Boolean(SUBSCRIPTION_GATES.enabled && SUBSCRIPTION_GATES[gate]);
 
-  export const isSubscriptionGateEnabled = (gate) =>
-    Boolean(SUBSCRIPTION_GATES.enabled && SUBSCRIPTION_GATES[gate]);
+// ---------------------------------------------------------------------------
+// VISIBILITY_CONTROLS
+// Controls which UI components and profile pages are shown.
+// - Set `enabled` to false to hide ALL controlled components.
+// - Toggle individual keys to show/hide specific nav items or pages.
+// - Use `isComponentVisible('assessmentsNavItem')` in navigation.
+// - Use `isProfilePageVisible('privacyPolicy')` to show/hide profile links.
+// ---------------------------------------------------------------------------
+export const VISIBILITY_CONTROLS = {
+  enabled: true,
 
-  /**
-   * Visibility controls for UI components.
-   * Set to false to hide components from the UI.
-   */
-  export const VISIBILITY_CONTROLS = {
-    /**
-     * Master kill switch – set to false to hide all controlled components.
-     */
-    enabled: true,
+  // Main nav
+  assessmentsNavItem: true,
+  premiumNavItem: false,
+  subscriptionNavItem: false,
+  changePasswordNavItem: false,
+  dashboardCertifiedCard: false,
+  statisticsCertifiedCard: false,
+  assessmentCompletionUpsell: false,
 
-    /**
-     * Individual visibility controls.
-     */
-    assessmentsNavItem: true,
-    premiumNavItem: false,
-    subscriptionNavItem: false,
-    changePasswordNavItem: false,
-    dashboardCertifiedCard: false,  
-    statisticsCertifiedCard: false,  
-    assessmentCompletionUpsell: false,
-    
-    /**
-     * Profile page visibility controls
-     * Control visibility of Privacy Policy, Terms of Use, AGB, Impressum, FAQ, and Ticket Raising System pages
-     * Applies to both mobile and desktop views
-     */
-    privacyPolicy: true,
-    termsOfUse: true,
-    agb: false,
-    impressum: false,
-    faq: true,
-    ticketRaisingSystem: true,
-    
-    /**
-     * Profile settings visibility controls
-     * Control visibility of profile settings options
-     */
-    // updatePasswordPage: true,
-    hideUpdatePasswordForMSISDN: true,
-    hideHelpScoutBeaconForMSISDN: true,
-  };
+  // Profile pages
+  privacyPolicy: true,
+  termsOfUse: true,
+  agb: false,
+  impressum: false,
+  faq: true,
+  ticketRaisingSystem: true,
 
-  export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
-    assessmentPaymentsEnabled: false,
-  };
+  // Profile settings behaviour
+  // When true, the corresponding option is HIDDEN.
+  hideUpdatePasswordForMSISDN: true,
+  hideHelpScoutBeaconForMSISDN: true,
+};
 
-  export const isAssessmentPaymentEnabled = () =>
-    Boolean(ASSESSMENT_BEHAVIOUR_CONTROLS.assessmentPaymentsEnabled);
+export const isComponentVisible = (component) =>
+  Boolean(VISIBILITY_CONTROLS.enabled && VISIBILITY_CONTROLS[component]);
 
-  /**
-   * MSISDN Authentication controls
-   * Control MSISDN-based authentication features
-   */
-  export const MSISDN_CONTROLS = {
-    enabled: true,  
-    useMSISDNSignup: true,
-    useMSISDNLogin: true,
-  };
+export const isProfilePageVisible = (pageKey) => {
+  if (!VISIBILITY_CONTROLS.enabled) return false;
+  return Boolean(VISIBILITY_CONTROLS[pageKey]);
+};
 
-  export const isMSISDNControlEnabled = (control) =>
-    Boolean(MSISDN_CONTROLS.enabled && MSISDN_CONTROLS[control]);
+// ---------------------------------------------------------------------------
+// ASSESSMENT_BEHAVIOUR_CONTROLS
+// Controls assessment-specific behaviour such as payment flows.
+// - Set `assessmentPaymentsEnabled` to true to enable paid assessments.
+// - Use `isAssessmentPaymentEnabled()` in assessment flows.
+// ---------------------------------------------------------------------------
+export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
+  assessmentPaymentsEnabled: false,
+};
 
+export const isAssessmentPaymentEnabled = () =>
+  Boolean(ASSESSMENT_BEHAVIOUR_CONTROLS.assessmentPaymentsEnabled);
 
-  /**
-   * Language controls
-   * Control default language settings
-   */
-  export const LANGUAGE_CONTROLS = {
-    /**
-     * Master switch for language controls
-     */
-    enabled: true,
-    
-    /**
-     * Default language to use regardless of browser/location
-     * Supported values: 'en', 'de', 'ro'
-     * Set to null to use browser-based detection
-     */
-    defaultLanguage: 'de',
-  };
+// ---------------------------------------------------------------------------
+// MSISDN_CONTROLS
+// Controls MSISDN-based authentication.
+// - `enabled`: master switch for MSISDN auth.
+// - `useMSISDNSignup`: show MSISDN signup flow.
+// - `useMSISDNLogin`: show MSISDN login flow.
+// - Use `isMSISDNControlEnabled('useMSISDNSignup')` in auth forms.
+// ---------------------------------------------------------------------------
+export const MSISDN_CONTROLS = {
+  enabled: true,
+  useMSISDNSignup: true,
+  useMSISDNLogin: true,
+};
 
-  /**
-   * Default country controls
-   * Control default country selection in signup forms
-   */
-  export const DEFAULT_COUNTRY_CONTROLS = {
-    /**
-     * Master switch for default country controls
-     */
-    enabled: true,
-    
-    /**
-     * Default country to pre-select in signup forms
-     * Must match a country name from the countries array in constant.js
-     * Set to null to show no default selection
-     */
-    defaultCountry: 'Germany',
-  };
+export const isMSISDNControlEnabled = (control) =>
+  Boolean(MSISDN_CONTROLS.enabled && MSISDN_CONTROLS[control]);
 
-  export const getDefaultLanguage = () => {
-    if (!LANGUAGE_CONTROLS.enabled) return null;
-    return LANGUAGE_CONTROLS.defaultLanguage;
-  };
+// ---------------------------------------------------------------------------
+// LANGUAGE_CONTROLS
+// Global language defaults.
+// - `enabled`: when false, no global language override is applied.
+// - `defaultLanguage`: fallback when no country profile/language mapping.
+//   Supported: 'en', 'de', 'ro', 'sk'.
+// - This is overridden by `COUNTRY_PROFILE_CONTROLS` when that is enabled.
+// ---------------------------------------------------------------------------
+export const LANGUAGE_CONTROLS = {
+  enabled: true,
+  defaultLanguage: 'sk',
+};
 
-  export const getDefaultCountry = () => {
-    if (!DEFAULT_COUNTRY_CONTROLS.enabled) return null;
-    return DEFAULT_COUNTRY_CONTROLS.defaultCountry;
-  };
+// ---------------------------------------------------------------------------
+// DEFAULT_COUNTRY_CONTROLS
+// Global default signup country.
+// - `enabled`: when false, no global default country is applied.
+// - `defaultCountry`: must match an entry in the `countries` constant.
+// - This is overridden by `COUNTRY_PROFILE_CONTROLS` when that is enabled.
+// ---------------------------------------------------------------------------
+export const DEFAULT_COUNTRY_CONTROLS = {
+  enabled: true,
+  defaultCountry: 'Slovakia',
+};
 
-  /**
-   * Content switches for legal pages.
-   * When true, show the Testbrain/Bazzingo GDPR-style content on the respective page.
-   */
-  export const CONTENT_SWITCHES = {
-    testbrainprivacypolicy: false,
-    testbraintermsOfUse: false,
-  };
+// ---------------------------------------------------------------------------
+// COUNTRY_PROFILE_CONTROLS
+// Per-country master profile that defines:
+// - `language`: default UI language.
+// - `defaultCountry`: default signup country.
+// - `msisdnCountry`: MSISDN validation/normalization country.
+// How it works:
+// - When `enabled` and `activeCountry` is set, this profile overrides:
+//   - `LANGUAGE_CONTROLS.defaultLanguage`
+//   - `DEFAULT_COUNTRY_CONTROLS.defaultCountry`
+//   - `MSISDN_VALIDATION_CONTROLS.country`
+// - To switch markets, set `activeCountry` to one of the keys in `profiles`.
+// ---------------------------------------------------------------------------
+export const COUNTRY_PROFILE_CONTROLS = {
+  enabled: true,
+  activeCountry: 'Slovakia', // 'Germany' | 'Slovakia' | null
+  profiles: {
+    Germany: {
+      language: 'de',
+      defaultCountry: 'Germany',
+      msisdnCountry: 'Germany',
+    },
+    Slovakia: {
+      language: 'sk',
+      defaultCountry: 'Slovakia',
+      msisdnCountry: 'Slovakia',
+    },
+  },
+};
 
-  export const isContentSwitchEnabled = (switchKey) =>
-    Boolean(CONTENT_SWITCHES[switchKey]);
+const getActiveCountryProfile = () => {
+  if (!COUNTRY_PROFILE_CONTROLS.enabled) return null;
+  const { activeCountry, profiles } = COUNTRY_PROFILE_CONTROLS;
+  if (!activeCountry) return null;
+  return profiles[activeCountry] || null;
+};
 
-  export const isComponentVisible = (component) =>
-    Boolean(VISIBILITY_CONTROLS.enabled && VISIBILITY_CONTROLS[component]);
+export const getDefaultLanguage = () => {
+  const profile = getActiveCountryProfile();
+  if (profile?.language) return profile.language;
+  if (!LANGUAGE_CONTROLS.enabled) return null;
+  return LANGUAGE_CONTROLS.defaultLanguage;
+};
 
-  /**
-   * Check if a profile page is visible
-   * @param {string} pageKey - The page identifier ('privacyPolicy', 'termsOfUse', 'agb', 'impressum')
-   * @returns {boolean} - Whether the page should be visible
-   */
-  export const isProfilePageVisible = (pageKey) => {
-    if (!VISIBILITY_CONTROLS.enabled) return false;
-    return Boolean(VISIBILITY_CONTROLS[pageKey]);
-  };
+export const getDefaultCountry = () => {
+  const profile = getActiveCountryProfile();
+  if (profile?.defaultCountry) return profile.defaultCountry;
+  if (!DEFAULT_COUNTRY_CONTROLS.enabled) return null;
+  return DEFAULT_COUNTRY_CONTROLS.defaultCountry;
+};
+
+// ---------------------------------------------------------------------------
+// COUNTRY_BASED_CONTROLS
+// Lightweight per-country mapping used when a user selects a country.
+// - `enabled`: when false, falls back to global defaults.
+// - `mappings[countryName]`:
+//    - `language`: override UI language for that specific selected country.
+//    - `msisdnValidationCountry`: override MSISDN validation for that country.
+// - Use:
+//    - `getLanguageForCountry(selectedCountry)`
+//    - `getMsisdnValidationCountryForSelectedCountry(selectedCountry)`
+// ---------------------------------------------------------------------------
+export const COUNTRY_BASED_CONTROLS = {
+  enabled: true,
+  mappings: {
+    Germany: {
+      language: 'de',
+      msisdnValidationCountry: 'Germany',
+    },
+    Slovakia: {
+      language: 'sk',
+      msisdnValidationCountry: 'Slovakia',
+    },
+  },
+};
+
+export const getLanguageForCountry = (countryName) => {
+  if (!COUNTRY_BASED_CONTROLS.enabled || !countryName) {
+    return getDefaultLanguage();
+  }
+
+  const mapping = COUNTRY_BASED_CONTROLS.mappings[countryName];
+  if (!mapping || !mapping.language) {
+    return getDefaultLanguage();
+  }
+
+  return mapping.language;
+};
+
+export const getMsisdnValidationCountryForSelectedCountry = (countryName) => {
+  if (!COUNTRY_BASED_CONTROLS.enabled || !countryName) {
+    return getMsisdnValidationCountry();
+  }
+
+  const mapping = COUNTRY_BASED_CONTROLS.mappings[countryName];
+  if (!mapping || !mapping.msisdnValidationCountry) {
+    return getMsisdnValidationCountry();
+  }
+
+  return mapping.msisdnValidationCountry;
+};
+
+// ---------------------------------------------------------------------------
+// MSISDN_COUNTRY_CONFIG
+// Per-country MSISDN UI configuration.
+// - `inputPrefix`: prefilled digits in the MSISDN input for that country.
+// - `tooltip`: helper text shown near the MSISDN input.
+// - Use:
+//    - `getMsisdnConfigForCountry(countryName)`
+//    - `getMsisdnTooltipForCountry(countryName)`
+// ---------------------------------------------------------------------------
+export const MSISDN_COUNTRY_CONFIG = {
+  Germany: {
+    inputPrefix: '01',
+    tooltip: 'Enter your mobile number starting with 0 (e.g. 01701234567).',
+  },
+  Slovakia: {
+    inputPrefix: '09',
+    tooltip: 'Enter your mobile number starting with 09 (e.g. 0912345678).',
+  },
+};
+
+export const getMsisdnConfigForCountry = (countryName) => {
+  if (!countryName) return null;
+  return MSISDN_COUNTRY_CONFIG[countryName] || null;
+};
+
+export const getMsisdnTooltipForCountry = (countryName) => {
+  const config = getMsisdnConfigForCountry(countryName);
+  return config?.tooltip || null;
+};
+
+// ---------------------------------------------------------------------------
+// MSISDN_VALIDATION_CONTROLS
+// Global MSISDN validation/normalization routing.
+// - `enabled`: when false, MSISDN numbers are not normalized per-country.
+// - `country`: fallback country used when no active country profile is set.
+// Resolution order in helpers:
+//   1. Explicit `countryName` argument (if provided).
+//   2. Active country profile (`COUNTRY_PROFILE_CONTROLS.profiles[activeCountry]`).
+//   3. `MSISDN_VALIDATION_CONTROLS.country`.
+//   4. `DEFAULT_COUNTRY_CONTROLS.defaultCountry`.
+// ---------------------------------------------------------------------------
+export const MSISDN_VALIDATION_CONTROLS = {
+  enabled: true,
+  country: 'Slovakia',
+};
+
+export const getMsisdnValidationCountry = () => {
+  const profile = getActiveCountryProfile();
+  if (profile?.msisdnCountry) return profile.msisdnCountry;
+  if (!MSISDN_VALIDATION_CONTROLS.enabled) return null;
+  return MSISDN_VALIDATION_CONTROLS.country;
+};
+
+// ---------------------------------------------------------------------------
+// normalizeMsisdnForCountry
+// Normalizes raw MSISDN input to an international format per country rules.
+// - Germany:
+//    - Strip non-digits.
+//    - Remove leading `0` if present.
+//    - Prefix with `0049`.
+// - Slovakia:
+//    - Expect number starting with `09`.
+//    - Strip non-digits.
+//    - If it starts with `09`, drop the first `0` (keep `9`).
+//    - Prefix with `00421`.
+// - Fallback:
+//    - Returns cleaned digits without a country prefix.
+// ---------------------------------------------------------------------------
+export const normalizeMsisdnForCountry = (rawMsisdn, countryName = null) => {
+  const activeCountry =
+    countryName || getMsisdnValidationCountry() || DEFAULT_COUNTRY_CONTROLS.defaultCountry;
+
+  let digits = String(rawMsisdn || '').trim().replace(/\D/g, '');
+
+  if (!digits) return '';
+
+  switch (activeCountry) {
+    case 'Germany': {
+      if (digits.startsWith('0')) {
+        digits = digits.slice(1);
+      }
+      return digits ? `0049${digits}` : '';
+    }
+    case 'Slovakia': {
+      if (digits.startsWith('09')) {
+        digits = digits.slice(1); // keeps leading 9
+      }
+      return digits ? `004210${digits}` : '';
+    }
+    default:
+      return digits;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// isMsisdnValidForCountry
+// Basic MSISDN validation per country rules.
+// - Germany:
+//    - Strip non-digits.
+//    - Remove a single leading `0` if present.
+//    - Valid if at least one digit remains.
+// - Slovakia:
+//    - Strip non-digits.
+//    - If it starts with `09`, drop the first `0` (keep `9`).
+//    - Valid if at least one digit remains.
+// - Fallback:
+//    - Valid if at least one digit is present after cleaning.
+// ---------------------------------------------------------------------------
+export const isMsisdnValidForCountry = (rawMsisdn, countryName = null) => {
+  const activeCountry =
+    countryName || getMsisdnValidationCountry() || DEFAULT_COUNTRY_CONTROLS.defaultCountry;
+
+  let digits = String(rawMsisdn || '').trim().replace(/\D/g, '');
+
+  if (!digits) return false;
+
+  switch (activeCountry) {
+    case 'Germany': {
+      if (digits.startsWith('0')) {
+        digits = digits.slice(1);
+      }
+      return Boolean(digits);
+    }
+    case 'Slovakia': {
+      if (digits.startsWith('09')) {
+        digits = digits.slice(1); // keep 9, drop leading 0
+      }
+      return Boolean(digits);
+    }
+    default:
+      return Boolean(digits);
+  }
+};
+
+// (Legal content selection is now fully driven by COUNTRY_PROFILE_CONTROLS:
+//  Germany -> Testbrain / Bazzingo GDPR content
+//  Slovakia -> Slovakia-specific SMS content)
