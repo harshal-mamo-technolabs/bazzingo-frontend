@@ -35,11 +35,22 @@ function ClientTicket() {
         customAttributes: helpScoutAttributes
     }, !isComponentVisible('hideHelpScoutBeaconForMSISDN')); // Pass false to hide beacon if switch is enabled
 
-    const helpResources = [
-        { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
-        { label: <TranslatedText text="Impressum" />, icon: BookOpen, route: '/impressum' },
-        { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/agb' },
-    ];
+    const helpResources = useMemo(() => {
+        const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
+        const isTestbrainDomain =
+            hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
+
+        const items = [
+            { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
+            { label: <TranslatedText text="Impressum" />, icon: BookOpen, route: '/impressum' },
+            { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/terms-of-use' },
+        ];
+
+        if (isTestbrainDomain) {
+            return items.filter((item) => item.route !== '/impressum');
+        }
+        return items;
+    }, []);
 
     return (
         <MainLayout>
