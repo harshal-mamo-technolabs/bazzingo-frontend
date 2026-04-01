@@ -208,7 +208,7 @@ export default function Header({unreadCount = 0}) {
                         {/* Brain icon: mobile only */}
                         <img
                             src={brainIcon}
-                            alt="Bazingo logo"
+                            alt="Bazzingo logo"
                             className="block lg:hidden cursor-pointer"
                             style={{width: '42px', height: '46px'}}
                             onClick={() => navigate('/dashboard')}
@@ -220,7 +220,7 @@ export default function Header({unreadCount = 0}) {
                             onClick={() => navigate('/dashboard')}
                         >
                             <span className="text-[#FF6B3E]">B</span>
-                            <span className="text-black">AZIN</span>
+                            <span className="text-black">AZZIN</span>
                             <span className="text-[#FF6B3E]">G</span>
                             <span className="text-[#FF6B3E]">O</span>
                         </h1>

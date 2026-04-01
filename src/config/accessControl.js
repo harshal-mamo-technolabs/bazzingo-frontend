@@ -6,9 +6,9 @@
 // - Use `isSubscriptionGateEnabled('leaderboard')` in UI or logic.
 // ---------------------------------------------------------------------------
 export const SUBSCRIPTION_GATES = {
-  enabled: false,
-  leaderboard: false,
-  statistics: false,
+  enabled: true,
+  leaderboard: true,
+  statistics: true,
 };
 
 export const isSubscriptionGateEnabled = (gate) =>
@@ -108,7 +108,7 @@ export const LANGUAGE_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const DEFAULT_COUNTRY_CONTROLS = {
   enabled: true,
-  defaultCountry: 'Slovakia',
+  defaultCountry: 'Germany',
 };
 
 // ---------------------------------------------------------------------------
@@ -126,7 +126,7 @@ export const DEFAULT_COUNTRY_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const COUNTRY_PROFILE_CONTROLS = {
   enabled: true,
-  activeCountry: 'Slovakia', // 'Germany' | 'Slovakia' | null
+  activeCountry: 'Germany', // 'Germany' | 'Slovakia' | null
   profiles: {
     Germany: {
       language: 'de',

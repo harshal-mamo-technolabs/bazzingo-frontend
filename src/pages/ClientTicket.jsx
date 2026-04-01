@@ -146,11 +146,11 @@ function ClientTicket() {
                                                 <TranslatedText text="Send us an email and we'll get back to you as soon as possible." />
                                             </p>
                                             <a 
-                                                href="mailto:support@bazzingo.net" 
+                                                href="mailto:bazingo.sk@silverlines.info" 
                                                 className="text-[#FF6B3E] hover:text-[#e55a35] underline transition-colors"
                                                 style={{ fontSize: '14px', fontWeight: 500 }}
                                             >
-                                                support@bazzingo.net
+                                                bazingo.sk@silverlines.info
                                             </a>
                                         </div>
                                     </div>

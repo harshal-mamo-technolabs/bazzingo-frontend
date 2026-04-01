@@ -47,20 +47,22 @@ const Signup = () => {
   useEffect(() => {
     const isid = searchParams.get('isid');
     const sessionId = searchParams.get('sessionId');
+    const publicId = searchParams.get('public_id');
 
-    if (!isid && !sessionId) {
+    if (!isid && !sessionId && !publicId) {
       navigate('/login', { replace: true });
     }
   }, [searchParams, navigate]);
 
-  // Handle new sessionId flow — calls Check Subscription API directly
+  // sessionId or public_id (mutually exclusive) — same API body field user_public_uuid
   useEffect(() => {
-    const sessionId = searchParams.get('sessionId');
-    if (!sessionId) return;
+    const userPublicUuid =
+      searchParams.get('sessionId') || searchParams.get('public_id');
+    if (!userPublicUuid) return;
 
     setSessionCheckLoading(true);
 
-    checkSubscription(sessionId)
+    checkSubscription(userPublicUuid)
       .then((data) => {
         console.log('Check Subscription response (signup):', data);
 

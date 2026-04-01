@@ -5,9 +5,9 @@ const COMPARO_API_TOKEN = import.meta.env.VITE_COMPARO_API_TOKEN;
 
 const LANDING_PAGE_URL = import.meta.env.VITE_LANDING_PAGE_URL;
 
-export async function checkSubscription(sessionId) {
+export async function checkSubscription(userPublicUuid) {
   console.log('[checkSubscription] Begin subscription check');
-  console.log('[checkSubscription] sessionId:', sessionId);
+  console.log('[checkSubscription] user_public_uuid:', userPublicUuid);
   console.log('[checkSubscription] COMPARO_API_BASE_URL:', COMPARO_API_BASE_URL);
   console.log('[checkSubscription] COMPARO_API_TOKEN length:', COMPARO_API_TOKEN?.length);
   console.log(
@@ -22,12 +22,12 @@ export async function checkSubscription(sessionId) {
 
   console.log('[checkSubscription] Request headers:', headers);
   console.log('[checkSubscription] Making POST request to:', `${COMPARO_API_BASE_URL}/check-subscription`);
-  console.log('[checkSubscription] Request body:', { user_public_uuid: sessionId });
+  console.log('[checkSubscription] Request body:', { user_public_uuid: userPublicUuid });
 
   try {
     const response = await axios.post(
       `${COMPARO_API_BASE_URL}/check-subscription`,
-      { user_public_uuid: sessionId },
+      { user_public_uuid: userPublicUuid },
       {
         headers,
         withCredentials: false,
