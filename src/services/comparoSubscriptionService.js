@@ -5,9 +5,32 @@ const COMPARO_API_TOKEN = import.meta.env.VITE_COMPARO_API_TOKEN;
 
 const LANDING_PAGE_URL = import.meta.env.VITE_LANDING_PAGE_URL;
 
-export async function checkSubscription(userPublicUuid) {
+/**
+ * @param {string | { userPublicUuid?: string; mobileNumber?: string }} input
+ * - String: sent as `{ user_public_uuid }` (legacy).
+ * - `{ mobileNumber }`: sent as `{ mobile_number }` (query `?mobile_number=` signup flow).
+ * - `{ userPublicUuid }`: sent as `{ user_public_uuid }`.
+ */
+export async function checkSubscription(input) {
+  let body;
+  if (input != null && typeof input === 'object' && !Array.isArray(input)) {
+    const mobile = input.mobileNumber != null ? String(input.mobileNumber).trim() : '';
+    const uuid = input.userPublicUuid != null ? String(input.userPublicUuid).trim() : '';
+    if (mobile) {
+      body = { mobile_number: mobile };
+    } else if (uuid) {
+      body = { user_public_uuid: uuid };
+    } else {
+      throw new Error('checkSubscription: provide userPublicUuid or mobileNumber in the options object');
+    }
+  } else if (input != null && String(input).trim() !== '') {
+    body = { user_public_uuid: String(input).trim() };
+  } else {
+    throw new Error('checkSubscription: invalid input');
+  }
+
   console.log('[checkSubscription] Begin subscription check');
-  console.log('[checkSubscription] user_public_uuid:', userPublicUuid);
+  console.log('[checkSubscription] Request body keys:', Object.keys(body));
   console.log('[checkSubscription] COMPARO_API_BASE_URL:', COMPARO_API_BASE_URL);
   console.log('[checkSubscription] COMPARO_API_TOKEN length:', COMPARO_API_TOKEN?.length);
   console.log(
@@ -22,17 +45,13 @@ export async function checkSubscription(userPublicUuid) {
 
   console.log('[checkSubscription] Request headers:', headers);
   console.log('[checkSubscription] Making POST request to:', `${COMPARO_API_BASE_URL}/check-subscription`);
-  console.log('[checkSubscription] Request body:', { user_public_uuid: userPublicUuid });
+  console.log('[checkSubscription] Request body:', body);
 
   try {
-    const response = await axios.post(
-      `${COMPARO_API_BASE_URL}/check-subscription`,
-      { user_public_uuid: userPublicUuid },
-      {
-        headers,
-        withCredentials: false,
-      },
-    );
+    const response = await axios.post(`${COMPARO_API_BASE_URL}/check-subscription`, body, {
+      headers,
+      withCredentials: false,
+    });
 
     console.log('[checkSubscription] Raw response:', response);
     console.log('[checkSubscription] Response data:', response.data);

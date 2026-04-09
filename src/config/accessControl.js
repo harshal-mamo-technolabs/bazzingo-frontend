@@ -1,4 +1,20 @@
 // ---------------------------------------------------------------------------
+// GLOBAL_LANGUAGE_OVERRIDE
+// ---------------------------------------------------------------------------
+
+export const GLOBAL_LANGUAGE_OVERRIDE = {
+  enabled: true,
+  defaultLanguage: 'de',
+};
+
+export const isGlobalLanguageOverrideEnabled = () =>
+  Boolean(GLOBAL_LANGUAGE_OVERRIDE.enabled && GLOBAL_LANGUAGE_OVERRIDE.defaultLanguage);
+
+
+
+
+
+// ---------------------------------------------------------------------------
 // SUBSCRIPTION_GATES
 // Controls feature access that requires an active subscription.
 // - Set `enabled` to false to disable ALL subscription-gated features.
@@ -6,9 +22,9 @@
 // - Use `isSubscriptionGateEnabled('leaderboard')` in UI or logic.
 // ---------------------------------------------------------------------------
 export const SUBSCRIPTION_GATES = {
-  enabled: true,
-  leaderboard: true,
-  statistics: true,
+  enabled: false,
+  leaderboard: false,
+  statistics: false,
 };
 
 export const isSubscriptionGateEnabled = (gate) =>
@@ -96,7 +112,7 @@ export const isMSISDNControlEnabled = (control) =>
 // ---------------------------------------------------------------------------
 export const LANGUAGE_CONTROLS = {
   enabled: true,
-  defaultLanguage: 'sk',
+  defaultLanguage: 'ro',
 };
 
 // ---------------------------------------------------------------------------
@@ -126,7 +142,7 @@ export const DEFAULT_COUNTRY_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const COUNTRY_PROFILE_CONTROLS = {
   enabled: true,
-  activeCountry: 'Germany', // 'Germany' | 'Slovakia' | null
+  activeCountry: 'Germany', // 'Germany' | 'Slovakia' | 'Romania' | null
   profiles: {
     Germany: {
       language: 'de',
@@ -137,6 +153,11 @@ export const COUNTRY_PROFILE_CONTROLS = {
       language: 'sk',
       defaultCountry: 'Slovakia',
       msisdnCountry: 'Slovakia',
+    },
+    Romania: {
+      language: 'ro',
+      defaultCountry: 'Romania',
+      msisdnCountry: 'Romania',
     },
   },
 };
@@ -149,6 +170,9 @@ const getActiveCountryProfile = () => {
 };
 
 export const getDefaultLanguage = () => {
+  if (isGlobalLanguageOverrideEnabled()) {
+    return GLOBAL_LANGUAGE_OVERRIDE.defaultLanguage;
+  }
   const profile = getActiveCountryProfile();
   if (profile?.language) return profile.language;
   if (!LANGUAGE_CONTROLS.enabled) return null;
@@ -184,10 +208,17 @@ export const COUNTRY_BASED_CONTROLS = {
       language: 'sk',
       msisdnValidationCountry: 'Slovakia',
     },
+    Romania: {
+      language: 'ro',
+      msisdnValidationCountry: 'Romania',
+    },
   },
 };
 
 export const getLanguageForCountry = (countryName) => {
+  if (isGlobalLanguageOverrideEnabled()) {
+    return GLOBAL_LANGUAGE_OVERRIDE.defaultLanguage;
+  }
   if (!COUNTRY_BASED_CONTROLS.enabled || !countryName) {
     return getDefaultLanguage();
   }
@@ -231,7 +262,14 @@ export const MSISDN_COUNTRY_CONFIG = {
     inputPrefix: '09',
     tooltip: 'Enter your mobile number starting with 09 (e.g. 0912345678).',
   },
+  Romania: {
+    inputPrefix: '07',
+    tooltip: 'Enter your mobile number starting with 07 (e.g. 0722123456).',
+  },
 };
+
+// Countries shown in MSISDN signup country dropdown (must exist in `countries` from utils/constant).
+export const MSISDN_SIGNUP_COUNTRY_FILTER = ['Germany', 'Slovakia', 'Romania'];
 
 export const getMsisdnConfigForCountry = (countryName) => {
   if (!countryName) return null;
@@ -256,7 +294,7 @@ export const getMsisdnTooltipForCountry = (countryName) => {
 // ---------------------------------------------------------------------------
 export const MSISDN_VALIDATION_CONTROLS = {
   enabled: true,
-  country: 'Slovakia',
+  country: 'Germany',
 };
 
 export const getMsisdnValidationCountry = () => {
@@ -278,6 +316,10 @@ export const getMsisdnValidationCountry = () => {
 //    - Strip non-digits.
 //    - If it starts with `09`, drop the first `0` (keep `9`).
 //    - Prefix with `00421`.
+// - Romania:
+//    - Strip non-digits.
+//    - Remove a single leading `0` (national trunk before `7`).
+//    - Prefix with `0040`.
 // - Fallback:
 //    - Returns cleaned digits without a country prefix.
 // ---------------------------------------------------------------------------
@@ -302,6 +344,12 @@ export const normalizeMsisdnForCountry = (rawMsisdn, countryName = null) => {
       }
       return digits ? `004210${digits}` : '';
     }
+    case 'Romania': {
+      if (digits.startsWith('0')) {
+        digits = digits.slice(1);
+      }
+      return digits ? `0040${digits}` : '';
+    }
     default:
       return digits;
   }
@@ -318,6 +366,10 @@ export const normalizeMsisdnForCountry = (rawMsisdn, countryName = null) => {
 //    - Strip non-digits.
 //    - If it starts with `09`, drop the first `0` (keep `9`).
 //    - Valid if at least one digit remains.
+// - Romania:
+//    - Strip non-digits.
+//    - Remove a single leading `0`.
+//    - Valid if at least one digit remains (no fixed length).
 // - Fallback:
 //    - Valid if at least one digit is present after cleaning.
 // ---------------------------------------------------------------------------
@@ -339,6 +391,12 @@ export const isMsisdnValidForCountry = (rawMsisdn, countryName = null) => {
     case 'Slovakia': {
       if (digits.startsWith('09')) {
         digits = digits.slice(1); // keep 9, drop leading 0
+      }
+      return Boolean(digits);
+    }
+    case 'Romania': {
+      if (digits.startsWith('0')) {
+        digits = digits.slice(1);
       }
       return Boolean(digits);
     }

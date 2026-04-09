@@ -86,41 +86,28 @@ function CurrencyAmount({ amount, suffix }) {
   );
 }
 
-const Toggle = ({ value, onChange }) => {
-  const isMonthly = value === 'monthly';
+const Toggle = ({ onChange }) => {
+  useEffect(() => {
+    onChange('monthly');
+  }, [onChange]);
+
   return (
     <div className="flex items-center justify-center mb-8">
       <div
         role="tablist"
         aria-label="Billing period"
-        className="relative w-[260px] h-[42px] rounded-full bg-gray-100 flex"
+        className="relative w-[180px] h-[42px] rounded-full bg-gray-100 flex"
       >
         <span
           aria-hidden="true"
-          className={`absolute top-0 left-0 h-full w-1/2 rounded-full bg-white shadow transition-transform duration-300 ${
-            isMonthly ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          style={{ transition: 'transform 0.3s ease' }}
+          className="absolute inset-0 rounded-full bg-white shadow"
         />
         <button
           role="tab"
-          aria-selected={isMonthly}
-          onClick={() => onChange('monthly')}
-          className={`flex-1 z-10 text-sm font-semibold rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 transition-colors ${
-            isMonthly ? 'text-gray-900' : 'text-gray-600'
-          }`}
+          aria-selected={true}
+          className="flex-1 z-10 text-sm font-semibold rounded-full text-gray-900"
         >
           Monthly
-        </button>
-        <button
-          role="tab"
-          aria-selected={!isMonthly}
-          onClick={() => onChange('yearly')}
-          className={`flex-1 z-10 text-sm font-semibold rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 transition-colors ${
-            !isMonthly ? 'text-gray-900' : 'text-gray-600'
-          }`}
-        >
-          Yearly
         </button>
       </div>
     </div>
@@ -423,7 +410,7 @@ function Payment() {
               )}
             </div>
 
-            <Toggle value={billing} onChange={setBilling} />
+            <Toggle onChange={setBilling} />
 
             <div className={`grid gap-6 ${plans.length === 1 ? 'justify-items-center md:grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
               {plans.map(plan => (

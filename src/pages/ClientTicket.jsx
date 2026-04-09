@@ -12,6 +12,9 @@ function ClientTicket() {
     const navigate = useNavigate();
     const subscriptionData = useSelector(selectSubscriptionData);
     const beaconId = import.meta.env.VITE_HELPSCOUT_BEACON_ID;
+    const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
+    const isTestbrainDomain = hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
+    const supportEmail = isTestbrainDomain ? 'support@bazzingo.com' : 'bazingo.sk@silverlines.info';
 
     const helpScoutAttributes = useMemo(() => {
         const attributes = {};
@@ -157,11 +160,11 @@ function ClientTicket() {
                                                 <TranslatedText text="Send us an email and we'll get back to you as soon as possible." />
                                             </p>
                                             <a 
-                                                href="mailto:bazingo.sk@silverlines.info" 
+                                                href={`mailto:${supportEmail}`} 
                                                 className="text-[#FF6B3E] hover:text-[#e55a35] underline transition-colors"
                                                 style={{ fontSize: '14px', fontWeight: 500 }}
                                             >
-                                                bazingo.sk@silverlines.info
+                                                {supportEmail}
                                             </a>
                                         </div>
                                     </div>

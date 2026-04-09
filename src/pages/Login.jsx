@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
 import { googleLogin, login as loginService, loginMSISDN } from '../services/authService';
+import { checkSubscription, isSubscriptionActive } from '../services/comparoSubscriptionService';
 import { login as loginAction, loading as loadingAction, checkAndValidateToken } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS, getTokenExpiry } from '../utils/constant';
 import TranslatedText from '../components/TranslatedText.jsx';
@@ -22,6 +23,10 @@ const Login = () => {
   const loggedInSuccessText = useTranslateText('Logged in successfully!');
   const loginFailedText = useTranslateText('Login failed, please try again later.');
   const googleLoginFailedText = useTranslateText('Google login failed, please try again later.');
+  const noActiveSubscriptionText = useTranslateText(
+    "You don't have an active subscription on this number.",
+  );
+  const redirectToSignupText = useTranslateText('Please complete your registration to create your account.');
 
   useEffect(() => {
     dispatch(checkAndValidateToken());
@@ -63,10 +68,11 @@ const Login = () => {
   };
 
   const msisdnLoginHandler = async (formData) => {
+    const msisdn = formData.msisdn;
     try {
       dispatch(loadingAction());
 
-      const response = await loginMSISDN(formData.msisdn);
+      const response = await loginMSISDN(msisdn);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
         const userData = {
@@ -81,9 +87,24 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (error) {
-      const message =
+      const fallbackMessage =
         error?.response?.data?.message || loginFailedText;
-      toast.error(message);
+
+      try {
+        const data = await checkSubscription({ mobileNumber: msisdn });
+        if (data.is_ok && isSubscriptionActive(data.subscriptionStatus)) {
+          toast.success(redirectToSignupText);
+          navigate(
+            `/signup?mobile_number=${encodeURIComponent(msisdn)}`,
+            { replace: true },
+          );
+          return;
+        }
+        toast.error(noActiveSubscriptionText);
+      } catch (subError) {
+        console.error('Login MSISDN fallback subscription check:', subError);
+        toast.error(fallbackMessage);
+      }
     } finally {
       dispatch(loadingAction());
     }

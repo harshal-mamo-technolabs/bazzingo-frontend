@@ -7,6 +7,7 @@ import { useTranslateText } from '../../hooks/useTranslate';
 import {
   getDefaultCountry,
   getMsisdnConfigForCountry,
+  getMsisdnValidationCountry,
   normalizeMsisdnForCountry,
   isMsisdnValidForCountry,
   getMsisdnTooltipForCountry,
@@ -14,8 +15,9 @@ import {
 
 export default function MSISDNLoginForm({ loginHandler, loading = false }) {
   const defaultCountry = getDefaultCountry();
-  const defaultMsisdnConfig = getMsisdnConfigForCountry(defaultCountry);
-  const msisdnTooltip = getMsisdnTooltipForCountry(defaultCountry);
+  const msisdnCountry = getMsisdnValidationCountry() || defaultCountry;
+  const defaultMsisdnConfig = getMsisdnConfigForCountry(msisdnCountry);
+  const msisdnTooltip = getMsisdnTooltipForCountry(msisdnCountry);
   const translatedMsisdnTooltip = useTranslateText(msisdnTooltip || '');
 
   const {
@@ -50,14 +52,14 @@ export default function MSISDNLoginForm({ loginHandler, loading = false }) {
         setValue("msisdn", nextValue, { shouldValidate: true });
       }
     }
-  }, [defaultMsisdnConfig, msisdnValue, setValue]);
+  }, [defaultMsisdnConfig, msisdnValue, setValue, msisdnCountry]);
 
   // Translated strings for validation messages
   const msisdnRequiredText = useTranslateText('Phone number is required');
   const invalidMSISDNFormatText = useTranslateText('Invalid phone number format');
 
   const onSubmit = (data) => {
-    const formattedMsisdn = normalizeMsisdnForCountry(data.msisdn);
+    const formattedMsisdn = normalizeMsisdnForCountry(data.msisdn, msisdnCountry);
     loginHandler({ ...data, msisdn: formattedMsisdn });
   };
 
@@ -86,7 +88,7 @@ export default function MSISDNLoginForm({ loginHandler, loading = false }) {
               {...register("msisdn", {
                 required: msisdnRequiredText,
                 validate: (value) => {
-                  const isValid = isMsisdnValidForCountry(value);
+                  const isValid = isMsisdnValidForCountry(value, msisdnCountry);
                   if (!isValid) {
                     return invalidMSISDNFormatText;
                   }

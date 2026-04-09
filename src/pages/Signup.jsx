@@ -6,7 +6,7 @@ import { isMSISDNControlEnabled } from '../config/accessControl';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from "react-hot-toast";
-import { signup, googleLogin, signupMSISDN } from '../services/authService';
+import { signup, googleLogin, signupMSISDN, loginMSISDN } from '../services/authService';
 import { login as loginAction, loading as loadingAction, checkAndValidateToken } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS, getTokenExpiry } from '../utils/constant';
 import { GoogleLogin } from '@react-oauth/google';
@@ -14,6 +14,18 @@ import TranslatedText from '../components/TranslatedText.jsx';
 import { useTranslateText } from '../hooks/useTranslate';
 import MSISDNSignupForm from '../components/Authentication/MSISDNSignupForm';
 import { checkSubscription, isSubscriptionActive, redirectToLandingPage } from '../services/comparoSubscriptionService';
+
+/** Same identifier may appear as sessionId, public_id, public_uuid, or user_public_uuid in the URL. */
+function getUserPublicUuidFromSearchParams(searchParams) {
+  return (
+    searchParams.get('sessionId') ||
+    searchParams.get('public_id') ||
+    searchParams.get('public_uuid') ||
+    searchParams.get('user_public_uuid')
+  );
+}
+
+const REDIRECT_AFTER_SUBSCRIPTION_ALERT_MS = 4000;
 
 const Signup = () => {
   const dispatch = useDispatch();
@@ -23,12 +35,19 @@ const Signup = () => {
 
   const [sessionCheckLoading, setSessionCheckLoading] = useState(false);
   const [sessionMsisdn, setSessionMsisdn] = useState(null);
+  const [subscriptionRedirectPending, setSubscriptionRedirectPending] = useState(false);
   
   // Translated strings for toast messages
   const signedUpSuccessText = useTranslateText('Signed up successfully!');
   const registrationFailedText = useTranslateText('Registration failed, please try again later.');
   const loggedInSuccessText = useTranslateText('Logged in successfully!');
   const googleLoginFailedText = useTranslateText('Google login failed, please try again later.');
+  const noActiveSubscriptionText = useTranslateText(
+    "You don't have an active subscription on this number.",
+  );
+  const subscriptionVerifyFailedText = useTranslateText(
+    "We couldn't verify your subscription. You will be redirected to the landing page.",
+  );
 
   // Handle legacy MSISDN redirect logic (isid flow)
   useEffect(() => {
@@ -46,45 +65,98 @@ const Signup = () => {
   // If user hits /signup without required query params, send them to /login
   useEffect(() => {
     const isid = searchParams.get('isid');
-    const sessionId = searchParams.get('sessionId');
-    const publicId = searchParams.get('public_id');
+    const userPublicUuid = getUserPublicUuidFromSearchParams(searchParams);
+    const mobileFromQuery = searchParams.get('mobile_number')?.trim();
 
-    if (!isid && !sessionId && !publicId) {
+    if (!isid && !userPublicUuid && !mobileFromQuery) {
       navigate('/login', { replace: true });
     }
   }, [searchParams, navigate]);
 
-  // sessionId or public_id (mutually exclusive) — same API body field user_public_uuid
+  // sessionId / public_id / public_uuid / user_public_uuid → body { user_public_uuid }
+  // ?mobile_number= → body { mobile_number } (same post-check flow)
   useEffect(() => {
-    const userPublicUuid =
-      searchParams.get('sessionId') || searchParams.get('public_id');
-    if (!userPublicUuid) return;
+    const mobileFromQuery = searchParams.get('mobile_number')?.trim();
+    const userPublicUuid = getUserPublicUuidFromSearchParams(searchParams);
+    const subscriptionInput = mobileFromQuery
+      ? { mobileNumber: mobileFromQuery }
+      : userPublicUuid
+        ? userPublicUuid
+        : null;
+    if (!subscriptionInput) return;
 
     setSessionCheckLoading(true);
+    let redirectTimer;
+    let didAutoLogin = false;
 
-    checkSubscription(userPublicUuid)
-      .then((data) => {
+    checkSubscription(subscriptionInput)
+      .then(async (data) => {
         console.log('Check Subscription response (signup):', data);
 
-        setTimeout(() => {
-          if (data.is_ok && isSubscriptionActive(data.subscriptionStatus)) {
-            if (data.mobile_number) {
-              setSessionMsisdn(data.mobile_number);
-            }
-          } else {
-            redirectToLandingPage();
+        if (!data.is_ok || !isSubscriptionActive(data.subscriptionStatus)) {
+          setSubscriptionRedirectPending(true);
+          const message = data.mobile_number
+            ? `${noActiveSubscriptionText}\n${data.mobile_number}`
+            : noActiveSubscriptionText;
+          window.alert(message);
+          redirectTimer = setTimeout(
+            () => redirectToLandingPage(),
+            REDIRECT_AFTER_SUBSCRIPTION_ALERT_MS,
+          );
+          return;
+        }
+
+        const mobile = data.mobile_number || mobileFromQuery || null;
+        if (!mobile) {
+          return;
+        }
+
+        try {
+          const response = await loginMSISDN(mobile);
+          if (response.status === API_RESPONSE_STATUS_SUCCESS) {
+            didAutoLogin = true;
+            const userData = {
+              user: response.data?.user || response.user || response.data,
+              accessToken:
+                response.data?.token ||
+                response.token ||
+                response.data?.accessToken ||
+                response.accessToken,
+              tokenExpiry: getTokenExpiry(),
+            };
+            dispatch(loginAction(userData));
+            localStorage.setItem('user', JSON.stringify(userData));
+            toast.success(loggedInSuccessText);
+            navigate('/dashboard', { replace: true });
+            return;
           }
-        }, 100000);
+        } catch (err) {
+          console.log(
+            'MSISDN auto-login skipped (user not registered or login failed):',
+            err?.response?.status ?? err?.message,
+          );
+        }
+
+        setSessionMsisdn(mobile);
       })
       .catch(() => {
         console.error('Check Subscription error (signup)');
-        setTimeout(() => {
-          redirectToLandingPage();
-        }, 100000);
+        setSubscriptionRedirectPending(true);
+        window.alert(subscriptionVerifyFailedText);
+        redirectTimer = setTimeout(
+          () => redirectToLandingPage(),
+          REDIRECT_AFTER_SUBSCRIPTION_ALERT_MS,
+        );
       })
       .finally(() => {
-        setSessionCheckLoading(false);
+        if (!didAutoLogin) {
+          setSessionCheckLoading(false);
+        }
       });
+
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
   }, [searchParams]);
 
   useEffect(() => {
@@ -226,11 +298,21 @@ const Signup = () => {
               <p className="text-gray-500 text-sm"><TranslatedText text="Verifying subscription..." /></p>
             </div>
           </div>
+        ) : subscriptionRedirectPending ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-gray-500 text-sm">
+              <TranslatedText text="Redirecting to the landing page..." />
+            </p>
+          </div>
         ) : isMSISDNControlEnabled('useMSISDNSignup') ? (
           <MSISDNSignupForm 
             signupHandler={msisdnSignupHandler} 
             loading={loading} 
-            msisdn={sessionMsisdn || searchParams.get('msisdn')} 
+            msisdn={
+              sessionMsisdn ||
+              searchParams.get('msisdn') ||
+              searchParams.get('mobile_number')
+            } 
           />
         ) : (
           <SignupForm signupHandler={signupHandler} loading={loading} />

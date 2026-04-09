@@ -11,6 +11,7 @@ import {
   normalizeMsisdnForCountry,
   isMsisdnValidForCountry,
   getMsisdnTooltipForCountry,
+  MSISDN_SIGNUP_COUNTRY_FILTER,
 } from '../../config/accessControl';
 
 export default function MSISDNSignupForm({ signupHandler, loading = false, msisdn = null }) {
@@ -33,6 +34,9 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
   const selectedCountry = watch("country");
   const msisdnValue = watch("msisdn");
   const countryForConfig = selectedCountry || defaultCountry;
+  const signupCountryOptions = MSISDN_SIGNUP_COUNTRY_FILTER.filter((c) =>
+    countries.includes(c)
+  );
   const msisdnTooltip = getMsisdnTooltipForCountry(countryForConfig);
   const translatedMsisdnTooltip = useTranslateText(msisdnTooltip || '');
 
@@ -81,7 +85,10 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
       return;
     }
 
-    const formattedMsisdn = normalizeMsisdnForCountry(data.msisdn);
+    const formattedMsisdn = normalizeMsisdnForCountry(
+      data.msisdn,
+      data.country || defaultCountry
+    );
 
     signupHandler({ ...data, msisdn: formattedMsisdn });
   };
@@ -131,7 +138,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
               {...register("msisdn", {
                 required: msisdnRequiredText,
                 validate: (value) => {
-                  const isValid = isMsisdnValidForCountry(value);
+                  const isValid = isMsisdnValidForCountry(value, countryForConfig);
                   if (!isValid) {
                     return msisdnInvalidText;
                   }
@@ -184,7 +191,7 @@ export default function MSISDNSignupForm({ signupHandler, loading = false, msisd
                 }}
               >
                 {!defaultCountry && <option value="" disabled hidden style={{ color: '#9CA3AF' }}>{selectCountryPlaceholder}</option>}
-                {countries.map((country) => (
+                {signupCountryOptions.map((country) => (
                   <option key={country} value={country} style={{ color: '#1F2937' }}>
                     {country}
                   </option>
