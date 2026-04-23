@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Mail, HelpCircle, BookOpen, Wrench, CreditCard } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Mail, HelpCircle, Wrench } from 'lucide-react';
 import MainLayout from '../components/Layout/MainLayout';
 import useHelpScout from '../hooks/useHelpScout';
 import { selectSubscriptionData } from '../app/subscriptionSlice';
@@ -14,7 +14,7 @@ function ClientTicket() {
     const beaconId = import.meta.env.VITE_HELPSCOUT_BEACON_ID;
     const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
     const isTestbrainDomain = hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
-    const supportEmail = isTestbrainDomain ? 'support@bazzingo.com' : 'bazingo.sk@silverlines.info';
+    const supportEmail = isTestbrainDomain ? 'support@bazzingo.net' : 'support@bazzingo.net';
 
     const helpScoutAttributes = useMemo(() => {
         const attributes = {};
@@ -38,22 +38,20 @@ function ClientTicket() {
         customAttributes: helpScoutAttributes
     }, !isComponentVisible('hideHelpScoutBeaconForMSISDN')); // Pass false to hide beacon if switch is enabled
 
-    const helpResources = useMemo(() => {
-        const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
-        const isTestbrainDomain =
-            hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
-
-        const items = [
-            { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
-            { label: <TranslatedText text="Impressum" />, icon: BookOpen, route: '/impressum' },
-            { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/terms-of-use' },
-        ];
-
-        if (isTestbrainDomain) {
-            return items.filter((item) => item.route !== '/impressum');
+    const openHelpScoutChat = () => {
+        if (typeof window !== 'undefined' && typeof window.Beacon === 'function') {
+            window.Beacon('show');
+            window.Beacon('open');
         }
-        return items;
-    }, []);
+    };
+
+    const helpResources = useMemo(
+        () => [
+            { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
+            { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/terms-of-use' },
+        ],
+        []
+    );
 
     return (
         <MainLayout>
@@ -126,7 +124,10 @@ function ClientTicket() {
                             {/* Support Options */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Live Chat Card */}
-                                <div className="border border-gray-300 rounded-lg p-6 bg-white hover:border-[#FF6B3E] transition-colors cursor-pointer">
+                                <div
+                                    className="border border-gray-300 rounded-lg p-6 bg-white hover:border-[#FF6B3E] transition-colors cursor-pointer"
+                                    onClick={openHelpScoutChat}
+                                >
                                     <div className="flex items-start gap-4">
                                         <div className="flex-shrink-0">
                                             <div className="w-12 h-12 bg-[#FF6B3E] rounded-lg flex items-center justify-center">

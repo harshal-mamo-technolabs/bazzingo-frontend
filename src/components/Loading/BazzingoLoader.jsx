@@ -1,5 +1,6 @@
 import React from 'react';
-import BrainLogo from "../../../public/vibrant-brain-icon.png"; // adjust path if needed
+
+const BrainLogo = '/vibrant-brain-icon.png';
 
 const BazzingoLoader = ({ message = 'Loading...', compact = false }) => {
   return (

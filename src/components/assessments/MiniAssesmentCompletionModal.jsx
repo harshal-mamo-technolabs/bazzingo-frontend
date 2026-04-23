@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, memo, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBadge } from "../../../public/assessment";
+import { BrainSilhouetteIcon, CertificateLightIcon, SunnyEffectImage, ConquerBadge } from "../../assets/assessmentAssets";
 import { getDailyAssessmentRecommendation } from '../../services/dashbaordService.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant.js';

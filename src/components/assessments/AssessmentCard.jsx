@@ -1,5 +1,5 @@
 import React from 'react';
-import { BazzingoHeadImage } from "../../../public/assessment";
+import { BazzingoHeadImage } from "../../assets/assessmentAssets";
 import TranslatedText from '../TranslatedText.jsx';
 
 const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingAssessmentId }) => {

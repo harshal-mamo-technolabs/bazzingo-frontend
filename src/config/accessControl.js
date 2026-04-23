@@ -22,9 +22,9 @@ export const isGlobalLanguageOverrideEnabled = () =>
 // - Use `isSubscriptionGateEnabled('leaderboard')` in UI or logic.
 // ---------------------------------------------------------------------------
 export const SUBSCRIPTION_GATES = {
-  enabled: false,
-  leaderboard: false,
-  statistics: false,
+  enabled: true,
+  leaderboard: true,
+  statistics: true,
 };
 
 export const isSubscriptionGateEnabled = (gate) =>
@@ -43,12 +43,12 @@ export const VISIBILITY_CONTROLS = {
 
   // Main nav
   assessmentsNavItem: true,
-  premiumNavItem: false,
-  subscriptionNavItem: false,
-  changePasswordNavItem: false,
-  dashboardCertifiedCard: false,
-  statisticsCertifiedCard: false,
-  assessmentCompletionUpsell: false,
+  premiumNavItem: true,
+  subscriptionNavItem: true,
+  changePasswordNavItem: true,
+  dashboardCertifiedCard: true,
+  statisticsCertifiedCard: true,
+  assessmentCompletionUpsell: true,
 
   // Profile pages
   privacyPolicy: true,
@@ -60,8 +60,8 @@ export const VISIBILITY_CONTROLS = {
 
   // Profile settings behaviour
   // When true, the corresponding option is HIDDEN.
-  hideUpdatePasswordForMSISDN: true,
-  hideHelpScoutBeaconForMSISDN: true,
+  hideUpdatePasswordForMSISDN: false,
+  hideHelpScoutBeaconForMSISDN: false,
 };
 
 export const isComponentVisible = (component) =>
@@ -79,7 +79,7 @@ export const isProfilePageVisible = (pageKey) => {
 // - Use `isAssessmentPaymentEnabled()` in assessment flows.
 // ---------------------------------------------------------------------------
 export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
-  assessmentPaymentsEnabled: false,
+  assessmentPaymentsEnabled: true,
 };
 
 export const isAssessmentPaymentEnabled = () =>
@@ -94,9 +94,9 @@ export const isAssessmentPaymentEnabled = () =>
 // - Use `isMSISDNControlEnabled('useMSISDNSignup')` in auth forms.
 // ---------------------------------------------------------------------------
 export const MSISDN_CONTROLS = {
-  enabled: true,
-  useMSISDNSignup: true,
-  useMSISDNLogin: true,
+  enabled: false,
+  useMSISDNSignup: false,
+  useMSISDNLogin: false,
 };
 
 export const isMSISDNControlEnabled = (control) =>

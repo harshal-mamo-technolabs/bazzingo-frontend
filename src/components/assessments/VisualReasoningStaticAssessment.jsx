@@ -12,7 +12,7 @@ import {
   CheckIcon,
   ProgressBrainIcon,
   TaskCompleteIcon,
-} from '../../../public/assessment';
+} from '../../assets/assessmentAssets';
 import { getQuickAssessment, getFullAssessment, submitAssessment, getRecentDashboardActivity } from '../../services/dashbaordService.js';
 
 const ACTIVITIES = [

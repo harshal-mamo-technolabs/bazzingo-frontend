@@ -1,5 +1,5 @@
 import React from 'react';
-import {CarIcon, MessageIcon} from "../../../public/assessment";
+import { CarIcon, MessageIcon } from "../../assets/assessmentAssets";
 import TranslatedText from '../TranslatedText.jsx';
 
 const RecentAssessmentCard = ({ assessment }) => {

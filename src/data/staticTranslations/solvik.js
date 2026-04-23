@@ -1674,5 +1674,174 @@ export const solvikTranslations = {
 'Right-click or use the flag button to mark cells you think contain mines.': 'Klikni pravým tlačidlom alebo použi vlajku na označenie mín.',
 'Reveal all non-mine cells before time runs out to win.': 'Odhaľ všetky bezpečné bunky pred vypršaním času, aby si vyhral.',
 
+// Testbrain domain – Comparo Media legal (sk)
+'This Privacy Policy explains how Comparo media, Ul. Milutina Barača 7, Rijeka, Croatia, operating under the brand name "Bazzingo" ("we," "us," or "our"), collects, uses, stores, and protects your personal data in accordance with the EU General Data Protection Regulation (GDPR), the Swiss Federal Act on Data Protection (FADP), the California Consumer Privacy Act (CCPA), and other applicable privacy laws when you use our IQ testing and brain training platform at bazzingo.com.':
+  'Táto Zásada ochrany osobných údajov vysvetľuje, ako Comparo media, Ul. Milutina Barača 7, Rijeka, Chorvátsko, pôsobiaca pod značkou „Bazzingo“ („my“, „nás“, „naše“), zhromažďuje, používa, ukladá a chráni vaše osobné údaje v súlade s GDPR, švajčiarskym federálnym zákonom o ochrane údajov (FADP), zákonom CCPA a ďalšími platnými právnymi predpismi pri používaní našej platformy IQ testov a tréningu mozgu na bazzingo.com.',
+'Comparo Media': 'Comparo Media',
+'Ul. Milutina Barača 7': 'Ul. Milutina Barača 7',
+'51215 Kastav': '51215 Kastav',
+'Croatia': 'Chorvátsko',
+'Operating as:': 'Obchodné meno:',
+'Email: support@bazzingo.net': 'E-mail: support@bazzingo.net',
+'Email: support@bazzingo.com': 'E-mail: support@bazzingo.com',
+'To exercise any of these rights, contact us at: support@bazzingo.net': 'Na uplatnenie týchto práv nás kontaktujte na: support@bazzingo.net',
+'To exercise any of these rights, contact us at: support@bazzingo.com': 'Na uplatnenie týchto práv nás kontaktujte na: support@bazzingo.com',
+// Testbrain Terms (2026) (sk)
+'Terms & conditions': 'Podmienky používania',
+'These Terms and Conditions ("Terms") govern your use of the Bazzingo IQ testing and brain training platform operated by Comparo Media. By using our services, you agree to these Terms. Please read them carefully before making any purchase.':
+  'Tieto Podmienky používania („Podmienky“) upravujú vaše používanie platformy Bazzingo na IQ testy a tréning mozgu prevádzkovanej spoločnosťou Comparo Media. Používaním našich služieb s Podmienkami súhlasite. Pred zakúpením si ich pozorne prečítajte.',
+'Mühlegasse 6, 6340 Baar, Switzerland': 'Mühlegasse 6, 6340 Baar, Švajčiarsko',
+'support@bazzingo.com': 'support@bazzingo.com',
+'3-day trial for €2.99': '3-dňová skúška za 2,99 €',
+'Your credit or debit card will be charged €2.99 immediately upon subscribing': 'Vaša karta bude pri predplatnom okamžite zaťažená sumou 2,99 €',
+'After the 3-day trial period ends, your subscription will automatically renew at €35.00 per month':
+  'Po skončení 3-dňovej skúšky sa predplatné automaticky obnoví za 35,00 € mesačne',
+'US AUTO-RENEWAL DISCLOSURE:': 'OZNÁMENIE O AUTOMATICKOM OBNOVENÍ (USA):',
+'This is an automatically renewing subscription. By purchasing the trial, you consent to automatic recurring charges of €35.00/month after the trial ends. You may cancel at any time before the end of the current billing period by emailing support@bazzingo.com.':
+  'Ide o predplatné s automatickým obnovením. Zakúpením skúšky súhlasíte s opakovanými platbami 35,00 €/mesiac po skúške. Zrušiť môžete kedykoľvek pred koncom platobného obdobia e-mailom na support@bazzingo.com.',
+'This section applies to consumers residing in the EU/EEA.': 'Táto časť sa vzťahuje na spotrebiteľov s bydliskom v EÚ/EHP.',
+'This is in accordance with Article 16(m) of the EU Consumer Rights Directive.': 'Toto je v súlade s článkom 16 písm. m smernice EÚ o právach spotrebiteľov.',
+'To Exercise Withdrawal:': 'Uplatnenie práva odstúpiť:',
+'Contact us at support@bazzingo.com before using the service. Refunds for eligible withdrawal requests will be processed to the original payment method within 14 days.':
+  'Kontaktujte nás na support@bazzingo.com pred použitím služby. Vrátenie peňazí pri oprávnených žiadostiach spracujeme do 14 dní na pôvodný spôsob platby.',
+'To avoid being charged €35.00/month, you must cancel before your 3-day trial expires.':
+  'Ak sa chcete vyhnúť účtovaniu 35,00 €/mesiac, musíte zrušiť predplatné pred skončením 3-dňovej skúšky.',
+'Send an email to support@bazzingo.com with the subject line "Cancel Subscription"':
+  'Pošlite e-mail na support@bazzingo.com s predmetom „Cancel Subscription“',
+'All content on the Bazzingo platform is the property of Adsoo AG and is protected by international copyright, trademark, and intellectual property laws:':
+  'Celý obsah platformy Bazzingo je majetkom Adsoo AG a je chránený medzinárodnými autorskými právami, ochrannými známkami a právnymi predpismi o duševnom vlastníctve:',
+'Adsoo AG (operating as Bazzingo) is not liable for indirect, incidental, special, or consequential damages':
+  'Adsoo AG (pôsobiaca ako Bazzingo) nezodpovedá za nepriame, náhodné, osobitné alebo následné škody',
+'For US consumers: Any dispute arising under these Terms shall be resolved by binding individual arbitration administered under the rules of the American Arbitration Association (AAA), except that either party may bring individual claims in small claims court. You agree to waive any right to participate in a class action lawsuit or class-wide arbitration.':
+  'Pre spotrebiteľov v USA: akékoľvek spory vyplývajúce z týchto Podmienok sa riešia záväzným individuálnym rozhodcovským konaním podľa pravidiel American Arbitration Association (AAA), okrem individuálnych nárokov na súdoch pre malé nároky. Vzdávate sa práva zúčastniť sa hromadných žalôb alebo hromadného rozhodcovského konania.',
+'Before initiating arbitration, you agree to contact us at support@bazzingo.com to attempt informal resolution for at least 30 days.':
+  'Pred začatím rozhodcovského konania súhlasíte s tým, že nás kontaktujete na support@bazzingo.com a pokúsite sa o neformálne vyriešenie sporu aspoň 30 dní.',
+'We may update these Terms from time to time:': 'Tieto Podmienky môžeme občas aktualizovať:',
+'For questions about these Terms and Conditions:': 'Pri otázkach o týchto Podmienkach používania:',
+'You can manage cookie preferences through your browser settings. For more information on cookies, visit ':
+  'Nastavenia súborov cookie môžete spravovať v prehliadači. Ďalšie informácie nájdete na ',
+'Acceptance of Terms': 'Prijatie podmienok',
+'By creating an account, accessing, or using our services, you agree to be bound by these Terms and Conditions, our Privacy Policy, and all applicable laws and regulations. If you do not agree with these terms, please do not use our services.':
+  'Vytvorením účtu, prístupom alebo používaním našich služieb súhlasíte s týmito Podmienkami používania, Zásadami ochrany osobných údajov a všetkými platnými zákonmi. Ak nesúhlasíte, služby nepoužívajte.',
+'Service Provider': 'Poskytovateľ služieb',
+'Company Name:': 'Názov spoločnosti:',
+'Registered Address:': 'Registrovaná adresa:',
+'Contact Email:': 'Kontaktný e-mail:',
+'Ul. Milutina Barača 7, Rijeka, Croatia': 'Ul. Milutina Barača 7, Rijeka, Chorvátsko',
+'Comparo media is a Croatian corporation providing digital IQ tests, cognitive assessments, and brain training games to users in the European Union, Switzerland, the United States, and worldwide.':
+  'Comparo media je chorvátska spoločnosť poskytujúca digitálne IQ testy, kognitívne hodnotenia a hry na tréning mozgu používateľom v EÚ, Švajčiarsku, USA a celosvetovo.',
+'Service Description': 'Popis služby',
+'Bazzingo provides:': 'Bazzingo poskytuje:',
+'Online IQ tests and cognitive assessments': 'Online IQ testy a kognitívne hodnotenia',
+'Personalized IQ certificates': 'Personalizované IQ certifikáty',
+'Brain training games and exercises': 'Hry a cvičenia na tréning mozgu',
+'Performance tracking and analytics': 'Sledovanie výkonu a analýzy',
+'Detailed cognitive assessment reports': 'Podrobné správy z kognitívneho hodnotenia',
+'Our tests are designed for entertainment and self-improvement purposes and do not constitute official psychological assessments.':
+  'Naše testy slúžia na zábavu a sebazlepšenie a nepredstavujú oficiálne psychologické vyšetrenia.',
+'Trial Period:': 'Skúšobné obdobie:',
+'3-day trial for EUR 2.99': '3-dňová skúška za 2,99 EUR',
+'Full access to all features during the trial period': 'Plný prístup ku všetkým funkciám počas skúšky',
+'Your credit or debit card will be charged EUR 2.99 immediately upon subscribing': 'Vaša karta bude pri predplatnom okamžite zaťažená sumou 2,99 EUR',
+'AUTOMATIC RENEWAL NOTICE:': 'OZNÁMENIE O AUTOMATICKOM OBNOVENÍ:',
+'After the 3-day trial period ends, your subscription will automatically renew at EUR 35.00 per month':
+  'Po skončení 3-dňovej skúšky sa predplatné automaticky obnoví za 35,00 EUR mesačne',
+'You must cancel before the trial period expires to avoid being charged the monthly fee': 'Pred koncom skúšky musíte zrušiť predplatné, aby ste sa vyhli mesačnému poplatku',
+'Monthly charges will continue to recur on the same day each month until you cancel': 'Mesačné platby sa budú opakovať v ten istý deň, kým predplatné nezrušíte',
+'Prices include VAT where applicable': 'Ceny vrátane DPH, ak sa uplatňuje',
+'Payment Processing:': 'Spracovanie platieb:',
+'All payments are processed securely via Stripe, Inc.': 'Všetky platby sú bezpečne spracované cez Stripe, Inc.',
+'We accept Visa, Mastercard, American Express, and other major credit and debit cards': 'Akceptujeme Visa, Mastercard, American Express a ďalšie bežné karty',
+'By providing your payment information, you authorize us to charge your card for the trial and all subsequent monthly renewal charges until cancellation':
+  'Poskytnutím platobných údajov nás oprávňujete účtovať skúšku a všetky ďalšie mesačné obnovenia až do zrušenia',
+'US Auto-Renewal Disclosure': 'USA – automatické obnovenie',
+'This is an automatically renewing subscription. By purchasing the trial, you consent to automatic recurring charges of EUR 35.00/month after the trial ends. You may cancel at any time before the end of the current billing period by emailing support@bazzingo.net.':
+  'Ide o predplatné s automatickým obnovením. Zakúpením skúšky súhlasíte s opakovanými platbami 35,00 EUR/mesiac po skúške. Zrušiť môžete kedykoľvek pred koncom platobného obdobia e-mailom na support@bazzingo.net.',
+'Right of Withdrawal (EU/EEA Consumers)': 'Právo odstúpiť (spotrebitelia EÚ/EHP)',
+'Under the EU Consumer Rights Directive (2011/83/EU), you have the right to withdraw from this contract within 14 days without giving any reason.':
+  'Podľa smernice EÚ o právach spotrebiteľov (2011/83/EÚ) môžete od zmluvy odstúpiť do 14 dní bez udania dôvodu.',
+'Important Notice Regarding Digital Content:': 'Dôležité upozornenie k digitálnemu obsahu:',
+'By beginning to use our digital services (taking IQ tests, playing games, accessing reports) during the withdrawal period, you expressly consent to:':
+  'Začatím používania našich digitálnych služieb (IQ testy, hry, správy) počas lehoty na odstúpenie výslovne súhlasíte s:',
+'The performance of the digital content beginning immediately': 'okamžitým začatím plnenia digitálneho obsahu',
+'Acknowledge that you will lose your right of withdrawal once the digital content delivery has begun':
+  'vedomím si, že stratíte právo odstúpiť, keď dodanie digitálneho obsahu začalo',
+'This is in accordance with Article 16(m) of the EU Consumer Rights Directive. To exercise withdrawal, contact support@bazzingo.net before using the service. Refunds for eligible withdrawal requests will be processed to the original payment method within 14 days.':
+  'V súlade s čl. 16 ods. m smernice. Na uplatnenie odstúpenia kontaktujte support@bazzingo.net pred použitím služby. Vrátenie peňazí do 14 dní na pôvodný spôsob platby.',
+'Cancellation Policy': 'Zásady zrušenia',
+'IMPORTANT:': 'DÔLEŽITÉ:',
+'To avoid being charged EUR 35.00/month, you must cancel before your 3-day trial expires.':
+  'Ak sa chcete vyhnúť poplatku 35,00 EUR/mesiac, zrušte pred koncom 3-dňovej skúšky.',
+'How to Cancel Your Subscription:': 'Ako zrušiť predplatné:',
+'Send an email to support@bazzingo.net with the subject line "Cancel Subscription"': 'Pošlite e-mail na support@bazzingo.net s predmetom „Cancel Subscription“',
+'Include your registered email address and full name': 'Uveďte registrovaný e-mail a celé meno',
+'You will receive a cancellation confirmation within 24 hours': 'Potvrdenie zrušenia dostanete do 24 hodín',
+'Cancellation Terms:': 'Podmienky zrušenia:',
+'Cancellation takes effect at the end of the current billing period': 'Zrušenie nadobúda účinnosť koncom bežného platobného obdobia',
+'You retain access to paid features until the end of the current billing period': 'Prístup k plateným funkciám máte do konca bežného obdobia',
+'No further charges will be applied after cancellation': 'Po zrušení sa už neúčtujú žiadne poplatky',
+'No prorated refunds for partial months': 'Žiadne pomerné vrátenie za časti mesiacov',
+'Your test data and certificates remain accessible upon request': 'Údaje z testov a certifikáty zostanú na vyžiadanie dostupné',
+'Intellectual Property': 'Duševné vlastníctvo',
+'All content on the Bazzingo platform is the property of Comparo Media and is protected by international copyright, trademark, and intellectual property laws:':
+  'Všetok obsah platformy Bazzingo je majetkom Comparo Media a chránený medzinárodnými autorskými právami, ochrannými známkami a právnymi predpismi o duševnom vlastníctve:',
+'All IQ test questions, algorithms, and methodologies': 'Všetky otázky IQ testov, algoritmy a metodológie',
+'Certificate designs and templates': 'Dizajny a šablóny certifikátov',
+'Report formats and analytics': 'Formáty správ a analýzy',
+'Website design and user interface': 'Dizajn webu a používateľské rozhranie',
+'The Bazzingo trademark, logos, and branding': 'Ochranná známka Bazzingo, logá a branding',
+'You may not:': 'Nesmiete:',
+'Copy, modify, or distribute our content without prior written permission': 'kopírovať, upravovať alebo šíriť náš obsah bez predchádzajúceho písomného súhlasu',
+'Reverse engineer or extract our technology': 'vykonávať spätnú analýzu alebo extrahovať našu technológiu',
+'Use our materials for commercial purposes without licensing': 'používať naše materiály na komerčné účely bez licencie',
+'Disclaimer': 'Zrieknutie sa zodpovednosti',
+'For Entertainment Purposes:': 'Na účely zábavy:',
+'Bazzingo IQ tests are designed for entertainment and self-improvement purposes. They are:':
+  'IQ testy Bazzingo sú určené na zábavu a sebazlepšenie. Platí, že:',
+'NOT official psychological assessments': 'NIE sú oficiálnymi psychologickými vyšetreniami',
+'NOT substitutes for professional cognitive testing': 'NIE sú náhradou profesionálneho kognitívneho testovania',
+'NOT to be used for diagnostic or medical purposes': 'NIE sú určené na diagnostické alebo lekárske účely',
+'NOT to be used for educational placement decisions': 'NIE sú určené na rozhodnutia o vzdelávacom zaradení',
+'Results:': 'Výsledky:',
+'IQ scores and cognitive metrics are estimates based on your test responses. They may not fully reflect your actual cognitive abilities and should not be used for important life decisions.':
+  'IQ skóre a metriky sú odhady podľa vašich odpovedí; nemusia plne odrážať schopnosti a nemali by sa používať na dôležité životné rozhodnutia.',
+'Professional Advice:': 'Odborná pomoc:',
+'For official IQ testing or cognitive assessments, please consult a licensed psychologist.': 'Na oficiálne IQ testy alebo hodnotenia sa obráťte na licencovaného psychológa.',
+'Limitation of Liability': 'Obmedzenie zodpovednosti',
+'To the maximum extent permitted by applicable law (including Swiss, EU, and US law):':
+  'V maximálnom rozsahu povolenom právom (vrátane švajčiarskeho, EÚ a USA):',
+'Comparo Media (operating as Bazzingo) is not liable for indirect, incidental, special, or consequential damages':
+  'Comparo Media (ako Bazzingo) nezodpovedá za nepriame, náhodné, osobitné alebo následné škody',
+'Our total aggregate liability shall not exceed the amount you paid us in the preceding 12 months':
+  'Celková zodpovednosť nepresiahne sumu, ktorú ste nám zaplatili za predchádzajúcich 12 mesiacov',
+'We do not guarantee specific results from using our services': 'Negarantujeme konkrétne výsledky z používania služieb',
+'EU Consumer Rights:': 'Práva spotrebiteľa EÚ:',
+'These limitations do not affect your mandatory statutory rights under EU consumer protection laws, including rights related to defective digital content or services.':
+  'Tieto obmedzenia neovplyvňujú vaše zákonné práva podľa spotrebiteľského práva EÚ vrátane vadného digitálneho obsahu alebo služieb.',
+'US Consumers:': 'Spotrebitelia USA:',
+'Some US states do not allow limitations on implied warranties or exclusion of certain damages. In such states, these limitations apply only to the extent permitted by law.':
+  'V niektorých štátoch USA nie sú obmedzenia implicitných záruk alebo vylúčenie škôd prípustné; tam platia len v rozsahu povolenom zákonom.',
+'Dispute Resolution': 'Riešenie sporov',
+'Governing Law:': 'Riadite sa právom:',
+'These Terms are governed by the laws of Switzerland. The exclusive place of jurisdiction is Baar, Canton of Zug, Switzerland, subject to mandatory consumer protection provisions that may grant you the right to bring proceedings in your country of residence.':
+  'Tieto podmienky sa riadia právom Švajčiarska. Výlučná jurisdikcia je Baar, kantón Zug, s výhradou zákonov o ochrane spotrebiteľa, ktoré môžu umožniť žalobu v krajine vášho bydliska.',
+'EU Online Dispute Resolution:': 'EÚ online riešenie sporov:',
+'For EU consumers: The European Commission provides a platform for online dispute resolution at ':
+  'Pre spotrebiteľov EÚ Komisia poskytuje platformu online riešenia sporov na ',
+'. We encourage you to contact us first to resolve disputes amicably.': '. Odporúčame najprv nás kontaktovať na priateľské vyriešenie.',
+'US Dispute Resolution:': 'Riešenie sporov USA:',
+'For US consumers: Any dispute arising under these Terms shall be resolved by binding individual arbitration administered under the rules of the American Arbitration Association (AAA), except that either party may bring individual claims in small claims court. You agree to waive any right to participate in a class action lawsuit or class-wide arbitration. Before initiating arbitration, you agree to contact us at support@bazzingo.net to attempt informal resolution for at least 30 days.':
+  'Pre spotrebiteľov USA: spory sa riešia záväzným individuálnym rozhodcovským konaním podľa pravidiel AAA, okrem individuálnych nárokov v malom súde. Vzdávate sa účasti na hromadných žalobách alebo rozhodcovských konaniach. Pred rozhodcovským konaním kontaktujte support@bazzingo.net aspoň 30 dní na neformálne riešenie.',
+'Amendments': 'Zmeny',
+'Material changes will be notified at least 30 days in advance via email': 'Podstatné zmeny oznámime e-mailom aspoň 30 dní vopred',
+'Minor changes will be posted on this page': 'Menšie zmeny zverejníme na tejto stránke',
+'Continued use after changes constitutes acceptance': 'Pokračovanie v používaní po zmenách znamená súhlas',
+'The "Last Updated" date indicates the current version': 'Dátum „Naposledy aktualizované“ označuje aktuálnu verziu',
+'Customer Support:': 'Zákaznícka podpora:',
+'We respond to all inquiries within 2 business days.': 'Odpovedáme do 2 pracovných dní.',
+'Complaints:': 'Sťažnosti:',
+'EU consumers may escalate disputes through the EU ODR platform. US consumers may contact the Better Business Bureau or their state attorney general\'s office.':
+  'Spotrebitelia EÚ môžu spor riešiť cez platformu ODR. Spotrebitelia USA môžu kontaktovať BBB alebo úrad štátneho prokurátora.',
+
 };
 

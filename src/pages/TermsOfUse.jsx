@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import TranslatedText from '../components/TranslatedText.jsx';
+import { TestbrainTermsBody } from '../components/legal/TestbrainLegalContent.jsx';
 import { COUNTRY_PROFILE_CONTROLS } from '../config/accessControl.js';
 
 const sectionStyle = { marginBottom: '24px' };
@@ -11,9 +12,23 @@ const bodyStyle = { fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeig
 
 function TermsOfUse() {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex,follow';
+        meta.setAttribute('data-bazzingo-page-robots', '');
+        document.head.appendChild(meta);
+        return () => {
+            meta.remove();
+        };
+    }, []);
+
     const activeCountry = COUNTRY_PROFILE_CONTROLS?.activeCountry;
     const isGermany = activeCountry === 'Germany';
     const isSlovakia = activeCountry === 'Slovakia';
+    const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
+    const isTestbrainDomain = hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
 
     return (
         <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
@@ -30,16 +45,23 @@ function TermsOfUse() {
                     <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400' }}>
                         <TranslatedText text="By using Bazingo, you agree to the following terms and conditions." />
                     </p>
+                    {isTestbrainDomain ? (
+                        <h3 className="text-gray-900 mt-4" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '18px', fontWeight: '600' }}>
+                            <TranslatedText text="Terms & conditions" />
+                        </h3>
+                    ) : null}
                 </div>
 
                 <div className="mx-auto px-4 lg:px-12 py-4">
                     <div className="max-w-[800px]">
-                        {isSlovakia ? (
+                        {isTestbrainDomain ? (
+                            <TestbrainTermsBody />
+                        ) : isSlovakia ? (
                             <>
                                 <div style={sectionStyle}>
                                     <h3 className="text-gray-900" style={headingStyle}>Obchodné Podmienky</h3>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        Bazingo so sídlom na adrese: Adsoo AG, Mühlegasse 6. 6340 Baar, Švajčiarsko, Bazingo ďalej označovaná iba ako „poskytovateľ", „my", „nás", „naše" a podobne) ponúka program na tréning mozgu a ďalšie služby optimalizované pre mobilné zariadenia. Tieto služby sú dostupné v podobe prehliadačovej aplikácie („služby").
+                                        Bazingo so sídlom na adrese: Comparo media, Mühlegasse 6. 6340 Baar, Švajčiarsko, Bazingo ďalej označovaná iba ako „poskytovateľ", „my", „nás", „naše" a podobne) ponúka program na tréning mozgu a ďalšie služby optimalizované pre mobilné zariadenia. Tieto služby sú dostupné v podobe prehliadačovej aplikácie („služby").
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Navštívením webu alebo príslušných stránok WAP („stránky") a/alebo zaregistrovaním služieb súhlasíte s tým, že s nami vstupujete do záväzného zmluvného vzťahu, ktorý sa riadi Zmluvnými podmienkami a Pravidlami ochrany súkromia. Nájdite si, prosím, čas na prečítanie Zmluvných podmienok a ich pochopenie. Ak so Zmluvnými podmienkami, ako aj Pravidlami ochrany súkromia nesúhlasíte, žiadame vás, aby ste stránky ani služby nepoužívali.
@@ -164,7 +186,7 @@ function TermsOfUse() {
                                 <div style={sectionStyle}>
                                     <h3 className="text-gray-900" style={headingStyle}>11. STORNOVANIE A ZRUŠENIE</h3>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        Informácie o ukončení služieb a prerušení poskytovania informácií cez SMS nájdete na stránkach služby a v bezplatnej uvítacej správe. Službu môžete zrušiť aj e-mailom na adrese <strong>bazingo.sk@silverlines.info</strong>.
+                                        Informácie o ukončení služieb a prerušení poskytovania informácií cez SMS nájdete na stránkach služby a v bezplatnej uvítacej správe. Službu môžete zrušiť aj e-mailom na adrese <strong>support@bazzingo.net</strong>.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Na zrušenie služby pošlite SMS s textom <strong>BAZINGO STOP</strong> na číslo <strong>7402</strong>.
@@ -246,7 +268,7 @@ function TermsOfUse() {
                                         Tento formulár vyplňte a vráťte iba v prípade, že chcete odstúpiť od nákupu:
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                        Na: Bazingo, <a href="mailto:bazingo.sk@silverlines.info" className="text-blue-600 underline">bazingo.sk@silverlines.info</a>
+                                        Na: Bazingo, <a href="mailto:support@bazzingo.net" className="text-blue-600 underline">support@bazzingo.net</a>
                                     </p>
                                     <p className="text-gray-600" style={bodyStyle}>
                                         Ja/My (*) týmto oznamujem/oznamujeme (*), že odstupujem/odstupujeme od predajnej zmluvy pre nasledujúci tovar (*)/na poskytovanie nasledujúcej služby (*), objednané/prijaté (*), mená spotrebiteľov, adresa spotrebiteľov, podpisy spotrebiteľov (iba pri papierovej forme), dátum. (*) nepodstatné prečiarknite.
@@ -282,7 +304,7 @@ function TermsOfUse() {
                                         <strong>
                                             <TranslatedText text="Contact Email:" />
                                         </strong>{' '}
-                                        <TranslatedText text="support@bazzingo.com" />
+                                        <TranslatedText text="support@bazzingo.net" />
                                     </p>
                                     <p className="text-gray-600" style={bodyStyle}>
                                         <TranslatedText text="Bazzingo is a digital service providing IQ tests, cognitive assessments, and brain training games to users in the European Union and worldwide." />
@@ -403,7 +425,7 @@ function TermsOfUse() {
                                             <TranslatedText text="To Exercise Withdrawal:" />
                                         </strong>
                                         <br />
-                                        <TranslatedText text="Contact us at support@bazzingo.com before using the service." />
+                                        <TranslatedText text="Contact us at support@bazzingo.net before using the service." />
                                     </p>
                                 </div>
 
@@ -433,7 +455,7 @@ function TermsOfUse() {
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
                                         <TranslatedText text="Alternatively:" />
                                         <br />
-                                        <TranslatedText text="Email support@bazzingo.com with your cancellation request." />
+                                        <TranslatedText text="Email support@bazzingo.net with your cancellation request." />
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
                                         <strong>
@@ -637,7 +659,7 @@ function TermsOfUse() {
                                         <TranslatedText text="For questions about these Terms and Conditions:" />
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                        <TranslatedText text="Email: support@bazzingo.com" />
+                                        <TranslatedText text="Email: support@bazzingo.net" />
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
                                         <strong>

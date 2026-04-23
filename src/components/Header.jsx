@@ -2,15 +2,16 @@ import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {NavLink, useLocation, useNavigate} from 'react-router-dom';
 import {useDispatch} from 'react-redux';
 import {logout} from '../app/userSlice';
-import brainIcon from '../../public/header/bxs_brain.png';
-import bellIcon from '../../public/header/bell.png';
-import hamburgerIcon from '../../public/header/hamburger.png';
 import { getUserProfile } from '../services/dashbaordService';
 import NotificationDropdown from './NotificationDropdown';
 import notificationService from '../services/notificationService';
 import { isComponentVisible } from '../config/accessControl';
 import { useI18n } from '../context/I18nContext.jsx';
 import TranslatedText from './TranslatedText.jsx';
+
+const brainIcon = '/header/bxs_brain.png';
+const bellIcon = '/header/bell.png';
+const hamburgerIcon = '/header/hamburger.png';
 
 /** ---------------------------
  *  Config & shared styles

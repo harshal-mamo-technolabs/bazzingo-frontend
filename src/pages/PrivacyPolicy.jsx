@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import TranslatedText from '../components/TranslatedText.jsx';
+import { TestbrainPrivacyBody } from '../components/legal/TestbrainLegalContent.jsx';
 import { COUNTRY_PROFILE_CONTROLS } from '../config/accessControl.js';
 
 const sectionStyle = { marginBottom: '24px' };
@@ -11,9 +12,23 @@ const bodyStyle = { fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeig
 
 function PrivacyPolicy() {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex,follow';
+        meta.setAttribute('data-bazzingo-page-robots', '');
+        document.head.appendChild(meta);
+        return () => {
+            meta.remove();
+        };
+    }, []);
+
     const activeCountry = COUNTRY_PROFILE_CONTROLS?.activeCountry;
     const isGermany = activeCountry === 'Germany';
     const isSlovakia = activeCountry === 'Slovakia';
+    const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
+    const isTestbrainDomain = hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
 
     return (
         <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px' }}>
@@ -32,13 +47,19 @@ function PrivacyPolicy() {
                         </h2>
                     </div>
                     <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400' }}>
-                        <TranslatedText text="By using Bazzingo, you agree to the following privacy terms and conditions." />
+                        {isTestbrainDomain ? (
+                            <TranslatedText text='This Privacy Policy explains how Comparo media, Ul. Milutina Barača 7, Rijeka, Croatia, operating under the brand name "Bazzingo" ("we," "us," or "our"), collects, uses, stores, and protects your personal data in accordance with the EU General Data Protection Regulation (GDPR), the Swiss Federal Act on Data Protection (FADP), the California Consumer Privacy Act (CCPA), and other applicable privacy laws when you use our IQ testing and brain training platform at bazzingo.com.' />
+                        ) : (
+                            <TranslatedText text="By using Bazzingo, you agree to the following privacy terms and conditions." />
+                        )}
                     </p>
                 </div>
 
                 <div className="mx-auto px-4 lg:px-12 py-4">
                     <div className="max-w-[800px]">
-                        {isSlovakia ? (
+                        {isTestbrainDomain ? (
+                            <TestbrainPrivacyBody />
+                        ) : isSlovakia ? (
                             <>
                                 <div style={sectionStyle}>
                                     <h3 className="text-gray-900" style={headingStyle}>
@@ -232,8 +253,8 @@ function PrivacyPolicy() {
                                     </h3>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         <TranslatedText text="We do not knowingly collect personal data from children under 13 years of age. If we learn that we have inadvertently collected such data, we will delete it without delay. If you believe that we have information about a child under 13, please contact us at" />{' '}
-                                        <a href="mailto:bazingo.sk@silverlines.info" className="text-blue-600 underline">
-                                            bazingo.sk@silverlines.info
+                                        <a href="mailto:support@bazzingo.net" className="text-blue-600 underline">
+                                            support@bazzingo.net
                                         </a>
                                         .
                                     </p>
@@ -295,8 +316,8 @@ function PrivacyPolicy() {
                                     </ul>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         <TranslatedText text="For any requests or questions regarding this Privacy Policy, please contact us by email at" />{' '}
-                                        <a href="mailto:bazingo.sk@silverlines.info" className="text-blue-600 underline">
-                                            bazingo.sk@silverlines.info
+                                        <a href="mailto:support@bazzingo.net" className="text-blue-600 underline">
+                                            support@bazzingo.net
                                         </a>
                                         .
                                     </p>

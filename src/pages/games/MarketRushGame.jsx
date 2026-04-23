@@ -3,11 +3,12 @@ import { useLocation } from 'react-router-dom';
 import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
 import { useTranslateText } from '../../hooks/useTranslate';
-import happyShopkeeper from '/happy-shopkeeper.png'
-import confusedShopkeeper from '/confused-shopkeeper.png';
-import happyCustomer from '/happy-customer.png';
-import angryCustomer from '/angry-customer.png';
-import freshMarketShop from '/fresh-market-shop.png';
+
+const happyShopkeeper = '/happy-shopkeeper.png';
+const confusedShopkeeper = '/happy-shopkeeper.png';
+const happyCustomer = '/happy-customer.png';
+const angryCustomer = '/angry-customer.png';
+const freshMarketShop = '/fresh-market-shop.png';
 
 // ─── constants ───────────────────────────────────────────────────
 const MAX_SCORE = 200;

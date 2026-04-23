@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import MainLayout from '../components/Layout/MainLayout';
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { 
   fetchSubscriptionStatus, 
@@ -12,17 +12,55 @@ import {
 } from '../app/subscriptionSlice';
 import { toast } from 'react-hot-toast';
 
+const CANCEL_REASONS = [
+  "I wasn't using it often enough",
+  "Too expensive.",
+  "Didn't find the value worth the cost.",
+  "It didn't meet my needs or expectations.",
+  "Features I needed were unavailable.",
+  "Reports or insights were too basic.",
+  "I encountered technical problems.",
+  "Poor app performance or usability issues.",
+  "Information was repetitive or unhelpful.",
+  "Other",
+];
+
+const STAY_OPTIONS = [
+  "Lower-cost subscription",
+  "Annual discounted rates",
+  "Additional Premium content",
+];
+
+// Cancellation flow steps:
+// 0 = closed, 1 = confirm, 2 = lose-access warning, 3 = reason survey, 4 = success
 const Subscription = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const subscriptionData = useSelector(selectSubscriptionData);
   const isLoading = useSelector(selectSubscriptionLoading);
   const error = useSelector(selectSubscriptionError);
-  
+
   const [isCancelling, setIsCancelling] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelStep, setCancelStep] = useState(0);
+  const [selectedReason, setSelectedReason] = useState('');
+  const [otherReasonText, setOtherReasonText] = useState('');
+  const [stayIfOffered, setStayIfOffered] = useState([]);
   const [isEndingTrial, setIsEndingTrial] = useState(false);
   const actionsRef = useRef(null);
   const location = useLocation();
+
+  const resetCancelFlow = () => {
+    setCancelStep(0);
+    setSelectedReason('');
+    setOtherReasonText('');
+    setStayIfOffered([]);
+  };
+
+  const toggleStayOption = (option) => {
+    setStayIfOffered((prev) =>
+      prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]
+    );
+  };
 
   // Fetch subscription status on component mount
   useEffect(() => {
@@ -49,8 +87,19 @@ const Subscription = () => {
   }, [location.search, subscriptionData.status]);
 
   const handleCancelSubscription = async () => {
+    // Resolve the free-text cancel reason from user selections.
+    const cancelReason =
+      selectedReason === 'Other'
+        ? (otherReasonText.trim() || 'Other')
+        : selectedReason;
+
+    if (!cancelReason) {
+      toast.error('Please select a reason for cancellation');
+      return;
+    }
+
     setIsCancelling(true);
-    
+
     try {
       const token = localStorage.getItem('user');
       if (!token) {
@@ -61,12 +110,19 @@ const Subscription = () => {
       const userData = JSON.parse(token);
       const accessToken = userData?.accessToken || userData?.user?.token;
 
+      const body = {
+        cancelReason,
+        wouldHaveStayedIfOffered: stayIfOffered,
+        immediate: false,
+      };
+
       const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/subscription/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
-        }
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -74,12 +130,15 @@ const Subscription = () => {
       }
 
       const result = await response.json();
-      
+
       if (result.status === 'success') {
-        toast.success('Subscription cancelled successfully. You will retain access until the end of your current billing period.');
-        setShowCancelConfirm(false);
-        // Refresh subscription status
+        setCancelStep(4);
         dispatch(fetchSubscriptionStatus());
+        setTimeout(() => {
+          toast.success('Subscription cancelled successfully. You will retain access until the end of your current billing period.');
+          resetCancelFlow();
+          navigate('/dashboard');
+        }, 2200);
       } else {
         throw new Error(result.message || 'Failed to cancel subscription');
       }
@@ -458,7 +517,7 @@ const Subscription = () => {
                    )}
                    {(subscriptionData.status === 'active' || subscriptionData.status === 'trialing') && !subscriptionData.cancelAtPeriodEnd && (
                      <button
-                       onClick={() => setShowCancelConfirm(true)}
+                       onClick={() => setCancelStep(1)}
                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
                      >
                        Cancel Subscription
@@ -474,43 +533,275 @@ const Subscription = () => {
             </div>
           )}
 
-          {/* Cancel Confirmation Modal */}
-          {showCancelConfirm && (
-            <div className="fixed inset-0 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div className="mt-3 text-center">
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          {/* Cancellation Flow */}
+          {cancelStep > 0 && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-black/40 backdrop-blur-sm animate-[fadeIn_.2s_ease-out]"
+              role="dialog"
+              aria-modal="true"
+            >
+              {/* Step 1: Confirmation */}
+              {cancelStep === 1 && (
+                <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-[scaleIn_.2s_ease-out]">
+                  <div className="bg-gradient-to-r from-red-500 to-orange-500 h-2" />
+                  <button
+                    onClick={resetCancelFlow}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Close"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Cancel Subscription</h3>
-                  <div className="mt-2 px-7 py-3">
-                    <p className="text-sm text-gray-500 mb-4">
-                      Are you sure you want to cancel your subscription? You will retain access until the end of your current billing period.
+                  </button>
+                  <div className="p-6 sm:p-8 text-center">
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-50 mb-5">
+                      <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Cancel Subscription?</h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Are you sure you want to cancel your current subscription?
                     </p>
+                    <div className="flex flex-col sm:flex-row-reverse gap-3">
+                      <button
+                        onClick={() => setCancelStep(2)}
+                        className="w-full sm:flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={resetCancelFlow}
+                        className="w-full sm:flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                      >
+                        No
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex justify-center space-x-4">
-                    <button
-                      onClick={() => setShowCancelConfirm(false)}
-                      className="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                    >
-                      Keep Subscription
-                    </button>
+                </div>
+              )}
+
+              {/* Step 2: Lose access warning */}
+              {cancelStep === 2 && (
+                <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-[scaleIn_.2s_ease-out]">
+                  <div className="bg-gradient-to-r from-amber-400 to-red-500 h-2" />
+                  <button
+                    onClick={resetCancelFlow}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Close"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <div className="p-6 sm:p-8 text-center">
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-50 mb-5">
+                      <svg className="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">You'll lose access to premium features</h3>
+                    <p className="text-sm text-gray-600 mb-5">
+                      By canceling your plan, you will lose access to <span className="font-semibold text-gray-800">leaderboard</span> and <span className="font-semibold text-gray-800">statistics</span>. Would you like to proceed?
+                    </p>
+
+                    <ul className="text-left bg-gray-50 border border-gray-100 rounded-lg p-4 mb-6 space-y-2">
+                      <li className="flex items-start text-sm text-gray-700">
+                        <svg className="flex-shrink-0 h-4 w-4 text-red-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Leaderboard rankings & rewards
+                      </li>
+                      <li className="flex items-start text-sm text-gray-700">
+                        <svg className="flex-shrink-0 h-4 w-4 text-red-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Detailed performance statistics
+                      </li>
+                    </ul>
+
+                    <div className="flex flex-col sm:flex-row-reverse gap-3">
+                      <button
+                        onClick={() => setCancelStep(3)}
+                        className="w-full sm:flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={resetCancelFlow}
+                        className="w-full sm:flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                      >
+                        Keep Plan
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Reason survey */}
+              {cancelStep === 3 && (
+                <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-[scaleIn_.2s_ease-out]">
+                  <div className="bg-gradient-to-r from-orange-500 to-red-500 h-2 flex-shrink-0" />
+                  <button
+                    onClick={resetCancelFlow}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                    aria-label="Close"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  <div className="p-6 sm:p-8 overflow-y-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-1">Before you go...</h3>
+                      <p className="text-sm text-gray-500">Your feedback helps us improve Bazzingo for everyone.</p>
+                    </div>
+
+                    {/* Q1: Single select */}
+                    <div className="mb-7">
+                      <label className="block text-sm font-semibold text-gray-900 mb-3">
+                        We'd appreciate it if you could tell us why you're canceling
+                        <span className="text-red-500 ml-0.5">*</span>
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {CANCEL_REASONS.map((reason) => {
+                          const selected = selectedReason === reason;
+                          return (
+                            <button
+                              key={reason}
+                              type="button"
+                              onClick={() => setSelectedReason(reason)}
+                              className={`flex items-center text-left px-3 py-2.5 rounded-lg border text-sm transition-all ${
+                                selected
+                                  ? 'border-orange-500 bg-orange-50 text-orange-700 ring-1 ring-orange-400'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span
+                                className={`flex-shrink-0 h-4 w-4 mr-2.5 rounded-full border-2 flex items-center justify-center ${
+                                  selected ? 'border-orange-500' : 'border-gray-300'
+                                }`}
+                              >
+                                {selected && <span className="h-2 w-2 rounded-full bg-orange-500" />}
+                              </span>
+                              <span className="leading-tight">{reason}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedReason === 'Other' && (
+                        <textarea
+                          value={otherReasonText}
+                          onChange={(e) => setOtherReasonText(e.target.value)}
+                          placeholder="Please tell us more..."
+                          rows={3}
+                          className="mt-3 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none"
+                        />
+                      )}
+                    </div>
+
+                    {/* Q2: Multi select */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-semibold text-gray-900 mb-3">
+                        Would you have stayed subscribed if we offered:
+                        <span className="text-xs font-normal text-gray-500 ml-2">(optional, select all that apply)</span>
+                      </label>
+                      <div className="space-y-2">
+                        {STAY_OPTIONS.map((option) => {
+                          const checked = stayIfOffered.includes(option);
+                          return (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => toggleStayOption(option)}
+                              className={`w-full flex items-center text-left px-3 py-2.5 rounded-lg border text-sm transition-all ${
+                                checked
+                                  ? 'border-orange-500 bg-orange-50 text-orange-700 ring-1 ring-orange-400'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span
+                                className={`flex-shrink-0 h-4 w-4 mr-2.5 rounded border-2 flex items-center justify-center ${
+                                  checked ? 'border-orange-500 bg-orange-500' : 'border-gray-300 bg-white'
+                                }`}
+                              >
+                                {checked && (
+                                  <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </span>
+                              <span>{option}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 px-6 sm:px-8 py-4 bg-gray-50 flex flex-col sm:flex-row-reverse gap-3 flex-shrink-0">
                     <button
                       onClick={handleCancelSubscription}
-                      disabled={isCancelling}
-                      className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isCancelling || !selectedReason || (selectedReason === 'Other' && !otherReasonText.trim())}
+                      className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isCancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                      {isCancelling ? (
+                        <span className="inline-flex items-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                          </svg>
+                          Cancelling...
+                        </span>
+                      ) : (
+                        'Confirm Cancellation'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setCancelStep(2)}
+                      disabled={isCancelling}
+                      className="w-full sm:w-auto px-5 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                    >
+                      Back
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Step 4: Success */}
+              {cancelStep === 4 && (
+                <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-[scaleIn_.2s_ease-out]">
+                  <div className="bg-gradient-to-r from-emerald-400 to-teal-500 h-2" />
+                  <div className="p-8 text-center">
+                    <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-emerald-50 mb-5 animate-[scaleIn_.4s_ease-out]">
+                      <svg className="h-10 w-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-2">Subscription Cancelled</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      We're sorry to see you go. You will retain access to premium features until the end of your current billing period.
+                    </p>
+                    <p className="text-xs text-gray-400 mb-2">Redirecting you to the dashboard...</p>
+                    <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 animate-[progress_2.2s_linear_forwards]" />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Keyframes for the cancellation flow */}
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+        @keyframes progress { from { width: 0%; } to { width: 100%; } }
+      `}</style>
     </MainLayout>
   );
 };

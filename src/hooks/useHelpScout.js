@@ -130,6 +130,7 @@ function initializeBeacon(beaconId, customAttributes) {
       topArticles: false,
       poweredBy: false
     });
+    window.Beacon("show");
 
     beaconInitialized = true;
 

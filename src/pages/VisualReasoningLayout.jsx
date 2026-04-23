@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
-import DailyPuzzleIcon from "../../public/daily-puzzle-icon.png";
-import DailyAssessmentIcon from "../../public/daily-assessment-icon.png";
-import MageScapeIcon from "../../public/maze-escape-icon.png";
-import CheckIcon from "../../public/carbon_checkmark-filled.png";
 import AssessmentCompletionModal from "../components/assessments/AssessmentCompletionModal.jsx";
 import { getRecentDashboardActivity } from "../services/dashbaordService";
+
+const DailyPuzzleIcon = "/daily-puzzle-icon.png";
+const DailyAssessmentIcon = "/daily-assessment-icon.png";
+const MageScapeIcon = "/maze-escape-icon.png";
+const CheckIcon = "/carbon_checkmark-filled.png";
 
 export default function VisualReasoningLayout() {
   const [showAllQuestions, setShowAllQuestions] = useState(false);
