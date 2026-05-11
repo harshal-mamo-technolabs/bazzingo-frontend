@@ -164,6 +164,8 @@ export default function VisualReasoningStaticAssessment() {
           title: q.questionType === 'text' ? `Q${idx + 1} - ${q.question}` : `Q${idx + 1}`,
           text: q.questionType === 'text' ? q.question : '',
           image: q.questionType === 'image' ? q.question : null,
+          imageQuestionDescription:
+            typeof q.imageQuestionDescription === 'string' ? q.imageQuestionDescription : null,
           options: q.options || [],
           optionsType: q.optionsType,
           answerIndex: q.answerIndex,
@@ -769,12 +771,20 @@ export default function VisualReasoningStaticAssessment() {
             {currentQuestion.image ? (
   <>
     <h5 className="text-base mb-2 font-semibold">
-      Q{displayIndex + 1} - <TranslatedText text="Solve the question by seeing the image" />
+      Q{displayIndex + 1} -{' '}
+      <TranslatedText
+        text={
+          typeof currentQuestion.imageQuestionDescription === 'string' &&
+          currentQuestion.imageQuestionDescription.trim()
+            ? currentQuestion.imageQuestionDescription.trim()
+            : 'Solve the question by seeing the image'
+        }
+      />
     </h5>
     <img
       src={currentQuestion.image}
       alt="question"
-      className="rounded mb-4 mx-auto w-[150px] h-[150px] md:w-[200px] md:h-[200px] object-contain"
+      className="rounded mb-4 mx-auto block max-w-full h-auto max-h-[220px] md:max-h-[260px] object-contain"
     />
   </>
 ) : (
@@ -792,45 +802,38 @@ export default function VisualReasoningStaticAssessment() {
 
               {/* Options */}
               <div
-  className={`mb-6 gap-2 ${
+  className={`mb-6 ${
     currentQuestion.optionsType === 'image'
-      ? 'grid grid-cols-2 gap-3' // 2 per row only for image options
-      : 'flex flex-col' // keep text layout same
+      ? 'grid grid-cols-1 sm:grid-cols-2 gap-3'
+      : 'flex flex-col gap-2'
   }`}
 >
   {currentQuestion.options.map((option, idx) => (
     <label
-    key={idx}
-    className={`flex justify-between items-center ${
-      currentQuestion.optionsType === 'image' ? 'p-0' : 'p-2'
-    } border rounded cursor-pointer ${
-      answers[currentQuestion.id] === idx ? 'border-orange-400' : 'border-gray-300'
-    }`}
-  >
-  
-      <div
-        className={`flex items-center ${
-          currentQuestion.optionsType === 'image' ? 'justify-start w-full' : ''
-        }`}
-      >
-        <input
-          type="radio"
-          name={`question_${currentQuestion.id}`}
-          checked={answers[currentQuestion.id] === idx}
-          onChange={() => handleOptionSelect(option, idx)}
-          className="h-4 w-4 ml-2 text-orange-300 focus:ring-orange-300 accent-orange-300"
-        />
+      key={idx}
+      className={`flex items-center p-2 border rounded cursor-pointer ${
+        answers[currentQuestion.id] === idx ? 'border-orange-400' : 'border-gray-300'
+      }`}
+    >
+      <input
+        type="radio"
+        name={`question_${currentQuestion.id}`}
+        checked={answers[currentQuestion.id] === idx}
+        onChange={() => handleOptionSelect(option, idx)}
+        className="h-4 w-4 shrink-0 text-orange-300 focus:ring-orange-300 accent-orange-300"
+      />
 
-        {currentQuestion.optionsType === 'image' ? (
+      {currentQuestion.optionsType === 'image' ? (
+        <div className="flex-1 min-w-0 flex items-center justify-center ml-2">
           <img
             src={option}
             alt={`option-${idx}`}
-            className="ml-2 rounded object-cover w-[40px] h-[40px] md:w-[70px] md:h-[70px]"
+            className="rounded object-contain max-h-[110px] md:max-h-[130px] w-auto max-w-full"
           />
-        ) : (
-          <span className="ml-2 text-[15px]"><TranslatedText text={option} /></span>
-        )}
-      </div>
+        </div>
+      ) : (
+        <span className="ml-2 text-[15px]"><TranslatedText text={option} /></span>
+      )}
     </label>
   ))}
             </div>
@@ -838,7 +841,7 @@ export default function VisualReasoningStaticAssessment() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-0">
+            <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-0 mb-4 md:mb-6">
               <button
                 className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`}
                 disabled={isSubmittingScore}
