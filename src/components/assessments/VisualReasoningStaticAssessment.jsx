@@ -90,6 +90,8 @@ export default function VisualReasoningStaticAssessment() {
   const [recentActivityNames, setRecentActivityNames] = useState([]);
   const [autoSubmit, setAutoSubmit] = useState(false);
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [questionImgLoaded, setQuestionImgLoaded] = useState(false);
+  const [loadedOptionImgs, setLoadedOptionImgs] = useState({});
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -244,6 +246,29 @@ export default function VisualReasoningStaticAssessment() {
     const qlen = isReviewPhase ? unansweredQuestionsRef.current.length : questions.length;
     const qid = currentQuestion?.id;
   }, [currentIndex, isReviewPhase, questions.length, unansweredQuestions.length, currentQuestion?.id]);
+
+  // Reset image loading state when question changes
+  useEffect(() => {
+    setQuestionImgLoaded(false);
+    setLoadedOptionImgs({});
+  }, [currentQuestion?.id]);
+
+  // Preload next question's images so they're ready before the user navigates
+  useEffect(() => {
+    if (!currentQuestion?.id) return;
+    const nextIdx = currentIndex + 1;
+    const nextQ = isReviewPhase
+      ? unansweredQuestions[nextIdx]?.question
+      : questions[nextIdx];
+    if (!nextQ) return;
+
+    const preload = (src) => { const img = new window.Image(); img.src = src; };
+
+    if (nextQ.image) preload(nextQ.image);
+    if (nextQ.optionsType === 'image' && Array.isArray(nextQ.options)) {
+      nextQ.options.forEach(preload);
+    }
+  }, [currentIndex, questions, isReviewPhase, unansweredQuestions, currentQuestion?.id]);
 
   const progressPercent = useMemo(() => {
     if (isReviewPhase) {
@@ -615,10 +640,10 @@ export default function VisualReasoningStaticAssessment() {
   return (
     <>
       <Header />
-      <div className="mx-auto px-4 lg:px-12 py-4 lg:py-7" style={{ fontFamily: 'Roboto, sans-serif' }}>
-        <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[580px]">
+      <div className="mx-auto px-4 lg:px-12 pt-4 pb-10 lg:pt-7 lg:pb-12" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        <div className="flex flex-col lg:flex-row gap-4 lg:items-start">
           {/* LEFT CARD - UPDATED for review phase */}
-          <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col h-full">
+          <div className="lg:w-1/4 w-full bg-[#EEEEEE] rounded p-6 flex flex-col">
             <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">
       {isReviewPhase ? <TranslatedText text="Review Questions" /> : <TranslatedText text={assessmentMetadata.title} />}
@@ -737,7 +762,7 @@ export default function VisualReasoningStaticAssessment() {
           </div>
 
           {/* MIDDLE CARD - UPDATED progress display for review phase */}
-          <div className="lg:w-2/4 w-full bg-white p-4 flex flex-col h-full">
+          <div className="lg:w-2/4 w-full bg-white px-4 pt-4 pb-8 flex flex-col">
             {/* Progress bar */}
             <div className="w-full mb-6">
               <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-visible">
@@ -767,7 +792,7 @@ export default function VisualReasoningStaticAssessment() {
             </div>
 
             {/* Question + Options */}
-            <div className="border border-gray-200 rounded p-4 mb-4 flex flex-col flex-grow">
+            <div className="border border-gray-200 rounded p-4 mb-4 flex flex-col">
             {currentQuestion.image ? (
   <>
     <h5 className="text-base mb-2 font-semibold">
@@ -781,11 +806,22 @@ export default function VisualReasoningStaticAssessment() {
         }
       />
     </h5>
-    <img
-      src={currentQuestion.image}
-      alt="question"
-      className="rounded mb-4 mx-auto block max-w-full h-auto max-h-[220px] md:max-h-[260px] object-contain"
-    />
+    <div className="relative mb-4">
+      {!questionImgLoaded && (
+        <div className="w-full h-[180px] md:h-[220px] bg-gray-100 animate-pulse rounded flex items-center justify-center">
+          <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      )}
+      <img
+        key={currentQuestion.id}
+        src={currentQuestion.image}
+        alt="question"
+        onLoad={() => setQuestionImgLoaded(true)}
+        className={`rounded mx-auto block max-w-full h-auto max-h-[220px] md:max-h-[260px] object-contain transition-opacity duration-200 ${questionImgLoaded ? 'opacity-100' : 'opacity-0 absolute inset-0 w-0 h-0'}`}
+      />
+    </div>
   </>
 ) : (
   <>
@@ -824,11 +860,16 @@ export default function VisualReasoningStaticAssessment() {
       />
 
       {currentQuestion.optionsType === 'image' ? (
-        <div className="flex-1 min-w-0 flex items-center justify-center ml-2">
+        <div className="flex-1 min-w-0 flex items-center justify-center ml-2 min-h-[80px]">
+          {!loadedOptionImgs[idx] && (
+            <div className="w-full h-[80px] md:h-[100px] bg-gray-100 animate-pulse rounded" />
+          )}
           <img
+            key={`${currentQuestion.id}-opt-${idx}`}
             src={option}
             alt={`option-${idx}`}
-            className="rounded object-contain max-h-[110px] md:max-h-[130px] w-auto max-w-full"
+            onLoad={() => setLoadedOptionImgs(prev => ({ ...prev, [idx]: true }))}
+            className={`rounded object-contain max-h-[110px] md:max-h-[130px] w-auto max-w-full transition-opacity duration-200 ${loadedOptionImgs[idx] ? 'opacity-100' : 'opacity-0 absolute w-0 h-0'}`}
           />
         </div>
       ) : (
@@ -841,7 +882,7 @@ export default function VisualReasoningStaticAssessment() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col-reverse lg:flex-row justify-center gap-2 mt-0 mb-4 md:mb-6">
+            <div className="flex flex-col-reverse lg:flex-row justify-center gap-2">
               <button
                 className={`px-4 py-2 w-full rounded-lg ${isSubmittingScore ? 'bg-[#D8D8D8] text-gray-400 cursor-not-allowed' : 'bg-[#D8D8D8] text-gray-600'}`}
                 disabled={isSubmittingScore}
