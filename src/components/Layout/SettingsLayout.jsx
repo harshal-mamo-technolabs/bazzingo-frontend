@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
+import { PlatformLogo } from '../PlatformBrand';
 
 const SettingsLayout = ({ children, title, subtitle, showBackButton = true }) => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const SettingsLayout = ({ children, title, subtitle, showBackButton = true }) =>
             {/* Logo and Navigation */}
             <div className="flex items-center space-x-8">
               <div className="flex items-center">
-                <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-8" />
+                <PlatformLogo className="h-8" />
               </div>
               <nav className="flex space-x-8">
                 <a href="#" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">Games</a>
@@ -42,7 +43,7 @@ const SettingsLayout = ({ children, title, subtitle, showBackButton = true }) =>
       <div className="lg:hidden bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center">
-            <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-6" />
+            <PlatformLogo className="h-6" />
           </div>
           <div className="flex items-center space-x-4">
             <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">

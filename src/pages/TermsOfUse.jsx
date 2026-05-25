@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import TranslatedText from '../components/TranslatedText.jsx';
 import { TestbrainTermsBody } from '../components/legal/TestbrainLegalContent.jsx';
-import { COUNTRY_PROFILE_CONTROLS } from '../config/accessControl.js';
+import { COUNTRY_PROFILE_CONTROLS, applyPlatformBrandToText } from '../config/accessControl.js';
 
 const sectionStyle = { marginBottom: '24px' };
 const headingStyle = { fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '12px' };
 const bodyStyle = { fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' };
+const TERMS_CONTACT_EMAIL = 'lumria.sk@silverlines.info';
 
 function TermsOfUse() {
     const navigate = useNavigate();
@@ -61,7 +62,7 @@ function TermsOfUse() {
                                 <div style={sectionStyle}>
                                     <h3 className="text-gray-900" style={headingStyle}>Obchodné Podmienky</h3>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        Bazingo so sídlom na adrese: Comparo media, Mühlegasse 6. 6340 Baar, Švajčiarsko, Bazingo ďalej označovaná iba ako „poskytovateľ", „my", „nás", „naše" a podobne) ponúka program na tréning mozgu a ďalšie služby optimalizované pre mobilné zariadenia. Tieto služby sú dostupné v podobe prehliadačovej aplikácie („služby").
+                                        {applyPlatformBrandToText('Bazingo so sídlom na adrese: Comparo media, Mühlegasse 6. 6340 Baar, Švajčiarsko, Bazingo ďalej označovaná iba ako „poskytovateľ", „my", „nás", „naše" a podobne) ponúka program na tréning mozgu a ďalšie služby optimalizované pre mobilné zariadenia. Tieto služby sú dostupné v podobe prehliadačovej aplikácie („služby").')}
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Navštívením webu alebo príslušných stránok WAP („stránky") a/alebo zaregistrovaním služieb súhlasíte s tým, že s nami vstupujete do záväzného zmluvného vzťahu, ktorý sa riadi Zmluvnými podmienkami a Pravidlami ochrany súkromia. Nájdite si, prosím, čas na prečítanie Zmluvných podmienok a ich pochopenie. Ak so Zmluvnými podmienkami, ako aj Pravidlami ochrany súkromia nesúhlasíte, žiadame vás, aby ste stránky ani služby nepoužívali.
@@ -84,7 +85,7 @@ function TermsOfUse() {
                                         Úplný prístup k službám je poskytovaný na základe spoplatneného odberu, ktorý sa dá zakúpiť na rôzne obdobia a ak ho nezrušíte, automaticky sa obnoví. Našim odberateľom poskytujeme úplný prístup k obsahu, pokým majú aktívny odber.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        <strong>Cena služby:</strong> 3 SMS × 2,05 EUR = 6,15 EUR / týždeň. Kľúčové slovo: BAZINGO. Krátke číslo: 7402.
+                                        <strong>Cena služby:</strong> 6,15 €/týždeň s DPH. Kľúčové slovo: LUM. Krátke číslo: 7402.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Poplatky sú splatné pri zakúpení odberu bez ohľadu na to, či budete službu reálne používať alebo nie. Nárok na účtovanie poplatku vzniká výlučne na základe poskytovania práva na sťahovanie, prijímanie a/alebo používanie obsahu.
@@ -186,7 +187,7 @@ function TermsOfUse() {
                                 <div style={sectionStyle}>
                                     <h3 className="text-gray-900" style={headingStyle}>11. STORNOVANIE A ZRUŠENIE</h3>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        Informácie o ukončení služieb a prerušení poskytovania informácií cez SMS nájdete na stránkach služby a v bezplatnej uvítacej správe. Službu môžete zrušiť aj e-mailom na adrese <strong>support@bazzingo.net</strong>.
+                                        Informácie o ukončení služieb a prerušení poskytovania informácií cez SMS nájdete na stránkach služby a v bezplatnej uvítacej správe. Službu môžete zrušiť aj e-mailom na adrese <strong>{TERMS_CONTACT_EMAIL}</strong>.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Na zrušenie služby pošlite SMS s textom <strong>BAZINGO STOP</strong> na číslo <strong>7402</strong>.
@@ -268,7 +269,7 @@ function TermsOfUse() {
                                         Tento formulár vyplňte a vráťte iba v prípade, že chcete odstúpiť od nákupu:
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                        Na: Bazingo, <a href="mailto:support@bazzingo.net" className="text-blue-600 underline">support@bazzingo.net</a>
+                                        Na: {applyPlatformBrandToText('Bazingo')}, <a href={`mailto:${TERMS_CONTACT_EMAIL}`} className="text-blue-600 underline">{TERMS_CONTACT_EMAIL}</a>
                                     </p>
                                     <p className="text-gray-600" style={bodyStyle}>
                                         Ja/My (*) týmto oznamujem/oznamujeme (*), že odstupujem/odstupujeme od predajnej zmluvy pre nasledujúci tovar (*)/na poskytovanie nasledujúcej služby (*), objednané/prijaté (*), mená spotrebiteľov, adresa spotrebiteľov, podpisy spotrebiteľov (iba pri papierovej forme), dátum. (*) nepodstatné prečiarknite.
@@ -304,7 +305,9 @@ function TermsOfUse() {
                                         <strong>
                                             <TranslatedText text="Contact Email:" />
                                         </strong>{' '}
-                                        <TranslatedText text="support@bazzingo.net" />
+                                        <a href={`mailto:${TERMS_CONTACT_EMAIL}`} className="text-blue-600 underline">
+                                            {TERMS_CONTACT_EMAIL}
+                                        </a>
                                     </p>
                                     <p className="text-gray-600" style={bodyStyle}>
                                         <TranslatedText text="Bazzingo is a digital service providing IQ tests, cognitive assessments, and brain training games to users in the European Union and worldwide." />
@@ -425,7 +428,11 @@ function TermsOfUse() {
                                             <TranslatedText text="To Exercise Withdrawal:" />
                                         </strong>
                                         <br />
-                                        <TranslatedText text="Contact us at support@bazzingo.net before using the service." />
+                                        <TranslatedText text="Contact us at" />{' '}
+                                        <a href={`mailto:${TERMS_CONTACT_EMAIL}`} className="text-blue-600 underline">
+                                            {TERMS_CONTACT_EMAIL}
+                                        </a>{' '}
+                                        <TranslatedText text="before using the service." />
                                     </p>
                                 </div>
 
@@ -455,7 +462,11 @@ function TermsOfUse() {
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
                                         <TranslatedText text="Alternatively:" />
                                         <br />
-                                        <TranslatedText text="Email support@bazzingo.net with your cancellation request." />
+                                        <TranslatedText text="Send an email to" />{' '}
+                                        <a href={`mailto:${TERMS_CONTACT_EMAIL}`} className="text-blue-600 underline">
+                                            {TERMS_CONTACT_EMAIL}
+                                        </a>{' '}
+                                        <TranslatedText text="with your cancellation request." />
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
                                         <strong>
@@ -659,7 +670,10 @@ function TermsOfUse() {
                                         <TranslatedText text="For questions about these Terms and Conditions:" />
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                        <TranslatedText text="Email: support@bazzingo.net" />
+                                        <TranslatedText text="Email:" />{' '}
+                                        <a href={`mailto:${TERMS_CONTACT_EMAIL}`} className="text-blue-600 underline">
+                                            {TERMS_CONTACT_EMAIL}
+                                        </a>
                                     </p>
                                     <p className="text-gray-600 mb-2" style={bodyStyle}>
                                         <strong>

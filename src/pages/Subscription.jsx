@@ -11,6 +11,7 @@ import {
   selectSubscriptionError 
 } from '../app/subscriptionSlice';
 import { toast } from 'react-hot-toast';
+import TranslatedText from '../components/TranslatedText.jsx';
 
 const CANCEL_REASONS = [
   "I wasn't using it often enough",
@@ -356,7 +357,7 @@ const Subscription = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Subscription Management</h1>
-            <p className="text-gray-600">Manage your Bazzingo subscription and billing details</p>
+            <p className="text-gray-600"><TranslatedText text="Manage your Bazzingo subscription and billing details" /></p>
           </div>
 
           {/* Error State */}
@@ -389,7 +390,7 @@ const Subscription = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Subscription</h3>
-                <p className="text-gray-600 mb-6">You don't have an active subscription. Choose a plan to get started with Bazzingo.</p>
+                <p className="text-gray-600 mb-6"><TranslatedText text="You don't have an active subscription. Choose a plan to get started with Bazzingo." /></p>
                 <a
                   href="/pricing"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 transition-colors"
@@ -655,7 +656,7 @@ const Subscription = () => {
                   <div className="p-6 sm:p-8 overflow-y-auto">
                     <div className="text-center mb-6">
                       <h3 className="text-xl font-semibold text-gray-900 mb-1">Before you go...</h3>
-                      <p className="text-sm text-gray-500">Your feedback helps us improve Bazzingo for everyone.</p>
+                      <p className="text-sm text-gray-500"><TranslatedText text="Your feedback helps us improve Bazzingo for everyone." /></p>
                     </div>
 
                     {/* Q1: Single select */}

@@ -5,7 +5,8 @@ import {logout} from '../app/userSlice';
 import { getUserProfile } from '../services/dashbaordService';
 import NotificationDropdown from './NotificationDropdown';
 import notificationService from '../services/notificationService';
-import { isComponentVisible } from '../config/accessControl';
+import { isComponentVisible, getPlatformName } from '../config/accessControl';
+import { PlatformWordmark } from './PlatformBrand.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import TranslatedText from './TranslatedText.jsx';
 
@@ -209,22 +210,17 @@ export default function Header({unreadCount = 0}) {
                         {/* Brain icon: mobile only */}
                         <img
                             src={brainIcon}
-                            alt="Bazzingo logo"
+                            alt={`${getPlatformName()} logo`}
                             className="block lg:hidden cursor-pointer"
                             style={{width: '42px', height: '46px'}}
                             onClick={() => navigate('/dashboard')}
                         />
                         {/* Text logo: desktop only */}
-                        <h1
+                        <PlatformWordmark
                             className="hidden lg:block cursor-pointer"
                             style={{...TEXT_BASE, fontSize: '30px', fontWeight: 600, letterSpacing: '0.08em'}}
                             onClick={() => navigate('/dashboard')}
-                        >
-                            <span className="text-[#FF6B3E]">B</span>
-                            <span className="text-black">AZZIN</span>
-                            <span className="text-[#FF6B3E]">G</span>
-                            <span className="text-[#FF6B3E]">O</span>
-                        </h1>
+                        />
                     </div>
 
                     {/* Center: Desktop Nav */}

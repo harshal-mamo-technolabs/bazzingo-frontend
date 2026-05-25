@@ -293,6 +293,9 @@ function AssessmentStripeElementsModal({
   const handleSuccess = ({ orderId }) => {
     const assessmentId = assessment._id || assessment.id;
     localStorage.setItem('autoStartAssessmentId', assessmentId);
+    if (assessment?.mainCategory) {
+      localStorage.setItem('autoStartAssessmentMainCategory', assessment.mainCategory);
+    }
 
     window.location.href = `/payment/success?order_id=${orderId}&status=succeeded`;
   };

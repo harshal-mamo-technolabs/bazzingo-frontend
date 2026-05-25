@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
+import { applyPlatformBrandToText } from '../config/accessControl';
 import { I18nContext } from '../context/I18nContext';
 import { translateText } from '../services/translationService';
 
@@ -63,7 +64,7 @@ export function useTranslateText(text) {
     };
   }, [text, language]);
 
-  return translated;
+  return applyPlatformBrandToText(translated);
 }
 
 /**

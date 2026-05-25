@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Mail, HelpCircle, Wrench } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Mail, HelpCircle, Wrench, FileText } from 'lucide-react';
 import MainLayout from '../components/Layout/MainLayout';
 import useHelpScout from '../hooks/useHelpScout';
 import { selectSubscriptionData } from '../app/subscriptionSlice';
@@ -14,7 +14,7 @@ function ClientTicket() {
     const beaconId = import.meta.env.VITE_HELPSCOUT_BEACON_ID;
     const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
     const isTestbrainDomain = hostname === 'testbrain.net' || hostname.endsWith('.testbrain.net');
-    const supportEmail = isTestbrainDomain ? 'support@bazzingo.net' : 'support@bazzingo.net';
+    const supportEmail = 'lumria.sk@silverlines.info';
 
     const helpScoutAttributes = useMemo(() => {
         const attributes = {};
@@ -48,7 +48,8 @@ function ClientTicket() {
     const helpResources = useMemo(
         () => [
             { label: <TranslatedText text="Frequently Asked Questions" />, icon: HelpCircle, route: '/help-faqs' },
-            { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/terms-of-use' },
+            { label: <TranslatedText text="Terms of Use" />, icon: Wrench, route: '/agb' },
+            { label: <TranslatedText text="Impressum" />, icon: FileText, route: '/impressum' },
         ],
         []
     );

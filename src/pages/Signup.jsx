@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Button from '../components/Form/Button';
 import AuthLayout from '../components/Layout/AuthLayout';
 import { SignupForm } from '../components/Authentication';
-import { isMSISDNControlEnabled } from '../config/accessControl';
+import { isMSISDNControlEnabled, getPlatformHeadImagePath } from '../config/accessControl';
+import { PlatformLogo } from '../components/PlatformBrand';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from "react-hot-toast";
@@ -259,8 +260,8 @@ const Signup = () => {
       style={{ backgroundColor: '#f7bba9', height: '100%' }}
     >
       <img
-        src="/bazzingo-head.png"
-        alt="Bazzingo Head"
+        src={getPlatformHeadImagePath()}
+        alt="Platform illustration"
         className="absolute"
         style={{
           width: '110%',
@@ -273,17 +274,13 @@ const Signup = () => {
         className="absolute bottom-8 flex items-center justify-center bg-white rounded-2xl shadow-lg p-4 md:p-0"
         style={{ width: '42%', height: '12%' }}
       >
-        <img
-          src="/bazzingo-logo.png"
-          alt="Bazzingo Logo"
-          style={{ width: '75%' }}
-        />
+        <PlatformLogo style={{ width: '75%' }} />
       </div>
     </div>
   );
 
   return (
-    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-head.png">
+    <AuthLayout illustration={illustration} responsiveIllustration={getPlatformHeadImagePath()}>
       <div className="text-center">
         <h1 className="md:text-5xl text-[32px] font-bold text-gray-800"><TranslatedText text="Welcome" /></h1>
         <p className="md:text-lg text-[16px] text-gray-500 mt-2 md:mb-0 mb-2">

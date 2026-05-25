@@ -12,6 +12,34 @@ import AssessmentStartConfirmationModal from '../components/assessments/Assessme
 import { getAllAssessment ,getRecentAssessmentActivity } from '../services/dashbaordService';
 import { isAssessmentPaymentEnabled } from '../config/accessControl';
 import TranslatedText from '../components/TranslatedText.jsx';
+import { API_CONNECTION_HOST_URL } from '../utils/constant';
+
+function appendStandaloneAssessment(items, standalone, fallbackMainCategory) {
+    if (!standalone || typeof standalone !== 'object') return items;
+    const sid = standalone._id ?? standalone.id;
+    if (!sid) return items;
+    const idAlreadyPresent = items.some((a) => (a?._id || a?.id) === sid);
+    if (idAlreadyPresent) return items;
+    return [
+        ...items,
+        {
+            ...standalone,
+            mainCategory: standalone.mainCategory ?? fallbackMainCategory,
+            subcategories: standalone.subcategories ?? standalone.subCategories ?? [],
+        },
+    ];
+}
+
+function buildAssessmentsList(data) {
+    let items = Array.isArray(data?.items) ? [...data.items] : [];
+    items = appendStandaloneAssessment(items, data?.adhdAssessment, 'adhd');
+    items = appendStandaloneAssessment(
+        items,
+        data?.emotionalIntelligenceAssessment,
+        'emotional-intelligence',
+    );
+    return items;
+}
 
 const Assessments = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,12 +61,10 @@ const Assessments = () => {
             try {
                 setLoading(true);
                 const response = await getAllAssessment();
-                // Expecting: { data: { items: [...] } }
-                const items = response?.data?.items || [];
-                setAssessments(items);
-                
-                // Check for auto-start assessment after assessments are loaded
-                await checkAutoStartAssessment(items);
+                const list = buildAssessmentsList(response?.data);
+                setAssessments(list);
+
+                await checkAutoStartAssessment(list);
             } catch (error) {
                 console.error("Error fetching assessments:", error);
                 // Keep the empty array if API fails
@@ -72,9 +98,15 @@ const Assessments = () => {
         fetchRecent();
     }, []);
 
+    const assessmentRouteForCategory = (mainCategory) => {
+        if (mainCategory === 'adhd') return '/assessments/adhd';
+        if (mainCategory === 'emotional-intelligence') return '/assessments/emotional-intelligence';
+        return '/assessments/visual-reasoning';
+    };
+
     const startAssessmentNavigation = (assessment) => {
         setSelectedAssessment(assessment);
-        navigate('/assessments/visual-reasoning', {
+        navigate(assessmentRouteForCategory(assessment?.mainCategory), {
             state: { assessmentId: assessment._id }
         });
     };
@@ -167,9 +199,17 @@ const Assessments = () => {
                 }
                 
                 if (targetAssessment) {
-                    
+                    const storedCat = localStorage.getItem('autoStartAssessmentMainCategory');
+                    if (storedCat) {
+                        targetAssessment = {
+                            ...targetAssessment,
+                            mainCategory: targetAssessment.mainCategory || storedCat,
+                        };
+                    }
+
                     // Clear the stored ID so it doesn't auto-start again
                     localStorage.removeItem('autoStartAssessmentId');
+                    localStorage.removeItem('autoStartAssessmentMainCategory');
                     
                     // Always assume purchased since user just completed payment
                     // Auto-open the confirmation modal
@@ -180,12 +220,14 @@ const Assessments = () => {
                 } else {
                     // Clear the stored ID if assessment not found
                     localStorage.removeItem('autoStartAssessmentId');
+                    localStorage.removeItem('autoStartAssessmentMainCategory');
                 }
             }
         } catch (error) {
             console.error('❌ [AUTO-START] Error checking auto-start assessment:', error);
             // Clear the stored ID on error
             localStorage.removeItem('autoStartAssessmentId');
+            localStorage.removeItem('autoStartAssessmentMainCategory');
         }
     };
 
@@ -224,7 +266,8 @@ const Assessments = () => {
                     questions: data.data.questions || 0,
                     isAssessmentPurchased: true, // Assume purchased since user just paid
                     isAvailCertification: data.data.isAvailCertification || false,
-                    isAvailReport: data.data.isAvailReport || false
+                    isAvailReport: data.data.isAvailReport || false,
+                    mainCategory: data.data.mainCategory || undefined,
                 };
             }
 

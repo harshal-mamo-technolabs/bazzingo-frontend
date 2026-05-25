@@ -8,6 +8,8 @@ import { loading as loadingAction } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
 import TranslatedText from '../components/TranslatedText.jsx';
 import { useTranslateText } from '../hooks/useTranslate';
+import { getPlatformPuzzleBearPath } from '../config/accessControl';
+import { PlatformLogo } from '../components/PlatformBrand';
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
@@ -40,7 +42,7 @@ const ForgotPassword = () => {
     >
       <div className="relative w-full h-full flex items-center justify-center">
         <img
-          src="/bazzingo-puzzle-bear.png"
+          src={getPlatformPuzzleBearPath()}
           alt="Forgot Password Illustration"
           className="max-w-md"
         />
@@ -48,18 +50,14 @@ const ForgotPassword = () => {
         className="absolute bottom-8 flex items-center justify-center bg-white rounded-2xl shadow-lg p-4"
         style={{ width: '42%', height: '12%' }}
       >
-        <img
-          src="/bazzingo-logo.png"
-          alt="Bazzingo Logo"
-          style={{ width: '75%' }}
-        />
+        <PlatformLogo style={{ width: '75%' }} />
       </div>
       </div>
     </div>
   );
 
   return (
-    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-puzzle-bear.png">
+    <AuthLayout illustration={illustration} responsiveIllustration={getPlatformPuzzleBearPath()}>
       <div className="text-center">
         <h1 className="md:text-5xl text-[32px] font-bold text-gray-800"><TranslatedText text="Forgot Password" /></h1>
         <p className="md:text-lg text-[16px] text-gray-500 mt-4 mb-4 md:mb-0 max-w-md">

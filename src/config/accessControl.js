@@ -4,15 +4,80 @@
 
 export const GLOBAL_LANGUAGE_OVERRIDE = {
   enabled: true,
-  defaultLanguage: 'de',
+  defaultLanguage: 'sk',
 };
 
 export const isGlobalLanguageOverrideEnabled = () =>
   Boolean(GLOBAL_LANGUAGE_OVERRIDE.enabled && GLOBAL_LANGUAGE_OVERRIDE.defaultLanguage);
 
+// ---------------------------------------------------------------------------
+// PLATFORM_BRAND_CONTROLS
+// Switches the visible platform name across the app (headers, copy, reports).
+// - Set `useLumriaBrand` to true to replace Bazzingo/Bazingo with Lumria everywhere.
+// - Set to false to keep the original Bazzingo/Bazingo branding.
+// - Use `getPlatformName()`, `applyPlatformBrandToText()`, `getPlatformLogoPath()`.
+// ---------------------------------------------------------------------------
+export const PLATFORM_BRAND_CONTROLS = {
+  useLumriaBrand: true,
+  brands: {
+    bazzingo: {
+      displayName: 'Bazzingo',
+      logoPath: '/bazzingo-logo.png',
+      bulbPath: '/bazzingo-bulb.png',
+      puzzleBearPath: '/bazzingo-puzzle-bear.png',
+      headImagePath: '/bazzingo-head.png',
+      assessmentHeadPath: '/assessment/bazzingo-head.png',
+    },
+    lumria: {
+      displayName: 'Lumria',
+      // Replace these paths with dedicated Lumria assets in /public when available.
+      logoPath: '/lumria-logo.png',
+      bulbPath: '/bazzingo-bulb.png',
+      puzzleBearPath: '/bazzingo-puzzle-bear.png',
+      headImagePath: '/bazzingo-head.png',
+      assessmentHeadPath: '/assessment/bazzingo-head.png',
+    },
+  },
+};
+const LEGACY_BRAND_PATTERN = /\b(Bazzingo|Bazingo|bazzingo|bazingo)\b/g;
 
+const getActiveBrandKey = () =>
+  PLATFORM_BRAND_CONTROLS.useLumriaBrand ? 'lumria' : 'bazzingo';
 
+const getActiveBrandProfile = () =>
+  PLATFORM_BRAND_CONTROLS.brands[getActiveBrandKey()] ||
+  PLATFORM_BRAND_CONTROLS.brands.bazzingo;
 
+export const isLumriaBrandEnabled = () => Boolean(PLATFORM_BRAND_CONTROLS.useLumriaBrand);
+
+export const getPlatformName = () => getActiveBrandProfile().displayName;
+
+export const getPlatformLogoPath = () => getActiveBrandProfile().logoPath;
+
+export const getPlatformBulbPath = () => getActiveBrandProfile().bulbPath;
+
+export const getPlatformPuzzleBearPath = () => getActiveBrandProfile().puzzleBearPath;
+
+export const getPlatformHeadImagePath = () => getActiveBrandProfile().headImagePath;
+
+export const getPlatformAssessmentHeadPath = () => getActiveBrandProfile().assessmentHeadPath;
+
+export const applyPlatformBrandToText = (text) => {
+  if (!text || typeof text !== 'string' || !isLumriaBrandEnabled()) {
+    return text;
+  }
+
+  const brandName = getPlatformName();
+  return text.replace(LEGACY_BRAND_PATTERN, (match) => {
+    if (match === match.toUpperCase()) {
+      return brandName.toUpperCase();
+    }
+    if (match[0] === match[0].toUpperCase()) {
+      return brandName;
+    }
+    return brandName.toLowerCase();
+  });
+};
 
 // ---------------------------------------------------------------------------
 // SUBSCRIPTION_GATES
@@ -22,7 +87,7 @@ export const isGlobalLanguageOverrideEnabled = () =>
 // - Use `isSubscriptionGateEnabled('leaderboard')` in UI or logic.
 // ---------------------------------------------------------------------------
 export const SUBSCRIPTION_GATES = {
-  enabled: true,
+  enabled: false,
   leaderboard: true,
   statistics: true,
 };
@@ -43,12 +108,12 @@ export const VISIBILITY_CONTROLS = {
 
   // Main nav
   assessmentsNavItem: true,
-  premiumNavItem: true,
-  subscriptionNavItem: true,
-  changePasswordNavItem: true,
-  dashboardCertifiedCard: true,
-  statisticsCertifiedCard: true,
-  assessmentCompletionUpsell: true,
+  premiumNavItem: false,
+  subscriptionNavItem: false,
+  changePasswordNavItem: false,
+  dashboardCertifiedCard: false,
+  statisticsCertifiedCard: false,
+  assessmentCompletionUpsell: false,
 
   // Profile pages
   privacyPolicy: true,
@@ -60,8 +125,8 @@ export const VISIBILITY_CONTROLS = {
 
   // Profile settings behaviour
   // When true, the corresponding option is HIDDEN.
-  hideUpdatePasswordForMSISDN: false,
-  hideHelpScoutBeaconForMSISDN: false,
+  hideUpdatePasswordForMSISDN: true,
+  hideHelpScoutBeaconForMSISDN: true,
 };
 
 export const isComponentVisible = (component) =>
@@ -75,15 +140,23 @@ export const isProfilePageVisible = (pageKey) => {
 // ---------------------------------------------------------------------------
 // ASSESSMENT_BEHAVIOUR_CONTROLS
 // Controls assessment-specific behaviour such as payment flows.
-// - Set `assessmentPaymentsEnabled` to true to enable paid assessments.
-// - Use `isAssessmentPaymentEnabled()` in assessment flows.
+// - Set `assessmentPaymentsEnabled` to false to disable Stripe paid assessments.
+// - Set `stripePaymentsEnabled` to false to disable all Stripe checkout flows.
+// - Use `isAssessmentPaymentEnabled()` / `isStripePaymentEnabled()` in UI or logic.
 // ---------------------------------------------------------------------------
 export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
-  assessmentPaymentsEnabled: true,
+  assessmentPaymentsEnabled: false,
+  stripePaymentsEnabled: false,
 };
 
 export const isAssessmentPaymentEnabled = () =>
-  Boolean(ASSESSMENT_BEHAVIOUR_CONTROLS.assessmentPaymentsEnabled);
+  Boolean(
+    ASSESSMENT_BEHAVIOUR_CONTROLS.assessmentPaymentsEnabled &&
+      ASSESSMENT_BEHAVIOUR_CONTROLS.stripePaymentsEnabled,
+  );
+
+export const isStripePaymentEnabled = () =>
+  Boolean(ASSESSMENT_BEHAVIOUR_CONTROLS.stripePaymentsEnabled);
 
 // ---------------------------------------------------------------------------
 // MSISDN_CONTROLS
@@ -94,9 +167,9 @@ export const isAssessmentPaymentEnabled = () =>
 // - Use `isMSISDNControlEnabled('useMSISDNSignup')` in auth forms.
 // ---------------------------------------------------------------------------
 export const MSISDN_CONTROLS = {
-  enabled: false,
-  useMSISDNSignup: false,
-  useMSISDNLogin: false,
+  enabled: true,
+  useMSISDNSignup: true,
+  useMSISDNLogin: true,
 };
 
 export const isMSISDNControlEnabled = (control) =>
@@ -112,7 +185,7 @@ export const isMSISDNControlEnabled = (control) =>
 // ---------------------------------------------------------------------------
 export const LANGUAGE_CONTROLS = {
   enabled: true,
-  defaultLanguage: 'ro',
+  defaultLanguage: 'sk',
 };
 
 // ---------------------------------------------------------------------------
@@ -124,7 +197,7 @@ export const LANGUAGE_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const DEFAULT_COUNTRY_CONTROLS = {
   enabled: true,
-  defaultCountry: 'Germany',
+  defaultCountry: 'Slovakia',
 };
 
 // ---------------------------------------------------------------------------
@@ -142,7 +215,7 @@ export const DEFAULT_COUNTRY_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const COUNTRY_PROFILE_CONTROLS = {
   enabled: true,
-  activeCountry: 'Germany', // 'Germany' | 'Slovakia' | 'Romania' | null
+  activeCountry: 'Slovakia', // 'Germany' | 'Slovakia' | 'Romania' | null
   profiles: {
     Germany: {
       language: 'de',

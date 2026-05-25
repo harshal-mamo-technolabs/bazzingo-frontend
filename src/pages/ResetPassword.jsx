@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import { resetPassword as resetPasswordService } from '../services/authService';
 import { loading as loadingAction } from '../app/userSlice';
 import { API_RESPONSE_STATUS_SUCCESS } from '../utils/constant';
+import { getPlatformPuzzleBearPath } from '../config/accessControl';
+import { PlatformLogo } from '../components/PlatformBrand';
 
 const ResetPassword = () => {
   const dispatch = useDispatch();
@@ -38,7 +40,7 @@ const ResetPassword = () => {
     >
       <div className="relative w-full h-full flex items-center justify-center">
         <img
-          src="/bazzingo-puzzle-bear.png"
+          src={getPlatformPuzzleBearPath()}
           alt="Reset Password Illustration"
           className="max-w-md"
         />
@@ -46,18 +48,14 @@ const ResetPassword = () => {
           className="absolute bottom-8 flex items-center justify-center bg-white rounded-2xl shadow-lg p-4"
           style={{ width: '42%', height: '12%' }}
         >
-          <img
-            src="/bazzingo-logo.png"
-            alt="Bazzingo Logo"
-            style={{ width: '75%' }}
-          />
+          <PlatformLogo style={{ width: '75%' }} />
         </div>
       </div>
     </div>
   );
 
   return (
-    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-puzzle-bear.png">
+    <AuthLayout illustration={illustration} responsiveIllustration={getPlatformPuzzleBearPath()}>
       <div className="text-center">
         <h1 className="md:text-5xl text-[32px] font-bold text-gray-800">Reset Password</h1>
         <p className="md:text-lg text-[16px] text-gray-500 mt-4 max-w-md mb-4 md:mb-0n">

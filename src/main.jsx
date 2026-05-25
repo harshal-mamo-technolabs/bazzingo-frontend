@@ -9,8 +9,11 @@ import store from './app/store.js';
 import router from './routes.jsx';
 import { checkAndValidateToken } from './app/userSlice';
 import { I18nProvider } from './context/I18nContext.jsx';
+import { getPlatformName } from './config/accessControl';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+document.title = getPlatformName();
 
 store.dispatch(checkAndValidateToken());
 

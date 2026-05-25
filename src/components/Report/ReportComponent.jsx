@@ -15,6 +15,8 @@ import {
 } from '../../utils/reportUtils.jsx';
 import { bandFromTotal } from '../../utils/certificationUtils.jsx';
 import TranslatedText from '../TranslatedText.jsx';
+import { PlatformLogo } from '../PlatformBrand';
+import { getPlatformName } from '../../config/accessControl';
 
 /**
  * Reusable Report Component
@@ -66,7 +68,7 @@ const ReportComponent = forwardRef(({
             {isQuick && <span className="ml-2 text-orange-500 font-medium">(<TranslatedText text="Quick Assessment" />)</span>}
           </div>
         </div>
-        <img src="/bazzingo-logo.png" alt="Bazzingo" className="h-10" />
+        <PlatformLogo className="h-10" />
       </div>
 
       {/* Assessment Info */}
@@ -289,7 +291,7 @@ const ReportComponent = forwardRef(({
       {/* Footer */}
       <div className="p-6 text-xs text-gray-500 border-t border-gray-200 bg-gray-50">
         <div className="italic">"<TranslatedText text="This assessment reflects performance at the time of testing and may vary over time." />"</div>
-        <div className="mt-2 font-medium"><TranslatedText text="Generated on" /> {dayjs().format("DD MMM, YYYY HH:mm")} • Bazzingo</div>
+        <div className="mt-2 font-medium"><TranslatedText text="Generated on" /> {dayjs().format("DD MMM, YYYY HH:mm")} • {getPlatformName()}</div>
       </div>
 
       {/* PDF-specific styles */}

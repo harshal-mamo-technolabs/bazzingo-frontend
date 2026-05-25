@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/outline";
-import { getSubmittedFullAssessments } from "../../services/dashbaordService";
+import {
+  getSubmittedFullAssessments,
+  getAdhdUserReports,
+  getEmotionalIntelligenceUserReports,
+} from "../../services/dashbaordService";
 import dayjs from "dayjs";
 import AssessmentDownloader from "./AssessmentDownloader";
+import AdhdProfileReportDownloader from "./AdhdProfileReportDownloader";
+import EmotionalIntelligenceProfileReportDownloader from "./EmotionalIntelligenceProfileReportDownloader";
 import TranslatedText from "../TranslatedText.jsx";
 
 const FinishedCertificates = ({ highlight = false }) => {
@@ -18,12 +24,105 @@ const FinishedCertificates = ({ highlight = false }) => {
     const fetchAssessments = async () => {
       try {
         setLoading(true);
-        const response = await getSubmittedFullAssessments();
-        if (response?.status === 'success') {
-          setAssessments(response.data?.scores || []);
+        setError(null);
+
+        const [fullRes, adhdRes, eiRes] = await Promise.allSettled([
+          getSubmittedFullAssessments(),
+          getAdhdUserReports(),
+          getEmotionalIntelligenceUserReports(),
+        ]);
+
+        let list = [];
+        if (fullRes.status === "fulfilled" && fullRes.value?.status === "success") {
+          list = [...(fullRes.value.data?.scores || [])];
+        } else if (fullRes.status === "rejected") {
+          console.error("Failed to fetch full assessment scores:", fullRes.reason);
+        }
+
+        const adhdItems = [];
+        if (adhdRes.status === "fulfilled" && adhdRes.value?.status === "success") {
+          const d = adhdRes.value.data || {};
+          const userInfo = d.userInfo && typeof d.userInfo === "object" ? d.userInfo : {};
+          const reports = Array.isArray(d.reports) ? d.reports : [];
+          reports.forEach((r, i) => {
+            const meta = r.assessmentMeta && typeof r.assessmentMeta === "object"
+              ? r.assessmentMeta
+              : {};
+            const stableId =
+              meta.reportId ||
+              meta._id ||
+              `adhd-${meta.completedAt || meta.assessmentId || i}-${i}`;
+            adhdItems.push({
+              _id: stableId,
+              assessmentName: "ADHD Trait Assessment",
+              date:
+                meta.completedAt ||
+                r.completedAt ||
+                new Date().toISOString(),
+              canGenerateCertificate: false,
+              canGenerateReport: true,
+              isAdhdReport: true,
+              adhdReportPayload: {
+                totalScore: r.totalScore,
+                byCategoryScores: r.byCategoryScores || {},
+                assessmentMeta: { ...meta },
+                userInfo,
+              },
+            });
+          });
+        } else if (adhdRes.status === "rejected") {
+          console.error("Failed to fetch ADHD reports:", adhdRes.reason);
+        }
+
+        const eiItems = [];
+        if (eiRes.status === "fulfilled" && eiRes.value?.status === "success") {
+          const d = eiRes.value.data || {};
+          const userInfo = d.userInfo && typeof d.userInfo === "object" ? d.userInfo : {};
+          const reports = Array.isArray(d.reports) ? d.reports : [];
+          reports.forEach((r, i) => {
+            const meta =
+              r.assessmentMeta && typeof r.assessmentMeta === "object"
+                ? r.assessmentMeta
+                : {};
+            const stableId =
+              meta.reportId ||
+              meta._id ||
+              `ei-${meta.completedAt || meta.assessmentId || i}-${i}`;
+            eiItems.push({
+              _id: stableId,
+              assessmentName: "Emotional Intelligence Assessment",
+              date: meta.completedAt || r.completedAt || new Date().toISOString(),
+              canGenerateCertificate: false,
+              canGenerateReport: true,
+              isEmotionalIntelligenceReport: true,
+              eiReportPayload: {
+                totalScore: r.totalScore,
+                byCategoryScores: r.byCategoryScores || {},
+                assessmentMeta: { ...meta },
+                userInfo,
+              },
+            });
+          });
+        } else if (eiRes.status === "rejected") {
+          console.error("Failed to fetch Emotional Intelligence reports:", eiRes.reason);
+        }
+
+        const merged = [...list, ...adhdItems, ...eiItems].sort(
+          (a, b) => new Date(b.date || 0) - new Date(a.date || 0),
+        );
+
+        setAssessments(merged);
+
+        if (
+          merged.length === 0 &&
+          fullRes.status === "rejected" &&
+          adhdRes.status === "rejected" &&
+          eiRes.status === "rejected"
+        ) {
+          setError("Could not load assessment history.");
         }
       } catch (err) {
-        console.error('Failed to fetch submitted assessments:', err);
+        console.error("Failed to fetch submitted assessments:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -262,19 +361,53 @@ const FinishedCertificates = ({ highlight = false }) => {
         </div>
 
       {/* Assessment Downloaders */}
-      {assessments.map((assessment) => (
-        <AssessmentDownloader
-          key={assessment._id}
-          assessment={assessment}
-          onDownloadStart={handleDownloadStart}
-          onDownloadEnd={handleDownloadEnd}
-          ref={(el) => {
-            if (el) {
-              downloaderRefs.current[assessment._id] = el;
-            }
-          }}
-        />
-      ))}
+      {assessments.map((assessment) =>
+        assessment.isAdhdReport ? (
+          <AdhdProfileReportDownloader
+            key={`adhd-${assessment._id}`}
+            apiData={assessment.adhdReportPayload}
+            reportListId={assessment._id}
+            onDownloadStart={handleDownloadStart}
+            onDownloadEnd={handleDownloadEnd}
+            ref={(el) => {
+              if (el) {
+                downloaderRefs.current[assessment._id] = el;
+              } else {
+                delete downloaderRefs.current[assessment._id];
+              }
+            }}
+          />
+        ) : assessment.isEmotionalIntelligenceReport ? (
+          <EmotionalIntelligenceProfileReportDownloader
+            key={`ei-${assessment._id}`}
+            apiData={assessment.eiReportPayload}
+            reportListId={assessment._id}
+            onDownloadStart={handleDownloadStart}
+            onDownloadEnd={handleDownloadEnd}
+            ref={(el) => {
+              if (el) {
+                downloaderRefs.current[assessment._id] = el;
+              } else {
+                delete downloaderRefs.current[assessment._id];
+              }
+            }}
+          />
+        ) : (
+          <AssessmentDownloader
+            key={assessment._id}
+            assessment={assessment}
+            onDownloadStart={handleDownloadStart}
+            onDownloadEnd={handleDownloadEnd}
+            ref={(el) => {
+              if (el) {
+                downloaderRefs.current[assessment._id] = el;
+              } else {
+                delete downloaderRefs.current[assessment._id];
+              }
+            }}
+          />
+        ),
+      )}
     </>
   );
 };

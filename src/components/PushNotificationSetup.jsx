@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import pushNotificationService from '../services/pushNotificationService';
 import { toast } from 'react-hot-toast';
+import { applyPlatformBrandToText } from '../config/accessControl';
+import TranslatedText from './TranslatedText.jsx';
 
 const PushNotificationSetup = () => {
   const [isSupported, setIsSupported] = useState(false);
@@ -106,7 +108,7 @@ const PushNotificationSetup = () => {
     try {
       if (Notification.permission === 'granted') {
         const notification = new Notification('Test Notification', {
-          body: 'This is a test notification from Bazzingo!',
+          body: applyPlatformBrandToText('This is a test notification from Bazzingo!'),
           icon: '/icon-192x192.svg',
           badge: '/badge-72x72.svg'
         });
@@ -176,7 +178,7 @@ const PushNotificationSetup = () => {
 
       {permission === 'default' && (
         <div>
-          <p className="text-gray-600 mb-4">Enable push notifications to receive real-time updates and important messages from Bazzingo.</p>
+          <p className="text-gray-600 mb-4"><TranslatedText text="Enable push notifications to receive real-time updates and important messages from Bazzingo." /></p>
           <div className="flex gap-3">
             <button 
               onClick={handleEnableNotifications}
@@ -232,7 +234,7 @@ const PushNotificationSetup = () => {
             </svg>
             <p className="text-green-600 font-medium">Push notifications are enabled</p>
           </div>
-          <p className="text-gray-600 mb-4">You'll receive real-time updates and important messages from Bazzingo.</p>
+          <p className="text-gray-600 mb-4"><TranslatedText text="You'll receive real-time updates and important messages from Bazzingo." /></p>
           <button 
             onClick={handleDisableNotifications}
             disabled={isLoading}

@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import AuthLayout from '../components/Layout/AuthLayout';
 import Button from '../components/Form/Button';
 import { LoginForm } from '../components/Authentication';
-import { isMSISDNControlEnabled } from '../config/accessControl';
+import { isMSISDNControlEnabled, getPlatformBulbPath, getPlatformLogoPath } from '../config/accessControl';
+import { PlatformLogo } from '../components/PlatformBrand';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
@@ -144,8 +145,8 @@ const Login = () => {
       style={{ height: '100%', backgroundColor: '#ffb7a2' }}
     >
       <img
-        src="/bazzingo-bulb.png"
-        alt="Bazzingo Bulb"
+        src={getPlatformBulbPath()}
+        alt="Platform illustration"
         className="absolute rounded-2xl"
         style={{
           width: '550px',
@@ -158,17 +159,13 @@ const Login = () => {
         className="absolute bottom-8 flex items-center justify-center bg-white rounded-2xl shadow-lg p-4"
         style={{ width: '42%', height: '12%' }}
       >
-        <img
-          src="/bazzingo-logo.png"
-          alt="Bazzingo Logo"
-          style={{ width: '75%' }}
-        />
+        <PlatformLogo style={{ width: '75%' }} />
       </div>
     </div>
   );
 
   return (
-    <AuthLayout illustration={illustration} responsiveIllustration="/bazzingo-bulb.png">
+    <AuthLayout illustration={illustration} responsiveIllustration={getPlatformBulbPath()}>
       <div className="text-center">
         <h1 className="md:text-5xl text-[32px] font-bold text-gray-800"><TranslatedText text="Welcome Back" /></h1>
         <p className="md:text-lg text-[16px] text-gray-500 mt-2 md:mb-0 mb-2">

@@ -1,5 +1,6 @@
 import pushNotificationService from './pushNotificationService';
 import { toast } from 'react-hot-toast';
+import { applyPlatformBrandToText } from '../config/accessControl';
 
 class NotificationPermissionService {
   constructor() {
@@ -56,7 +57,7 @@ class NotificationPermissionService {
 
     try {
       // Show a friendly toast message first
-      toast.loading('Would you like to receive notifications from Bazzingo?', {
+      toast.loading(applyPlatformBrandToText('Would you like to receive notifications from Bazzingo?'), {
         duration: 5000,
         id: 'notification-permission-toast'
       });
@@ -70,7 +71,7 @@ class NotificationPermissionService {
       if (permission === 'granted') {
         // Subscribe to push notifications
         await pushNotificationService.subscribeToPush();
-        toast.success('🎉 Notifications enabled! You\'ll receive updates from Bazzingo.');
+        toast.success(applyPlatformBrandToText('🎉 Notifications enabled! You\'ll receive updates from Bazzingo.'));
       } else if (permission === 'denied') {
         toast.error('Notifications blocked. You can enable them later in your browser settings.');
       } else {

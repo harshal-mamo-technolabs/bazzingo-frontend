@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, AlertTriangle, Award, FileText, Clock, CheckCircle } from 'lucide-react';
+import TranslatedText from '../TranslatedText';
 
 const AssessmentStartConfirmationModal = ({ isOpen, onClose, onConfirm, assessment, isProcessing }) => {
   if (!isOpen || !assessment) return null;
@@ -52,9 +53,7 @@ const AssessmentStartConfirmationModal = ({ isOpen, onClose, onConfirm, assessme
                 <div>
                   <h4 className="text-sm font-semibold text-amber-800 mb-1">One-Time Assessment</h4>
                   <p className="text-sm text-amber-700 leading-relaxed">
-                    This is a <strong>one-time opportunity</strong>. Once you start and submit your assessment, 
-                    you will not be able to retake it. Your score will be permanently recorded in Bazzingo 
-                    and cannot be changed or updated.
+                    <TranslatedText text="This is a one-time opportunity. Once you start and submit your assessment, you will not be able to retake it. Your score will be permanently recorded in Bazzingo and cannot be changed or updated." />
                   </p>
                 </div>
               </div>
@@ -70,7 +69,7 @@ const AssessmentStartConfirmationModal = ({ isOpen, onClose, onConfirm, assessme
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-800">Official Score Record</p>
-                    <p className="text-xs text-gray-600">Your performance will be permanently saved in your Bazzingo profile</p>
+                    <p className="text-xs text-gray-600"><TranslatedText text="Your performance will be permanently saved in your Bazzingo profile" /></p>
                   </div>
                 </div>
 
@@ -93,7 +92,7 @@ const AssessmentStartConfirmationModal = ({ isOpen, onClose, onConfirm, assessme
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-800">Detailed Performance Report</p>
-                      <p className="text-xs text-gray-600">Comprehensive analysis of your cognitive abilities and recommendations</p>
+                      <p className="text-xs text-gray-600">Comprehensive analysis of your abilities and recommendations</p>
                     </div>
                   </div>
                 )}

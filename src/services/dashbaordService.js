@@ -216,6 +216,135 @@ export async function getFullAssessment(assessmentId) {
   }
 }
 
+// ADHD assessment questions (GET /assessment/adhd/:assessmentId)
+export async function getAdhdAssessment(assessmentId) {
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/adhd/${assessmentId}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching ADHD assessment:", error);
+    throw error;
+  }
+}
+
+// ADHD assessment report summary (GET /assessment/adhd/:assessmentId/report)
+export async function getAdhdReport(assessmentId) {
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/adhd/${assessmentId}/report`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching ADHD report:", error);
+    throw error;
+  }
+}
+
+// User's completed ADHD reports (GET /assessment/adhd/report)
+export async function getAdhdUserReports() {
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/adhd/report`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching ADHD user reports:", error);
+    throw error;
+  }
+}
+
+// ADHD assessment submit (POST /assessment/adhd/submit)
+export async function submitAdhdAssessment(payload) {
+  try {
+    const response = await axios.post(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/adhd/submit`,
+      payload,
+      { headers: getAuthHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting ADHD assessment:", error);
+    throw error;
+  }
+}
+
+/** Mirrors ADHD routing; slug must match backend. */
+const EI_ASSESSMENT_SEGMENT = "emotional-intelligence";
+
+// Emotional Intelligence assessment questions (GET /assessment/emotional-intelligence/:assessmentId)
+export async function getEmotionalIntelligenceAssessment(assessmentId) {
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/${EI_ASSESSMENT_SEGMENT}/${assessmentId}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Emotional Intelligence assessment:", error);
+    throw error;
+  }
+}
+
+// Emotional Intelligence report (GET /assessment/emotional-intelligence/:assessmentId/report)
+export async function getEmotionalIntelligenceReport(assessmentId) {
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/${EI_ASSESSMENT_SEGMENT}/${assessmentId}/report`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Emotional Intelligence report:", error);
+    throw error;
+  }
+}
+
+// Emotional Intelligence assessment submit (POST /assessment/emotional-intelligence/submit)
+export async function submitEmotionalIntelligenceAssessment(payload) {
+  try {
+    const response = await axios.post(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/${EI_ASSESSMENT_SEGMENT}/submit`,
+      payload,
+      { headers: getAuthHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting Emotional Intelligence assessment:", error);
+    throw error;
+  }
+}
+
+// User's completed Emotional Intelligence reports (GET /assessment/emotional-intelligence/report)
+export async function getEmotionalIntelligenceUserReports() {
+  try {
+    const response = await axios.get(
+      `${API_CONNECTION_HOST_URL}${ASSESSMENT_ENDPOINT}/${EI_ASSESSMENT_SEGMENT}/report`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Emotional Intelligence user reports:", error);
+    throw error;
+  }
+}
+
 // All Assessment (all assessments from /assessment)
 export async function getAllAssessment() {
   try {

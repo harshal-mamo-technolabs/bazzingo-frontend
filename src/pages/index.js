@@ -18,6 +18,8 @@ import Statistics from './Statistics';
 import Leadboard from './Leadboard';
 import NotFound from './NotFound';
 import VisualReasoningStaticAssessment from "../components/assessments/VisualReasoningStaticAssessment.jsx";
+import AdhdAssessment from "../components/assessments/AdhdAssessment.jsx";
+import EmotionalIntelligenceAssessment from "../components/assessments/EmotionalIntelligenceAssessment.jsx";
 import PaymentSuccess from './PaymentSuccess';
 import PaymentCancel from './PaymentCancel';
 import Plan from './Plan';
@@ -83,6 +85,8 @@ export {
   Leadboard,
   NotFound,
   VisualReasoningStaticAssessment,
+  AdhdAssessment,
+  EmotionalIntelligenceAssessment,
   PaymentSuccess,
   PaymentCancel,
   Plan,

@@ -54,8 +54,8 @@ const AssessmentPurchaseModal = ({
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed">
               {paymentsEnabled
-                ? <TranslatedText text="To access this comprehensive cognitive assessment, you'll need to purchase it. This premium assessment will provide you with detailed insights into your cognitive abilities." />
-                : <TranslatedText text="This comprehensive cognitive assessment will provide you with detailed insights into your cognitive abilities." />}
+                ? <TranslatedText text="To access this comprehensive assessment, you'll need to purchase it. This premium assessment will provide you with detailed insights into your cognitive abilities." />
+                : <TranslatedText text="This comprehensive∂ assessment will provide you with detailed insights into your cognitive abilities." />}
             </p>
           </div>
 
@@ -69,7 +69,7 @@ const AssessmentPurchaseModal = ({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800"><TranslatedText text="Comprehensive Assessment" /></p>
-                  <p className="text-xs text-gray-600"><TranslatedText text="Detailed evaluation of your cognitive abilities" /></p>
+                  <p className="text-xs text-gray-600"><TranslatedText text="Detailed evaluation of you abilities" /></p>
                 </div>
               </div>
 

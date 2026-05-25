@@ -48,7 +48,7 @@ const SubscriptionBlocker = ({
           
           {/* Message */}
           <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-            {message}
+            <TranslatedText text={message} />
           </p>
           
           {/* Subscribe Button */}
