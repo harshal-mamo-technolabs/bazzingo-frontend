@@ -85,7 +85,7 @@ function TermsOfUse() {
                                         Úplný prístup k službám je poskytovaný na základe spoplatneného odberu, ktorý sa dá zakúpiť na rôzne obdobia a ak ho nezrušíte, automaticky sa obnoví. Našim odberateľom poskytujeme úplný prístup k obsahu, pokým majú aktívny odber.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        <strong>Cena služby:</strong> 6,15 €/týždeň s DPH. Kľúčové slovo: LUM. Krátke číslo: 7402.
+                                        <strong>Cena služby:</strong> 6,16 €/týždeň s DPH. Kľúčové slovo: LUM. Krátke číslo: 7402.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Poplatky sú splatné pri zakúpení odberu bez ohľadu na to, či budete službu reálne používať alebo nie. Nárok na účtovanie poplatku vzniká výlučne na základe poskytovania práva na sťahovanie, prijímanie a/alebo používanie obsahu.
@@ -190,7 +190,7 @@ function TermsOfUse() {
                                         Informácie o ukončení služieb a prerušení poskytovania informácií cez SMS nájdete na stránkach služby a v bezplatnej uvítacej správe. Službu môžete zrušiť aj e-mailom na adrese <strong>{TERMS_CONTACT_EMAIL}</strong>.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
-                                        Na zrušenie služby pošlite SMS s textom <strong>BAZINGO STOP</strong> na číslo <strong>7402</strong>.
+                                        Na zrušenie služby pošlite SMS s textom <strong>LUM STOP</strong> na číslo <strong>7402</strong>.
                                     </p>
                                     <p className="text-gray-600 mb-4" style={bodyStyle}>
                                         Ak je vaša krajina trvalého bydliska súčasťou Európskej únie, máte právo odstúpiť od odberu do 14 dní bez uvedenia dôvodu. Po odstúpení budú všetky platby refundované bez zbytočného odkladu, najneskôr do 14 dní od oznámenia odstúpenia. V prípade využívania služieb počas obdobia odstúpenia zaplatíte pomernú časť ceny za už poskytnuté služby. Právo na odstúpenie sa neuplatňuje na obnovenie odberu.

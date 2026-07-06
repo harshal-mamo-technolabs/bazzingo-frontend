@@ -126,7 +126,7 @@ export const VISIBILITY_CONTROLS = {
   // Profile settings behaviour
   // When true, the corresponding option is HIDDEN.
   hideUpdatePasswordForMSISDN: true,
-  hideHelpScoutBeaconForMSISDN: true,
+  hideHelpScoutBeaconForMSISDN: false,
 };
 
 export const isComponentVisible = (component) =>
@@ -167,9 +167,9 @@ export const isStripePaymentEnabled = () =>
 // - Use `isMSISDNControlEnabled('useMSISDNSignup')` in auth forms.
 // ---------------------------------------------------------------------------
 export const MSISDN_CONTROLS = {
-  enabled: true,
-  useMSISDNSignup: true,
-  useMSISDNLogin: true,
+  enabled: false,
+  useMSISDNSignup: false,
+  useMSISDNLogin: false,
 };
 
 export const isMSISDNControlEnabled = (control) =>

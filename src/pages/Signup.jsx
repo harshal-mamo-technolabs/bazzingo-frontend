@@ -63,8 +63,11 @@ const Signup = () => {
     }
   }, [searchParams]);
 
-  // If user hits /signup without required query params, send them to /login
+  // MSISDN flow only: if user hits /signup without required query params, send
+  // them to /login. In email/password mode the signup form is always available.
   useEffect(() => {
+    if (!isMSISDNControlEnabled('useMSISDNSignup')) return;
+
     const isid = searchParams.get('isid');
     const userPublicUuid = getUserPublicUuidFromSearchParams(searchParams);
     const mobileFromQuery = searchParams.get('mobile_number')?.trim();

@@ -214,13 +214,19 @@ const Login = () => {
         <div className="text-center mt-3 md:mt-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">
             <TranslatedText text="Don't have an account?" />{' '}
-            <a
-              href="https://bazingo.testbrain.net"
-              className="text-orange-500 font-medium"
-              rel="noopener noreferrer"
-            >
-              <TranslatedText text="Signup" />
-            </a>
+            {isMSISDNControlEnabled('useMSISDNSignup') ? (
+              <a
+                href="https://bazingo.testbrain.net"
+                className="text-orange-500 font-medium"
+                rel="noopener noreferrer"
+              >
+                <TranslatedText text="Signup" />
+              </a>
+            ) : (
+              <a href="/signup" className="text-orange-500 font-medium">
+                <TranslatedText text="Signup" />
+              </a>
+            )}
           </p>
         </div>
       </div>
