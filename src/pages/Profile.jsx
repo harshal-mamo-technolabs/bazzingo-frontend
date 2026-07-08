@@ -13,6 +13,8 @@ import {
   TicketIcon,
   ChatBubbleBottomCenterTextIcon,
   ClipboardIcon,
+  PhoneIcon,
+  ArrowUturnLeftIcon,
 } from "@heroicons/react/24/solid";
 import { getUserProfile, updateUserProfile } from "../services/dashbaordService";
 import { refreshTokenLP } from "../services/authService";
@@ -507,6 +509,18 @@ const Profile = () => {
       route: "/impressum",
       pageKey: "impressum",
     },
+    {
+      label: "Vertrag widerrufen",
+      icon: ArrowUturnLeftIcon,
+      route: "/withdraw-contract",
+      pageKey: "withdrawContract",
+    },
+    {
+      label: <TranslatedText text="Contacts" />,
+      icon: PhoneIcon,
+      route: "/contacts",
+      pageKey: "contacts",
+    },
   ];
   
   // Filter based on access control
@@ -518,6 +532,9 @@ const Profile = () => {
   const filteredBaseSettings = baseSettings.filter(setting => {
     if (setting.route === "/update-password" && isComponentVisible('hideUpdatePasswordForMSISDN')) {
       return false; // Hide update password if switch is enabled
+    }
+    if (setting.route === "/help-faqs" && !isComponentVisible('help')) {
+      return false; // Hide Help when disabled via access control
     }
     return true;
   });

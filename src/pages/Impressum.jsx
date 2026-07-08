@@ -53,7 +53,7 @@ function Impressum() {
                                 <TranslatedText text="Phone number: 0800 589 5405" />
                             </p>
                             <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400', lineHeight: '1.5' }}>
-                                <TranslatedText text="Email: bazingo.de@silverlines.info" />
+                                <TranslatedText text="Email:" /> bazingo.de@silverlines.info
                             </p>
                         </div>
 

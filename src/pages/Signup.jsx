@@ -50,6 +50,19 @@ const Signup = () => {
     "We couldn't verify your subscription. You will be redirected to the landing page.",
   );
 
+  // Email/password flow only: account creation happens on the external landing
+  // page, not in the app. Redirect anyone who opens /signup to VITE_LANDING_PAGE_URL.
+  const shouldRedirectToLandingOnSignup =
+    !isMSISDNControlEnabled('useMSISDNSignup') && // MSISDN flow keeps the in-app signup form
+    Boolean(import.meta.env.VITE_LANDING_PAGE_URL); // no landing page configured → fall back to the form
+
+  useEffect(() => {
+    if (!shouldRedirectToLandingOnSignup) return;
+    // Use replace() (not href assignment) so /signup is NOT left in browser
+    // history. Otherwise pressing Back returns to /signup and shows its content.
+    window.location.replace(import.meta.env.VITE_LANDING_PAGE_URL);
+  }, [shouldRedirectToLandingOnSignup]);
+
   // Handle legacy MSISDN redirect logic (isid flow)
   useEffect(() => {
     const isid = searchParams.get('isid');
@@ -281,6 +294,12 @@ const Signup = () => {
       </div>
     </div>
   );
+
+  // While redirecting to the landing page, render nothing so the signup form
+  // never flashes on screen (on first load or on a back/bfcache restore).
+  if (shouldRedirectToLandingOnSignup) {
+    return null;
+  }
 
   return (
     <AuthLayout illustration={illustration} responsiveIllustration={getPlatformHeadImagePath()}>

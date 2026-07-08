@@ -4,6 +4,7 @@ import { Brain } from 'lucide-react';
 import { calculateCertificateValues, generateCertificateId, generateReportUrl } from '../../utils/certificationUtils';
 import { generateDomainScores } from '../../utils/reportUtils';
 import TranslatedText from '../TranslatedText.jsx';
+import { getPlatformName } from '../../config/accessControl';
 
 
 /**
@@ -91,7 +92,7 @@ const CertificateComponent = forwardRef(({
                 <Brain className="w-8 h-8 text-white" />
               </div>
               <div className="text-4xl font-bold text-[#1e3a8a] tracking-wider">
-                BAZINGO
+                {getPlatformName().toUpperCase()}
               </div>
             </div>
           </div>

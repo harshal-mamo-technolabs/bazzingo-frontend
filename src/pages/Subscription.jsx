@@ -4,11 +4,12 @@ import MainLayout from '../components/Layout/MainLayout';
 import { API_CONNECTION_HOST_URL } from '../utils/constant';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
-import { 
-  fetchSubscriptionStatus, 
-  selectSubscriptionData, 
+import {
+  fetchSubscriptionStatus,
+  selectSubscriptionData,
   selectSubscriptionLoading,
-  selectSubscriptionError 
+  selectSubscriptionError,
+  selectHasActiveSubscription
 } from '../app/subscriptionSlice';
 import { toast } from 'react-hot-toast';
 import TranslatedText from '../components/TranslatedText.jsx';
@@ -40,6 +41,10 @@ const Subscription = () => {
   const subscriptionData = useSelector(selectSubscriptionData);
   const isLoading = useSelector(selectSubscriptionLoading);
   const error = useSelector(selectSubscriptionError);
+  // Whether the user actually has a live subscription (active / trialing / or
+  // cancelled-but-still-within-period). Keyed on status, NOT planName — the API
+  // can return planName: null while the subscription is perfectly active.
+  const hasActiveSubscription = useSelector(selectHasActiveSubscription);
 
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelStep, setCancelStep] = useState(0);
@@ -380,7 +385,7 @@ const Subscription = () => {
           )}
 
           {/* Subscription Status */}
-          {subscriptionData.subscriptionStatus === 'none' || !subscriptionData.planName ? (
+          {!hasActiveSubscription ? (
             // No Active Subscription
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
               <div className="text-center">
@@ -407,7 +412,7 @@ const Subscription = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-4">
-                      <h2 className="text-xl font-semibold text-gray-900 mr-3">{subscriptionData.planName}</h2>
+                      <h2 className="text-xl font-semibold text-gray-900 mr-3">{subscriptionData.planName || 'Premium Plan'}</h2>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(subscriptionData.status)}`}>
                         {getStatusText(subscriptionData.status)}
                       </span>

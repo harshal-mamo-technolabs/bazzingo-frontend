@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { getPlatformLogoPath, getPlatformName } from '../../../config/accessControl';
+import { getPlatformName } from '../../../config/accessControl';
+import { PlatformLockup } from '../../PlatformBrand';
 import { buildEiReportModel } from '../../../utils/eiReportUtils.js';
 import {
   A4_WIDTH_PX,
@@ -110,7 +111,7 @@ const EmotionalIntelligenceReport = forwardRef(function EmotionalIntelligenceRep
               color: '#64748b',
             }}
           >
-            <img src={getPlatformLogoPath()} alt="" style={{ height: 20 }} />
+            <PlatformLockup iconClassName="h-5 w-auto" textClassName="text-base" />
             <span style={{ fontWeight: 600 }}>Emotional Intelligence Report</span>
           </div>
         </div>

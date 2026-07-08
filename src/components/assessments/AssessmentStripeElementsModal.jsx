@@ -7,6 +7,7 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant';
+import { isStripePaymentEnabled } from '../../config/accessControl';
 
 /* ----------------------------------
    Helpers
@@ -252,55 +253,123 @@ function AssessmentStripeElementsModal({
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState('eur');
   const [loading, setLoading] = useState(true);
+  const [statusMsg, setStatusMsg] = useState('Preparing secure payment…');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!isOpen || !assessment) return;
-
-    const init = async () => {
-      setLoading(true);
-      setError('');
-
-      try {
-        const stripeInstance = await getStripe();
-        setStripe(stripeInstance);
-
-        const res = await apiCall('/stripe-elements/create-payment', {
-          method: 'POST',
-          body: JSON.stringify({
-            assessmentId: assessment._id || assessment.id,
-          }),
-        });
-
-        if (res.status !== 'success') {
-          throw new Error(res.message || 'Payment init failed');
-        }
-
-        setClientSecret(res.data.clientSecret);
-        setOrderId(res.data.orderId);
-        setAmount(res.data.amount);
-        setCurrency(res.data.currency);
-      } catch (err) {
-        setError(err.message || 'Failed to load payment');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
-  }, [isOpen, assessment]);
-
-  const handleSuccess = ({ orderId }) => {
+  const handleSuccess = ({ orderId: paidOrderId }) => {
     const assessmentId = assessment._id || assessment.id;
     localStorage.setItem('autoStartAssessmentId', assessmentId);
     if (assessment?.mainCategory) {
       localStorage.setItem('autoStartAssessmentMainCategory', assessment.mainCategory);
     }
 
-    window.location.href = `/payment/success?order_id=${orderId}&status=succeeded`;
+    window.location.href = `/payment/success?order_id=${paidOrderId}&status=succeeded`;
   };
 
-  if (!isOpen || !assessment) return null;
+  useEffect(() => {
+    if (!isOpen || !assessment) return;
+
+    // Guard against setting state after the modal closes / assessment changes.
+    let cancelled = false;
+
+    const init = async () => {
+      setLoading(true);
+      setError('');
+      setClientSecret('');
+      setStatusMsg('Preparing secure payment…');
+
+      try {
+        const stripeInstance = await getStripe();
+        if (cancelled) return;
+        setStripe(stripeInstance);
+
+        // One-click first: this charges the user's saved card instantly when
+        // there is one, and only asks for card details when there isn't.
+        const res = await apiCall('/stripe-elements/pay', {
+          method: 'POST',
+          body: JSON.stringify({
+            assessmentId: assessment._id || assessment.id,
+          }),
+        });
+        if (cancelled) return;
+
+        if (res.status !== 'success' && res.status !== 'requires_action') {
+          throw new Error(res.message || 'Payment init failed');
+        }
+
+        const data = res.data || {};
+        if (data.orderId) setOrderId(data.orderId);
+        if (data.amount != null) setAmount(data.amount);
+        if (data.currency) setCurrency(data.currency);
+
+        switch (data.outcome) {
+          case 'paid':
+            // Saved card was charged — nothing to enter, go straight to success.
+            setStatusMsg('Payment successful! Redirecting…');
+            handleSuccess({ orderId: data.orderId });
+            return;
+
+          case 'requires_action': {
+            // Saved card needs 3-D Secure. An off-session charge that fails with
+            // `authentication_required` leaves the PaymentIntent in
+            // `requires_payment_method` (NOT `requires_action`), so handleNextAction
+            // would reject. confirmCardPayment re-confirms the saved card on-session
+            // and runs the 3DS challenge — it works from either state.
+            setStatusMsg('Confirming your card…');
+            const confirmOptions = data.paymentMethodId
+              ? { payment_method: data.paymentMethodId }
+              : undefined;
+            const { error: actionError, paymentIntent } =
+              await stripeInstance.confirmCardPayment(data.clientSecret, confirmOptions);
+            if (cancelled) return;
+
+            if (actionError) {
+              setError(actionError.message || 'Card authentication failed. Please try another card.');
+              setLoading(false);
+              return;
+            }
+
+            // Sync order status server-side (the webhook does this too).
+            await apiCall('/stripe-elements/confirm-payment', {
+              method: 'POST',
+              body: JSON.stringify({ orderId: data.orderId }),
+            });
+            if (cancelled) return;
+
+            if (paymentIntent?.status === 'succeeded') {
+              setStatusMsg('Payment successful! Redirecting…');
+              handleSuccess({ orderId: data.orderId });
+            } else {
+              setError('Payment could not be completed. Please try again.');
+              setLoading(false);
+            }
+            return;
+          }
+
+          case 'collect_payment_method':
+          default:
+            // No saved card (or it was declined) — show the card form once.
+            // The card gets saved so the next payment is true one-click.
+            setClientSecret(data.clientSecret);
+            setLoading(false);
+            return;
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || 'Failed to load payment');
+          setLoading(false);
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, assessment]);
+
+  if (!isStripePaymentEnabled() || !isOpen || !assessment) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -318,10 +387,26 @@ function AssessmentStripeElementsModal({
       >
 
 
+        {loading && !error && (
+          <div className="py-10 flex flex-col items-center justify-center text-center">
+            <div className="w-10 h-10 border-4 border-[#FF6B3E] border-t-transparent rounded-full animate-spin" />
+            <p className="mt-4 text-sm text-gray-600">{statusMsg}</p>
+          </div>
+        )}
+
         {error && (
-          <p className="mt-8 text-center text-red-600">
-            {error}
-          </p>
+          <>
+            <p className="mt-8 text-center text-red-600">
+              {error}
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="mt-6 w-full py-3 rounded-xl border font-semibold"
+            >
+              Close
+            </button>
+          </>
         )}
 
         {!loading && !error && stripe && clientSecret && (

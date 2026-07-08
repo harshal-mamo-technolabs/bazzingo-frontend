@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { getPlatformLogoPath, getPlatformName } from '../../../config/accessControl';
+import { getPlatformName } from '../../../config/accessControl';
+import { PlatformLockup } from '../../PlatformBrand';
 import { buildAdhdReportModel } from '../../../utils/adhdReportUtils.js';
 import {
   AdhdGauge,
@@ -68,7 +69,7 @@ const AdhdReport = forwardRef(function AdhdReport({ apiData }, ref) {
             Personal report • {variant === 'quick' ? 'Quick' : 'Full'} assessment
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#64748b' }}>
-            <img src={getPlatformLogoPath()} alt="" style={{ height: 20 }} />
+            <PlatformLockup iconClassName="h-5 w-auto" textClassName="text-base" />
             <span style={{ fontWeight: 600 }}>ADHD Trait Report</span>
           </div>
         </div>

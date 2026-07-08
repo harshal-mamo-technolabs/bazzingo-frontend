@@ -4,7 +4,7 @@
 
 export const GLOBAL_LANGUAGE_OVERRIDE = {
   enabled: true,
-  defaultLanguage: 'sk',
+  defaultLanguage: 'de',
 };
 
 export const isGlobalLanguageOverrideEnabled = () =>
@@ -29,9 +29,9 @@ export const PLATFORM_BRAND_CONTROLS = {
       assessmentHeadPath: '/assessment/bazzingo-head.png',
     },
     lumria: {
-      displayName: 'Lumria',
-      // Replace these paths with dedicated Lumria assets in /public when available.
-      logoPath: '/lumria-logo.png',
+      displayName: 'bazzingo',
+      // Replace these paths with dedicated brand assets in /public when available.
+      logoPath: '/testbrain-logo.jpg',
       bulbPath: '/bazzingo-bulb.png',
       puzzleBearPath: '/bazzingo-puzzle-bear.png',
       headImagePath: '/bazzingo-head.png',
@@ -108,24 +108,27 @@ export const VISIBILITY_CONTROLS = {
 
   // Main nav
   assessmentsNavItem: true,
-  premiumNavItem: false,
-  subscriptionNavItem: false,
+  premiumNavItem: true,
+  subscriptionNavItem: true,
   changePasswordNavItem: false,
-  dashboardCertifiedCard: false,
-  statisticsCertifiedCard: false,
-  assessmentCompletionUpsell: false,
+  dashboardCertifiedCard: true,
+  statisticsCertifiedCard: true,
+  assessmentCompletionUpsell: true,
 
   // Profile pages
   privacyPolicy: true,
   termsOfUse: true,
   agb: false,
   impressum: false,
+  help: true,
   faq: true,
   ticketRaisingSystem: true,
+  withdrawContract: false,
+  contacts: false,
 
   // Profile settings behaviour
   // When true, the corresponding option is HIDDEN.
-  hideUpdatePasswordForMSISDN: true,
+  hideUpdatePasswordForMSISDN: false,
   hideHelpScoutBeaconForMSISDN: false,
 };
 
@@ -145,8 +148,8 @@ export const isProfilePageVisible = (pageKey) => {
 // - Use `isAssessmentPaymentEnabled()` / `isStripePaymentEnabled()` in UI or logic.
 // ---------------------------------------------------------------------------
 export const ASSESSMENT_BEHAVIOUR_CONTROLS = {
-  assessmentPaymentsEnabled: false,
-  stripePaymentsEnabled: false,
+  assessmentPaymentsEnabled: true,
+  stripePaymentsEnabled: true,
 };
 
 export const isAssessmentPaymentEnabled = () =>
@@ -185,7 +188,7 @@ export const isMSISDNControlEnabled = (control) =>
 // ---------------------------------------------------------------------------
 export const LANGUAGE_CONTROLS = {
   enabled: true,
-  defaultLanguage: 'sk',
+  defaultLanguage: 'de',
 };
 
 // ---------------------------------------------------------------------------
@@ -197,7 +200,7 @@ export const LANGUAGE_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const DEFAULT_COUNTRY_CONTROLS = {
   enabled: true,
-  defaultCountry: 'Slovakia',
+  defaultCountry: 'Germany',
 };
 
 // ---------------------------------------------------------------------------
@@ -215,7 +218,7 @@ export const DEFAULT_COUNTRY_CONTROLS = {
 // ---------------------------------------------------------------------------
 export const COUNTRY_PROFILE_CONTROLS = {
   enabled: true,
-  activeCountry: 'Slovakia', // 'Germany' | 'Slovakia' | 'Romania' | null
+  activeCountry: 'Germany', // 'Germany' | 'Slovakia' | 'Romania' | null
   profiles: {
     Germany: {
       language: 'de',

@@ -15,7 +15,7 @@ import {
 } from '../../utils/reportUtils.jsx';
 import { bandFromTotal } from '../../utils/certificationUtils.jsx';
 import TranslatedText from '../TranslatedText.jsx';
-import { PlatformLogo } from '../PlatformBrand';
+import { PlatformLockup } from '../PlatformBrand';
 import { getPlatformName } from '../../config/accessControl';
 
 /**
@@ -68,7 +68,7 @@ const ReportComponent = forwardRef(({
             {isQuick && <span className="ml-2 text-orange-500 font-medium">(<TranslatedText text="Quick Assessment" />)</span>}
           </div>
         </div>
-        <PlatformLogo className="h-10" />
+        <PlatformLockup iconClassName="h-9 w-auto" textClassName="text-2xl" />
       </div>
 
       {/* Assessment Info */}

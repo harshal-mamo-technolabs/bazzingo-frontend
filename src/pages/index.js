@@ -10,6 +10,8 @@ import Impressum from './Impressum';
 import AGB from './AGB';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsOfUse from './TermsOfUse';
+import WithdrawContract from './WithdrawContract';
+import Contacts from './Contacts';
 import Assessments from './Assessments';
 import Games from './Games';
 import Dashboard from './Dashboard';
@@ -77,6 +79,8 @@ export {
   AGB,
   PrivacyPolicy,
   TermsOfUse,
+  WithdrawContract,
+  Contacts,
   Assessments,
   Dashboard,
   Games,

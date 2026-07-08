@@ -40,7 +40,7 @@ function PrivacyPolicy() {
                         </h2>
                     </div>
                     <p className="text-gray-600" style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', fontWeight: '400' }}>
-                        <TranslatedText text="By using Bazzingo, you agree to the following privacy terms and conditions." />
+                        <TranslatedText text="By using Testbrain, you agree to the following privacy terms and conditions." />
                     </p>
                 </div>
 

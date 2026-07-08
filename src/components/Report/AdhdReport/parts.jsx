@@ -1,5 +1,6 @@
 import React from 'react';
-import { getPlatformLogoPath, getPlatformName } from '../../../config/accessControl';
+import { getPlatformName } from '../../../config/accessControl';
+import { PlatformLockup } from '../../PlatformBrand';
 import {
   RadarChart,
   PolarGrid,
@@ -498,7 +499,7 @@ export function PageHeader({ title, subtitle, kicker, accent = '#FF6B3E' }) {
           {kicker}
         </div>
         <div className="flex items-center gap-2 text-[11px] text-slate-500">
-          <img src={getPlatformLogoPath()} alt="" className="h-5 w-auto" />
+          <PlatformLockup iconClassName="h-5 w-auto" textClassName="text-base" />
           <span className="font-semibold">ADHD Trait Report</span>
         </div>
       </div>

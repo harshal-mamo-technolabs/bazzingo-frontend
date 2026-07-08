@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { API_CONNECTION_HOST_URL } from '../../utils/constant';
+import { isStripePaymentEnabled } from '../../config/accessControl';
 
 // Get user token from localStorage
 const getUserToken = () => {
@@ -410,13 +411,26 @@ function StripeElementsCheckoutModal({
   const [error, setError] = useState('');
   const [selectedPlanType, setSelectedPlanType] = useState(initialPlanType);
 
+  // One-click (saved card) state
+  const [savedCard, setSavedCard] = useState(null);   // { id, brand, last4 } | null
+  const [checkingCard, setCheckingCard] = useState(true);
+  const [useNewCard, setUseNewCard] = useState(false); // user chose to enter a different card
+  const [oneClickProcessing, setOneClickProcessing] = useState(false);
+  const [oneClickStep, setOneClickStep] = useState('');
+  const [oneClickError, setOneClickError] = useState('');
+
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen && plan) {
       setSelectedPlanType(initialPlanType);
       setError('');
       setClientSecret('');
+      setUseNewCard(false);
+      setSavedCard(null);
+      setOneClickError('');
+      setOneClickProcessing(false);
       initializeStripe();
+      loadSavedCard();
     }
   }, [isOpen, plan, initialPlanType]);
 
@@ -432,9 +446,110 @@ function StripeElementsCheckoutModal({
     }
   };
 
-  // Create subscription when plan type changes
+  // Look up whether the user already has a card on file. If so, we can offer a
+  // one-click subscribe instead of asking for card details again.
+  const loadSavedCard = async () => {
+    setCheckingCard(true);
+    try {
+      const res = await apiCall('/stripe-v2/payment-methods');
+      const methods = res?.data?.paymentMethods || [];
+      const def = methods.find((m) => m.isDefault) || methods[0] || null;
+      setSavedCard(def);
+    } catch (e) {
+      setSavedCard(null);
+    } finally {
+      setCheckingCard(false);
+    }
+  };
+
+  // One-click subscribe using the saved card via the v1 /stripe/subscription
+  // endpoint (charges the saved card off-session; handles 3DS; creates the sub).
+  const handleOneClickSubscribe = async () => {
+    setOneClickProcessing(true);
+    setOneClickError('');
+    setOneClickStep(selectedPlanType === 'trial' ? 'Starting your trial…' : 'Processing payment…');
+
+    try {
+      const origin = window.location.origin;
+      const res = await apiCall('/stripe/subscription', {
+        method: 'POST',
+        body: JSON.stringify({
+          planId: plan._id,
+          type: selectedPlanType,
+          successUrl: `${origin}/payment/success`,
+          cancelUrl: `${origin}/payment/cancel`,
+        }),
+      });
+
+      // Backend could not one-click (no server-side default card) and returned a
+      // hosted Checkout session — fall back to the embedded card form instead.
+      if (res?.data?.url && !res?.data?.requiresAction && !res?.data?.subscriptionId) {
+        setUseNewCard(true);
+        setOneClickProcessing(false);
+        return;
+      }
+
+      // 3-D Secure required on the saved card.
+      if (res?.data?.requiresAction && res?.data?.clientSecret) {
+        setOneClickStep('Confirming your card…');
+        const stripe = stripeInstance || (await getStripe());
+        const { error: confirmErr, paymentIntent } = await stripe.confirmCardPayment(
+          res.data.clientSecret,
+          res.data.paymentMethodId ? { payment_method: res.data.paymentMethodId } : undefined
+        );
+
+        if (confirmErr) {
+          setOneClickError(confirmErr.message || 'Card authentication failed. Try a different card.');
+          setOneClickProcessing(false);
+          return;
+        }
+        if (!paymentIntent || (paymentIntent.status !== 'succeeded' && paymentIntent.status !== 'processing')) {
+          setOneClickError('Payment could not be completed. Please try again.');
+          setOneClickProcessing(false);
+          return;
+        }
+
+        // Finalize: create the subscription now that the payment is authenticated.
+        setOneClickStep('Finalizing subscription…');
+        const confirmRes = await apiCall('/stripe/subscription/confirm', {
+          method: 'POST',
+          body: JSON.stringify({
+            paymentIntentId: res.data.paymentIntentId || paymentIntent.id,
+            planId: plan._id,
+            type: selectedPlanType,
+          }),
+        });
+
+        if (confirmRes?.status === 'success' && confirmRes?.data?.subscriptionId) {
+          handleSuccess({ subscriptionId: confirmRes.data.subscriptionId, status: confirmRes.data.status });
+        } else {
+          setOneClickError(confirmRes?.message || 'Could not finalize the subscription.');
+          setOneClickProcessing(false);
+        }
+        return;
+      }
+
+      // Immediate success (no 3DS needed).
+      if (res?.status === 'success' && res?.data?.subscriptionId) {
+        handleSuccess({ subscriptionId: res.data.subscriptionId, status: res.data.status });
+        return;
+      }
+
+      // Anything unexpected — surface it and let them enter a card.
+      setOneClickError(res?.message || 'Could not subscribe with your saved card. Please enter card details.');
+      setOneClickProcessing(false);
+    } catch (err) {
+      setOneClickError(err.message || 'Subscription failed. Please try again.');
+      setOneClickProcessing(false);
+    }
+  };
+
+  // Create subscription (SetupIntent) — only when we actually need the card
+  // form, i.e. there's no saved card or the user chose to enter a new one.
   useEffect(() => {
     if (!stripeInstance || !plan || !isOpen) return;
+    if (checkingCard) return;                 // wait until we know about the saved card
+    if (savedCard && !useNewCard) return;     // one-click path — no SetupIntent needed
 
     const createSubscription = async () => {
       setCreatingSubscription(true);
@@ -488,7 +603,7 @@ function StripeElementsCheckoutModal({
     };
 
     createSubscription();
-  }, [stripeInstance, plan, selectedPlanType, isOpen]);
+  }, [stripeInstance, plan, selectedPlanType, isOpen, checkingCard, savedCard, useNewCard]);
 
   const handleSuccess = (data) => {
     // Navigate to success page
@@ -506,7 +621,7 @@ function StripeElementsCheckoutModal({
     console.error('Payment error:', error);
   };
 
-  if (!isOpen) return null;
+  if (!isStripePaymentEnabled() || !isOpen) return null;
 
   const trialAmount = plan?.prices?.trial?.unitAmount;
   const monthlyAmount = plan?.prices?.monthly?.priceId?.unitAmount;
@@ -534,7 +649,7 @@ function StripeElementsCheckoutModal({
           </div> */}
 
           {/* Loading State */}
-          {loading && (
+          {(loading || checkingCard) && (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="w-10 h-10 border-4 border-gray-200 border-t-[#FF6B3E] rounded-full animate-spin" />
               <p className="mt-4 text-gray-500 text-sm">Loading payment form...</p>
@@ -542,7 +657,7 @@ function StripeElementsCheckoutModal({
           )}
 
           {/* Error State */}
-          {error && !loading && (
+          {error && !loading && !checkingCard && (
             <div className="text-center py-8">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -563,8 +678,91 @@ function StripeElementsCheckoutModal({
           )}
 
           {/* Payment Form */}
-          {!loading && !error && plan && (
+          {!loading && !checkingCard && !error && plan && (
             <>
+              {savedCard && !useNewCard ? (
+                /* ---- One-click: user already has a card on file ---- */
+                <div className="py-2">
+                  {(() => {
+                    const isTrial = selectedPlanType === 'trial';
+                    const amt = isTrial ? trialAmount : selectedPlanType === 'yearly' ? yearlyAmount : monthlyAmount;
+                    return (
+                      <div className="mb-5 p-4 rounded-xl bg-gray-50 border border-gray-200 text-center">
+                        <p className="text-gray-900 font-semibold">{plan?.name}</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">
+                          €{Number(amt || 0).toFixed(2)}
+                          {!isTrial && (
+                            <span className="text-sm font-normal text-gray-500">/{selectedPlanType === 'yearly' ? 'year' : 'month'}</span>
+                          )}
+                        </p>
+                        {isTrial && monthlyAmount != null && (
+                          <p className="text-xs text-gray-500 mt-1">then €{Number(monthlyAmount).toFixed(2)}/month</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 mb-4">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                    </svg>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-medium text-gray-900">
+                        {(savedCard.brand || 'Card').toUpperCase()} •••• {savedCard.last4}
+                      </p>
+                      <p className="text-xs text-gray-500">Saved card</p>
+                    </div>
+                  </div>
+
+                  {oneClickError && (
+                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                      <p className="text-red-600 text-sm">{oneClickError}</p>
+                    </div>
+                  )}
+
+                  {oneClickProcessing && oneClickStep && (
+                    <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-xl">
+                      <p className="text-orange-700 text-sm flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        {oneClickStep}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleOneClickSubscribe}
+                    disabled={oneClickProcessing}
+                    className={`w-full py-3 rounded-xl text-white font-semibold transition-all ${
+                      oneClickProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FF6B3E] hover:brightness-95'
+                    }`}
+                  >
+                    {oneClickProcessing ? 'Processing…' : selectedPlanType === 'trial' ? 'Start Trial' : 'Subscribe Now'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setOneClickError(''); setUseNewCard(true); }}
+                    disabled={oneClickProcessing}
+                    className="w-full mt-2 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                  >
+                    Use a different card
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    disabled={oneClickProcessing}
+                    className="w-full mt-1 py-2 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <>
               {/* Pricing Summary */}
               {/* <div className="mb-6 p-4 rounded-xl bg-gray-50 border border-gray-200">
                 <div className="flex justify-between items-center">
@@ -664,6 +862,9 @@ function StripeElementsCheckoutModal({
                       display: none !important;
                     }
                   `}</style>
+                </>
+              )}
+
                 </>
               )}
 

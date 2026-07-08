@@ -1,7 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import MainLayout from '../components/Layout/MainLayout';
 import { getPlansData } from '../services/dashbaordService';
 import StripeElementsCheckoutModal from '../components/Payment/StripeElementsCheckoutModal';
+import {
+  fetchSubscriptionStatus,
+  selectSubscriptionData,
+  selectHasActiveSubscription,
+} from '../app/subscriptionSlice';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -114,12 +120,14 @@ const Toggle = ({ onChange }) => {
   );
 };
 
-const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, isLoggedIn }) => {
+const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, hasActiveSubscription, isLoggedIn }) => {
   const priceData = plan.prices[billing === 'monthly' ? 'monthly' : 'yearly'];
   const trialPriceData = plan.prices.trial;
-  
+
   const hasPlan = userSubscription && userSubscription.planId === plan._id;
   const isTrial = userSubscription && userSubscription.status === 'trialing' && userSubscription.planId === plan._id;
+  // A subscription is active on some plan, but not this card's plan → block buying another.
+  const blockedByActivePlan = hasActiveSubscription && !hasPlan;
   
   const perMonth = useMemo(() => {
     if (!priceData || !priceData.priceId) return 0;
@@ -164,12 +172,6 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, is
           </div>
         )}
         
-        {hasPlan && (
-          <div className="absolute -left-2 top-4 rotate-[315deg] bg-green-500 text-white text-xs px-10 py-1 font-semibold z-10">
-            {isTrial ? 'ACTIVE TRIAL' : 'CURRENT PLAN'}
-          </div>
-        )}
-        
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -178,10 +180,16 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, is
           }}
         />
         <div className="p-6 relative">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between gap-2 mb-2">
             <h3 className="text-gray-900" style={{ fontSize: '20px', fontWeight: 800 }}>
               {plan.name}
             </h3>
+            {hasPlan && (
+              <span className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full bg-green-50 text-green-700 border border-green-200 text-[11px] font-semibold px-2.5 py-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                {isTrial ? 'Active Trial' : 'Current Plan'}
+              </span>
+            )}
           </div>
 
           <p className="text-gray-500 mb-5" style={{ fontSize: '13px' }}>
@@ -220,10 +228,18 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, is
             <>
               {hasPlan ? (
                 <button
-                  className="mt-4 w-full py-3 rounded-xl bg-green-500 text-white font-semibold cursor-default"
+                  className="mt-4 w-full py-3 rounded-xl bg-green-50 text-green-700 border border-green-200 font-semibold cursor-default"
                   disabled
                 >
                   {isTrial ? 'Trial Active' : 'Current Plan'}
+                </button>
+              ) : blockedByActivePlan ? (
+                <button
+                  className="mt-4 w-full py-3 rounded-xl bg-gray-200 text-gray-500 font-semibold cursor-not-allowed"
+                  disabled
+                  title="You already have an active plan. Manage your subscription to change plans."
+                >
+                  Plan already active
                 </button>
               ) : (
                 <>
@@ -236,7 +252,7 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, is
                   >
                     {!isLoggedIn ? 'Login to Subscribe' : `Choose ${plan.name}`}
                   </button>
-                  
+
                   {trialPriceData && trialPriceData.unitAmount && !hasPlan && billing !== 'yearly' && (
                     <button
                       onClick={() => onTrialSelect(plan)}
@@ -266,57 +282,38 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, is
 };
 
 function Payment() {
+  const dispatch = useDispatch();
   const [billing, setBilling] = useState('monthly');
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userSubscription, setUserSubscription] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+
+  // Subscription state — canonical source is the backend via the Redux slice
+  // (same source the /subscription page uses). The old sessionStorage check was
+  // empty on direct navigation, so an active plan was never detected here.
+  const subscriptionData = useSelector(selectSubscriptionData);
+  const hasActiveSubscription = useSelector(selectHasActiveSubscription);
+
+  // Shape kept for PlanCard's per-card "current plan" matching.
+  const userSubscription = hasActiveSubscription
+    ? { planId: subscriptionData.planId, status: subscriptionData.status }
+    : null;
+
   // Stripe Elements Modal state
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedPlanType, setSelectedPlanType] = useState('monthly');
 
-
-  const checkUserSubscription = () => {
-    try {
-      const subscriptionData = sessionStorage.getItem('lastSubscriptionResponse');
-      if (subscriptionData) {
-        const subscription = JSON.parse(subscriptionData);
-        if (subscription.payload && subscription.payload.data) {
-          const status = subscription.payload.data.status;
-          const subscriptionId = subscription.payload.data.subscriptionId;
-          
-          const isHealthyStatus = ['active', 'trialing', 'succeeded', 'processing'].includes(status?.toLowerCase());
-          const hasValidSubscriptionId = subscriptionId && subscriptionId.trim() !== '';
-          const isSuccessReason = !subscription.reason || 
-            ['redirect_success', '3ds_success_redirect'].includes(subscription.reason);
-          
-          if (isHealthyStatus && hasValidSubscriptionId && isSuccessReason) {
-          setUserSubscription({
-            planId: subscription.payload.data.plan?.id,
-              status: status,
-              subscriptionId: subscriptionId
-            });
-          } else {
-            setUserSubscription(null);
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Error checking user subscription:', e);
-      setUserSubscription(null);
-    }
-  };
-
   useEffect(() => {
+    // Pull the live subscription status from the backend on mount.
+    dispatch(fetchSubscriptionStatus());
+
     const fetchPlans = async () => {
       try {
         setLoading(true);
         const response = await getPlansData();
         setPlans(response.data.plans);
-        checkUserSubscription();
       } catch (err) {
         setError(err.message);
         console.error('Failed to fetch plans:', err);
@@ -343,12 +340,16 @@ function Payment() {
 
     fetchPlans();
     checkLoggedIn();
-  }, []);
+  }, [dispatch]);
 
   // Open checkout modal with selected plan
   const handleSelect = (plan, currentBilling) => {
     if (!isLoggedIn) {
       setError('Please log in to subscribe to a plan.');
+      return;
+    }
+    if (hasActiveSubscription) {
+      setError('You already have an active plan. Manage your subscription to change plans.');
       return;
     }
     setSelectedPlan(plan);
@@ -361,6 +362,10 @@ function Payment() {
       setError('Please log in to subscribe to a plan.');
       return;
     }
+    if (hasActiveSubscription) {
+      setError('You already have an active plan. Manage your subscription to change plans.');
+      return;
+    }
     setSelectedPlan(plan);
     setSelectedPlanType('trial');
     setCheckoutModalOpen(true);
@@ -369,10 +374,8 @@ function Payment() {
   const handleCloseCheckoutModal = () => {
     setCheckoutModalOpen(false);
     setSelectedPlan(null);
-  };
-
-  const refreshSubscriptionStatus = () => {
-    checkUserSubscription();
+    // Re-pull status so a just-completed purchase is reflected immediately.
+    dispatch(fetchSubscriptionStatus());
   };
 
   if (loading) {
@@ -404,10 +407,14 @@ function Payment() {
               
               {userSubscription && (
                 <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg inline-block">
-                  <strong>Current Plan:</strong> {plans.find(p => p._id === userSubscription.planId)?.name || 'Unknown'} 
+                  <strong>Current Plan:</strong> {plans.find(p => p._id === userSubscription.planId)?.name || subscriptionData.planName || 'Your plan'}
                   {userSubscription.status === 'trialing' && ' (Trial)'}
                 </div>
               )}
+            </div>
+
+            <div className="max-w-md mx-auto">
+              <Alert message={error} />
             </div>
 
             <Toggle onChange={setBilling} />
@@ -421,6 +428,7 @@ function Payment() {
                   onSelect={handleSelect}
                   onTrialSelect={handleTrialSelect}
                   userSubscription={userSubscription}
+                  hasActiveSubscription={hasActiveSubscription}
                   isLoggedIn={isLoggedIn}
                 />
               ))}
