@@ -15,8 +15,12 @@ import {
   ClipboardIcon,
   PhoneIcon,
   ArrowUturnLeftIcon,
+  CircleStackIcon,
+  TrashIcon,
+  ReceiptRefundIcon,
 } from "@heroicons/react/24/solid";
 import { getUserProfile, updateUserProfile } from "../services/dashbaordService";
+import DeleteAccountModal from "../components/Profile/DeleteAccountModal";
 import { refreshTokenLP } from "../services/authService";
 import { login as loginAction, loading as loadingAction } from "../app/userSlice";
 import { getTokenExpiry, API_RESPONSE_STATUS_SUCCESS } from "../utils/constant";
@@ -25,7 +29,7 @@ import TranslatedText from "../components/TranslatedText.jsx";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useI18n } from "../context/I18nContext.jsx";
-import { isProfilePageVisible, isComponentVisible } from "../config/accessControl";
+import { isProfilePageVisible, isComponentVisible, isStripeUser } from "../config/accessControl";
 
 
 // Premium Celebration Modal Component
@@ -363,6 +367,7 @@ const Profile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { setLanguage } = useI18n();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isTokenLogin, setIsTokenLogin] = useState(false);
@@ -469,6 +474,11 @@ const Profile = () => {
       icon: QuestionMarkCircleIcon,
       route: "/help-faqs",
     },
+    {
+      label: <TranslatedText text="Data & GDPR" />,
+      icon: CircleStackIcon,
+      route: "/data-privacy",
+    },
   ];
   
   // Conditionally visible profile pages
@@ -498,6 +508,15 @@ const Profile = () => {
       pageKey: "termsOfUse",
     },
     {
+      label: <TranslatedText text="Refund Policy" />,
+      icon: ReceiptRefundIcon,
+      route: "/refund-policy",
+      pageKey: "refundPolicy",
+      // Stripe-billed users only — the policy covers card refunds, which do not
+      // apply to carrier-billed (MSISDN) accounts.
+      stripeOnly: true,
+    },
+    {
       label: <TranslatedText text="AGB" />,
       icon: DocumentTextIcon,
       route: "/agb",
@@ -523,9 +542,9 @@ const Profile = () => {
     },
   ];
   
-  // Filter based on access control
+  // Filter based on access control, then drop Stripe-only pages for MSISDN users
   const visibleProfilePages = profilePages.filter(page =>
-    isProfilePageVisible(page.pageKey)
+    isProfilePageVisible(page.pageKey) && (!page.stripeOnly || isStripeUser(userData))
   );
   
   // Filter base settings to hide update password if switch is enabled
@@ -879,6 +898,18 @@ const Profile = () => {
                       <ChevronRight className="w-4 h-4 text-gray-400 profile-setting-chevron transition-transform duration-300 group-hover:translate-x-0.5" />
                     </div>
                   ))}
+
+                  {/* Danger zone: Delete Account */}
+                  <div
+                    className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-all duration-300 hover:border-red-300 hover:shadow-sm"
+                    onClick={() => setIsDeleteModalOpen(true)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <TrashIcon className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110" />
+                      <span className="text-red-600 text-[12px]"><TranslatedText text="Delete Account" /></span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-red-300 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1000,6 +1031,18 @@ const Profile = () => {
                 <ChevronRight className="w-4 h-4 text-gray-400 transition-transform duration-300 group-hover:translate-x-0.5" />
               </div>
             ))}
+
+            {/* Danger zone: Delete Account */}
+            <div
+              className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-all duration-300 hover:border-red-300 hover:shadow-sm"
+              onClick={() => setIsDeleteModalOpen(true)}
+            >
+              <div className="flex items-center gap-3">
+                <TrashIcon className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110" />
+                <span className="text-red-600 text-[12px]"><TranslatedText text="Delete Account" /></span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-red-300 transition-transform duration-300 group-hover:translate-x-0.5" />
+            </div>
           </div>
         </div>
 
@@ -1022,8 +1065,14 @@ const Profile = () => {
         }}
       />
       
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
+
       {/* Celebration Modal for Token Login */}
-      <CelebrationModal 
+      <CelebrationModal
         isOpen={showCelebration} 
         onClose={() => {
           setShowCelebration(false);

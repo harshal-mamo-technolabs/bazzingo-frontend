@@ -32,6 +32,12 @@ export const FORGOT_PASSWORD_ENDPOINT = "/auth/forgot-password";
 export const UPDATE_PASSWORD_ENDPOINT = "/auth/reset-password";
 export const REFRESH_TOKEN_LP_ENDPOINT = "/auth/refresh-token-lp";
 
+// GDPR: download all personal data for the authenticated user
+export const DATA_EXPORT_ENDPOINT = "/user/data-export";
+
+// Account: permanently delete the authenticated user's account
+export const DELETE_ACCOUNT_ENDPOINT = "/user/delete-account";
+
 export const API_RESPONSE_STATUS_SUCCESS = 'success';
 export const API_RESPONSE_STATUS_ERROR = 'error';
 

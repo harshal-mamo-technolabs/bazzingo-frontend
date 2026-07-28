@@ -118,6 +118,7 @@ export const VISIBILITY_CONTROLS = {
   // Profile pages
   privacyPolicy: true,
   termsOfUse: true,
+  refundPolicy: true,
   agb: false,
   impressum: false,
   help: true,
@@ -170,13 +171,47 @@ export const isStripePaymentEnabled = () =>
 // - Use `isMSISDNControlEnabled('useMSISDNSignup')` in auth forms.
 // ---------------------------------------------------------------------------
 export const MSISDN_CONTROLS = {
-  enabled: false,
+  enabled: true,
   useMSISDNSignup: false,
   useMSISDNLogin: false,
 };
 
 export const isMSISDNControlEnabled = (control) =>
   Boolean(MSISDN_CONTROLS.enabled && MSISDN_CONTROLS[control]);
+
+// ---------------------------------------------------------------------------
+// BILLING MODE
+// The app operates in one of two mutually-exclusive billing modes:
+// - 'msisdn': mobile-carrier / SMS billing (active when MSISDN auth is enabled).
+// - 'stripe': card billing via Stripe (the default when MSISDN is disabled).
+// Use `getActiveBillingMode()` / `isMsisdnBillingMode()` to render mode-specific
+// copy (e.g. billing FAQs, help content).
+// ---------------------------------------------------------------------------
+export const isMsisdnBillingMode = () => Boolean(MSISDN_CONTROLS.enabled);
+
+export const getActiveBillingMode = () =>
+  isMsisdnBillingMode() ? 'msisdn' : 'stripe';
+
+// ---------------------------------------------------------------------------
+// PER-USER BILLING TYPE
+// A single deployment can hold both carrier-billed and card-billed accounts, so
+// billing-specific content (e.g. the Stripe refund policy) is gated per user
+// rather than per deployment.
+// - A user is an MSISDN user when their profile carries an `msisdn`.
+// - When the profile is not loaded yet (or lacks the field), fall back to
+//   whether the MSISDN auth flows are actually active for this deployment.
+// - Use `isStripeUser(user)` / `isMsisdnUser(user)`.
+// ---------------------------------------------------------------------------
+export const isMsisdnUser = (user) => {
+  if (user && typeof user === 'object' && 'msisdn' in user) {
+    return Boolean(user.msisdn);
+  }
+  return (
+    isMSISDNControlEnabled('useMSISDNSignup') || isMSISDNControlEnabled('useMSISDNLogin')
+  );
+};
+
+export const isStripeUser = (user) => !isMsisdnUser(user);
 
 // ---------------------------------------------------------------------------
 // LANGUAGE_CONTROLS
