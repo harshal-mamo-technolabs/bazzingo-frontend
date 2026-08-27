@@ -29,7 +29,7 @@ export const PLATFORM_BRAND_CONTROLS = {
       assessmentHeadPath: '/assessment/bazzingo-head.png',
     },
     lumria: {
-      displayName: 'bazzingo',
+      displayName: 'Testbrain',
       // Replace these paths with dedicated brand assets in /public when available.
       logoPath: '/testbrain-logo.jpg',
       bulbPath: '/bazzingo-bulb.png',
@@ -107,6 +107,8 @@ export const VISIBILITY_CONTROLS = {
   enabled: true,
 
   // Main nav
+  // Premium/Subscription nav and the certified/upsell cards all lead into Stripe
+  // checkout, so they stay off while `stripePaymentsEnabled` is false.
   assessmentsNavItem: true,
   premiumNavItem: true,
   subscriptionNavItem: true,
@@ -121,14 +123,18 @@ export const VISIBILITY_CONTROLS = {
   refundPolicy: true,
   agb: false,
   impressum: false,
-  help: true,
+  help: false,
   faq: true,
   ticketRaisingSystem: true,
-  withdrawContract: false,
-  contacts: false,
+  withdrawContract: true,
+  contacts: true,
+  dataPrivacy: true,
+  // Danger-zone entry in Profile that opens DeleteAccountModal.
+  deleteAccount: true,
 
   // Profile settings behaviour
   // When true, the corresponding option is HIDDEN.
+  // MSISDN accounts get a server-generated password, so update-password is a dead end.
   hideUpdatePasswordForMSISDN: false,
   hideHelpScoutBeaconForMSISDN: false,
 };
@@ -171,9 +177,9 @@ export const isStripePaymentEnabled = () =>
 // - Use `isMSISDNControlEnabled('useMSISDNSignup')` in auth forms.
 // ---------------------------------------------------------------------------
 export const MSISDN_CONTROLS = {
-  enabled: true,
-  useMSISDNSignup: false,
-  useMSISDNLogin: false,
+  enabled: false,
+  useMSISDNSignup: true,
+  useMSISDNLogin: true,
 };
 
 export const isMSISDNControlEnabled = (control) =>
@@ -380,7 +386,8 @@ export const MSISDN_COUNTRY_CONFIG = {
 };
 
 // Countries shown in MSISDN signup country dropdown (must exist in `countries` from utils/constant).
-export const MSISDN_SIGNUP_COUNTRY_FILTER = ['Germany', 'Slovakia', 'Romania'];
+// Germany-only deployment — add 'Slovakia' / 'Romania' back when those markets go live here.
+export const MSISDN_SIGNUP_COUNTRY_FILTER = ['Germany'];
 
 export const getMsisdnConfigForCountry = (countryName) => {
   if (!countryName) return null;
@@ -416,11 +423,28 @@ export const getMsisdnValidationCountry = () => {
 };
 
 // ---------------------------------------------------------------------------
+// toGermanNationalNumber
+// Reduces German input to its national significant number (no trunk `0`, no
+// country code) so `0170…`, `+49 170…`, `0049 170…` and `49 170…` all converge
+// on the same subscriber digits instead of double-prefixing `0049`.
+// The `49` branch only fires when there is no trunk `0` (i.e. the input was
+// already international) and the next digit is `1`, which every German mobile
+// national number starts with — so area codes like `0491…` are left alone.
+// ---------------------------------------------------------------------------
+const toGermanNationalNumber = (digits) => {
+  if (digits.startsWith('0049')) return digits.slice(4);
+  if (digits.startsWith('49') && digits[2] === '1') return digits.slice(2);
+  if (digits.startsWith('0')) return digits.slice(1);
+  return digits;
+};
+
+// ---------------------------------------------------------------------------
 // normalizeMsisdnForCountry
 // Normalizes raw MSISDN input to an international format per country rules.
 // - Germany:
 //    - Strip non-digits.
-//    - Remove leading `0` if present.
+//    - Reduce to the national significant number (drops trunk `0` and/or an
+//      existing `49`/`0049` country code).
 //    - Prefix with `0049`.
 // - Slovakia:
 //    - Expect number starting with `09`.
@@ -444,9 +468,7 @@ export const normalizeMsisdnForCountry = (rawMsisdn, countryName = null) => {
 
   switch (activeCountry) {
     case 'Germany': {
-      if (digits.startsWith('0')) {
-        digits = digits.slice(1);
-      }
+      digits = toGermanNationalNumber(digits);
       return digits ? `0049${digits}` : '';
     }
     case 'Slovakia': {
@@ -471,7 +493,7 @@ export const normalizeMsisdnForCountry = (rawMsisdn, countryName = null) => {
 // Basic MSISDN validation per country rules.
 // - Germany:
 //    - Strip non-digits.
-//    - Remove a single leading `0` if present.
+//    - Reduce to the national significant number (same rule as normalization).
 //    - Valid if at least one digit remains.
 // - Slovakia:
 //    - Strip non-digits.
@@ -494,10 +516,7 @@ export const isMsisdnValidForCountry = (rawMsisdn, countryName = null) => {
 
   switch (activeCountry) {
     case 'Germany': {
-      if (digits.startsWith('0')) {
-        digits = digits.slice(1);
-      }
-      return Boolean(digits);
+      return Boolean(toGermanNationalNumber(digits));
     }
     case 'Slovakia': {
       if (digits.startsWith('09')) {

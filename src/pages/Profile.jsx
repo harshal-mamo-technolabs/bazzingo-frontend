@@ -555,6 +555,9 @@ const Profile = () => {
     if (setting.route === "/help-faqs" && !isComponentVisible('help')) {
       return false; // Hide Help when disabled via access control
     }
+    if (setting.route === "/data-privacy" && !isComponentVisible('dataPrivacy')) {
+      return false; // Hide Data & GDPR when disabled via access control
+    }
     return true;
   });
   
@@ -900,16 +903,18 @@ const Profile = () => {
                   ))}
 
                   {/* Danger zone: Delete Account */}
-                  <div
-                    className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-all duration-300 hover:border-red-300 hover:shadow-sm"
-                    onClick={() => setIsDeleteModalOpen(true)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <TrashIcon className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110" />
-                      <span className="text-red-600 text-[12px]"><TranslatedText text="Delete Account" /></span>
+                  {isComponentVisible('deleteAccount') && (
+                    <div
+                      className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-all duration-300 hover:border-red-300 hover:shadow-sm"
+                      onClick={() => setIsDeleteModalOpen(true)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <TrashIcon className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110" />
+                        <span className="text-red-600 text-[12px]"><TranslatedText text="Delete Account" /></span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-red-300 transition-transform duration-300 group-hover:translate-x-0.5" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-red-300 transition-transform duration-300 group-hover:translate-x-0.5" />
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1033,16 +1038,18 @@ const Profile = () => {
             ))}
 
             {/* Danger zone: Delete Account */}
-            <div
-              className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-all duration-300 hover:border-red-300 hover:shadow-sm"
-              onClick={() => setIsDeleteModalOpen(true)}
-            >
-              <div className="flex items-center gap-3">
-                <TrashIcon className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110" />
-                <span className="text-red-600 text-[12px]"><TranslatedText text="Delete Account" /></span>
+            {isComponentVisible('deleteAccount') && (
+              <div
+                className="profile-setting-item group flex items-center justify-between text-sm p-3 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-all duration-300 hover:border-red-300 hover:shadow-sm"
+                onClick={() => setIsDeleteModalOpen(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <TrashIcon className="w-4 h-4 text-red-500 transition-all duration-300 group-hover:scale-110" />
+                  <span className="text-red-600 text-[12px]"><TranslatedText text="Delete Account" /></span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-red-300 transition-transform duration-300 group-hover:translate-x-0.5" />
               </div>
-              <ChevronRight className="w-4 h-4 text-red-300 transition-transform duration-300 group-hover:translate-x-0.5" />
-            </div>
+            )}
           </div>
         </div>
 

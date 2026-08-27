@@ -1917,5 +1917,436 @@ export const solvikTranslations = {
 'EU consumers may escalate disputes through the EU ODR platform. US consumers may contact the Better Business Bureau or their state attorney general\'s office.':
   'Spotrebitelia EÚ môžu spor riešiť cez platformu ODR. Spotrebitelia USA môžu kontaktovať BBB alebo úrad štátneho prokurátora.',
 
+// Refund & Terms of Use legal pages (2026-08-27)
+'Refund Policy': 'Zásady vrátenia peňazí',
+'Refund & Cancellation Policy': 'Zásady vrátenia peňazí a zrušenia',
+'This Refund & Cancellation Policy explains how subscription cancellations, withdrawal rights, and refund requests work for Testbrain, a digital IQ testing and cognitive assessment service operated by Comparo Media d.o.o., Miliutina Barača 7, 51000 Rijeka, Croatia.':
+  'Tieto Zásady vrátenia peňazí a zrušenia vysvetľujú, ako funguje zrušenie predplatného, právo na odstúpenie od zmluvy a žiadosti o vrátenie peňazí pre službu Testbrain, digitálnu službu testovania IQ a kognitívneho hodnotenia prevádzkovanú spoločnosťou Comparo Media d.o.o., Miliutina Barača 7, 51000 Rijeka, Chorvátsko.',
+'This policy applies to purchases made through Testbrain. Nothing in this policy limits any mandatory consumer rights that apply under the laws of your country of residence.':
+  'Tieto zásady sa vzťahujú na nákupy uskutočnené prostredníctvom služby Testbrain. Žiadne ustanovenie týchto zásad neobmedzuje záväzné práva spotrebiteľa, ktoré sa uplatňujú podľa právnych predpisov krajiny vášho bydliska.',
+'For assistance, you can use Testbrain Live Chat when available or contact support@testbrain.net.':
+  'Ak potrebujete pomoc, môžete využiť Testbrain Live Chat, ak je dostupný, alebo kontaktovať support@testbrain.net.',
+'Testbrain Purchases': 'Nákupy v službe Testbrain',
+'Testbrain currently offers both recurring subscriptions and individual one-time assessment purchases.':
+  'Testbrain v súčasnosti ponúka opakované predplatné aj jednorazové nákupy jednotlivých hodnotení.',
+'Trial Subscription': 'Skúšobné predplatné',
+'€2.99 for 3 days': '2,99 € na 3 dni',
+'The trial fee is charged when you subscribe.': 'Poplatok za skúšobnú verziu sa účtuje pri aktivácii predplatného.',
+'Unless cancelled before the trial period ends, the subscription automatically converts to the Monthly Subscription.':
+  'Ak predplatné nezrušíte pred koncom skúšobného obdobia, automaticky sa zmení na Mesačné predplatné.',
+'After the trial, the applicable subscription fee is €35.00 per month.':
+  'Po skončení skúšobnej verzie je príslušný poplatok za predplatné 35,00 € mesačne.',
+'Monthly Subscription': 'Mesačné predplatné',
+'Automatically renews each month until cancelled.': 'Automaticky sa obnovuje každý mesiac až do zrušenia.',
+'There is no fixed contract term.': 'Zmluva nemá pevne stanovenú dobu trvania.',
+'You can cancel at any time to prevent future renewals.': 'Predplatné môžete kedykoľvek zrušiť, aby ste zabránili budúcim obnoveniam.',
+'Individual Assessment Purchase': 'Jednorazový nákup hodnotenia',
+'€9.99 per assessment': '9,99 € za hodnotenie',
+'€10.00 per assessment': '10,00 € za hodnotenie',
+'One-time payment.': 'Jednorazová platba.',
+'No automatic renewal.': 'Bez automatického obnovenia.',
+'Does not create a Trial or Monthly Subscription.': 'Nezakladá Skúšobné ani Mesačné predplatné.',
+'Applies only to the individual assessment purchased.': 'Vzťahuje sa iba na zakúpené jednotlivé hodnotenie.',
+'Includes access to the purchased assessment and its applicable personalized report and certificate after completion.':
+  'Zahŕňa prístup k zakúpenému hodnoteniu a po jeho dokončení aj k príslušnej personalizovanej správe a certifikátu.',
+'All displayed prices include VAT where applicable.': 'Všetky zobrazené ceny zahŕňajú DPH, ak je to relevantné.',
+'Payments are securely processed by Stripe, Inc. Testbrain does not store your full payment card number.':
+  'Platby bezpečne spracúva spoločnosť Stripe, Inc. Testbrain neukladá úplné číslo vašej platobnej karty.',
+'Cancelling Your Subscription': 'Zrušenie predplatného',
+'You can cancel your Trial or Monthly Subscription at any time through your Testbrain account.':
+  'Skúšobné alebo Mesačné predplatné môžete kedykoľvek zrušiť prostredníctvom svojho účtu Testbrain.',
+'Log in to your Testbrain account.': 'Prihláste sa do svojho účtu Testbrain.',
+'Go to Subscription Management.': 'Prejdite do sekcie Správa predplatného.',
+'Select Cancel Subscription.': 'Vyberte možnosť Zrušiť predplatné.',
+'Follow the on-screen instructions and confirm the cancellation.': 'Postupujte podľa pokynov na obrazovke a potvrďte zrušenie.',
+'Once the cancellation is confirmed, no further automatic renewal charges will be made.':
+  'Po potvrdení zrušenia už nebudú účtované žiadne ďalšie poplatky za automatické obnovenie.',
+'Cancelling During the Trial': 'Zrušenie počas skúšobnej verzie',
+'If you cancel your Trial before it expires, the €35.00 Monthly Subscription charge will not be taken.':
+  'Ak zrušíte Skúšobnú verziu pred jej uplynutím, poplatok 35,00 € za Mesačné predplatné sa neuplatní.',
+'Cancelling a Monthly Subscription': 'Zrušenie Mesačného predplatného',
+'If you cancel an active Monthly Subscription, future renewals will stop.':
+  'Ak zrušíte aktívne Mesačné predplatné, budúce obnovenia sa zastavia.',
+'Unless otherwise stated during the cancellation process, you may continue using the subscription until the end of the billing period already paid for.':
+  'Pokiaľ nie je počas procesu zrušenia uvedené inak, môžete predplatné naďalej používať do konca už zaplateného zúčtovacieho obdobia.',
+'Cancellation Is Not a Refund': 'Zrušenie nie je vrátením peňazí',
+'Cancelling your subscription prevents future renewals. It does not automatically refund charges that have already been processed.':
+  'Zrušenie predplatného zabraňuje budúcim obnoveniam. Automaticky nevracia platby, ktoré už boli spracované.',
+'If you want to request a refund for an existing charge, see the refund sections below.':
+  'Ak chcete požiadať o vrátenie peňazí za existujúcu platbu, pozrite si nižšie uvedené časti o vrátení peňazí.',
+'Refund Requests for Subscription Charges': 'Žiadosti o vrátenie peňazí za platby predplatného',
+'Refund requests concerning Trial or Monthly Subscription payments are reviewed separately from subscription cancellation.':
+  'Žiadosti o vrátenie peňazí týkajúce sa platieb za Skúšobné alebo Mesačné predplatné sa posudzujú samostatne od zrušenia predplatného.',
+'If you would like to request a refund, you can contact a human Testbrain Support agent through Live Chat, when available.':
+  'Ak chcete požiadať o vrátenie peňazí, môžete kontaktovať zástupcu podpory Testbrain prostredníctvom Live Chatu, ak je dostupný.',
+'If Live Chat is unavailable, contact: support@testbrain.net': 'Ak Live Chat nie je dostupný, kontaktujte: support@testbrain.net',
+'Please use the email address associated with your Testbrain account where possible.':
+  'Ak je to možné, použite e-mailovú adresu spojenú s vaším účtom Testbrain.',
+'Submitting a refund request does not guarantee approval. We will review the circumstances of your request together with the applicable Testbrain terms and any mandatory consumer rights.':
+  'Podanie žiadosti o vrátenie peňazí nezaručuje jej schválenie. Okolnosti vašej žiadosti posúdime spolu s príslušnými podmienkami Testbrain a záväznými právami spotrebiteľa.',
+'30-Day Satisfaction Guarantee': '30-dňová záruka spokojnosti',
+'In addition to any mandatory consumer rights that may apply, Testbrain offers a voluntary 30-Day Satisfaction Guarantee for eligible Monthly Subscription charges.':
+  'Okrem prípadných záväzných práv spotrebiteľa ponúka Testbrain dobrovoľnú 30-dňovú záruku spokojnosti pre oprávnené platby Mesačného predplatného.',
+'If you are not satisfied, you may request a refund of your most recent Monthly Subscription charge within 30 days of that charge.':
+  'Ak nie ste spokojní, môžete do 30 dní od poslednej platby za Mesačné predplatné požiadať o jej vrátenie.',
+'The guarantee:': 'Táto záruka:',
+'Applies to the most recent eligible Monthly Subscription payment.': 'Vzťahuje sa na poslednú oprávnenú platbu Mesačného predplatného.',
+'Does not automatically refund earlier billing periods.': 'Automaticky nevracia platby za predchádzajúce zúčtovacie obdobia.',
+'Does not automatically cancel your subscription.': 'Automaticky nezrušuje vaše predplatné.',
+'Is generally available once per eligible billing relationship.': 'Je spravidla dostupná raz na jeden oprávnený zmluvný vzťah.',
+'Does not extend your access after an approved refund where access is terminated as part of that refund.':
+  'Nepredlžuje váš prístup po schválenom vrátení peňazí, ak je prístup v rámci tohto vrátenia ukončený.',
+'The 30-Day Satisfaction Guarantee is a voluntary commercial commitment offered by Comparo Media and is separate from any mandatory statutory consumer rights.':
+  '30-dňová záruka spokojnosti je dobrovoľný obchodný záväzok poskytovaný spoločnosťou Comparo Media a je nezávislý od akýchkoľvek záväzných zákonných práv spotrebiteľa.',
+'Individual Assessment Refunds': 'Vrátenie peňazí za jednotlivé hodnotenia',
+'Individual assessments are €9.99 one-time purchases and are not recurring subscriptions.':
+  'Jednotlivé hodnotenia sú jednorazovým nákupom za 9,99 € a nejde o opakované predplatné.',
+'Individual assessments are €10.00 one-time purchases and are not recurring subscriptions.':
+  'Jednotlivé hodnotenia sú jednorazovým nákupom za 10,00 € a nejde o opakované predplatné.',
+'Assessment Not Yet Started': 'Hodnotenie ešte nebolo začaté',
+'If you purchased an individual assessment but have not started it, you may submit a refund request for human review.':
+  'Ak ste si zakúpili jednotlivé hodnotenie, ale ešte ste ho nezačali, môžete podať žiadosť o vrátenie peňazí na manuálne posúdenie.',
+'Use Testbrain Live Chat when available or contact support@testbrain.net.':
+  'Použite Testbrain Live Chat, ak je dostupný, alebo kontaktujte support@testbrain.net.',
+'A human Testbrain Support agent will review the request and determine whether a refund can be issued.':
+  'Zástupca podpory Testbrain žiadosť posúdi a rozhodne, či je možné vrátenie peňazí vykonať.',
+'Assessment Already Completed': 'Hodnotenie už bolo dokončené',
+'If you have completed the individually purchased assessment and the corresponding report or certificate has been provided or made available to you, the purchase is generally not eligible for a voluntary refund, subject always to any mandatory consumer rights that apply.':
+  'Ak ste dokončili jednotlivo zakúpené hodnotenie a bola vám poskytnutá alebo sprístupnená príslušná správa alebo certifikát, nákup spravidla nie je oprávnený na dobrovoľné vrátenie peňazí, vždy však s výhradou prípadných záväzných práv spotrebiteľa.',
+'This does not affect your statutory rights where the digital content or service is defective, not supplied as agreed, or otherwise does not conform to the contract.':
+  'Toto ustanovenie neovplyvňuje vaše zákonné práva v prípade, že je digitálny obsah alebo služba chybná, nebola dodaná podľa dohody alebo inak nezodpovedá zmluve.',
+'EU/EEA Right of Withdrawal': 'Právo na odstúpenie od zmluvy pre EÚ/EHP',
+'This section applies to consumers in the European Union and European Economic Area where the statutory right of withdrawal applies.':
+  'Táto časť sa vzťahuje na spotrebiteľov v Európskej únii a Európskom hospodárskom priestore, kde platí zákonné právo na odstúpenie od zmluvy.',
+'Consumers generally have 14 days to withdraw from a distance contract without giving a reason, subject to the exceptions and conditions provided by applicable consumer law.':
+  'Spotrebitelia majú spravidla 14 dní na odstúpenie od zmluvy uzavretej na diaľku bez uvedenia dôvodu, s výhradou výnimiek a podmienok stanovených platným spotrebiteľským právom.',
+'Digital Content and Immediate Performance': 'Digitálny obsah a okamžité plnenie',
+'Certain Testbrain products provide digital content or digital services immediately after purchase.':
+  'Niektoré produkty Testbrain poskytujú digitálny obsah alebo digitálne služby okamžite po nákupe.',
+"Under EU consumer law, the statutory right of withdrawal for digital content not supplied on a tangible medium may cease once performance has begun where the legally required conditions are satisfied, including the consumer's prior express consent to immediate performance and acknowledgement of the resulting loss of the withdrawal right. The trader must also provide the required confirmation.":
+  'Podľa spotrebiteľského práva EÚ môže zákonné právo na odstúpenie od zmluvy pri digitálnom obsahu, ktorý nie je dodaný na hmotnom nosiči, zaniknúť po začatí plnenia, ak sú splnené zákonom požadované podmienky, vrátane predchádzajúceho výslovného súhlasu spotrebiteľa s okamžitým plnením a jeho potvrdenia straty práva na odstúpenie. Obchodník musí zároveň poskytnúť požadované potvrdenie.',
+'Where those legal requirements have not been satisfied, your statutory withdrawal rights remain unaffected.':
+  'Ak tieto zákonné požiadavky nie sú splnené, vaše zákonné právo na odstúpenie zostáva nedotknuté.',
+'Nothing in this policy is intended to remove or restrict a statutory withdrawal right that you retain under applicable law.':
+  'Žiadne ustanovenie týchto zásad nemá za cieľ zrušiť ani obmedziť zákonné právo na odstúpenie, ktoré vám patrí podľa platného práva.',
+'Exercising a Statutory Withdrawal Right': 'Uplatnenie zákonného práva na odstúpenie',
+'Where you have a statutory right of withdrawal, you may exercise it by making a clear statement that you wish to withdraw from the contract.':
+  'Ak máte zákonné právo na odstúpenie, môžete ho uplatniť jasným vyhlásením, že chcete od zmluvy odstúpiť.',
+'You can contact support@testbrain.net or use any withdrawal functionality provided directly through Testbrain where available.':
+  'Môžete kontaktovať support@testbrain.net alebo použiť funkciu na odstúpenie priamo v službe Testbrain, ak je dostupná.',
+'No specific wording is required as long as your decision to withdraw is clear.':
+  'Nie je potrebná žiadna konkrétna formulácia, pokiaľ je vaše rozhodnutie odstúpiť jednoznačné.',
+'Defective or Non-Conforming Digital Services': 'Chybné alebo nezhodné digitálne služby',
+'The refund rules above do not limit your statutory rights where Testbrain digital content or services are defective, unavailable, or otherwise fail to conform to the contract.':
+  'Vyššie uvedené pravidlá o vrátení peňazí neobmedzujú vaše zákonné práva v prípade, že je digitálny obsah alebo služby Testbrain chybné, nedostupné alebo inak nezodpovedajú zmluve.',
+'EU rules provide consumers with remedies for digital content and digital services that are not supplied as agreed, which can include bringing the service into conformity, a price reduction, or termination and reimbursement where the applicable legal conditions are met.':
+  'Pravidlá EÚ poskytujú spotrebiteľom nápravné prostriedky pre digitálny obsah a digitálne služby, ktoré neboli dodané v súlade s dohodou, vrátane uvedenia služby do súladu, zníženia ceny alebo ukončenia zmluvy a vrátenia peňazí, ak sú splnené príslušné zákonné podmienky.',
+'If you believe a technical problem materially prevented you from receiving the service you purchased, contact Testbrain Support and describe the issue.':
+  'Ak sa domnievate, že vám technický problém podstatne zabránil v prijatí zakúpenej služby, kontaktujte podporu Testbrain a opíšte problém.',
+'How to Request a Refund': 'Ako požiadať o vrátenie peňazí',
+'The preferred method is to contact a human Testbrain Support agent through Live Chat when available.':
+  'Preferovaným spôsobom je kontaktovať zástupcu podpory Testbrain prostredníctvom Live Chatu, ak je dostupný.',
+'If Live Chat is unavailable, email: support@testbrain.net': 'Ak Live Chat nie je dostupný, napíšte e-mail na: support@testbrain.net',
+'When contacting us, please provide:': 'Pri kontaktovaní nás uveďte:',
+'The email address associated with your Testbrain account.': 'E-mailovú adresu spojenú s vaším účtom Testbrain.',
+'The purchase or charge concerned.': 'Príslušný nákup alebo platbu.',
+'The approximate purchase or charge date.': 'Približný dátum nákupu alebo platby.',
+'A short explanation of the issue.': 'Stručné vysvetlenie problému.',
+'Please do not send your full payment card number, CVV/CVC, PIN, banking password, account password, or authentication codes.':
+  'Neposielajte prosím úplné číslo platobnej karty, CVV/CVC, PIN, bankové heslo, heslo k účtu ani autentifikačné kódy.',
+'We may request additional information where reasonably necessary to identify the transaction or investigate your request.':
+  'V odôvodnených prípadoch môžeme požiadať o ďalšie informácie potrebné na identifikáciu transakcie alebo prešetrenie vašej žiadosti.',
+'Refund Processing': 'Spracovanie vrátenia peňazí',
+'If a refund is approved, it will normally be issued to the original payment method.':
+  'Ak je vrátenie peňazí schválené, štandardne sa vykoná na pôvodný spôsob platby.',
+'We do not ordinarily issue refunds as store credit, vouchers, or to a different payment card.':
+  'Bežne nevraciame peniaze formou kreditu, poukazov ani na inú platobnú kartu.',
+'After Testbrain issues a refund, the time required for the funds to appear on your account depends on your bank, card issuer, and payment processor.':
+  'Po vykonaní vrátenia peňazí zo strany Testbrain závisí čas, za ktorý sa prostriedky objavia na vašom účte, od vašej banky, vydavateľa karty a spracovateľa platieb.',
+'Testbrain cannot control the final settlement time imposed by your financial institution.':
+  'Testbrain nemôže ovplyvniť konečný čas zúčtovania stanovený vašou finančnou inštitúciou.',
+'Where applicable law establishes a mandatory reimbursement deadline, that deadline will apply.':
+  'Ak platné právo stanovuje záväznú lehotu na vrátenie peňazí, uplatní sa táto lehota.',
+'Exceptions and Fair Use': 'Výnimky a primerané používanie',
+'Testbrain may refuse requests made under its voluntary refund or satisfaction guarantees in cases involving abuse, fraud, or misuse, including:':
+  'Testbrain môže odmietnuť žiadosti podané v rámci dobrovoľného vrátenia peňazí alebo záruky spokojnosti v prípadoch zneužitia, podvodu alebo nesprávneho použitia, vrátane:',
+'Repeated purchase-and-refund activity intended to obtain Testbrain services without payment.':
+  'Opakovaného nákupu a vrátenia peňazí s cieľom získať služby Testbrain bez platby.',
+'Multiple accounts created to repeatedly claim voluntary refunds.': 'Vytvárania viacerých účtov na opakované uplatňovanie dobrovoľného vrátenia peňazí.',
+'Fraudulent refund requests.': 'Podvodných žiadostí o vrátenie peňazí.',
+'Duplicate voluntary refund claims for the same transaction.': 'Duplicitných žiadostí o dobrovoľné vrátenie peňazí za tú istú transakciu.',
+"Other demonstrable abuse of Testbrain's voluntary refund programs.": 'Iného preukázateľného zneužitia dobrovoľných programov vrátenia peňazí Testbrain.',
+'These restrictions apply to voluntary Testbrain refund guarantees only.': 'Tieto obmedzenia sa vzťahujú iba na dobrovoľné záruky vrátenia peňazí Testbrain.',
+'They do not limit statutory withdrawal rights, remedies for defective or non-conforming digital services, chargeback rights, or other mandatory consumer protections.':
+  'Neobmedzujú zákonné právo na odstúpenie, nápravné prostriedky za chybné alebo nezhodné digitálne služby, právo na spätné zúčtovanie platby ani iné záväzné ochrany spotrebiteľa.',
+'Chargebacks and Unrecognized Payments': 'Spätné zúčtovanie platieb a nerozpoznané platby',
+'If you do not recognize a Testbrain payment or believe you were charged incorrectly, please contact Testbrain Support so we can investigate the transaction.':
+  'Ak nespoznávate platbu Testbrain alebo sa domnievate, že vám bola nesprávne účtovaná suma, kontaktujte podporu Testbrain, aby sme mohli transakciu preveriť.',
+'Use Live Chat when available or contact: support@testbrain.net': 'Použite Live Chat, ak je dostupný, alebo kontaktujte: support@testbrain.net',
+'We may ask for limited transaction information necessary to locate the payment. Never send your full card number, CVV/CVC, PIN, banking password, or authentication codes.':
+  'Môžeme si vyžiadať obmedzené informácie o transakcii potrebné na identifikáciu platby. Nikdy neposielajte úplné číslo karty, CVV/CVC, PIN, bankové heslo ani autentifikačné kódy.',
+'Contacting Testbrain first may allow us to resolve the issue more quickly, but nothing in this policy restricts any right you may have to contact your bank, card issuer, payment provider, or other competent authority regarding a disputed transaction.':
+  'Kontaktovanie Testbrain ako prvého kroku nám môže umožniť rýchlejšie vyriešiť problém, no žiadne ustanovenie týchto zásad neobmedzuje vaše prípadné právo obrátiť sa v súvislosti so spornou transakciou na vašu banku, vydavateľa karty, poskytovateľa platieb alebo iný príslušný orgán.',
+'Account Deletion and Subscription Cancellation': 'Vymazanie účtu a zrušenie predplatného',
+'Deleting a Testbrain account and cancelling a subscription are related but separate actions.':
+  'Vymazanie účtu Testbrain a zrušenie predplatného sú súvisiace, ale samostatné úkony.',
+'If you currently have an active subscription, you must first cancel it through Subscription Management.':
+  'Ak máte v súčasnosti aktívne predplatné, musíte ho najskôr zrušiť v sekcii Správa predplatného.',
+'Once the cancellation has been successfully confirmed, you may proceed immediately to: Profile → Settings → Delete Account':
+  'Po úspešnom potvrdení zrušenia môžete okamžite pokračovať cez: Profil → Nastavenia → Vymazať účet',
+'You do not need to wait until the end of the current billing period before deleting your account after the subscription cancellation has been confirmed.':
+  'Po potvrdení zrušenia predplatného nemusíte s vymazaním účtu čakať do konca aktuálneho zúčtovacieho obdobia.',
+'Account deletion does not create a refund request. If you also want to request a refund for an existing charge, you must submit a separate refund request.':
+  'Vymazanie účtu nezakladá žiadosť o vrátenie peňazí. Ak chcete zároveň požiadať o vrátenie peňazí za existujúcu platbu, musíte podať samostatnú žiadosť o vrátenie peňazí.',
+'Certain information may be retained after account deletion where required for legal, accounting, fraud-prevention, dispute-resolution, or other legitimate compliance purposes, as described in the Testbrain Privacy Policy.':
+  'Niektoré informácie môžu byť po vymazaní účtu naďalej uchovávané, ak si to vyžadujú právne, účtovné, protipodvodné, dispute-resolution alebo iné oprávnené účely súladu opísané v Zásadách ochrany osobných údajov Testbrain.',
+'Contact & Governing Law': 'Kontakt a rozhodné právo',
+'This policy is governed by the laws of Croatia and applicable European Union law, without depriving consumers of mandatory protections available under the laws applicable to them.':
+  'Tieto zásady sa riadia právnymi predpismi Chorvátska a platným právom Európskej únie, bez toho, aby boli spotrebitelia ukrátení o záväznú ochranu, ktorá sa na nich vzťahuje podľa im platných právnych predpisov.',
+'EU consumers can find information about their consumer rights through official European Union consumer resources.':
+  'Spotrebitelia z EÚ nájdu informácie o svojich právach v oficiálnych zdrojoch Európskej únie pre spotrebiteľov.',
+'We may update this Refund & Cancellation Policy from time to time. The Last Updated date at the top identifies the current version.':
+  'Tieto Zásady vrátenia peňazí a zrušenia môžeme z času na čas aktualizovať. Dátum „Posledná aktualizácia“ uvedený vyššie označuje aktuálnu verziu.',
+'This Refund & Cancellation Policy forms part of the Testbrain Terms & Conditions and does not limit mandatory consumer rights.':
+  'Tieto Zásady vrátenia peňazí a zrušenia sú súčasťou Podmienok používania Testbrain a neobmedzujú záväzné práva spotrebiteľa.',
+'Terms & Conditions': 'Zmluvné podmienky',
+'These Terms of Use ("Terms") govern your access to and use of the Testbrain website, platform, assessments, brain-training features, reports, certificates, and related services (collectively, the "Services"). Testbrain is operated by Comparo Media d.o.o., Miliutina Barača 7, 51000 Rijeka, Croatia.':
+  'Tieto Podmienky používania („Podmienky“) upravujú váš prístup k webovej stránke, platforme, hodnoteniam, funkciám na trénovanie mozgu, správam, certifikátom a súvisiacim službám Testbrain (spoločne „Služby“) a ich používanie. Testbrain prevádzkuje spoločnosť Comparo Media d.o.o., Miliutina Barača 7, 51000 Rijeka, Chorvátsko.',
+'By creating an account, purchasing a Testbrain product, starting or completing an assessment, or otherwise using the Services, you agree to these Terms, the Privacy Policy, and the Refund & Cancellation Policy. If you do not agree, do not use the Services.':
+  'Vytvorením účtu, zakúpením produktu Testbrain, začatím alebo dokončením hodnotenia alebo iným používaním Služieb súhlasíte s týmito Podmienkami, Zásadami ochrany osobných údajov a Zásadami vrátenia peňazí a zrušenia. Ak nesúhlasíte, Služby nepoužívajte.',
+'Operator': 'Prevádzkovateľ',
+'Payment processor': 'Spracovateľ platieb',
+'You may use the Services only if you can enter into a legally binding agreement under applicable law. If you use Testbrain on behalf of another person or organization, you represent that you are authorized to bind that person or organization to these Terms.':
+  'Služby môžete používať iba vtedy, ak ste podľa platného práva spôsobilí uzavrieť právne záväznú zmluvu. Ak používate Testbrain v mene inej osoby alebo organizácie, vyhlasujete, že ste oprávnení zaviazať túto osobu alebo organizáciu týmito Podmienkami.',
+'If any part of these Terms conflicts with mandatory consumer-protection law applicable to you, the mandatory law prevails to the extent of that conflict.':
+  'Ak je niektorá časť týchto Podmienok v rozpore so záväzným právom na ochranu spotrebiteľa, ktoré sa na vás vzťahuje, v rozsahu tohto rozporu má prednosť záväzné právo.',
+'The Services are provided by Comparo Media d.o.o., operating the consumer-facing brand Testbrain.':
+  'Služby poskytuje spoločnosť Comparo Media d.o.o., ktorá prevádzkuje spotrebiteľskú značku Testbrain.',
+'Company: Comparo Media d.o.o.': 'Spoločnosť: Comparo Media d.o.o.',
+'Brand: Testbrain': 'Značka: Testbrain',
+'Registered address: Miliutina Barača 7, 51000 Rijeka, Croatia': 'Sídlo: Miliutina Barača 7, 51000 Rijeka, Chorvátsko',
+'Support email: support@testbrain.net': 'E-mail podpory: support@testbrain.net',
+'Testbrain is a digital cognitive-assessment and brain-training platform. Depending on the current product configuration and your access rights, the Services may include:':
+  'Testbrain je digitálna platforma na kognitívne hodnotenie a trénovanie mozgu. V závislosti od aktuálnej konfigurácie produktu a vašich prístupových práv môžu Služby zahŕňať:',
+'Cognitive and IQ-style assessments': 'Kognitívne hodnotenia a hodnotenia typu IQ',
+'Logic and reasoning assessments': 'Hodnotenia logiky a uvažovania',
+'ADHD Trait Assessment': 'Hodnotenie znakov ADHD',
+'Emotional Intelligence Assessment': 'Hodnotenie emocionálnej inteligencie',
+'Brain-training games and exercises': 'Hry a cvičenia na trénovanie mozgu',
+'Performance statistics and progress tracking': 'Štatistiky výkonu a sledovanie pokroku',
+'Personalized assessment reports': 'Personalizované správy z hodnotení',
+'Certificates for eligible completed assessments': 'Certifikáty za oprávnené dokončené hodnotenia',
+'Leaderboards, achievements, badges, and recommendations': 'Rebríčky, úspechy, odznaky a odporúčania',
+'Testbrain may add, modify, replace, or discontinue specific assessments, games, features, or content from time to time, provided that this does not unlawfully deprive you of a product or service you have already purchased.':
+  'Testbrain môže z času na čas pridávať, upravovať, nahrádzať alebo rušiť konkrétne hodnotenia, hry, funkcie alebo obsah, pokiaľ vás to protiprávne neukráti o produkt alebo službu, ktorú ste si už zakúpili.',
+'Accounts, Registration and Security': 'Účty, registrácia a bezpečnosť',
+'Testbrain uses an assessment-first registration flow for certain products. A user may begin an assessment before creating a password, then provide account information such as name, email address, age, and country, complete the applicable checkout, and receive a Welcome Email with a magic link for password setup or reset.':
+  'Testbrain pri niektorých produktoch používa registračný proces, v ktorom je hodnotenie na prvom mieste. Používateľ môže začať hodnotenie ešte pred vytvorením hesla, následne poskytnúť údaje o účte, ako je meno, e-mailová adresa, vek a krajina, dokončiť príslušnú platbu a dostať uvítací e-mail s odkazom na nastavenie alebo obnovenie hesla.',
+'You are responsible for providing accurate account information and for keeping your login credentials secure. You must not share your password, authentication codes, or other credentials with another person.':
+  'Zodpovedáte za poskytnutie presných údajov o účte a za bezpečné uchovávanie svojich prihlasovacích údajov. Svoje heslo, autentifikačné kódy ani iné prihlasovacie údaje nesmiete zdieľať s inou osobou.',
+'If you believe your account has been accessed without authorization, use the available password-reset tools and contact Testbrain Support if further assistance is required.':
+  'Ak sa domnievate, že bol váš účet napadnutý neoprávnenou osobou, použite dostupné nástroje na obnovenie hesla a v prípade potreby ďalšej pomoci kontaktujte podporu Testbrain.',
+'Plans, Purchases and Pricing': 'Plány, nákupy a ceny',
+'3-Day Trial Subscription': '3-dňové skúšobné predplatné',
+'Price: €2.99': 'Cena: 2,99 €',
+'Duration: 3 days': 'Trvanie: 3 dni',
+'The €2.99 trial fee is charged immediately when you subscribe.': 'Poplatok 2,99 € za skúšobnú verziu sa účtuje okamžite pri aktivácii predplatného.',
+'The Trial provides access to the features included in the Trial offering during the Trial period.':
+  'Skúšobná verzia poskytuje počas skúšobného obdobia prístup k funkciám zahrnutým v skúšobnej ponuke.',
+'Unless cancelled before the Trial expires, the Trial automatically converts to the Monthly Subscription.':
+  'Ak Skúšobnú verziu nezrušíte pred jej uplynutím, automaticky sa zmení na Mesačné predplatné.',
+'Price: €35.00 per month': 'Cena: 35,00 € mesačne',
+'Automatically renews each month until cancelled': 'Automaticky sa obnovuje každý mesiac až do zrušenia',
+'No fixed minimum contract term unless expressly stated at checkout': 'Bez pevne stanovenej minimálnej doby trvania zmluvy, pokiaľ nie je pri platbe výslovne uvedené inak',
+'By purchasing the Trial, you authorize the applicable Trial charge and, unless you cancel before the end of the Trial, the recurring €35.00 Monthly Subscription charge. Monthly renewal charges continue until cancellation.':
+  'Zakúpením Skúšobnej verzie autorizujete príslušný poplatok za skúšobnú verziu a, pokiaľ ju nezrušíte pred jej koncom, aj opakovaný poplatok 35,00 € za Mesačné predplatné. Mesačné poplatky za obnovenie pokračujú až do zrušenia.',
+'Individual Assessment Purchases': 'Jednorazové nákupy jednotlivých hodnotení',
+'Certain Testbrain assessments may be purchased individually for €9.99 per assessment.':
+  'Niektoré hodnotenia Testbrain je možné zakúpiť jednotlivo za 9,99 € za hodnotenie.',
+'Certain Testbrain assessments may be purchased individually for €10.00 per assessment.':
+  'Niektoré hodnotenia Testbrain je možné zakúpiť jednotlivo za 10,00 € za hodnotenie.',
+'An Individual Assessment Purchase is a one-time payment.': 'Jednorazový nákup hodnotenia je jednorazová platba.',
+'It does not create a Trial or Monthly Subscription.': 'Nezakladá Skúšobné ani Mesačné predplatné.',
+'It does not automatically renew.': 'Automaticky sa neobnovuje.',
+'It provides access only to the specific assessment purchased and its applicable report and certificate after completion.':
+  'Poskytuje prístup iba k danému zakúpenému hodnoteniu a po jeho dokončení k príslušnej správe a certifikátu.',
+'Purchasing one Individual Assessment does not unlock other paid assessments or subscription-only functionality.':
+  'Zakúpenie jedného jednotlivého hodnotenia neodomyká ostatné platené hodnotenia ani funkcie dostupné iba s predplatným.',
+'Price Changes': 'Zmeny cien',
+'Testbrain may change prices for future purchases or future renewal periods. Any change to a recurring subscription price will be communicated as required by applicable law before it takes effect. A price change does not retroactively change a completed one-time purchase.':
+  'Testbrain môže meniť ceny pre budúce nákupy alebo budúce obdobia obnovenia. Akákoľvek zmena ceny opakovaného predplatného bude oznámená v súlade s platným právom skôr, ako nadobudne účinnosť. Zmena ceny spätne nemení už dokončený jednorazový nákup.',
+'Automatic Renewal and Subscription Management': 'Automatické obnovenie a správa predplatného',
+'The Trial and Monthly Subscription are recurring subscription products. The Individual Assessment Purchase is not a recurring product.':
+  'Skúšobné a Mesačné predplatné sú produkty s opakovanou platbou. Jednorazový nákup hodnotenia nie je opakovaný produkt.',
+'To avoid the first €35.00 Monthly Subscription charge, you must cancel the Trial before the 3-day Trial period expires.':
+  'Aby ste sa vyhli prvému poplatku 35,00 € za Mesačné predplatné, musíte zrušiť Skúšobnú verziu pred uplynutím 3-dňového skúšobného obdobia.',
+'If your account offers the option to end the Trial early and activate the Monthly Subscription, the relevant price and billing effect will be shown before you confirm that action.':
+  'Ak váš účet ponúka možnosť predčasne ukončiť Skúšobnú verziu a aktivovať Mesačné predplatné, príslušná cena a účinok na fakturáciu vám budú zobrazené pred potvrdením tohto úkonu.',
+'Subscription Cancellation': 'Zrušenie predplatného',
+'You may cancel your Trial or Monthly Subscription through your Testbrain account.':
+  'Skúšobné alebo Mesačné predplatné môžete zrušiť prostredníctvom svojho účtu Testbrain.',
+'Log in to Testbrain.': 'Prihláste sa do Testbrain.',
+'Open Subscription Management.': 'Otvorte Správu predplatného.',
+'Follow the on-screen steps and confirm the cancellation.': 'Postupujte podľa krokov na obrazovke a potvrďte zrušenie.',
+'Cancelling during the Trial prevents the Trial from automatically converting to the Monthly Subscription if the cancellation is completed before the Trial expires.':
+  'Zrušenie počas skúšobnej verzie zabráni jej automatickej zmene na Mesačné predplatné, ak je zrušenie dokončené pred uplynutím Skúšobnej verzie.',
+'Cancelling an active Monthly Subscription prevents future renewal charges. Unless otherwise stated in the cancellation flow or required by law, you may retain access until the end of the billing period already paid for.':
+  'Zrušenie aktívneho Mesačného predplatného zabraňuje budúcim poplatkom za obnovenie. Pokiaľ proces zrušenia neuvádza inak alebo to nevyžaduje zákon, môžete si zachovať prístup do konca už zaplateného zúčtovacieho obdobia.',
+'Cancellation and refund are separate processes. Cancelling a subscription does not automatically refund charges already processed.':
+  'Zrušenie a vrátenie peňazí sú samostatné procesy. Zrušenie predplatného automaticky nevracia už spracované platby.',
+'Payments and Payment Processing': 'Platby a spracovanie platieb',
+'Payments are processed securely through Stripe, Inc. Testbrain may accept Visa, Mastercard, American Express, and other supported payment methods displayed at checkout.':
+  'Platby sa bezpečne spracúvajú prostredníctvom spoločnosti Stripe, Inc. Testbrain môže akceptovať Visa, Mastercard, American Express a ďalšie podporované spôsoby platby zobrazené pri platbe.',
+'By submitting payment information, you authorize the applicable charge for the product you select and, for recurring subscriptions, subsequent renewal charges until cancellation.':
+  'Odoslaním platobných údajov autorizujete príslušný poplatok za vybraný produkt a v prípade opakovaného predplatného aj následné poplatky za obnovenie až do zrušenia.',
+"Testbrain does not store your full payment-card number. Payment processing is subject to the payment processor's own terms and security controls.":
+  'Testbrain neukladá úplné číslo vašej platobnej karty. Spracovanie platieb podlieha vlastným podmienkam a bezpečnostným opatreniam spracovateľa platieb.',
+'You must not provide full card numbers, CVV/CVC codes, PINs, banking passwords, or authentication codes to Testbrain Support.':
+  'Podpore Testbrain nesmiete poskytnúť úplné čísla kariet, kódy CVV/CVC, PIN, bankové heslá ani autentifikačné kódy.',
+'Reports and Certificates': 'Správy a certifikáty',
+'For an eligible assessment, the corresponding report becomes available in the Profile section after the assessment has been completed and submitted.':
+  'Pri oprávnenom hodnotení sa príslušná správa sprístupní v sekcii Profil po dokončení a odoslaní hodnotenia.',
+'If you have an active Trial or Monthly Subscription and the relevant assessment is included in your plan, no additional purchase is required to access the report for that completed assessment.':
+  'Ak máte aktívne Skúšobné alebo Mesačné predplatné a príslušné hodnotenie je súčasťou vášho plánu, na prístup k správe z tohto dokončeného hodnotenia nie je potrebný ďalší nákup.',
+'If you purchase an Individual Assessment for €9.99 and complete it, the corresponding report and certificate are made available in your Profile, where applicable.':
+  'Ak si zakúpite jednotlivé hodnotenie za 9,99 € a dokončíte ho, príslušná správa a certifikát sa sprístupnia vo vašom Profile, ak je to relevantné.',
+'If you purchase an Individual Assessment for €10.00 and complete it, the corresponding report and certificate are made available in your Profile, where applicable.':
+  'Ak si zakúpite jednotlivé hodnotenie za 10,00 € a dokončíte ho, príslušná správa a certifikát sa sprístupnia vo vašom Profile, ak je to relevantné.',
+'Reports and certificates are digital Testbrain outputs. Unless expressly stated otherwise, they do not constitute an accredited academic qualification, professional licence, medical certificate, psychological diagnosis, government-recognized credential, or driving licence.':
+  'Správy a certifikáty sú digitálne výstupy Testbrain. Pokiaľ nie je výslovne uvedené inak, nepredstavujú akreditovanú akademickú kvalifikáciu, odbornú licenciu, lekárske potvrdenie, psychologickú diagnózu, štátom uznaný doklad ani vodičský preukaz.',
+'If you are a consumer in the European Union or European Economic Area and the statutory right of withdrawal applies to your purchase, you generally have 14 days to withdraw from a distance contract without giving a reason, subject to the conditions and exceptions provided by applicable law.':
+  'Ak ste spotrebiteľ v Európskej únii alebo Európskom hospodárskom priestore a na váš nákup sa vzťahuje zákonné právo na odstúpenie, máte spravidla 14 dní na odstúpenie od zmluvy uzavretej na diaľku bez uvedenia dôvodu, s výhradou podmienok a výnimiek stanovených platným právom.',
+'Immediate Performance of Digital Services and Digital Content': 'Okamžité plnenie digitálnych služieb a digitálneho obsahu',
+'Some Testbrain products are supplied or begin to be performed immediately after purchase. Where applicable law permits the statutory withdrawal right to be lost or limited after performance begins, Testbrain will rely on that exception only where the legally required conditions have been satisfied, including any required prior express consent, acknowledgement, and confirmation.':
+  'Niektoré produkty Testbrain sa dodávajú alebo ich plnenie sa začína okamžite po nákupe. Ak platné právo umožňuje stratu alebo obmedzenie zákonného práva na odstúpenie po začatí plnenia, Testbrain sa na túto výnimku spolieha iba vtedy, ak sú splnené zákonom požadované podmienky, vrátane požadovaného predchádzajúceho výslovného súhlasu, potvrdenia a uznania.',
+'If those conditions have not been satisfied, your statutory rights remain unaffected. Nothing in these Terms is intended to remove a mandatory right of withdrawal that you retain under applicable law.':
+  'Ak tieto podmienky nie sú splnené, vaše zákonné práva zostávajú nedotknuté. Žiadne ustanovenie týchto Podmienok nemá za cieľ zrušiť záväzné právo na odstúpenie, ktoré vám patrí podľa platného práva.',
+'Exercising a Withdrawal Right': 'Uplatnenie práva na odstúpenie',
+'Where you have a statutory right of withdrawal, you may exercise it by making a clear statement that you wish to withdraw from the contract. You may contact support@testbrain.net or use any withdrawal functionality made available by Testbrain. No specific wording is required if your decision to withdraw is clear.':
+  'Ak máte zákonné právo na odstúpenie, môžete ho uplatniť jasným vyhlásením, že chcete od zmluvy odstúpiť. Môžete kontaktovať support@testbrain.net alebo použiť funkciu na odstúpenie sprístupnenú službou Testbrain. Nie je potrebná žiadna konkrétna formulácia, pokiaľ je vaše rozhodnutie odstúpiť jednoznačné.',
+'Further details are set out in the Refund & Cancellation Policy.': 'Ďalšie podrobnosti sú uvedené v Zásadách vrátenia peňazí a zrušenia.',
+'Refunds and Cancellation Policy': 'Zásady vrátenia peňazí a zrušenia',
+'Refund eligibility, the voluntary 30-Day Satisfaction Guarantee for eligible Monthly Subscription charges, Individual Assessment refund rules, refund processing, and payment disputes are governed by the current Testbrain Refund & Cancellation Policy, which forms part of these Terms.':
+  'Oprávnenosť na vrátenie peňazí, dobrovoľná 30-dňová záruka spokojnosti pre oprávnené platby Mesačného predplatného, pravidlá vrátenia peňazí za jednotlivé hodnotenia, spracovanie vrátenia peňazí a spory týkajúce sa platieb sa riadia aktuálnymi Zásadami vrátenia peňazí a zrušenia Testbrain, ktoré sú súčasťou týchto Podmienok.',
+'A completed Individual Assessment for which the corresponding report or certificate has been provided or made available is generally not eligible for a voluntary refund, subject always to mandatory consumer rights and remedies for defective or non-conforming digital content or services.':
+  'Dokončené jednotlivé hodnotenie, ku ktorému bola poskytnutá alebo sprístupnená príslušná správa alebo certifikát, spravidla nie je oprávnené na dobrovoľné vrátenie peňazí, vždy však s výhradou záväzných práv spotrebiteľa a nápravných prostriedkov za chybný alebo nezhodný digitálny obsah či služby.',
+'Refund requests that require review are handled by a human Testbrain Support agent through Live Chat when available or through support@testbrain.net. The AI Support Assistant does not approve or guarantee refunds.':
+  'Žiadosti o vrátenie peňazí, ktoré si vyžadujú posúdenie, spracúva zástupca podpory Testbrain prostredníctvom Live Chatu, ak je dostupný, alebo cez support@testbrain.net. AI asistent podpory neschvaľuje ani nezaručuje vrátenie peňazí.',
+'Individual Assessments': 'Jednotlivé hodnotenia',
+'An Individual Assessment Purchase is separate from a subscription. It gives you access to the specific purchased assessment and its applicable report and certificate after completion.':
+  'Jednorazový nákup hodnotenia je nezávislý od predplatného. Poskytuje vám prístup k danému zakúpenému hodnoteniu a po jeho dokončení k príslušnej správe a certifikátu.',
+'The current Individual Assessment catalogue may include assessments such as Driving Licence Test, IQ Test, Logic, ADHD Trait Assessment, and Emotional Intelligence Assessment. Availability may change over time.':
+  'Aktuálny katalóg jednotlivých hodnotení môže zahŕňať hodnotenia ako Test vodičského preukazu, IQ test, Logika, Hodnotenie znakov ADHD a Hodnotenie emocionálnej inteligencie. Dostupnosť sa môže časom meniť.',
+'If an Individual Assessment has not been started and you request a refund, the request may be submitted for human review under the Refund & Cancellation Policy. If the assessment has been completed and its report or certificate has been provided or made available, the purchase is generally not eligible for a voluntary refund, subject to mandatory law.':
+  'Ak jednotlivé hodnotenie ešte nebolo začaté a požiadate o vrátenie peňazí, žiadosť môže byť predložená na manuálne posúdenie podľa Zásad vrátenia peňazí a zrušenia. Ak bolo hodnotenie dokončené a bola poskytnutá alebo sprístupnená jeho správa alebo certifikát, nákup spravidla nie je oprávnený na dobrovoľné vrátenie peňazí, s výhradou záväzného práva.',
+'Health, Psychological and Educational Disclaimer': 'Zdravotné, psychologické a vzdelávacie upozornenie',
+'Testbrain is intended for informational, educational, entertainment, cognitive-training, and self-improvement purposes.':
+  'Testbrain je určený na informačné, vzdelávacie, zábavné, kognitívno-tréningové a sebazdokonaľovacie účely.',
+'Testbrain is not a medical or healthcare service.': 'Testbrain nie je lekárska ani zdravotnícka služba.',
+'Testbrain assessments are not clinical psychological evaluations unless expressly stated otherwise.':
+  'Hodnotenia Testbrain nie sú klinickým psychologickým vyšetrením, pokiaľ nie je výslovne uvedené inak.',
+'IQ-style results are not automatically equivalent to a professionally administered or clinically standardized IQ assessment.':
+  'Výsledky typu IQ automaticky nezodpovedajú odborne vykonanému alebo klinicky štandardizovanému testu IQ.',
+'Testbrain results must not be used as the sole basis for medical, psychological, educational, employment, licensing, or other high-impact decisions.':
+  'Výsledky Testbrain sa nesmú používať ako jediný podklad pre lekárske, psychologické, vzdelávacie, pracovnoprávne, licenčné či iné rozhodnutia s významným dosahom.',
+'The ADHD Trait Assessment is an informational self-assessment tool. It is not designed or intended to diagnose ADHD or any other medical, psychiatric, psychological, neurological, or developmental condition. If you have health-related concerns, consult an appropriately qualified healthcare professional.':
+  'Hodnotenie znakov ADHD je informačný nástroj na sebahodnotenie. Nie je navrhnutý ani určený na diagnostikovanie ADHD ani žiadneho iného zdravotného, psychiatrického, psychologického, neurologického alebo vývinového stavu. Ak máte zdravotné obavy, poraďte sa s vhodne kvalifikovaným zdravotníckym odborníkom.',
+'The Driving Licence Test is an educational and self-assessment tool. Completing it does not grant, replace, renew, certify, or guarantee eligibility for an official driving licence, government examination, medical driving clearance, or any other regulated authorization.':
+  'Test vodičského preukazu je vzdelávací nástroj na sebahodnotenie. Jeho absolvovanie neudeľuje, nenahrádza, neobnovuje, necertifikuje ani nezaručuje oprávnenosť na oficiálny vodičský preukaz, štátnu skúšku, lekárske osvedčenie o spôsobilosti viesť vozidlo ani iné regulované oprávnenie.',
+'Emotional Intelligence and Other Assessments': 'Emocionálna inteligencia a ostatné hodnotenia',
+'Emotional Intelligence, Logic, cognitive, and similar Testbrain assessments provide informational performance or self-assessment results only. They should be interpreted within the context of the specific assessment and not as a diagnosis or professional credential.':
+  'Hodnotenia emocionálnej inteligencie, logiky, kognitívnych schopností a podobné hodnotenia Testbrain poskytujú iba informačné výsledky výkonu alebo sebahodnotenia. Mali by sa vykladať v kontexte daného hodnotenia, a nie ako diagnóza alebo odborný doklad.',
+'Brain Games, Statistics and Leaderboards': 'Hry na trénovanie mozgu, štatistiky a rebríčky',
+'Brain games are interactive training and entertainment activities. Game scores are not automatically IQ scores, medical measurements, or clinical cognitive results.':
+  'Hry na trénovanie mozgu sú interaktívne tréningové a zábavné aktivity. Skóre v hrách automaticky nepredstavuje skóre IQ, lekárske merania ani klinické kognitívne výsledky.',
+'Statistics, category scores, achievements, badges, recommendations, and leaderboard rankings may use separate scoring or ranking systems. They should not be treated as equivalent to formal assessment scores unless Testbrain expressly states otherwise.':
+  'Štatistiky, skóre v kategóriách, úspechy, odznaky, odporúčania a umiestnenia v rebríčku môžu používať samostatné systémy hodnotenia alebo poradia. Nemali by sa považovať za rovnocenné formálnym výsledkom hodnotení, pokiaľ Testbrain výslovne neuvedie inak.',
+'Leaderboard positions may change as other users participate, scores are updated, or filters are changed.':
+  'Pozície v rebríčku sa môžu meniť podľa účasti ďalších používateľov, aktualizácie skóre alebo zmeny filtrov.',
+'Acceptable Use': 'Prípustné používanie',
+'You agree not to misuse the Services. In particular, you must not:': 'Súhlasíte, že nebudete zneužívať Služby. Konkrétne nesmiete:',
+'Attempt to gain unauthorized access to Testbrain systems, accounts, data, or security controls':
+  'Pokúšať sa o neoprávnený prístup k systémom, účtom, údajom alebo bezpečnostným mechanizmom Testbrain',
+'Use automated tools to scrape, copy, test, reverse engineer, or interfere with the Services except where expressly permitted by law':
+  'Používať automatizované nástroje na získavanie, kopírovanie, testovanie, spätné inžinierstvo alebo zasahovanie do Služieb, s výnimkou prípadov výslovne povolených zákonom',
+'Circumvent payment, subscription, access-control, or assessment-integrity mechanisms':
+  'Obchádzať mechanizmy platby, predplatného, riadenia prístupu alebo integrity hodnotení',
+'Submit fraudulent payment, refund, or chargeback claims': 'Podávať podvodné žiadosti o platbu, vrátenie peňazí alebo spätné zúčtovanie',
+'Use the Services to infringe intellectual-property, privacy, or other rights of another person':
+  'Používať Služby na porušovanie práv duševného vlastníctva, súkromia alebo iných práv inej osoby',
+'Resell, sublicense, reproduce, or commercially exploit Testbrain content without written permission':
+  'Ďalej predávať, poskytovať sublicenciu, rozmnožovať alebo komerčne využívať obsah Testbrain bez písomného súhlasu',
+'Testbrain may restrict or suspend access where reasonably necessary to protect users, the Services, payment systems, security, assessment integrity, or legal rights, subject to applicable law and contractual obligations.':
+  'Testbrain môže obmedziť alebo pozastaviť prístup, ak je to primerane potrebné na ochranu používateľov, Služieb, platobných systémov, bezpečnosti, integrity hodnotení alebo právnych nárokov, v súlade s platným právom a zmluvnými záväzkami.',
+'The Testbrain platform and its original content, including software, assessment designs, questions, scoring logic, reports, certificate designs, graphics, branding, databases, and other materials, are owned by or licensed to Comparo Media d.o.o. and are protected by applicable intellectual-property laws.':
+  'Platforma Testbrain a jej pôvodný obsah, vrátane softvéru, návrhov hodnotení, otázok, logiky vyhodnocovania, správ, návrhov certifikátov, grafiky, značky, databáz a ďalších materiálov, sú vo vlastníctve alebo pod licenciou spoločnosti Comparo Media d.o.o. a sú chránené platnými právnymi predpismi o duševnom vlastníctve.',
+'Your access to Testbrain gives you a limited, personal, non-exclusive, non-transferable right to use the Services for their intended purpose. No ownership rights are transferred to you.':
+  'Váš prístup k Testbrain vám poskytuje obmedzené, osobné, nevýhradné a neprevoditeľné právo používať Služby na ich zamýšľaný účel. Neprevádzajú sa na vás žiadne vlastnícke práva.',
+'You may download and use reports and certificates made available to you for personal purposes, subject to these Terms. You must not alter a Testbrain certificate or report in a way that falsely represents its contents, origin, score, or status.':
+  'Správy a certifikáty, ktoré sú vám sprístupnené, môžete v súlade s týmito Podmienkami sťahovať a používať na osobné účely. Certifikát alebo správu Testbrain nesmiete upravovať spôsobom, ktorý falošne prezentuje ich obsah, pôvod, skóre alebo stav.',
+'Third-Party Services': 'Služby tretích strán',
+'Testbrain may rely on third-party providers for payments, infrastructure, communications, analytics, authentication, or other functions. Third-party services may be governed by their own terms and privacy practices.':
+  'Testbrain sa môže pri platbách, infraštruktúre, komunikácii, analytike, autentifikácii alebo iných funkciách spoliehať na poskytovateľov tretích strán. Služby tretích strán sa môžu riadiť ich vlastnými podmienkami a zásadami ochrany súkromia.',
+'Testbrain is not responsible for interruptions caused solely by third-party systems outside its reasonable control, but this does not limit any mandatory consumer rights or Testbrain obligations that cannot lawfully be excluded.':
+  'Testbrain nezodpovedá za prerušenia spôsobené výlučne systémami tretích strán mimo jeho primeranej kontroly, čo však neobmedzuje záväzné práva spotrebiteľa ani povinnosti Testbrain, ktoré nemožno zákonne vylúčiť.',
+'Account Suspension and Termination': 'Pozastavenie a ukončenie účtu',
+'Testbrain may suspend or terminate access where there is a material breach of these Terms, fraud, abusive conduct, misuse of the Services, security risk, or other lawful reason. Where required by applicable law, appropriate notice or an opportunity to remedy will be provided.':
+  'Testbrain môže pozastaviť alebo ukončiť prístup v prípade podstatného porušenia týchto Podmienok, podvodu, zneužívajúceho správania, zneužitia Služieb, bezpečnostného rizika alebo z iného zákonného dôvodu. Ak to vyžaduje platné právo, poskytne sa primerané upozornenie alebo možnosť nápravy.',
+'Suspension or termination does not remove any rights or obligations that accrued before termination, including payment obligations or statutory consumer rights.':
+  'Pozastavenie alebo ukončenie neruší práva ani povinnosti vzniknuté pred ukončením, vrátane platobných povinností alebo zákonných práv spotrebiteľa.',
+'Account Deletion': 'Vymazanie účtu',
+'You may request deletion of your Testbrain account through Profile → Settings → Delete Account.':
+  'O vymazanie svojho účtu Testbrain môžete požiadať cez: Profil → Nastavenia → Vymazať účet.',
+'If an active subscription exists, you must first cancel it through Subscription Management. Once the subscription cancellation has been successfully confirmed, you may immediately return to Profile → Settings → Delete Account and proceed with deletion. You do not need to wait until the end of the current billing period before deleting the account after cancellation is confirmed.':
+  'Ak máte aktívne predplatné, musíte ho najskôr zrušiť v sekcii Správa predplatného. Po úspešnom potvrdení zrušenia predplatného sa môžete okamžite vrátiť na Profil → Nastavenia → Vymazať účet a pokračovať vo vymazaní. Po potvrdení zrušenia nemusíte s vymazaním účtu čakať do konca aktuálneho zúčtovacieho obdobia.',
+'Account deletion and refund are separate processes. Deleting an account does not itself create a refund request or entitle you to a refund of previously processed charges.':
+  'Vymazanie účtu a vrátenie peňazí sú samostatné procesy. Samotné vymazanie účtu nezakladá žiadosť o vrátenie peňazí ani vám nezaručuje vrátenie predtým spracovaných platieb.',
+'Certain personal data or transaction records may be retained after account deletion where required or permitted by applicable law or as described in the Privacy Policy.':
+  'Niektoré osobné údaje alebo záznamy o transakciách môžu byť po vymazaní účtu naďalej uchovávané, ak to vyžaduje alebo umožňuje platné právo, alebo ako je opísané v Zásadách ochrany osobných údajov.',
+'Privacy and Personal Data': 'Súkromie a osobné údaje',
+'Testbrain processes personal data in accordance with its Privacy Policy and applicable data-protection law.':
+  'Testbrain spracúva osobné údaje v súlade so svojimi Zásadami ochrany osobných údajov a platným právom na ochranu údajov.',
+'If you want to exercise a privacy or data-protection right, including a request for access, correction, or erasure of personal data, use the methods described in the Privacy Policy or contact support@testbrain.net.':
+  'Ak si chcete uplatniť právo týkajúce sa súkromia alebo ochrany údajov, vrátane žiadosti o prístup, opravu alebo vymazanie osobných údajov, použite postupy opísané v Zásadách ochrany osobných údajov alebo kontaktujte support@testbrain.net.',
+'Deleting your Testbrain account does not necessarily mean that every record is immediately removed from every system where retention is required or permitted by law. The Privacy Policy explains the applicable processing and retention practices.':
+  'Vymazanie účtu Testbrain nemusí nutne znamenať, že sa každý záznam okamžite odstráni zo všetkých systémov, v ktorých je jeho uchovávanie vyžadované alebo umožnené zákonom. Zásady ochrany osobných údajov vysvetľujú príslušné postupy spracovania a uchovávania.',
+'Service Availability and Changes': 'Dostupnosť služby a zmeny',
+'Testbrain aims to provide reliable access but does not guarantee uninterrupted or error-free operation at all times. Maintenance, updates, network issues, payment-provider issues, or technical failures may temporarily affect availability.':
+  'Testbrain sa snaží poskytovať spoľahlivý prístup, no nezaručuje nepretržitú ani bezchybnú prevádzku za každých okolností. Údržba, aktualizácie, sieťové problémy, problémy poskytovateľa platieb alebo technické zlyhania môžu dočasne ovplyvniť dostupnosť.',
+'If a technical problem materially prevents delivery of a purchased digital service, you may have remedies under applicable law and the Refund & Cancellation Policy.':
+  'Ak technický problém podstatne bráni dodaniu zakúpenej digitálnej služby, môžete mať nárok na nápravné prostriedky podľa platného práva a Zásad vrátenia peňazí a zrušenia.',
+'Testbrain may modify the Services to improve functionality, security, compliance, or user experience. Material changes that adversely affect an existing paid entitlement will be handled in accordance with applicable law.':
+  'Testbrain môže upravovať Služby s cieľom zlepšiť ich funkčnosť, bezpečnosť, súlad s predpismi alebo používateľský komfort. Podstatné zmeny, ktoré nepriaznivo ovplyvnia existujúci platený nárok, sa budú riešiť v súlade s platným právom.',
+'To the maximum extent permitted by applicable law, Comparo Media d.o.o. is not liable for indirect, incidental, special, punitive, or consequential loss arising from use of the Services where such liability can lawfully be excluded.':
+  'V najväčšom rozsahu povolenom platným právom nezodpovedá spoločnosť Comparo Media d.o.o. za nepriame, náhodné, osobitné, sankčné ani následné škody vzniknuté používaním Služieb, ak je takúto zodpovednosť možné zákonne vylúčiť.',
+'Nothing in these Terms excludes or limits liability that cannot lawfully be excluded or limited, including mandatory consumer rights, liability for fraud, or other liability that applicable law requires to remain available.':
+  'Žiadne ustanovenie týchto Podmienok nevylučuje ani neobmedzuje zodpovednosť, ktorú nie je možné zákonne vylúčiť ani obmedziť, vrátane záväzných práv spotrebiteľa, zodpovednosti za podvod alebo inej zodpovednosti, ktorú platné právo vyžaduje zachovať.',
+'Where a limitation of liability is legally permitted, any limitation must be interpreted in light of the nature of the Service, the amount paid, and applicable mandatory law. These Terms do not create a waiver of rights that consumers cannot validly waive.':
+  'Ak je obmedzenie zodpovednosti zákonne prípustné, akékoľvek takéto obmedzenie sa musí vykladať s ohľadom na povahu Služby, zaplatenú sumu a platné záväzné právo. Tieto Podmienky nezakladajú vzdanie sa práv, ktorých sa spotrebitelia nemôžu platne vzdať.',
+'Nothing in these Terms limits mandatory rights available to consumers under applicable law, including rights relating to unfair contract terms, distance contracts, digital content and digital services, defective or non-conforming services, refunds, withdrawal, privacy, or payment disputes.':
+  'Žiadne ustanovenie týchto Podmienok neobmedzuje záväzné práva dostupné spotrebiteľom podľa platného práva, vrátane práv týkajúcich sa nekalých zmluvných podmienok, zmlúv uzavretých na diaľku, digitálneho obsahu a digitálnych služieb, chybných alebo nezhodných služieb, vrátenia peňazí, odstúpenia, súkromia alebo sporov o platbách.',
+'If you are a consumer outside Croatia, you may also have mandatory protections under the law of your country or state of residence that apply regardless of the governing-law clause below.':
+  'Ak ste spotrebiteľ mimo Chorvátska, môžete mať aj záväznú ochranu podľa práva krajiny alebo štátu vášho bydliska, ktorá sa uplatní bez ohľadu na nižšie uvedenú doložku o rozhodnom práve.',
+'Dispute Resolution and Governing Law': 'Riešenie sporov a rozhodné právo',
+'If you have a complaint or dispute, please contact Testbrain Support first so we can try to resolve the matter informally.':
+  'Ak máte sťažnosť alebo spor, kontaktujte najskôr podporu Testbrain, aby sme sa mohli pokúsiť vec vyriešiť neformálne.',
+'These Terms are governed by the laws of Croatia and applicable European Union law, without depriving consumers of mandatory protections available under the laws that apply to them.':
+  'Tieto Podmienky sa riadia právnymi predpismi Chorvátska a platným právom Európskej únie, bez toho, aby boli spotrebitelia ukrátení o záväznú ochranu, ktorá sa na nich vzťahuje podľa im platných právnych predpisov.',
+'Nothing in these Terms prevents a consumer from bringing a claim before a competent court or using an alternative dispute-resolution mechanism where such a right is available under applicable law.':
+  'Žiadne ustanovenie týchto Podmienok nebráni spotrebiteľovi podať žalobu na príslušnom súde ani využiť mechanizmus alternatívneho riešenia sporov, ak je takéto právo dostupné podľa platného práva.',
+'Testbrain does not rely on the former European Commission Online Dispute Resolution (ODR) platform, which is no longer an active consumer-dispute platform.':
+  'Testbrain sa nespolieha na bývalú platformu Európskej komisie na riešenie sporov online (ODR), ktorá už nie je aktívnou platformou na riešenie spotrebiteľských sporov.',
+'Amendments to These Terms': 'Zmeny týchto Podmienok',
+'Testbrain may update these Terms from time to time to reflect changes in the Services, pricing, law, regulation, security requirements, or business operations.':
+  'Testbrain môže tieto Podmienky z času na čas aktualizovať, aby zohľadňovali zmeny v Službách, cenách, práve, regulácii, bezpečnostných požiadavkách alebo obchodnej činnosti.',
+'For recurring subscriptions, material changes that affect your rights or obligations will be communicated as required by applicable law. The "Last Updated" date identifies the current version.':
+  'Pri opakovanom predplatnom budú podstatné zmeny ovplyvňujúce vaše práva alebo povinnosti oznámené v súlade s platným právom. Dátum „Posledná aktualizácia“ označuje aktuálnu verziu.',
+'Changes do not retroactively remove rights that have already accrued under mandatory law.':
+  'Zmeny spätne neodnímajú práva, ktoré už vznikli podľa záväzného práva.',
+'For questions about these Terms or the Services, contact:': 'V prípade otázok týkajúcich sa týchto Podmienok alebo Služieb kontaktujte:',
+'For billing, refund, account, privacy, or technical matters, you may also use Testbrain Live Chat when available. Human review may be required for refunds, payment disputes, account-specific investigations, and privacy requests.':
+  'V otázkach fakturácie, vrátenia peňazí, účtu, súkromia alebo technických záležitostí môžete tiež použiť Testbrain Live Chat, ak je dostupný. Pri vrátení peňazí, sporoch o platbách, vyšetrovaniach týkajúcich sa konkrétneho účtu a žiadostiach o súkromie môže byť potrebné manuálne posúdenie.',
+'These Terms of Use should be read together with the Testbrain Privacy Policy and Refund & Cancellation Policy.':
+  'Tieto Podmienky používania je potrebné vykladať spoločne so Zásadami ochrany osobných údajov a Zásadami vrátenia peňazí a zrušenia Testbrain.',
 };
 

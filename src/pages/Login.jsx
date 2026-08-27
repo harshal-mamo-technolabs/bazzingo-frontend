@@ -15,6 +15,11 @@ import TranslatedText from '../components/TranslatedText.jsx';
 import { useTranslateText } from '../hooks/useTranslate';
 import MSISDNLoginForm from '../components/Authentication/MSISDNLoginForm';
 
+// Account creation happens on the external landing page, so the Signup link
+// leaves the app. Falls back to the in-app route when no landing page is
+// configured, which is the same guard Signup.jsx uses before redirecting.
+const SIGNUP_HREF = import.meta.env.VITE_LANDING_PAGE_URL || '/signup';
+
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -214,19 +219,13 @@ const Login = () => {
         <div className="text-center mt-3 md:mt-6">
           <p className="text-gray-500 text-[14px] md:text-[16px]">
             <TranslatedText text="Don't have an account?" />{' '}
-            {isMSISDNControlEnabled('useMSISDNSignup') ? (
-              <a
-                href="https://bazingo.testbrain.net"
-                className="text-orange-500 font-medium"
-                rel="noopener noreferrer"
-              >
-                <TranslatedText text="Signup" />
-              </a>
-            ) : (
-              <a href="/signup" className="text-orange-500 font-medium">
-                <TranslatedText text="Signup" />
-              </a>
-            )}
+            <a
+              href={SIGNUP_HREF}
+              className="text-orange-500 font-medium"
+              rel="noopener noreferrer"
+            >
+              <TranslatedText text="Signup" />
+            </a>
           </p>
         </div>
       </div>

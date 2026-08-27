@@ -1,6 +1,20 @@
 import React from 'react';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { BazzingoHeadImage } from "../../assets/assessmentAssets";
 import TranslatedText from '../TranslatedText.jsx';
+import { isStripePaymentEnabled } from '../../config/accessControl';
+
+const formatPrice = (price) => {
+  if (!price || !price.unitAmount) return null;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: (price.currency || 'eur').toUpperCase(),
+    }).format(price.unitAmount / 100);
+  } catch {
+    return `${(price.unitAmount / 100).toFixed(2)} ${price.currency || ''}`;
+  }
+};
 
 const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingAssessmentId }) => {
   // Format the API data to match the expected structure
@@ -13,6 +27,9 @@ const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingA
   };
 
   const isProcessing = processingAssessmentId && (processingAssessmentId === (assessment._id || formattedAssessment.id));
+
+  const priceLabel = formatPrice(assessment.price);
+  const showPricing = isStripePaymentEnabled() && !assessment.isAssessmentPurchased && priceLabel;
 
   return (
     <div
@@ -54,6 +71,34 @@ const AssessmentCard = ({ assessment, onClick, onStartCertifiedTest, processingA
       <p className="text-gray-600 mb-4" style={{ fontSize: '14px', fontWeight: '400', lineHeight: '1.4', fontFamily: 'Roboto, sans-serif', color: '#6B7280' }}>
         <TranslatedText text={formattedAssessment.description} />
       </p>
+
+      {showPricing && (
+        <div className="mb-4 pb-3 border-b border-gray-100 flex items-center flex-wrap gap-x-2 gap-y-1">
+          <span style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'Roboto, sans-serif' }} className="text-[#FF6B3E]">
+            {priceLabel}
+          </span>
+          <span className="text-gray-400" style={{ fontSize: '12px', fontFamily: 'Roboto, sans-serif' }}>
+            <TranslatedText text="one-time" />
+          </span>
+
+          {(assessment.isAvailReport || assessment.isAvailCertification) && (
+            <span className="text-gray-300">•</span>
+          )}
+
+          {assessment.isAvailReport && (
+            <span className="inline-flex items-center gap-1 text-gray-500" style={{ fontSize: '12px', fontFamily: 'Roboto, sans-serif' }}>
+              <CheckCircleIcon className="w-3.5 h-3.5 text-green-600 shrink-0" />
+              <TranslatedText text="Report included" />
+            </span>
+          )}
+          {assessment.isAvailCertification && (
+            <span className="inline-flex items-center gap-1 text-gray-500" style={{ fontSize: '12px', fontFamily: 'Roboto, sans-serif' }}>
+              <CheckCircleIcon className="w-3.5 h-3.5 text-green-600 shrink-0" />
+              <TranslatedText text="Certificate included" />
+            </span>
+          )}
+        </div>
+      )}
 
       <button
         className={`w-full rounded-md py-2 px-4 font-medium transition-colors text-white ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FF6B3E] hover:bg-[#e55a35]'}`}

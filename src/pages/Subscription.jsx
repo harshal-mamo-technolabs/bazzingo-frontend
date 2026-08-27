@@ -13,6 +13,7 @@ import {
 } from '../app/subscriptionSlice';
 import { toast } from 'react-hot-toast';
 import TranslatedText from '../components/TranslatedText.jsx';
+import { DocumentArrowDownIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 
 const CANCEL_REASONS = [
   "I wasn't using it often enough",
@@ -52,6 +53,8 @@ const Subscription = () => {
   const [otherReasonText, setOtherReasonText] = useState('');
   const [stayIfOffered, setStayIfOffered] = useState([]);
   const [isEndingTrial, setIsEndingTrial] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
   const actionsRef = useRef(null);
   const location = useLocation();
 
@@ -72,6 +75,63 @@ const Subscription = () => {
   useEffect(() => {
     dispatch(fetchSubscriptionStatus());
   }, [dispatch]);
+
+  // Fetch billing invoices on component mount
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      setIsLoadingInvoices(true);
+      try {
+        const stored = localStorage.getItem('user');
+        if (!stored) return;
+        const userData = JSON.parse(stored);
+        const accessToken = userData?.accessToken || userData?.user?.token;
+        if (!accessToken) return;
+
+        const response = await fetch(`${API_CONNECTION_HOST_URL}/stripe/invoices`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+        const result = await response.json().catch(() => ({}));
+        if (response.ok && result.status === 'success') {
+          setInvoices(result.data?.invoices || []);
+        }
+      } catch (err) {
+        console.error('Error fetching invoices:', err);
+      } finally {
+        setIsLoadingInvoices(false);
+      }
+    };
+
+    fetchInvoices();
+  }, []);
+
+  const formatInvoiceDate = (date) => {
+    try {
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  const formatInvoiceAmount = (amount, currency) => {
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: (currency || 'usd').toUpperCase(),
+      }).format(amount);
+    } catch {
+      return `${amount} ${currency}`;
+    }
+  };
+
+  const isInvoicePaid = (status) => status === 'paid';
 
   // Focus actions if linked with action=end-trial
   useEffect(() => {
@@ -536,6 +596,75 @@ const Subscription = () => {
                    )}
                  </div>
               </div>
+            </div>
+          )}
+
+          {/* Billing History */}
+          {(isLoadingInvoices || invoices.length > 0) && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8 mt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Billing History</h3>
+
+              {isLoadingInvoices ? (
+                <div className="flex justify-center py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {invoices.map((invoice) => (
+                    <div
+                      key={invoice.id}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-gray-50 rounded-lg px-4 py-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 flex items-center flex-wrap gap-2">
+                          {formatInvoiceAmount(invoice.total ?? invoice.amountPaid, invoice.currency)}
+                          <span className="text-xs text-gray-500">
+                            {invoice.number ? `#${invoice.number}` : ''}
+                          </span>
+                          <span
+                            className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                              isInvoicePaid(invoice.status)
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}
+                          >
+                            {isInvoicePaid(invoice.status) ? 'Paid' : invoice.status}
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {invoice.description ? `${invoice.description} · ` : ''}
+                          {formatInvoiceDate(invoice.created)}
+                        </p>
+                      </div>
+                      {isInvoicePaid(invoice.status) ? (
+                        invoice.invoicePdf && (
+                          <a
+                            href={invoice.invoicePdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 self-start sm:self-auto text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-md transition-colors"
+                          >
+                            <DocumentArrowDownIcon className="w-4 h-4" />
+                            View Receipt
+                          </a>
+                        )
+                      ) : (
+                        invoice.hostedInvoiceUrl && (
+                          <a
+                            href={invoice.hostedInvoiceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 self-start sm:self-auto text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md transition-colors"
+                          >
+                            <CreditCardIcon className="w-4 h-4" />
+                            View Invoice
+                          </a>
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

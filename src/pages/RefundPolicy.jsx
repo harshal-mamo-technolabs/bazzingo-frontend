@@ -85,172 +85,336 @@ function RefundPolicy() {
                         <TranslatedText text="Refund &amp; Cancellation Policy" />
                     </h3>
                     <p className="text-gray-500 mt-1" style={{ ...bodyStyle, fontSize: '13px' }}>
-                        Last Updated: 27.07.2026
+                        Last Updated: 25 August 2026
                     </p>
                 </div>
 
                 <div className="mx-auto px-4 lg:px-12 py-4">
                     <div className="max-w-[800px]">
                         <p className="text-gray-600" style={{ ...bodyStyle, marginBottom: '24px' }}>
-                            This Refund &amp; Cancellation Policy explains how cancellations, withdrawals, and refunds work for TestBrain, a digital IQ testing and brain training service operated by Comparo Media, Milutina Bara&ccedil;a 7, 51000 Rijeka, Croatia. It applies to every purchase made through testbrain.net. If anything here is unclear, email us at support@testbrain.net before you buy &mdash; we would rather answer a question than process a refund.
+                            <TranslatedText text="This Refund &amp; Cancellation Policy explains how subscription cancellations, withdrawal rights, and refund requests work for Testbrain, a digital IQ testing and cognitive assessment service operated by Comparo Media d.o.o., Miliutina Barača 7, 51000 Rijeka, Croatia." />
+                        </p>
+                        <p className="text-gray-600" style={{ ...bodyStyle, marginBottom: '24px' }}>
+                            <TranslatedText text="This policy applies to purchases made through Testbrain. Nothing in this policy limits any mandatory consumer rights that apply under the laws of your country of residence." />
+                        </p>
+                        <p className="text-gray-600" style={{ ...bodyStyle, marginBottom: '24px' }}>
+                            <TranslatedText text="For assistance, you can use Testbrain Live Chat when available or contact support@testbrain.net." />
                         </p>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>What You Are Purchasing</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>1. <TranslatedText text="Testbrain Purchases" /></h3>
                             <p className="text-gray-600" style={bodyStyle}>
-                                TestBrain is sold as an auto-renewing subscription:
+                                <TranslatedText text="Testbrain currently offers both recurring subscriptions and individual one-time assessment purchases." />
                             </p>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Trial Subscription" /></p>
                             <ul className="text-gray-600" style={listStyle}>
-                                <li>3-day trial: &euro;2.99, charged immediately when you subscribe</li>
-                                <li>After the trial: &euro;35.00 per month, charged automatically on the same day each month</li>
-                                <li>Renewal continues until you cancel &mdash; there is no fixed contract term and no cancellation fee</li>
+                                <li><TranslatedText text="&euro;2.99 for 3 days" /></li>
+                                <li><TranslatedText text="The trial fee is charged when you subscribe." /></li>
+                                <li><TranslatedText text="Unless cancelled before the trial period ends, the subscription automatically converts to the Monthly Subscription." /></li>
+                                <li><TranslatedText text="After the trial, the applicable subscription fee is &euro;35.00 per month." /></li>
                             </ul>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Monthly Subscription" /></p>
+                            <ul className="text-gray-600" style={listStyle}>
+                                <li><TranslatedText text="&euro;35.00 per month" /></li>
+                                <li><TranslatedText text="Automatically renews each month until cancelled." /></li>
+                                <li><TranslatedText text="There is no fixed contract term." /></li>
+                                <li><TranslatedText text="You can cancel at any time to prevent future renewals." /></li>
+                            </ul>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Individual Assessment Purchase" /></p>
+                            <ul className="text-gray-600" style={listStyle}>
+                                <li><TranslatedText text="&euro;10.00 per assessment" /></li>
+                                <li><TranslatedText text="One-time payment." /></li>
+                                <li><TranslatedText text="No automatic renewal." /></li>
+                                <li><TranslatedText text="Does not create a Trial or Monthly Subscription." /></li>
+                                <li><TranslatedText text="Applies only to the individual assessment purchased." /></li>
+                                <li><TranslatedText text="Includes access to the purchased assessment and its applicable personalized report and certificate after completion." /></li>
+                            </ul>
+
                             <p className="text-gray-600" style={bodyStyle}>
-                                All amounts are in euros and include VAT where applicable. Payments are processed by Stripe, Inc.; we never store your full card number.
+                                <TranslatedText text="All displayed prices include VAT where applicable." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Payments are securely processed by Stripe, Inc. Testbrain does not store your full payment card number." />
                             </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>Cancelling Your Subscription</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>2. <TranslatedText text="Cancelling Your Subscription" /></h3>
                             <p className="text-gray-600" style={bodyStyle}>
-                                You can cancel at any time, for any reason.
+                                <TranslatedText text="You can cancel your Trial or Monthly Subscription at any time through your Testbrain account." />
                             </p>
-                            <p className="text-gray-800" style={subLabelStyle}>How to cancel:</p>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="How to Cancel" /></p>
                             <ol className="text-gray-600" style={{ ...listStyle, listStyleType: 'decimal' }}>
-                                <li>Email support@testbrain.net with the subject line &ldquo;Cancel Subscription&rdquo;</li>
-                                <li>Include the email address you used at checkout</li>
-                                <li>We confirm your cancellation by email within 24 hours</li>
+                                <li><TranslatedText text="Log in to your Testbrain account." /></li>
+                                <li><TranslatedText text="Go to Subscription Management." /></li>
+                                <li><TranslatedText text="Select Cancel Subscription." /></li>
+                                <li><TranslatedText text="Follow the on-screen instructions and confirm the cancellation." /></li>
                             </ol>
-                            <p className="text-gray-800" style={subLabelStyle}>What happens next:</p>
-                            <ul className="text-gray-600" style={listStyle}>
-                                <li>Cancelling before your 3-day trial ends means the &euro;35.00 monthly charge is never taken</li>
-                                <li>Cancelling during a paid month stops all future charges; you keep access until the end of the period you already paid for</li>
-                                <li>Cancellation alone is not a refund request &mdash; if you also want money back, see the sections below</li>
-                            </ul>
-                        </div>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Once the cancellation is confirmed, no further automatic renewal charges will be made." />
+                            </p>
 
-                        <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>14-Day Right of Withdrawal (EU/EEA Consumers)</h3>
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Cancelling During the Trial" /></p>
                             <p className="text-gray-600" style={bodyStyle}>
-                                If you are a consumer resident in the EU or EEA, the Consumer Rights Directive (2011/83/EU) gives you 14 days from the day the contract is concluded to withdraw without giving any reason.
+                                <TranslatedText text="If you cancel your Trial before it expires, the &euro;35.00 Monthly Subscription charge will not be taken." />
                             </p>
-                            <p className="text-gray-600 mt-2" style={bodyStyle}>
-                                <strong>Digital content note:</strong> When you start using TestBrain immediately (taking the test, opening your report or certificate), you give express consent to immediate performance and, under Article 16(m) of the Directive, you would normally lose the statutory right of withdrawal. TestBrain waives this exclusion: we honour the full 14-day withdrawal period even if you have already accessed your results.
-                            </p>
-                            <p className="text-gray-600 mt-2" style={bodyStyle}>
-                                <strong>How to withdraw:</strong> Send a clear statement to support@testbrain.net (&ldquo;I withdraw from my contract&rdquo;) within 14 days of purchase, together with the email address used at checkout and the date of purchase. No form or justification is required.
-                            </p>
-                            <p className="text-gray-600 mt-2" style={bodyStyle}>
-                                We refund all payments received under the withdrawn contract to your original payment method.
-                            </p>
-                        </div>
 
-                        <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>30-Day Satisfaction Guarantee</h3>
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Cancelling a Monthly Subscription" /></p>
                             <p className="text-gray-600" style={bodyStyle}>
-                                Beyond your statutory rights, we offer a voluntary goodwill guarantee on monthly subscription charges.
+                                <TranslatedText text="If you cancel an active Monthly Subscription, future renewals will stop." />
                             </p>
-                            <ul className="text-gray-600" style={listStyle}>
-                                <li>If you are not satisfied, request a refund of your most recent monthly charge within 30 days of that charge</li>
-                                <li>No explanation and no justification required</li>
-                                <li>Applies to the latest monthly payment only &mdash; earlier billing periods that were used are not retroactively refunded</li>
-                                <li>Available once per billing period and does not extend your access after the refund is issued</li>
-                            </ul>
                             <p className="text-gray-600" style={bodyStyle}>
-                                This guarantee is offered by Comparo Media as a commercial commitment and is in addition to &mdash; never a replacement for &mdash; your mandatory consumer rights.
+                                <TranslatedText text="Unless otherwise stated during the cancellation process, you may continue using the subscription until the end of the billing period already paid for." />
+                            </p>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Cancellation Is Not a Refund" /></p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Cancelling your subscription prevents future renewals. It does not automatically refund charges that have already been processed." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you want to request a refund for an existing charge, see the refund sections below." />
                             </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>Rights of Customers in the United States</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>3. <TranslatedText text="Refund Requests for Subscription Charges" /></h3>
                             <p className="text-gray-600" style={bodyStyle}>
-                                Customers in the United States receive the same treatment described above.
+                                <TranslatedText text="Refund requests concerning Trial or Monthly Subscription payments are reviewed separately from subscription cancellation." />
                             </p>
-                            <ul className="text-gray-600" style={listStyle}>
-                                <li><strong>Automatic renewal disclosure:</strong> This is a negative-option, automatically renewing subscription. The trial converts to &euro;35.00/month unless cancelled before the trial ends. This is disclosed at checkout, on the payment form, and in your confirmation email.</li>
-                                <li><strong>Easy cancellation:</strong> You can cancel by a single email to support@testbrain.net; we do not require phone calls, retention interviews, or additional steps.</li>
-                                <li><strong>Same refund windows:</strong> The 14-day withdrawal window and the 30-day satisfaction guarantee are applied to US customers on identical terms.</li>
-                                <li>Nothing in this policy limits rights you may have under applicable state consumer protection or auto-renewal laws.</li>
-                            </ul>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you would like to request a refund, you can contact a human Testbrain Support agent through Live Chat, when available." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If Live Chat is unavailable, contact: support@testbrain.net" />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Please use the email address associated with your Testbrain account where possible." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Submitting a refund request does not guarantee approval. We will review the circumstances of your request together with the applicable Testbrain terms and any mandatory consumer rights." />
+                            </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>How to Request a Refund</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>4. <TranslatedText text="30-Day Satisfaction Guarantee" /></h3>
                             <p className="text-gray-600" style={bodyStyle}>
-                                Send one email to support@testbrain.net with the subject line &ldquo;Refund Request&rdquo; and include:
+                                <TranslatedText text="In addition to any mandatory consumer rights that may apply, Testbrain offers a voluntary 30-Day Satisfaction Guarantee for eligible Monthly Subscription charges." />
                             </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you are not satisfied, you may request a refund of your most recent Monthly Subscription charge within 30 days of that charge." />
+                            </p>
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="The guarantee:" /></p>
                             <ul className="text-gray-600" style={listStyle}>
-                                <li>The email address used at checkout</li>
-                                <li>The date and amount of the charge you want refunded</li>
-                                <li>Whether you are exercising the 14-day withdrawal right or the 30-day guarantee (optional &mdash; we will apply whichever is more favourable to you)</li>
+                                <li><TranslatedText text="Applies to the most recent eligible Monthly Subscription payment." /></li>
+                                <li><TranslatedText text="Does not automatically refund earlier billing periods." /></li>
+                                <li><TranslatedText text="Does not automatically cancel your subscription." /></li>
+                                <li><TranslatedText text="Is generally available once per eligible billing relationship." /></li>
+                                <li><TranslatedText text="Does not extend your access after an approved refund where access is terminated as part of that refund." /></li>
                             </ul>
                             <p className="text-gray-600" style={bodyStyle}>
-                                We acknowledge every request within 2 business days and tell you clearly whether it is approved. If we need more information, we will ask for it in that first reply.
+                                <TranslatedText text="The 30-Day Satisfaction Guarantee is a voluntary commercial commitment offered by Comparo Media and is separate from any mandatory statutory consumer rights." />
                             </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>Processing Time</h3>
-                            <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                Approved refunds are processed to the original payment method within 14 days of us approving the request &mdash; usually much sooner.
+                            <h3 className="text-gray-900" style={headingStyle}>5. <TranslatedText text="Individual Assessment Refunds" /></h3>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Individual assessments are &euro;10.00 one-time purchases and are not recurring subscriptions." />
                             </p>
-                            <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                Once Stripe releases the refund, the time it takes to appear on your statement depends on your bank or card issuer, typically 5&ndash;10 business days. We cannot influence that final settlement window, but the refund reference is available on request.
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Assessment Not Yet Started" /></p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you purchased an individual assessment but have not started it, you may submit a refund request for human review." />
                             </p>
                             <p className="text-gray-600" style={bodyStyle}>
-                                We do not issue refunds as store credit, vouchers, or to a different card than the one used for the original payment.
+                                <TranslatedText text="Use Testbrain Live Chat when available or contact support@testbrain.net." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="A human Testbrain Support agent will review the request and determine whether a refund can be issued." />
+                            </p>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Assessment Already Completed" /></p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you have completed the individually purchased assessment and the corresponding report or certificate has been provided or made available to you, the purchase is generally not eligible for a voluntary refund, subject always to any mandatory consumer rights that apply." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="This does not affect your statutory rights where the digital content or service is defective, not supplied as agreed, or otherwise does not conform to the contract." />
                             </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>Exceptions &amp; Fair Use</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>6. <TranslatedText text="EU/EEA Right of Withdrawal" /></h3>
                             <p className="text-gray-600" style={bodyStyle}>
-                                We may decline a refund request in the following limited cases:
+                                <TranslatedText text="This section applies to consumers in the European Union and European Economic Area where the statutory right of withdrawal applies." />
                             </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Consumers generally have 14 days to withdraw from a distance contract without giving a reason, subject to the exceptions and conditions provided by applicable consumer law." />
+                            </p>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Digital Content and Immediate Performance" /></p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Certain Testbrain products provide digital content or digital services immediately after purchase." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Under EU consumer law, the statutory right of withdrawal for digital content not supplied on a tangible medium may cease once performance has begun where the legally required conditions are satisfied, including the consumer's prior express consent to immediate performance and acknowledgement of the resulting loss of the withdrawal right. The trader must also provide the required confirmation." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Where those legal requirements have not been satisfied, your statutory withdrawal rights remain unaffected." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Nothing in this policy is intended to remove or restrict a statutory withdrawal right that you retain under applicable law." />
+                            </p>
+
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="Exercising a Statutory Withdrawal Right" /></p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Where you have a statutory right of withdrawal, you may exercise it by making a clear statement that you wish to withdraw from the contract." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="You can contact support@testbrain.net or use any withdrawal functionality provided directly through Testbrain where available." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="No specific wording is required as long as your decision to withdraw is clear." />
+                            </p>
+                        </div>
+
+                        <div style={sectionStyle}>
+                            <h3 className="text-gray-900" style={headingStyle}>7. <TranslatedText text="Defective or Non-Conforming Digital Services" /></h3>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="The refund rules above do not limit your statutory rights where Testbrain digital content or services are defective, unavailable, or otherwise fail to conform to the contract." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="EU rules provide consumers with remedies for digital content and digital services that are not supplied as agreed, which can include bringing the service into conformity, a price reduction, or termination and reimbursement where the applicable legal conditions are met." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you believe a technical problem materially prevented you from receiving the service you purchased, contact Testbrain Support and describe the issue." />
+                            </p>
+                        </div>
+
+                        <div style={sectionStyle}>
+                            <h3 className="text-gray-900" style={headingStyle}>8. <TranslatedText text="How to Request a Refund" /></h3>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="The preferred method is to contact a human Testbrain Support agent through Live Chat when available." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If Live Chat is unavailable, email: support@testbrain.net" />
+                            </p>
+                            <p className="text-gray-800" style={subLabelStyle}><TranslatedText text="When contacting us, please provide:" /></p>
                             <ul className="text-gray-600" style={listStyle}>
-                                <li><strong>Abuse of the guarantee:</strong> repeated subscribe-refund cycles, or multiple accounts created by the same person to claim repeated refunds</li>
-                                <li>Fraudulent or unauthorised claims, including chargebacks filed on charges you actually authorised</li>
-                                <li>Charges older than the applicable window, outside the 14-day withdrawal period and the 30-day guarantee</li>
-                                <li>Purchases made through a third party (for example an app store), which must be refunded through that provider under its own policy</li>
+                                <li><TranslatedText text="The email address associated with your Testbrain account." /></li>
+                                <li><TranslatedText text="The purchase or charge concerned." /></li>
+                                <li><TranslatedText text="The approximate purchase or charge date." /></li>
+                                <li><TranslatedText text="A short explanation of the issue." /></li>
                             </ul>
                             <p className="text-gray-600" style={bodyStyle}>
-                                If we decline, we will explain why in writing and tell you how to escalate.
+                                <TranslatedText text="Please do not send your full payment card number, CVV/CVC, PIN, banking password, account password, or authentication codes." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="We may request additional information where reasonably necessary to identify the transaction or investigate your request." />
                             </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>Chargebacks &amp; Payment Disputes</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>9. <TranslatedText text="Refund Processing" /></h3>
                             <p className="text-gray-600" style={bodyStyle}>
-                                Please contact us before filing a chargeback with your bank. Almost every dispute we see &mdash; an unexpected renewal, a duplicate charge, an unrecognised descriptor &mdash; is resolved by email within one business day.
+                                <TranslatedText text="If a refund is approved, it will normally be issued to the original payment method." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="We do not ordinarily issue refunds as store credit, vouchers, or to a different payment card." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="After Testbrain issues a refund, the time required for the funds to appear on your account depends on your bank, card issuer, and payment processor." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Testbrain cannot control the final settlement time imposed by your financial institution." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Where applicable law establishes a mandatory reimbursement deadline, that deadline will apply." />
+                            </p>
+                        </div>
+
+                        <div style={sectionStyle}>
+                            <h3 className="text-gray-900" style={headingStyle}>10. <TranslatedText text="Exceptions and Fair Use" /></h3>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Testbrain may refuse requests made under its voluntary refund or satisfaction guarantees in cases involving abuse, fraud, or misuse, including:" />
                             </p>
                             <ul className="text-gray-600" style={listStyle}>
-                                <li>Charges appear on your statement via our payment processor, Stripe, Inc.</li>
-                                <li>Duplicate or clearly unauthorised charges are refunded in full, without any time limit</li>
-                                <li>A chargeback filed before contacting support may suspend your account while the dispute is investigated with the card network</li>
+                                <li><TranslatedText text="Repeated purchase-and-refund activity intended to obtain Testbrain services without payment." /></li>
+                                <li><TranslatedText text="Multiple accounts created to repeatedly claim voluntary refunds." /></li>
+                                <li><TranslatedText text="Fraudulent refund requests." /></li>
+                                <li><TranslatedText text="Duplicate voluntary refund claims for the same transaction." /></li>
+                                <li><TranslatedText text="Other demonstrable abuse of Testbrain's voluntary refund programs." /></li>
                             </ul>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="These restrictions apply to voluntary Testbrain refund guarantees only." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="They do not limit statutory withdrawal rights, remedies for defective or non-conforming digital services, chargeback rights, or other mandatory consumer protections." />
+                            </p>
                         </div>
 
                         <div style={sectionStyle}>
-                            <h3 className="text-gray-900" style={headingStyle}>Contact &amp; Governing Law</h3>
+                            <h3 className="text-gray-900" style={headingStyle}>11. <TranslatedText text="Chargebacks and Unrecognized Payments" /></h3>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you do not recognize a Testbrain payment or believe you were charged incorrectly, please contact Testbrain Support so we can investigate the transaction." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Use Live Chat when available or contact: support@testbrain.net" />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="We may ask for limited transaction information necessary to locate the payment. Never send your full card number, CVV/CVC, PIN, banking password, or authentication codes." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Contacting Testbrain first may allow us to resolve the issue more quickly, but nothing in this policy restricts any right you may have to contact your bank, card issuer, payment provider, or other competent authority regarding a disputed transaction." />
+                            </p>
+                        </div>
+
+                        <div style={sectionStyle}>
+                            <h3 className="text-gray-900" style={headingStyle}>12. <TranslatedText text="Account Deletion and Subscription Cancellation" /></h3>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Deleting a Testbrain account and cancelling a subscription are related but separate actions." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="If you currently have an active subscription, you must first cancel it through Subscription Management." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Once the cancellation has been successfully confirmed, you may proceed immediately to: Profile &rarr; Settings &rarr; Delete Account" />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="You do not need to wait until the end of the current billing period before deleting your account after the subscription cancellation has been confirmed." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Account deletion does not create a refund request. If you also want to request a refund for an existing charge, you must submit a separate refund request." />
+                            </p>
+                            <p className="text-gray-600" style={bodyStyle}>
+                                <TranslatedText text="Certain information may be retained after account deletion where required for legal, accounting, fraud-prevention, dispute-resolution, or other legitimate compliance purposes, as described in the Testbrain Privacy Policy." />
+                            </p>
+                        </div>
+
+                        <div style={sectionStyle}>
+                            <h3 className="text-gray-900" style={headingStyle}>13. <TranslatedText text="Contact &amp; Governing Law" /></h3>
                             <p className="text-gray-600" style={{ ...bodyStyle, marginBottom: '12px' }}>
-                                Comparo Media (operating as TestBrain)<br />
-                                Milutina Bara&ccedil;a 7<br />
+                                Comparo Media d.o.o. (Testbrain)<br />
+                                Miliutina Barača 7<br />
                                 51000 Rijeka, Croatia<br />
                                 Email: support@testbrain.net
                             </p>
                             <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                This policy is governed by the laws of Croatia and the European Union, without prejudice to the mandatory consumer protection rules of your country of residence.
+                                <TranslatedText text="This policy is governed by the laws of Croatia and applicable European Union law, without depriving consumers of mandatory protections available under the laws applicable to them." />
                             </p>
                             <p className="text-gray-600 mb-2" style={bodyStyle}>
-                                <strong>EU Online Dispute Resolution:</strong> https://ec.europa.eu/consumers/odr
+                                <TranslatedText text="EU consumers can find information about their consumer rights through official European Union consumer resources." />
                             </p>
                             <p className="text-gray-600" style={bodyStyle}>
-                                We update this policy from time to time; the &ldquo;Last Updated&rdquo; date above always reflects the current version.
+                                <TranslatedText text="We may update this Refund &amp; Cancellation Policy from time to time. The Last Updated date at the top identifies the current version." />
                             </p>
                         </div>
 
                         <p className="text-gray-500" style={{ ...bodyStyle, fontSize: '14px' }}>
-                            This Refund &amp; Cancellation Policy forms part of our Terms &amp; Conditions and does not limit your statutory consumer rights.
+                            <TranslatedText text="This Refund &amp; Cancellation Policy forms part of the Testbrain Terms &amp; Conditions and does not limit mandatory consumer rights." />
                         </p>
                     </div>
                 </div>
