@@ -117,6 +117,9 @@ export const VISIBILITY_CONTROLS = {
   statisticsCertifiedCard: true,
   assessmentCompletionUpsell: true,
 
+  // Subscription page components
+  paymentMethods: true,
+
   // Profile pages
   privacyPolicy: true,
   termsOfUse: true,

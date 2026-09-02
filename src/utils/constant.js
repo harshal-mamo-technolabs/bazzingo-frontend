@@ -18,6 +18,9 @@ export const GAMES_ENDPOINT = "/game/games";
 export const GAME_SCORE_ENDPOINT = "/game/score";
 export const DAILY_SUGGESTIONS_ENDPOINT = "/game/suggestions/daily";
 
+// Saved card endpoints
+export const PAYMENT_METHODS_ENDPOINT = "/stripe-elements/payment-methods";
+
 // Assessment page endpoints
 export const ASSESSMENT_ENDPOINT = '/assessment';
 export const QUICK_ASSESSMENT_ENDPOINT = '/assessment/quick';

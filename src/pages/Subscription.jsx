@@ -14,6 +14,8 @@ import {
 import { toast } from 'react-hot-toast';
 import TranslatedText from '../components/TranslatedText.jsx';
 import { DocumentArrowDownIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import PaymentMethodsCard from '../components/Payment/PaymentMethodsCard.jsx';
+import { isComponentVisible, isStripePaymentEnabled } from '../config/accessControl';
 
 const CANCEL_REASONS = [
   "I wasn't using it often enough",
@@ -596,6 +598,13 @@ const Subscription = () => {
                    )}
                  </div>
               </div>
+            </div>
+          )}
+
+          {/* Payment Methods */}
+          {isStripePaymentEnabled() && isComponentVisible('paymentMethods') && (
+            <div className="mt-6">
+              <PaymentMethodsCard />
             </div>
           )}
 

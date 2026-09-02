@@ -17,18 +17,15 @@ const UpdatePassword = () => {
   const passwordsNotMatchText = useTranslateText("Passwords do not match");
   const passwordUpdatedText = useTranslateText("Password updated successfully!");
   const failedUpdateText = useTranslateText("Failed to update password. Please try again.");
-  const currentPasswordPlaceholder = useTranslateText("Enter Current Password");
   const newPasswordPlaceholder = useTranslateText("Enter New Password");
   const confirmPasswordPlaceholder = useTranslateText("Enter New Password");
 
   const [formData, setFormData] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
 
   const [showPasswords, setShowPasswords] = useState({
-    current: false,
     new: false,
     confirm: false
   });
@@ -44,10 +41,7 @@ const UpdatePassword = () => {
     try {
       dispatch(loadingAction());
 
-      const response = await updatePasswordService(
-        formData.currentPassword,
-        formData.newPassword
-      );
+      const response = await updatePasswordService(formData.newPassword);
 
       if (response.status === API_RESPONSE_STATUS_SUCCESS) {
         toast.success(response.message || passwordUpdatedText);
@@ -98,35 +92,6 @@ const UpdatePassword = () => {
           < div className="mx-auto px-4 lg:px-12 py-4 lg:py-4" >
             <div className="w-full md:max-w-[320px]">
               <form onSubmit={updatePasswordHandler}>
-                {/* Current Password */}
-                <div style={{ marginBottom: '16px' }}>
-                  <label className="block text-gray-700" style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>
-                    <TranslatedText text="Current Password" />
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPasswords.current ? 'text' : 'password'}
-                      placeholder={currentPasswordPlaceholder}
-                      value={formData.currentPassword}
-                      onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
-                      style={{ fontSize: '11px', height: '36px' }}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility('current')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPasswords.current ? (
-                        <EyeOff style={{ height: '14px', width: '14px' }} />
-                      ) : (
-                        <Eye style={{ height: '14px', width: '14px' }} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
                 {/* New Password */}
                 <div style={{ marginBottom: '16px' }}>
                   <label className="block text-gray-700" style={{ fontSize: '11px', fontWeight: '500', marginBottom: '8px' }}>

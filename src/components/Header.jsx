@@ -397,6 +397,7 @@ export default function Header({unreadCount = 0}) {
                                   setIsMobileMenuOpen(false);
                                   setIsNotificationOpen(true);
                                 }}
+                                onLogout={handleLogout}
                                 notificationCount={notificationCount}
                                 language={language}
                                 setLanguage={setLanguage}
@@ -602,6 +603,7 @@ const MobileMenu = memo(function MobileMenu({
                                                 onNavigate,
                                                 onClose,
                                                 onOpenNotifications,
+                                                onLogout,
                                                 notificationCount,
                                                 language,
                                                 setLanguage,
@@ -790,10 +792,7 @@ const MobileMenu = memo(function MobileMenu({
 
             <div className="border-t border-gray-100 py-2">
                 <button
-                    onClick={() => {
-                        onNavigate('/login'); // navigation happens after logout in parent; this preserves visual route on mobile close
-                        onClose();
-                    }}
+                    onClick={onLogout}
                     className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
                     style={TEXT_BASE}
                 >

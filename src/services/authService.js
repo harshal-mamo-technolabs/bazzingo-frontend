@@ -46,7 +46,7 @@ export async function resetPassword(token, password) {
     return response.data;
 }
 
-export async function updatePassword(currentPassword, newPassword) {
+export async function updatePassword(newPassword) {
     // Get the user token from localStorage
     const userData = localStorage.getItem("user");
 
@@ -68,7 +68,6 @@ export async function updatePassword(currentPassword, newPassword) {
     }
 
     const response = await axios.post(`${API_CONNECTION_HOST_URL}${UPDATE_PASSWORD_ENDPOINT}`, {
-        oldPassword: currentPassword,
         newPassword,
     }, {
         headers: {

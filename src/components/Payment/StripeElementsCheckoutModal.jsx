@@ -451,7 +451,7 @@ function StripeElementsCheckoutModal({
   const loadSavedCard = async () => {
     setCheckingCard(true);
     try {
-      const res = await apiCall('/stripe-v2/payment-methods');
+      const res = await apiCall('/stripe-elements/payment-methods');
       const methods = res?.data?.paymentMethods || [];
       const def = methods.find((m) => m.isDefault) || methods[0] || null;
       setSavedCard(def);

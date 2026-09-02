@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getDailySuggestions, submitGameScore } from '../../services/gameService';
 import { useTranslateText } from '../../hooks/useTranslate';
 
@@ -18,6 +18,7 @@ const GameCompletionModal = ({
   customMessages = {},
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location?.pathname || '';
 
   const [dailySuggestions, setDailySuggestions] = useState([]);
@@ -146,6 +147,14 @@ const GameCompletionModal = ({
     onClose();
   };
 
+  const handlePlaySuggestion = async (g) => {
+    await submitScoreIfNeeded();
+    // same navigate state shape as Dashboard's daily game cards
+    navigate(g.gameId.url, {
+      state: { gameId: g.gameId._id, gameName: g.gameId.name, fromDailyGame: true, difficulty: g.difficulty },
+    });
+  };
+
   const handleMoreGames = async () => {
     await submitScoreIfNeeded();
     if (onMoreGames) onMoreGames();
@@ -160,6 +169,7 @@ const GameCompletionModal = ({
   const tNoDailyLeft = useTranslateText('No daily games left for today.');
   const tDifficulty = useTranslateText('Difficulty:');
   const tMoreGames = useTranslateText('More Games');
+  const tPlay = useTranslateText('Play');
   const tError = useTranslateText(error || '');
 
   if (!isVisible) return null;
@@ -204,6 +214,7 @@ const GameCompletionModal = ({
             ) : (
               <>
                 <div style={styles.card}>
+                  {dailySuggestions.length > 1 && (
                   <button
                     style={styles.navBtn}
                     onClick={() =>
@@ -216,6 +227,7 @@ const GameCompletionModal = ({
                   >
                     ‹
                   </button>
+                  )}
 
                   <div style={styles.cardContent}>
                     {game?.gameId?.thumbnail && (
@@ -236,8 +248,12 @@ const GameCompletionModal = ({
                         {tDifficulty} {game?.difficulty || 'easy'}
                       </div>
                     </div>
+                    <button style={styles.playBtn} onClick={() => handlePlaySuggestion(game)}>
+                      ▶ {tPlay}
+                    </button>
                   </div>
 
+                  {dailySuggestions.length > 1 && (
                   <button
                     style={styles.navBtn}
                     onClick={() =>
@@ -249,6 +265,7 @@ const GameCompletionModal = ({
                   >
                     ›
                   </button>
+                  )}
                 </div>
               </>
             )}
@@ -394,6 +411,19 @@ const styles = {
     fontSize: '18px',
     color: '#374151',
     cursor: 'pointer',
+  },
+
+  playBtn: {
+    marginLeft: 'auto',
+    padding: '8px 14px',
+    borderRadius: '8px',
+    border: 'none',
+    background: '#FF6B3E',
+    color: '#fff',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
 
   centerText: {

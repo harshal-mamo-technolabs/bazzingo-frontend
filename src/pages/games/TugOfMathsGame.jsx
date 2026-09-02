@@ -10,6 +10,7 @@ const tugImage = '/tug-of-war-players.png';
 const GAME_DURATION = 300;
 const TIME_PER_QUESTION = 10;
 const ROPE_SEGMENTS = 5;
+const MAX_SCORE = 200;
 
 const generateQuestion = (difficulty) => {
   let a, b, answer, text;
@@ -210,13 +211,13 @@ const TugOfMathsGame = () => {
       setFeedback('correct');
       playCorrectSound();
       const points = difficulty === 'Easy' ? 25 : difficulty === 'Moderate' ? 30 : 40;
-      setScore(prev => prev + points);
+      setScore(prev => Math.min(prev + points, MAX_SCORE));
       setRopePosition(prev => Math.min(prev + 1, ROPE_SEGMENTS));
     } else {
       setFeedback('wrong');
       playWrongSound();
       const points = difficulty === 'Easy' ? 15 : difficulty === 'Moderate' ? 20 : 25;
-      setComputerScore(prev => prev + points);
+      setComputerScore(prev => Math.min(prev + points, MAX_SCORE));
       setRopePosition(prev => Math.max(prev - 1, -ROPE_SEGMENTS));
     }
 
@@ -231,7 +232,7 @@ const TugOfMathsGame = () => {
     setFeedback('wrong');
     playWrongSound();
     const points = difficulty === 'Easy' ? 15 : difficulty === 'Moderate' ? 20 : 25;
-    setComputerScore(prev => prev + points);
+    setComputerScore(prev => Math.min(prev + points, MAX_SCORE));
     setRopePosition(prev => Math.max(prev - 1, -ROPE_SEGMENTS));
 
     setTimeout(() => {
@@ -286,10 +287,12 @@ const TugOfMathsGame = () => {
 
   useEffect(() => {
     if (gameState !== 'playing') return;
-    if (ropePosition >= ROPE_SEGMENTS || ropePosition <= -ROPE_SEGMENTS) {
+    const playerWon = ropePosition >= ROPE_SEGMENTS || score >= MAX_SCORE;
+    const computerWon = ropePosition <= -ROPE_SEGMENTS || computerScore >= MAX_SCORE;
+    if (playerWon || computerWon) {
       if (timerRef.current) clearInterval(timerRef.current);
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-      const isVictory = ropePosition >= ROPE_SEGMENTS;
+      const isVictory = playerWon;
       if (isVictory) playVictorySound();
       else playGameOverSound();
       setTimeout(() => {
