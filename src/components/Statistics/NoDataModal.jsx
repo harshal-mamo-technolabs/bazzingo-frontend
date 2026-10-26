@@ -28,14 +28,14 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
           title: 'IQ Test Assessment Needed',
           description: 'To unlock your cognitive performance insights, take the IQ Test assessment. It\'s comprehensive, insightful, and your gateway to understanding your mental capabilities.',
           buttonText: 'Start IQ Test',
-          icon: '/brain_yellow.png'
+          icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/brain_yellow.png'
         };
       case 'logic':
         return {
           title: 'Logic Assessment Needed',
           description: 'To unlock your logical reasoning insights, take the Logic assessment. It\'s analytical, challenging, and your key to understanding your reasoning abilities.',
           buttonText: 'Start Logic Test',
-          icon: '/brain_yellow.png'
+          icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/brain_yellow.png'
         };
       case 'driving license':
       default:
@@ -43,7 +43,7 @@ const NoDataModal = ({ isOpen, onClose, onAssesmentClick, category = "Driving Li
           title: 'Driving License Assessment Needed',
           description: 'To unlock your daily mental fitness challenges, take the first step by completing the Driving License test. It\'s quick, empowering, and your key to progress.',
           buttonText: 'Start Driving License Test',
-          icon: '/DL_img.png'
+          icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/DL_img.png'
         };
     }
   };

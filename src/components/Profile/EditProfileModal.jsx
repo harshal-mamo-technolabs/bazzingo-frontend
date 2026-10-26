@@ -9,14 +9,14 @@ import { useTranslateText } from '../../hooks/useTranslate';
 const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
   // Available avatar images
   const avatarImages = [
-    './avatar/person1.png',
-    './avatar/person2.png',
-    './avatar/person3.png',
-    './avatar/person4.png',
-    './avatar/person5.png',
-    './avatar/person6.png',
-    './avatar/person7.png',
-    './avatar/person8.png'
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person1.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person2.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person3.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person4.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person5.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person6.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person7.png',
+    'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/avatar/person8.png'
   ];
 
   // Form state
@@ -164,7 +164,7 @@ const EditProfileModal = ({ isOpen, onClose, currentProfile, onSave }) => {
                         alt="Avatar"
                         className="w-full h-full object-cover transition-all duration-500 hover:brightness-110"
                         onError={(e) => {
-                          e.target.src = './human.png'; // Fallback image
+                          e.target.src = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/human.png'; // Fallback image
                         }}
                       />
 

@@ -5,7 +5,7 @@ import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
 import { useTranslateText } from '../../hooks/useTranslate';
 
-import grandpaCartImage from '/grandma-cart.png';
+const grandpaCartImage = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/grandma-cart.png';
 const PRODUCT_TYPES = [
   { type: 'apple', icon: '🍎', label: 'Apples' },
   { type: 'banana', icon: '🍌', label: 'Bananas' },

@@ -59,7 +59,7 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
         {/* Mobile Layout */}
         <div className="lg:hidden bg-white rounded-xl p-2 flex items-center space-x-3 mb-4">
           <img
-            src="/vibrant-brain-icon.png"
+            src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/vibrant-brain-icon.png"
             alt="Brain Icon"
             className="w-16 h-16 object-contain"
             loading="lazy"
@@ -81,7 +81,7 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
         <div className="hidden lg:block">
           <div className="bg-[#f5f5f5] rounded-t-lg mb-0">
             <img
-              src="/vibrant-brain-icon.png"
+              src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/vibrant-brain-icon.png"
               alt="Brain Icon"
               className="w-full object-contain p-2"
               loading="lazy"
@@ -102,7 +102,7 @@ const DailyAssessmentCard = ({ onAssessmentClick, title, description, isComplete
 
         <div className="flex items-center space-x-0 md:mb-4 mb-2 px-0">
           <span className="mr-1 lg:inline">
-            <img src="/medal-gold.png" className="mr-1" alt="Medal" loading="lazy" decoding="async" />
+            <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/medal-gold.png" className="mr-1" alt="Medal" loading="lazy" decoding="async" />
           </span>
           <span className="text-[12px] lg:text-[12px] font-medium text-black">
             <TranslatedText text="Get your achievement badges" />

@@ -19,12 +19,12 @@ const ProgressBar = memo(function ProgressBar({ percentage }) {
 
 const staticIconMap = {
   game: {
-    icon: '/daily-puzzle-icon.png',
+    icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/daily-puzzle-icon.png',
     alt: 'Game',
     iconBg: 'bg-gray-100',
   },
   assessment: {
-    icon: '/daily-assessment-icon.png',
+    icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/daily-assessment-icon.png',
     alt: 'Assessment',
     iconBg: 'bg-gray-100',
   },
@@ -155,7 +155,7 @@ export default function RecentActivity() {
                     <td className="py-4 px-6 text-center rounded-r-xl">
                       {row.statusType === 'completed' ? (
                         <div className="flex items-center space-x-2 justify-center text-green-600">
-                          <img src="/task-complete-icon.svg" alt="Completed" className="w-5 h-5" />
+                          <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/task-complete-icon.svg" alt="Completed" className="w-5 h-5" />
                           <span className="text-sm font-medium">
                             <TranslatedText text="Completed" />
                           </span>
@@ -204,7 +204,7 @@ export default function RecentActivity() {
                 <div className="flex items-center justify-end min-w-[20px]">
                   {row.statusType === 'completed' ? (
                     <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                      <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                      <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
                       <span>
                         <TranslatedText text="Completed" />
                       </span>

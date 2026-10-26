@@ -7,8 +7,8 @@ self.addEventListener('push', function(event) {
     // Use local icon instead of external image to avoid blocking issues
     const options = {
       body: data.body,
-      icon: '/icon-192x192.svg', // Always use local icon
-      badge: '/badge-72x72.svg',
+      icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/icon-192x192.svg', // Always use local icon
+      badge: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/badge-72x72.svg',
       tag: data.notificationId || 'default',
       data: {
         url: data.websiteUrl,

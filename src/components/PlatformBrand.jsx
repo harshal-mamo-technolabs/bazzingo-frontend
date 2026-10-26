@@ -60,7 +60,7 @@ export function PlatformLockup({ className = '', iconClassName = 'h-8 w-auto', t
   const middle = name.length > 2 ? name.slice(1, -1) : '';
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      <img src="/header/bxs_brain.png" alt="" className={iconClassName} style={{ objectFit: 'contain' }} />
+      <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/header/bxs_brain.png" alt="" className={iconClassName} style={{ objectFit: 'contain' }} />
       <span className={`font-extrabold tracking-wide leading-none ${textClassName}`}>
         <span style={{ color: '#FF6B3E' }}>{first}</span>
         <span style={{ color: '#111827' }}>{middle}</span>

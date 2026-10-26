@@ -62,7 +62,7 @@ const NoticeModal = ({ isOpen, onClose, title = "Congratulations!", message = ""
 
                 {/* Subtle badge row */}
                 {/* <div className="mt-3 flex items-center justify-center gap-2">
-                  <img src="/medal-gold.png" alt="Badge" className="w-6 h-6" />
+                  <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/medal-gold.png" alt="Badge" className="w-6 h-6" />
                   <span className="text-[12px] text-gray-700 font-medium">Keep it up!</span>
                 </div> */}
 

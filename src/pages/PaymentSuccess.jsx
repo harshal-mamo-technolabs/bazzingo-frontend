@@ -219,7 +219,7 @@ export default function PaymentSuccess() {
             </>
           ) : (
             <>
-              <img src="/task-complete-icon.svg" alt="Success" className="w-16 h-16 mx-auto mb-6" />
+              <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/task-complete-icon.svg" alt="Success" className="w-16 h-16 mx-auto mb-6" />
               <h1 className="text-gray-900 text-2xl font-bold mb-2">Payment Successful!</h1>
               <p className="text-gray-600">Redirecting you to your dashboard...</p>
             </>

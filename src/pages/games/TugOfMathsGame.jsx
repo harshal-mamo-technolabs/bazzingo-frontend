@@ -5,7 +5,7 @@ import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
 import { useTranslateText } from '../../hooks/useTranslate';
 
-const tugImage = '/tug-of-war-players.png';
+const tugImage = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/tug-of-war-players.png';
 
 const GAME_DURATION = 300;
 const TIME_PER_QUESTION = 10;

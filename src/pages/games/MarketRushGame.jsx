@@ -4,11 +4,11 @@ import { getDailySuggestions } from '../../services/gameService';
 import GameCompletionModal from '../../components/Game/GameCompletionModal';
 import { useTranslateText } from '../../hooks/useTranslate';
 
-const happyShopkeeper = '/happy-shopkeeper.png';
-const confusedShopkeeper = '/happy-shopkeeper.png';
-const happyCustomer = '/happy-customer.png';
-const angryCustomer = '/angry-customer.png';
-const freshMarketShop = '/fresh-market-shop.png';
+const happyShopkeeper = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/happy-shopkeeper.png';
+const confusedShopkeeper = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/happy-shopkeeper.png';
+const happyCustomer = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/happy-customer.png';
+const angryCustomer = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/angry-customer.png';
+const freshMarketShop = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/fresh-market-shop.png';
 
 // ─── constants ───────────────────────────────────────────────────
 const MAX_SCORE = 200;

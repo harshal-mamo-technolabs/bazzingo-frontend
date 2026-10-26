@@ -193,7 +193,7 @@ const Login = () => {
             <Button
               className="flex items-center justify-center gap-2 w-full px-4 py-2 md:py-3 border border-gray-300 rounded-lg"
             >
-              <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
+              <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/google-icon.svg" alt="Google" className="w-4 h-4" />
               <span className="font-bold text-sm text-gray-800">Google</span>
             </Button>
             <div className="absolute top-0 left-0 w-full h-full opacity-0">
@@ -207,7 +207,7 @@ const Login = () => {
           </div>
           <Button className="flex flex-none md:flex-1 items-center justify-center gap-2 px-4 py-2 md:py-3 border border-gray-300 rounded-lg">
             <img
-              src="/facebook-icon.svg"
+              src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/facebook-icon.svg"
               alt="Facebook"
               className="w-4 h-4"
             />

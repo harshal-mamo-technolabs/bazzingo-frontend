@@ -10,9 +10,9 @@ import { PlatformWordmark } from './PlatformBrand.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 import TranslatedText from './TranslatedText.jsx';
 
-const brainIcon = '/header/bxs_brain.png';
-const bellIcon = '/header/bell.png';
-const hamburgerIcon = '/header/hamburger.png';
+const brainIcon = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/header/bxs_brain.png';
+const bellIcon = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/header/bell.png';
+const hamburgerIcon = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/header/hamburger.png';
 
 /** ---------------------------
  *  Config & shared styles

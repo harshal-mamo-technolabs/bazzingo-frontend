@@ -109,8 +109,8 @@ const PushNotificationSetup = () => {
       if (Notification.permission === 'granted') {
         const notification = new Notification('Test Notification', {
           body: applyPlatformBrandToText('This is a test notification from Bazzingo!'),
-          icon: '/icon-192x192.svg',
-          badge: '/badge-72x72.svg'
+          icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/icon-192x192.svg',
+          badge: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/badge-72x72.svg'
         });
         
         notification.onclick = () => {

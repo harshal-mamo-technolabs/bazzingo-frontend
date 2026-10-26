@@ -72,7 +72,7 @@ const DailyAssessmentModal = ({ isOpen, selectedAssessment, onClose, isCompleted
               <div className="flex justify-center rounded-lg bg-white h-30">
                 <div className="rounded-lg flex items-center justify-center">
                   <img
-                    src="/brain.png"
+                    src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/brain.png"
                     alt="Assessment icon"
                     className="w-16 h-16 object-contain"
                   />

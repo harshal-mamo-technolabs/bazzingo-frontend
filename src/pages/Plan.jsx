@@ -218,7 +218,7 @@ const PlanCard = ({ plan, billing, onSelect, onTrialSelect, userSubscription, ha
           <ul className="mt-5 space-y-2">
             {features.map(f => (
               <li key={f} className="flex items-start gap-2 text-gray-700" style={{ fontSize: '13px' }}>
-                <img src="/carbon_checkmark-filled.png" alt="check" className="w-4 h-4 mt-0.5" />
+                <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/carbon_checkmark-filled.png" alt="check" className="w-4 h-4 mt-0.5" />
                 <span>{f}</span>
               </li>
             ))}
@@ -444,15 +444,15 @@ function Payment() {
 
             <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-3 text-gray-600">
               <div className="flex items-center justify-center gap-2 bg-white/70 rounded-xl border border-gray-200 py-3">
-                <img src="/task-complete-icon.svg" alt="guarantee" className="w-5 h-5" />
+                <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/task-complete-icon.svg" alt="guarantee" className="w-5 h-5" />
                 <span className="text-sm">Smooth payment experience</span>
               </div>
               <div className="flex items-center justify-center gap-2 bg-white/70 rounded-xl border border-gray-200 py-3">
-                <img src="/carbon_checkmark-filled.png" alt="cancel" className="w-5 h-5" />
+                <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/carbon_checkmark-filled.png" alt="cancel" className="w-5 h-5" />
                 <span className="text-sm">Cancel anytime</span>
               </div>
               <div className="flex items-center justify-center gap-2 bg-white/70 rounded-xl border border-gray-200 py-3">
-                <img src="/carbon_checkmark-filled.png" alt="secure" className="w-5 h-5" />
+                <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/carbon_checkmark-filled.png" alt="secure" className="w-5 h-5" />
                 <span className="text-sm">Secure payments</span>
               </div>
             </div>

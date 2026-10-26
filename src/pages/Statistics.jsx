@@ -301,7 +301,7 @@ useEffect(() => {
           <div className="bg-[#f5f5d6] w-full px-3 py-2">
             <div className="flex items-center gap-3">
               <img
-                src="/brain_yellow.png"
+                src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/brain_yellow.png"
                 alt={assessmentData?.title || "Assessment"}
                 className="w-10 h-10 rounded p-0"
               />
@@ -318,7 +318,7 @@ useEffect(() => {
           <div className="p-2.5 flex flex-col justify-between gap-0">
             <div className="flex items-start gap-2 text-[13px] text-gray-700">
               <img
-                src="/certificate-light.png"
+                src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/certificate-light.png"
                 alt="certification"
                 className="w-5 h-5"
               />

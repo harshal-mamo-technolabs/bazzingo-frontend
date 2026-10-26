@@ -34,7 +34,7 @@ const RecentTest = () =>{
           title: s.assessmentName || "Assessment",
           score: s.totalScore ?? 0,
           outOfScore: s.outOfScore ?? 0,
-          icon: "/Brain_game.png",
+          icon: "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/Brain_game.png",
           date: (() => {
             const d = new Date(s.submittedAt);
             return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit' });

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BrainLogo = '/vibrant-brain-icon.png';
+const BrainLogo = 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/vibrant-brain-icon.png';
 
 const BazzingoLoader = ({ message = 'Loading...', compact = false }) => {
   return (

@@ -22,20 +22,20 @@ export const PLATFORM_BRAND_CONTROLS = {
   brands: {
     bazzingo: {
       displayName: 'Bazzingo',
-      logoPath: '/bazzingo-logo.png',
-      bulbPath: '/bazzingo-bulb.png',
-      puzzleBearPath: '/bazzingo-puzzle-bear.png',
-      headImagePath: '/bazzingo-head.png',
-      assessmentHeadPath: '/assessment/bazzingo-head.png',
+      logoPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-logo.png',
+      bulbPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-bulb.png',
+      puzzleBearPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-puzzle-bear.png',
+      headImagePath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-head.png',
+      assessmentHeadPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/assessment/bazzingo-head.png',
     },
     lumria: {
       displayName: 'Testbrain',
       // Replace these paths with dedicated brand assets in /public when available.
-      logoPath: '/testbrain-logo.jpg',
-      bulbPath: '/bazzingo-bulb.png',
-      puzzleBearPath: '/bazzingo-puzzle-bear.png',
-      headImagePath: '/bazzingo-head.png',
-      assessmentHeadPath: '/assessment/bazzingo-head.png',
+      logoPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/testbrain-logo.jpg',
+      bulbPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-bulb.png',
+      puzzleBearPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-puzzle-bear.png',
+      headImagePath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/bazzingo-head.png',
+      assessmentHeadPath: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/assessment/bazzingo-head.png',
     },
   },
 };

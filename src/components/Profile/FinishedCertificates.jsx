@@ -173,7 +173,7 @@ const FinishedCertificates = ({ highlight = false }) => {
         style={highlight ? { willChange: 'background-color, transform' } : {}}
         >
           <img
-            src="/Brain_game.png"
+            src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/Brain_game.png"
             alt="icon"
             className="w-9 h-9"
           />
@@ -235,7 +235,7 @@ const FinishedCertificates = ({ highlight = false }) => {
         style={highlight ? { willChange: 'background-color, transform' } : {}}
         >
           <img
-            src="/Brain_game.png"
+            src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/Brain_game.png"
             alt="icon"
             className="w-9 h-9"
           />
@@ -294,7 +294,7 @@ const FinishedCertificates = ({ highlight = false }) => {
     return (
       <div className="bg-[#EEEEEE] p-3 rounded-lg">
         <div className="flex gap-2 mb-1">
-          <img src="/fluent_certi.png"/>
+          <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/fluent_certi.png"/>
           <h3 className="font-semibold text-gray-500 text-[11px]">
             <TranslatedText text="Finished certified assessments" />
           </h3>
@@ -310,7 +310,7 @@ const FinishedCertificates = ({ highlight = false }) => {
     return (
       <div className="bg-[#EEEEEE] p-3 rounded-lg">
         <div className="flex gap-2 mb-1">
-          <img src="/fluent_certi.png"/>
+          <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/fluent_certi.png"/>
           <h3 className="font-semibold text-gray-500 text-[11px]">
             <TranslatedText text="Finished certified assessments" />
           </h3>
@@ -327,7 +327,7 @@ const FinishedCertificates = ({ highlight = false }) => {
       <div className="hidden lg:block">
         <div className="bg-[#EEEEEE] p-3 rounded-lg">
           <div className="flex gap-2 mb-1">
-            <img src="/fluent_certi.png"/>
+            <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/fluent_certi.png"/>
             <h3 className="font-semibold text-gray-500 text-[11px]">
               <TranslatedText text="Finished certified assessments" />
             </h3>
@@ -345,7 +345,7 @@ const FinishedCertificates = ({ highlight = false }) => {
       <div className="block lg:hidden">
         <div className="bg-[#EEEEEE] p-3 rounded-lg">
           <div className="flex gap-2 mb-1">
-            <img src="/fluent_certi.png" />
+            <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/fluent_certi.png" />
             <h3 className="font-semibold text-gray-500 text-[11px]">
             <TranslatedText text="Finished certified assessments" />
             </h3>

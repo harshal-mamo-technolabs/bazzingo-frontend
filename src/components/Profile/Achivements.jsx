@@ -30,27 +30,27 @@ const Achievements = () => {
   // Static image mappings - updated to match the API badge titles
   const badgeImages = {
     // Assessment Achievement badges
-    "Brain Booster": "/BronzeBadge.png",
-    "Consistent Thinker": "/LockedBadge.png",
-    "Genius Certified": "/GreenBadge.png",
-    "Smart Start": "/GoldBadge.png",
+    "Brain Booster": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/BronzeBadge.png",
+    "Consistent Thinker": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/LockedBadge.png",
+    "Genius Certified": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GreenBadge.png",
+    "Smart Start": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GoldBadge.png",
     
     // Engagement badges
-    "Bazingo Believer": "/LockedBadge.png",
-    "Early Adopter": "/GreenBadge.png",
+    "Bazingo Believer": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/LockedBadge.png",
+    "Early Adopter": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GreenBadge.png",
     
     // Game Achievement badges
-    "Game Explorer": "/GoldBadge.png",
-    "Logic Master": "/GoldBadge.png",
-    "Memory Machine": "/BronzeBadge.png",
-    "Reflex Ninja": "/LockedBadge.png",
-    "Streak Starter": "/GreenBadge.png",
+    "Game Explorer": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GoldBadge.png",
+    "Logic Master": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GoldBadge.png",
+    "Memory Machine": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/BronzeBadge.png",
+    "Reflex Ninja": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/LockedBadge.png",
+    "Streak Starter": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GreenBadge.png",
     
     // Progress & Stats badges
-    "First Milestone": "/GoldBadge.png",
-    "Improver": "/BronzeBadge.png",
-    "Leaderboard Rookie": "/GreenBadge.png",
-    "Top 10 Champion": "/LockedBadge.png"
+    "First Milestone": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GoldBadge.png",
+    "Improver": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/BronzeBadge.png",
+    "Leaderboard Rookie": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GreenBadge.png",
+    "Top 10 Champion": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/LockedBadge.png"
   };
 
   // Get country name from API (capitalize first letter)
@@ -59,17 +59,17 @@ const countryName = ranksAndBadges?.country
 : "India"; // fallback
 
   const leaderboardImages = {
-    "Global": "/global.png",
-    [countryName]: "/Global2.png",
-    "By Age": "/human.png",
-    "By Assessment": "/search.png",
+    "Global": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/global.png",
+    [countryName]: "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/Global2.png",
+    "By Age": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/human.png",
+    "By Assessment": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/search.png",
   };
 
   const sectionImages = {
-    "Game Achievement Badges": "/mingcute_game-2-fill.png",
-    "Assessment Achievement Badges": "/game-icons_brain.png",
-    "Progress & Stats Achievement Badges": "/solar_chart-bold.png",
-    "Engagement Achievement Badges": "/gravity-ui_target-dart.png",
+    "Game Achievement Badges": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/mingcute_game-2-fill.png",
+    "Assessment Achievement Badges": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/game-icons_brain.png",
+    "Progress & Stats Achievement Badges": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/solar_chart-bold.png",
+    "Engagement Achievement Badges": "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/gravity-ui_target-dart.png",
   };
 
   // Map API category names to UI category names (keep as strings for sectionImages lookup)
@@ -116,8 +116,8 @@ const countryName = ranksAndBadges?.country
       isUnlocked: badge.isUnlocked,
       // Use the appropriate badge image based on title and unlock status
       image: badge.isUnlocked 
-        ? (badgeImages[badge.title] || "/GoldBadge.png") 
-        : "/LockedBadge.png"
+        ? (badgeImages[badge.title] || "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/GoldBadge.png") 
+        : "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/LockedBadge.png"
     })),
     earned: badges.filter(badge => badge.isUnlocked).length,
     total: badges.length,
@@ -137,7 +137,7 @@ const countryName = ranksAndBadges?.country
           {/* Leaderboard Rank Game */}
           <div>
             <div className="flex items-center gap-2">
-              <img src="/mingcute_game-2-fill.png" className="mb-3 w-5 h-5" alt="Game Leaderboard Rank"/>
+              <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/mingcute_game-2-fill.png" className="mb-3 w-5 h-5" alt="Game Leaderboard Rank"/>
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2"><TranslatedText text="Leaderboard Game Rank" /></h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -167,7 +167,7 @@ const countryName = ranksAndBadges?.country
           {/* Leaderboard Rank Assessment */}
           <div>
             <div className="flex items-center gap-2">
-              <img src="/game-icons_brain.png" className="mb-3 w-5 h-5" alt="Assessment Leaderboard Rank"/>
+              <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/game-icons_brain.png" className="mb-3 w-5 h-5" alt="Assessment Leaderboard Rank"/>
               <h3 className="text-[11px] text-gray-500 font-semibold mb-2"><TranslatedText text="Leaderboard Assessment Rank" /></h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -254,7 +254,7 @@ const countryName = ranksAndBadges?.country
           <div>
             <div className="flex items-center gap-2">
               <img
-                src="/mingcute_game-2-fill.png"
+                src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/mingcute_game-2-fill.png"
                 className="mb-3 w-5 h-5"
                 alt="Game Leaderboard Rank"
               />
@@ -290,7 +290,7 @@ const countryName = ranksAndBadges?.country
           <div>
             <div className="flex items-center gap-2">
               <img
-                src="/game-icons_brain.png"
+                src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/game-icons_brain.png"
                 className="mb-3 w-5 h-5"
                 alt="Assessment Leaderboard Rank"
               />

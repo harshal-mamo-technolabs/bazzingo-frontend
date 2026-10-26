@@ -24,7 +24,7 @@ export function showInAppNotification(notification) {
       }}
     >
       <img
-        src="http://localhost:5173/beep.png"
+        src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/beep.png"
         alt="Notification"
         style={{
           width: '48px',

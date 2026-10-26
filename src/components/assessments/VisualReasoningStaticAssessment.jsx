@@ -253,22 +253,42 @@ export default function VisualReasoningStaticAssessment() {
     setLoadedOptionImgs({});
   }, [currentQuestion?.id]);
 
-  // Preload next question's images so they're ready before the user navigates
+  // Warm every image in the assessment as soon as the questions arrive, in
+  // question order so Q1 lands first. Capped concurrency on purpose: a 30
+  // question set is ~150 files, and firing them all at once over HTTP/2 makes
+  // the image the user is actually staring at queue behind the other 149.
   useEffect(() => {
-    if (!currentQuestion?.id) return;
-    const nextIdx = currentIndex + 1;
-    const nextQ = isReviewPhase
-      ? unansweredQuestions[nextIdx]?.question
-      : questions[nextIdx];
-    if (!nextQ) return;
+    if (!questions.length) return;
 
-    const preload = (src) => { const img = new window.Image(); img.src = src; };
+    const urls = [];
+    questions.forEach((q) => {
+      if (q.image) urls.push(q.image);
+      if (q.optionsType === 'image' && Array.isArray(q.options)) {
+        q.options.forEach((opt) => urls.push(opt));
+      }
+    });
 
-    if (nextQ.image) preload(nextQ.image);
-    if (nextQ.optionsType === 'image' && Array.isArray(nextQ.options)) {
-      nextQ.options.forEach(preload);
-    }
-  }, [currentIndex, questions, isReviewPhase, unansweredQuestions, currentQuestion?.id]);
+    const queue = [...new Set(urls.filter((u) => typeof u === 'string' && u))];
+    if (!queue.length) return;
+
+    let cancelled = false;
+    let cursor = 0;
+
+    const loadNext = () => {
+      if (cancelled || cursor >= queue.length) return;
+      const img = new window.Image();
+      // Move on either way; a 404 must not stall the rest of the queue.
+      img.onload = loadNext;
+      img.onerror = loadNext;
+      img.src = queue[cursor++];
+    };
+
+    for (let i = 0; i < Math.min(6, queue.length); i++) loadNext();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [questions]);
 
   const progressPercent = useMemo(() => {
     if (isReviewPhase) {

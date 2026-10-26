@@ -3,10 +3,10 @@ import Header from "../components/Header";
 import AssessmentCompletionModal from "../components/assessments/AssessmentCompletionModal.jsx";
 import { getRecentDashboardActivity } from "../services/dashbaordService";
 
-const DailyPuzzleIcon = "/daily-puzzle-icon.png";
-const DailyAssessmentIcon = "/daily-assessment-icon.png";
-const MageScapeIcon = "/maze-escape-icon.png";
-const CheckIcon = "/carbon_checkmark-filled.png";
+const DailyPuzzleIcon = "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/daily-puzzle-icon.png";
+const DailyAssessmentIcon = "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/daily-assessment-icon.png";
+const MageScapeIcon = "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/maze-escape-icon.png";
+const CheckIcon = "https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/carbon_checkmark-filled.png";
 
 export default function VisualReasoningLayout() {
   const [showAllQuestions, setShowAllQuestions] = useState(false);
@@ -67,7 +67,7 @@ const ProgressBar = ({ percentage }) => (
 
 const activities = [
   {
-    icon: '/daily-puzzle-icon.png',
+    icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/daily-puzzle-icon.png',
     alt: 'Daily Puzzle',
     label: 'Daily Puzzle',
     complete: '36/36',
@@ -76,7 +76,7 @@ const activities = [
     iconBg: 'bg-gray-100',
   },
   {
-    icon: '/daily-assessment-icon.png',
+    icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/daily-assessment-icon.png',
     alt: 'Daily Assessment',
     label: 'Daily Assessment',
     complete: '20/20',
@@ -85,7 +85,7 @@ const activities = [
     iconBg: 'bg-gray-100',
   },
   {
-    icon: '/maze-escape-activity-icon.png',
+    icon: 'https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/maze-escape-activity-icon.png',
     alt: 'Mage Scape',
     label: 'Mage Scape',
     complete: '4/36',
@@ -244,7 +244,7 @@ const activities = [
                   }}
                 >
                   <div className="w-10 h-10 rounded-full bg-[#FF5727] flex items-center justify-center border-4 border-[#FFD2C2] shadow-lg">
-                    <img src="/progress_brain.png" alt="brain" className="w-6 h-6 object-contain" />
+                    <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/progress_brain.png" alt="brain" className="w-6 h-6 object-contain" />
                   </div>
                 </div>
               </div>
@@ -347,7 +347,7 @@ const activities = [
                       </div>
                       <div className="flex items-center justify-end min-w-[20px]">
                         <div className="flex items-center space-x-1 text-green-600 text-xs font-medium">
-                          <img src="/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
+                          <img src="https://testbrain-buzzinga.s3.eu-north-1.amazonaws.com/task-complete-icon.svg" alt="Completed" className="w-4 h-4" />
                           <span>Completed</span>
                         </div>
                       </div>
